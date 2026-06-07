@@ -1,0 +1,1609 @@
+{
+  "emojiSets": [
+    {
+      "setId": "pause_countdown_round_01",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 0,
+      "emojis": [
+        {
+          "emojiId": "pcd_t0_b0_r0",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "⚡",
+          "title": "Blink mode",
+          "description": "Micro-pause unlocked—touch grass between swipes.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t0_b1_r0",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🎯",
+          "title": "Focused chaos",
+          "description": "Enough runway for a curated doom-scroll lap.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t0_b2_r0",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🎢",
+          "title": "Mini marathon",
+          "description": "Loop-de-loop energy—still lighter than an hour.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t0_b3_r0",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🎪",
+          "title": "Main stage",
+          "description": "The algorithm booked you a headline slot.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t0_b4_r0",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🎬",
+          "title": "Director's cut",
+          "description": "You're producing a whole mood board of shorts.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pcd_t0_b5_r0",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🌊",
+          "title": "Tide coming in",
+          "description": "The feed rises—remember to surface sometimes.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pcd_t0_b6_r0",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🛰️",
+          "title": "Orbit drift",
+          "description": "You've achieved low orbit around the For You page.",
+          "animation": "FLY"
+        },
+        {
+          "emojiId": "pcd_t0_b7_r0",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🎭",
+          "title": "Plot thickens",
+          "description": "Supporting characters are now reels.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t0_b8_r0",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🚧",
+          "title": "Caution tape",
+          "description": "That's a hefty scroll vacation—sip water.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pcd_t0_b9_r0",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🧯",
+          "title": "Heat check",
+          "description": "Ultra-long pause—touch grass between volcanoes.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t0_b10_r0",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🏆",
+          "title": "Marathon bib",
+          "description": "Maximum pause—legend status, questionable sleep.",
+          "animation": "BOUNCING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_02",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 1,
+      "emojis": [
+        {
+          "emojiId": "pcd_t0_b0_r1",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "🍿",
+          "title": "Snack size",
+          "description": "Barely enough time to debate which reel hits first.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t0_b1_r1",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🥤",
+          "title": "Combo break",
+          "description": "Hydrate, scroll, pretend you will stop soon.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t0_b2_r1",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "📺",
+          "title": "Episode arc",
+          "description": "Like one sitcom block: setup, chaos, cliffhanger.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t0_b3_r1",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🍕",
+          "title": "Full slice",
+          "description": "Long enough for pizza logic to kick in.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t0_b4_r1",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🏟️",
+          "title": "Crowd noise",
+          "description": "Cheers from every swipe—pace yourself.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pcd_t0_b5_r1",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "📚",
+          "title": "Anthology mode",
+          "description": "That's a novella of vertical clips.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pcd_t0_b6_r1",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🍜",
+          "title": "Broth simmering",
+          "description": "Flavor builds—so does screen time.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t0_b7_r1",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "📵",
+          "title": "Soft intervention",
+          "description": "Long pause—maybe stretch between laps?",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t0_b8_r1",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🌋",
+          "title": "Active zone",
+          "description": "Algorithm lava is flowing—mind the shoes.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t0_b9_r1",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🛟",
+          "title": "Life ring",
+          "description": "Throw yourself a stretch break once per reel chapter.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t0_b10_r1",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🚨",
+          "title": "Final boss timer",
+          "description": "Sixty minutes of guilt-free scrolling—then NoScroll snaps back.",
+          "animation": "SHAKE"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_03",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 2,
+      "emojis": [
+        {
+          "emojiId": "pcd_t0_b0_r2",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "😮‍💨",
+          "title": "Quick exhale",
+          "description": "Short breather from blocking—make it count.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pcd_t0_b1_r2",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🛼",
+          "title": "Tiny sprint",
+          "description": "A brisk lap through the algorithm.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pcd_t0_b2_r2",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🎮",
+          "title": "Bonus round",
+          "description": "Power-ups enabled for short-video mode.",
+          "animation": "FLY"
+        },
+        {
+          "emojiId": "pcd_t0_b3_r2",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🔋",
+          "title": "Charge cycle",
+          "description": "Feed the scroll beast before NoScroll reins you back.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t0_b4_r2",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🧃",
+          "title": "Juice box arc",
+          "description": "Sweet, messy, inevitable.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t0_b5_r2",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🎧",
+          "title": "Playlist deep cut",
+          "description": "Autoplay has opinions about your evening.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pcd_t0_b6_r2",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🦉",
+          "title": "Night shift",
+          "description": "Peak owl hours if you aren't careful.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t0_b7_r2",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🔦",
+          "title": "Spotlight",
+          "description": "The glow is flattering; breaks still help.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t0_b8_r2",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "📊",
+          "title": "Budget meeting",
+          "description": "Your pause budget just gave a stern slide deck.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pcd_t0_b9_r2",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "⚓",
+          "title": "Anchored",
+          "description": "You've docked in Shorts Harbor for the long haul.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pcd_t0_b10_r2",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🌑",
+          "title": "Eclipse mode",
+          "description": "The longest night of vertical video—see you on the other side.",
+          "animation": "GLOW"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_04",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 3,
+      "emojis": [
+        {
+          "emojiId": "pcd_t1_b0_r0",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "🏃",
+          "title": "Warm-up lap",
+          "description": "Quick strides through the feed—keep it light.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pcd_t1_b1_r0",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🏋️",
+          "title": "Rep scheme",
+          "description": "Three sets of chaos, one cool-down.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t1_b2_r0",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🧘",
+          "title": "Active recovery",
+          "description": "You're \\\"resting\\\" with infinite shorts—ironic reps.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pcd_t1_b3_r0",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🏟️",
+          "title": "Scrimmage",
+          "description": "Full-field shorts session—mind the sidelines.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pcd_t1_b4_r0",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🥊",
+          "title": "Sparring block",
+          "description": "Duck, weave, double-tap.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t1_b5_r0",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🧗",
+          "title": "Endurance climb",
+          "description": "Long session—pace the crimps (pixels).",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pcd_t1_b6_r0",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🛰️",
+          "title": "Altitude training",
+          "description": "Thin air, thick algorithm.",
+          "animation": "FLY"
+        },
+        {
+          "emojiId": "pcd_t1_b7_r0",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🛎️",
+          "title": "Captain's log",
+          "description": "Extended voyage across Shorts Ocean.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pcd_t1_b8_r0",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🚧",
+          "title": "Hard hat zone",
+          "description": "Heavy-duty scrolling ahead.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pcd_t1_b9_r0",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "⚓",
+          "title": "Berth booked",
+          "description": "You're docking in binge bay.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t1_b10_r0",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🏆",
+          "title": "Ultra distance",
+          "description": "Full-duration pause—legend badge unlocked.",
+          "animation": "BOUNCING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_05",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 4,
+      "emojis": [
+        {
+          "emojiId": "pcd_t1_b0_r1",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "💨",
+          "title": "Burst pace",
+          "description": "HIIT but for thumb cardio.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t1_b1_r1",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "📈",
+          "title": "Progressive overload",
+          "description": "Each swipe adds volume—coach says hydrate.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t1_b2_r1",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🎯",
+          "title": "Drills",
+          "description": "Precision doom-scroll practice.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pcd_t1_b3_r1",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🥤",
+          "title": "Electrolyte lore",
+          "description": "Replace fluids between highlight reels.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t1_b4_r1",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🪜",
+          "title": "Agility ladder",
+          "description": "Footwork optional; thumbwork mandatory.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pcd_t1_b5_r1",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🌡️",
+          "title": "Heat acclimation",
+          "description": "Screen warmth counts, apparently.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t1_b6_r1",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🧠",
+          "title": "Tactical tape",
+          "description": "Study film… that never ends.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pcd_t1_b7_r1",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "📟",
+          "title": "Heart-rate zone",
+          "description": "Spiking every time something loops.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t1_b8_r1",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🧯",
+          "title": "Safety briefing",
+          "description": "Pause is maxed—respect the comeback.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t1_b9_r1",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🛟",
+          "title": "Buddy system",
+          "description": "Grab a stretch buddy before reel five hundred.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t1_b10_r1",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🚨",
+          "title": "Coach whistle",
+          "description": "Sixty minutes free range—then defense locks back in.",
+          "animation": "FLASH"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_06",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 5,
+      "emojis": [
+        {
+          "emojiId": "pcd_t1_b0_r2",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "🥇",
+          "title": "Fast heat",
+          "description": "Podium pace for a tiny scroll sprint.",
+          "animation": "FLY"
+        },
+        {
+          "emojiId": "pcd_t1_b1_r2",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "⏱️",
+          "title": "Interval clock",
+          "description": "Work: scroll. Rest: blink.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t1_b2_r2",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🔁",
+          "title": "Superset",
+          "description": "Reels into reels—stack carefully.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t1_b3_r2",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "📣",
+          "title": "Sideline hype",
+          "description": "The algorithm is cheering loud.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t1_b4_r2",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🔥",
+          "title": "Metcon mood",
+          "description": "High intensity vertical video.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t1_b5_r2",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🕒",
+          "title": "Tempo run",
+          "description": "Steady cadence through the For You mile.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pcd_t1_b6_r2",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "⚖️",
+          "title": "Balance drill",
+          "description": "Lean into entertainment—don't fall into dawn.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t1_b7_r2",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🧴",
+          "title": "Cooldown reminder",
+          "description": "Stretch thumb; stretch spine.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t1_b8_r2",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "📋",
+          "title": "Compliance joke",
+          "description": "Even chaos needs a waiver here.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t1_b9_r2",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🌊",
+          "title": "Tidal workout",
+          "description": "The feed pulls harder this far out.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t1_b10_r2",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🌑",
+          "title": "Lights out set",
+          "description": "Go hard, then let NoScroll tuck you back in.",
+          "animation": "GLOW"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_07",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 6,
+      "emojis": [
+        {
+          "emojiId": "pcd_t2_b0_r0",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "🍬",
+          "title": "Single bite",
+          "description": "A candy-duration pause—sweet and brief.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t2_b1_r0",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🍟",
+          "title": "Snack pack",
+          "description": "Enough salty loops to share… or not.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t2_b2_r0",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🍜",
+          "title": "Steam rising",
+          "description": "Broth-level pause—sip between clips.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t2_b3_r0",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🍕",
+          "title": "Pie chart",
+          "description": "Slices of content—nutrition label missing.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t2_b4_r0",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🍱",
+          "title": "Bento box",
+          "description": "Neat compartments, chaotic appetite.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pcd_t2_b5_r0",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🍷",
+          "title": "Flight tasting",
+          "description": "Sample vertical flights responsibly.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t2_b6_r0",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🍖",
+          "title": "Smoke ring",
+          "description": "Low-and-slow binge energy.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pcd_t2_b7_r0",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🍽️",
+          "title": "Chef's tasting",
+          "description": "Course after course of vertical bites.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t2_b8_r0",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🔥",
+          "title": "Brûlée finish",
+          "description": "Sugar crust forming on your attention span.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t2_b9_r0",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🏪",
+          "title": "Late munchies",
+          "description": "Neon aisles of infinite shorts.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t2_b10_r0",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🎂",
+          "title": "Full sheet cake",
+          "description": "Maximum pause—slice yourself responsibly.",
+          "animation": "BOUNCING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_08",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 7,
+      "emojis": [
+        {
+          "emojiId": "pcd_t2_b0_r1",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "☕",
+          "title": "Espresso shot",
+          "description": "Tiny buzz, loud timeline.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t2_b1_r1",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🧁",
+          "title": "Frosted sprint",
+          "description": "Sugar-rush pacing enabled.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t2_b2_r1",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🌮",
+          "title": "Combo plate",
+          "description": "Layered chaos in every swipe.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t2_b3_r1",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🥘",
+          "title": "One-pot plot",
+          "description": "Everything simmers together on the feed.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pcd_t2_b4_r1",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🧂",
+          "title": "Extra seasoning",
+          "description": "Spice every For You recommendation.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pcd_t2_b5_r1",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🫕",
+          "title": "Fondue dip",
+          "description": "Collective dunk into trends.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t2_b6_r1",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🥧",
+          "title": "Whole pie",
+          "description": "You're ordering the entire algorithm bakery.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pcd_t2_b7_r1",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "📛",
+          "title": "Name tag: Regular",
+          "description": "They know your order… it's reels.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t2_b8_r1",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🧊",
+          "title": "Ice bucket",
+          "description": "Cool thumbs between lava clips.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t2_b9_r1",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🛒",
+          "title": "Cart overflow",
+          "description": "Algorithm upsells keep landing.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pcd_t2_b10_r1",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🚨",
+          "title": "Kitchen closing",
+          "description": "Sixty minutes open bar on shorts—then lights up on blocking.",
+          "animation": "FLASH"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_09",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 8,
+      "emojis": [
+        {
+          "emojiId": "pcd_t2_b0_r2",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "🥠",
+          "title": "Fortune sized",
+          "description": "Crack it open—algorithm answers inside.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t2_b1_r2",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🥤",
+          "title": "Refill cup",
+          "description": "Bottomless scroll fountain.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pcd_t2_b2_r2",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🍿",
+          "title": "Bucket upgrade",
+          "description": "Kernel explosions incoming.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t2_b3_r2",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🍳",
+          "title": "Brunch arc",
+          "description": "Eggs, reels, questionable choices.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t2_b4_r2",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🍰",
+          "title": "Tiered cake",
+          "description": "Layers of irony per swipe.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t2_b5_r2",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🍯",
+          "title": "Sticky momentum",
+          "description": "Hard to quit once fingers get honeyed.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pcd_t2_b6_r2",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🍨",
+          "title": "Sundae station",
+          "description": "Toppings infinite; discipline optional.",
+          "animation": "FLY"
+        },
+        {
+          "emojiId": "pcd_t2_b7_r2",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🧑‍🍳",
+          "title": "Kitchen takeover",
+          "description": "You're running the shorts pass.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t2_b8_r2",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "📦",
+          "title": "Bulk aisle",
+          "description": "Stocked up on vertical calories.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t2_b9_r2",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🍙",
+          "title": "Comfort rice ball",
+          "description": "Soft, round, endless.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pcd_t2_b10_r2",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🌙",
+          "title": "Midnight snack marathon",
+          "description": "Go wild, then let NoScroll snap the pantry shut.",
+          "animation": "GLOW"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_10",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 9,
+      "emojis": [
+        {
+          "emojiId": "pcd_t3_b0_r0",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "🛸",
+          "title": "Micro warp",
+          "description": "Blink-jump across three trends.",
+          "animation": "FLY"
+        },
+        {
+          "emojiId": "pcd_t3_b1_r0",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🚀",
+          "title": "Stage one",
+          "description": "Escape velocity almost optional.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t3_b2_r0",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🌠",
+          "title": "Meteor shower",
+          "description": "Trends streak by—don't blink.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t3_b3_r0",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🧪",
+          "title": "Experiment hour",
+          "description": "Hypothesis: one more reel.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t3_b4_r0",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🦾",
+          "title": "Augmented thumb",
+          "description": "Cybernetic scroll dexterity unlocked.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t3_b5_r0",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🌀",
+          "title": "Wormhole lite",
+          "description": "Twenty-ish minutes sideways in meme-time.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t3_b6_r0",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🛠️",
+          "title": "Temporal wrench",
+          "description": "You loosened Newton's laws of productivity.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t3_b7_r0",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🛸",
+          "title": "Cargo haul",
+          "description": "Freighter full of trending cargo.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t3_b8_r0",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "☄️",
+          "title": "Impact window",
+          "description": "Long trajectory—brace for meme fragments.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pcd_t3_b9_r0",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🌑",
+          "title": "Eclipse protocol",
+          "description": "Sunlight blocked; screenlight maximized.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t3_b10_r0",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🌌",
+          "title": "Galactic finale",
+          "description": "Sixty minutes of warp-speed shorts—then reality reboots.",
+          "animation": "GLOW"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_11",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 10,
+      "emojis": [
+        {
+          "emojiId": "pcd_t3_b0_r1",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "⚙️",
+          "title": "Calibration",
+          "description": "Fine-tuning your doom-scroll gyro.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pcd_t3_b1_r1",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🌌",
+          "title": "Orbit skim",
+          "description": "Gravity optional; algorithm isn't.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t3_b2_r1",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🔭",
+          "title": "Deep field",
+          "description": "Zoom until existential.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pcd_t3_b3_r1",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🧬",
+          "title": "Mutation clock",
+          "description": "Feed evolves faster than you.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t3_b4_r1",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "📡",
+          "title": "Signal boost",
+          "description": "Satellite dish for spicy takes.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pcd_t3_b5_r1",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🛸",
+          "title": "Abduction arc",
+          "description": "They replaced sleep with reels.",
+          "animation": "FLY"
+        },
+        {
+          "emojiId": "pcd_t3_b6_r1",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "⚡",
+          "title": "Fusion tap",
+          "description": "Energy redirected to vertical videos.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t3_b7_r1",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "📟",
+          "title": "Subspace pager",
+          "description": "Legacy tech still buzzes with clips.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pcd_t3_b8_r1",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🛰️",
+          "title": "Lagrange lounge",
+          "description": "Floating between chores and chaos.",
+          "animation": "FLY"
+        },
+        {
+          "emojiId": "pcd_t3_b9_r1",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🚨",
+          "title": "Red alert scroll",
+          "description": "Shields nominal, discipline questionable.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t3_b10_r1",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🛸",
+          "title": "Black hole tourism",
+          "description": "Event horizon is the last reel.",
+          "animation": "SINKING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_12",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 11,
+      "emojis": [
+        {
+          "emojiId": "pcd_t3_b0_r2",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "🔋",
+          "title": "Capacitor tick",
+          "description": "Tiny discharge of infinite content.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t3_b1_r2",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🛰️",
+          "title": "Telemetry ping",
+          "description": "Mission control sees every swipe.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t3_b2_r2",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🪐",
+          "title": "Ring passage",
+          "description": "Loop around content gravity wells.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pcd_t3_b3_r2",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🕹️",
+          "title": "Simulator slot",
+          "description": "NPC behavior: scrolling.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pcd_t3_b4_r2",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🔮",
+          "title": "Probability cloud",
+          "description": "Schrodinger's rabbit hole—open app to collapse.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t3_b5_r2",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🌐",
+          "title": "Mesh network",
+          "description": "Every creator node pings you at once.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pcd_t3_b6_r2",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🧊",
+          "title": "Cryo nap joke",
+          "description": "Freeze guilt; thaw later.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t3_b7_r2",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🔭",
+          "title": "Dark matter snack",
+          "description": "Invisible calories from invisible scrolling.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t3_b8_r2",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🧲",
+          "title": "Tractor beam",
+          "description": "Can't leave the feed once locked.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t3_b9_r2",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🛸",
+          "title": "Mothership ping",
+          "description": "They know you're still watching.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t3_b10_r2",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "⚠️",
+          "title": "System restore pending",
+          "description": "NoScroll returns after max pause—save your eyes.",
+          "animation": "SHAKE"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_13",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 12,
+      "emojis": [
+        {
+          "emojiId": "pcd_t4_b0_r0",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "🐣",
+          "title": "Peep break",
+          "description": "Tiny chirps between massive trends.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t4_b1_r0",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🐕",
+          "title": "Park sprint",
+          "description": "Fetch… another reel.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pcd_t4_b2_r0",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🐠",
+          "title": "Fishbowl lap",
+          "description": "Round and round—sound familiar?",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pcd_t4_b3_r0",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🦊",
+          "title": "Sly binge",
+          "description": "Clever until sunrise.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pcd_t4_b4_r0",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🦮",
+          "title": "Guide dog meta",
+          "description": "Leading you straight to the algorithm.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t4_b5_r0",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🐋",
+          "title": "Deep dive",
+          "description": "Breaching the surface between doom-scroll tides.",
+          "animation": "FLY"
+        },
+        {
+          "emojiId": "pcd_t4_b6_r0",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🦌",
+          "title": "Forest binge",
+          "description": "Gentle creatures, aggressive algorithm.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pcd_t4_b7_r0",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🦙",
+          "title": "Drama llama",
+          "description": "Forty-five minutes of plot twists.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t4_b8_r0",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🐘",
+          "title": "Memory lane",
+          "description": "Never forget… that cliffhanger reel.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t4_b9_r0",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🐅",
+          "title": "Prowl hour",
+          "description": "Quiet danger of infinite tabs.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pcd_t4_b10_r0",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🦁",
+          "title": "Pride leader",
+          "description": "Roaring through a sixty-minute safari of shorts.",
+          "animation": "FLASH"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_14",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 13,
+      "emojis": [
+        {
+          "emojiId": "pcd_t4_b0_r1",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "🐾",
+          "title": "Paw prints",
+          "description": "Soft steps through the feed.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t4_b1_r1",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🐈",
+          "title": "Keyboard patrol",
+          "description": "Cat distribution system activated.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t4_b2_r1",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🐢",
+          "title": "Slow-mode joke",
+          "description": "Actually you're turbo-scrolling.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pcd_t4_b3_r1",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🐼",
+          "title": "Bamboo buffet",
+          "description": "Endless vertical shoots.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t4_b4_r1",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🐧",
+          "title": "Waddle marathon",
+          "description": "Formal attire; informal sleep schedule.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t4_b5_r1",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🦦",
+          "title": "Float session",
+          "description": "On your back in a river of reels.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pcd_t4_b6_r1",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🦔",
+          "title": "Spiky cozy",
+          "description": "Soft belly, sharp screen time.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pcd_t4_b7_r1",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🐫",
+          "title": "Desert caravan",
+          "description": "Long haul—stock water.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pcd_t4_b8_r1",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🦓",
+          "title": "Stripe pacing",
+          "description": "Hypnotic loops everywhere.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pcd_t4_b9_r1",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🐻",
+          "title": "Hibernate fake-out",
+          "description": "Sleep later; scroll now.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pcd_t4_b10_r1",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🐉",
+          "title": "Legend boss",
+          "description": "Max pause energy—tame the scroll, then NoScroll returns.",
+          "animation": "GLOW"
+        }
+      ]
+    },
+    {
+      "setId": "pause_countdown_round_15",
+      "placementId": "EMOJI_PLAN_PAUSE_COUNTDOWN",
+      "enabled": true,
+      "createdTimeStamp": 14,
+      "emojis": [
+        {
+          "emojiId": "pcd_t4_b0_r2",
+          "rangeMin": 0,
+          "rangeMax": 3,
+          "emoji": "🧶",
+          "title": "Ball of yarn",
+          "description": "Tangle gently—it's only minutes.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pcd_t4_b1_r2",
+          "rangeMin": 4,
+          "rangeMax": 6,
+          "emoji": "🦴",
+          "title": "Treat mindset",
+          "description": "Earn dopamine biscuits responsibly.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t4_b2_r2",
+          "rangeMin": 7,
+          "rangeMax": 9,
+          "emoji": "🦆",
+          "title": "Chaos waddle",
+          "description": "Adorable pacing through Shorts Pond.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t4_b3_r2",
+          "rangeMin": 10,
+          "rangeMax": 15,
+          "emoji": "🐿️",
+          "title": "Nut stash",
+          "description": "Saving clips for winter… or three a.m.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "pcd_t4_b4_r2",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🦉",
+          "title": "Night sentry",
+          "description": "Who needs sleep when shorts exist?",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pcd_t4_b5_r2",
+          "rangeMin": 21,
+          "rangeMax": 30,
+          "emoji": "🐙",
+          "title": "Multi-thumb",
+          "description": "Eight arms still can't escape trends.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t4_b6_r2",
+          "rangeMin": 31,
+          "rangeMax": 40,
+          "emoji": "🐎",
+          "title": "Gallop mode",
+          "description": "Hooves optional; thumbs mandatory.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pcd_t4_b7_r2",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🦜",
+          "title": "Echo chamber",
+          "description": "Squawk along with every trend.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pcd_t4_b8_r2",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🦒",
+          "title": "High browse",
+          "description": "Neck hurts from looking down.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pcd_t4_b9_r2",
+          "rangeMin": 51,
+          "rangeMax": 55,
+          "emoji": "🦊",
+          "title": "Midnight mischief",
+          "description": "Premium chaos unlocked.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pcd_t4_b10_r2",
+          "rangeMin": 56,
+          "rangeMax": 60,
+          "emoji": "🦄",
+          "title": "Final sparkle",
+          "description": "Mythical stamina; mortal eyes—take breaks.",
+          "animation": "BOUNCING"
+        }
+      ]
+    }
+  ]
+}

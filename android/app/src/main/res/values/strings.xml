@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Detoxo</string>
+    <string name="accessibility_service_description">Detoxo uses the Accessibility Service to detect short-form video (reels, shorts) in your apps and block it so you can stay focused. It reads on-screen content only to find and block distracting feeds; it does not collect or transmit your screen content.</string>
+    <string name="accessibility_service_summary">Detect and block reels, shorts and infinite feeds.</string>
+    <string name="device_admin_label">Detoxo Uninstall Protection</string>
+    <string name="device_admin_description">Prevents the app from being removed while protection is active.</string>
+</resources>

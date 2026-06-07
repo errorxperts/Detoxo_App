@@ -1,0 +1,57 @@
+{
+  "emojiSets": [
+    {
+      "setId": "daily_limit_round_01",
+      "placementId": "DAILY_LIMIT_HERO",
+      "enabled": true,
+      "createdTimeStamp": 0,
+      "emojis": [
+        {
+          "emojiId": "daily_0_0",
+          "rangeMin": 0,
+          "rangeMax": 0,
+          "emoji": "🛑",
+          "title": "Total Lockdown!",
+          "description": "Monk mode activated. No restricted apps allowed today.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "daily_1_30",
+          "rangeMin": 1,
+          "rangeMax": 30,
+          "emoji": "🚀",
+          "title": "Laser Focus",
+          "description": "Amazing! You are taking back control of your day.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "daily_31_120",
+          "rangeMin": 31,
+          "rangeMax": 120,
+          "emoji": "⚖️",
+          "title": "Healthy Balance",
+          "description": "A reasonable limit. Good job setting boundaries.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "daily_121_240",
+          "rangeMin": 121,
+          "rangeMax": 240,
+          "emoji": "🕰️",
+          "title": "Slipping Away...",
+          "description": "Careful, you're dedicating a large chunk of your day to screen time.",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "daily_241_plus",
+          "rangeMin": 241,
+          "rangeMax": 999999,
+          "emoji": "🧟",
+          "title": "Doomscroller Mode",
+          "description": "Are you sure? This limit defeats the purpose of the blocker!",
+          "animation": "SHAKE"
+        }
+      ]
+    }
+  ]
+}

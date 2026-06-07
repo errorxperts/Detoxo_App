@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Accessibility service configuration for the Detoxo detection engine.
+     - typeAllMask: we need window-state + content + scroll events to catch reels.
+     - notificationTimeout 100ms: responsive without flooding.
+     - flagRetrieveInteractiveWindows + flagReportViewIds: required to read the
+       foreground app's view tree and resource-ids.
+     - canRetrieveWindowContent: read node trees.
+     - canPerformGestures: enables global-action back / future gesture blocks. -->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accessibilityEventTypes="typeAllMask"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault|flagRetrieveInteractiveWindows|flagReportViewIds|flagRequestFilterKeyEvents|flagIncludeNotImportantViews"
+    android:canRetrieveWindowContent="true"
+    android:canRequestFilterKeyEvents="true"
+    android:canPerformGestures="true"
+    android:notificationTimeout="100"
+    android:description="@string/accessibility_service_description"
+    android:summary="@string/accessibility_service_summary"/>

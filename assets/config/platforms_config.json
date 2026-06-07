@@ -1,0 +1,1558 @@
+{
+  "responsecode": 200,
+  "featuredApps": {
+    "com.biomes.vanced": {
+      "packageName": "com.biomes.vanced",
+      "appName": "Youtube Vanced",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 0,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_vanced.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "yt_shorts_vanced",
+          "packageName": "com.biomes.vanced",
+          "platformName": "YouTube Vanced Shorts",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_vanced.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/progress"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": true
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.google.android.youtube": {
+      "packageName": "com.google.android.youtube",
+      "appName": "Youtube",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 0,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_shorts.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "yt_shorts",
+          "packageName": "com.google.android.youtube",
+          "platformName": "YouTube Shorts",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_shorts.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/reel_player_underlay"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": true,
+      "appOpenActions": [
+        {
+          "name": "Search",
+          "url": "https://www.youtube.com/results?search_query="
+        },
+        {
+          "name": "Subscriptions",
+          "url": "https://www.youtube.com/feed/subscriptions"
+        }
+      ],
+      "browser": false
+    },
+    "app.revanced.android.youtube": {
+      "packageName": "app.revanced.android.youtube",
+      "appName": "Youtube Re-Vanced",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 0,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_revanced.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "yt_shorts_revanced",
+          "packageName": "app.revanced.android.youtube",
+          "platformName": "YouTube Revanced Shorts",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_revanced.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/reel_player_underlay"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": true
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com_google_android_youtube": {
+      "packageName": "com_google_android_youtube",
+      "appName": "In-App Youtube",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 0,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_shorts.png",
+      "premiumExclusive": true,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": true,
+      "platforms": [
+        {
+          "platformId": "yt_inapp_shorts",
+          "packageName": "com_google_android_youtube",
+          "platformName": "In-App YouTubeShorts",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_shorts.png",
+          "detectors": {},
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "CALIBRATION",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": false,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": false,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.instagram.lite": {
+      "packageName": "com.instagram.lite",
+      "appName": "Instagram Lite",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 1,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_lite.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "insta_lite",
+          "packageName": "com.instagram.lite",
+          "platformName": "Insta Lite Reels",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_lite.png",
+          "detectors": {},
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "CALIBRATION",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.instapro.android": {
+      "packageName": "com.instapro.android",
+      "appName": "Insta PRO",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 1,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "insta_pro",
+          "packageName": "com.instapro.android",
+          "platformName": "Insta pro Reels",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 3,
+              "identifiers": [
+                ":id/reel_viewer_title"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        },
+        {
+          "platformId": "insta_pro_stories",
+          "packageName": "com.instapro.android",
+          "platformName": "Insta pro Stories",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro.png",
+          "detectors": {},
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.instagram.android": {
+      "packageName": "com.instagram.android",
+      "appName": "Instagram",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 1,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_reels.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "ig_feed",
+          "packageName": "com.instagram.android",
+          "platformName": "Instagram Feed",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_reels.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 1,
+              "identifiers": [
+                ":id/media_group"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 1,
+              "params": "{\n  \"primary_id\": \":id/media_group\",\n  \"config\": {\n    \"curious_support\": true,\n    \"block_all_support\": true,\n    \"overlay_support\": false,\n    \"blackout_message\": \"\"\n  },\n  \"footer\": {\n    \"primary_footer\": \":id/feed_tab\",\n    \"blackout_footer\": \":id/feed_tab\"\n  },\n  \"header\": {\n    \"primary_header\": \":id/action_bar_title_view\",\n    \"blackout_header\": \":id/outer_container\"\n  },\n  \"primary_addons\": [\n    \":id/carousel_media_group\"\n  ],\n  \"secondary\": [\n    {\n      \"id\": \":id/inline_follow_button\",\n      \"location\": 0\n    }\n  ]\n}",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "OVERLAY",
+          "defaultStatus": false,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": true
+        },
+        {
+          "platformId": "ig_reel",
+          "packageName": "com.instagram.android",
+          "platformName": "Instagram Reels",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_reels.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 2,
+              "identifiers": [
+                ":id/clips_author_username"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        },
+        {
+          "platformId": "ig_reel_by_friend",
+          "packageName": "com.instagram.android",
+          "platformName": "Allow Reels By Friends",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_reels.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "NONE"
+              ],
+              "defaultBlockMode": "NONE",
+              "priority": 0,
+              "identifiers": [
+                ":id/reply_bar_edittext"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": false,
+          "customizable": false,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        },
+        {
+          "platformId": "ig_stories",
+          "packageName": "com.instagram.android",
+          "platformName": "Instagram Stories",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_reels.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 3,
+              "identifiers": [
+                ":id/reel_viewer_title"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": false,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": true,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.instapro2.android": {
+      "packageName": "com.instapro2.android",
+      "appName": "Insta PRO2",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 1,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro2.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "insta_pro2",
+          "packageName": "com.instapro2.android",
+          "platformName": "Insta pro2 Reels",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro2.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 2,
+              "identifiers": [
+                ":id/clips_video_container"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        },
+        {
+          "platformId": "insta_pro2_stories",
+          "packageName": "com.instapro2.android",
+          "platformName": "Insta pro2 Stories",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro2.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 3,
+              "identifiers": [
+                ":id/reel_viewer_title"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.facebook.lite": {
+      "packageName": "com.facebook.lite",
+      "appName": "Facebook Lite",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 2,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb_lite.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "facebook_lite",
+          "packageName": "com.facebook.lite",
+          "platformName": "FB Lite",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb_lite.png",
+          "detectors": {},
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "CALIBRATION",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        },
+        {
+          "platformId": "facebook_lite_video",
+          "packageName": "com.facebook.lite",
+          "platformName": "FB Lite Video",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb_lite.png",
+          "detectors": {},
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "CALIBRATION",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.facebook.katana": {
+      "packageName": "com.facebook.katana",
+      "appName": "Facebook",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 2,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "facebook_video",
+          "packageName": "com.facebook.katana",
+          "platformName": "FB Reels/Video",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb.png",
+          "detectors": {},
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "CALIBRATION",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": true
+        },
+        {
+          "platformId": "fb_reel",
+          "packageName": "com.facebook.katana",
+          "platformName": "Facebook Reels (Legacy)",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb.png",
+          "detectors": {
+            "CONT_DESC": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                "Add a comment…",
+                "Add a comment",
+                "Adiciona um comentário...",
+                "Añade un comentario…",
+                "Ajoutez un commentaire...",
+                "Kommentieren …",
+                "Добавьте комментарий…",
+                "Yorum ekle…",
+                "Dodaj komentarz...",
+                "Tilføj en kommentar ...",
+                "Hozzászólás írása...",
+                "Aggiungi un commento...",
+                "コメントを追加…",
+                "Agrega un comentario…",
+                "Agregar un comentario",
+                "Lägg till en kommentar …",
+                "Lägg till en kommentar"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": true
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.snapchat.android": {
+      "packageName": "com.snapchat.android",
+      "appName": "Snapchat",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 3,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_sc_sl.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "snap_discover",
+          "packageName": "com.snapchat.android",
+          "platformName": "Snapchat Discover Page",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_sc_sl.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/df_large_story"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": false,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        },
+        {
+          "platformId": "snap_spotlights",
+          "packageName": "com.snapchat.android",
+          "platformName": "Snapchat Spotlights",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_sc_sl.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/spotlight_view_count",
+                ":id/favorite"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        },
+        {
+          "platformId": "snap_stories",
+          "packageName": "com.snapchat.android",
+          "platformName": "Snapchat Stories",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_sc_st.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/view_profile"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            },
+            "VIEWID_RES_NAME": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                "context_vertical_actions/context_vertical_action_share",
+                "context_vertical_actions/context_vertical_action_favorite"
+              ],
+              "childNodeLimit": 500,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": true,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.whatsapp": {
+      "packageName": "com.whatsapp",
+      "appName": "Whatsapp",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 4,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_whatsapp.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "wa_status",
+          "packageName": "com.whatsapp",
+          "platformName": "WhatsApp Status",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_whatsapp.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/status_header"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": false,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": true
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": true,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.whatsapp.w4b": {
+      "packageName": "com.whatsapp.w4b",
+      "appName": "Whatsapp Business",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 5,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_wab.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "wab_status",
+          "packageName": "com.whatsapp.w4b",
+          "platformName": "WhatsApp Business Status",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_wab.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/status_header"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": false,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": true
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.ss.android.ugc.trill": {
+      "packageName": "com.ss.android.ugc.trill",
+      "appName": "TikTok",
+      "actionOnLaunch": "KILL_APP",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 5,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_tiktok.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "tiktok_clips",
+          "packageName": "com.ss.android.ugc.trill",
+          "platformName": "TikTok Videos",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_tiktok.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "KILL_APP",
+              "priority": 0,
+              "identifiers": [
+                ":id/desc"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.zhiliaoapp.musically": {
+      "packageName": "com.zhiliaoapp.musically",
+      "appName": "TikTok",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 5,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_tiktok.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "tiktok_clips_legacy",
+          "packageName": "com.zhiliaoapp.musically",
+          "platformName": "TikTok Videos",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_tiktok.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "KILL_APP",
+              "priority": 0,
+              "identifiers": [
+                ":id/desc"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.twitter.android": {
+      "packageName": "com.twitter.android",
+      "appName": "X (Twitter)",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 6,
+      "iconUrl": "https://curizic.com/NoScroll/icons/x_icon.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": true,
+      "platforms": [
+        {
+          "platformId": "x_twitter",
+          "packageName": "com.twitter.android",
+          "platformName": "X Reels",
+          "iconUrl": "https://curizic.com/NoScroll/icons/x_icon.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/mediacontroller_progress"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": true,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.linkedin.android": {
+      "packageName": "com.linkedin.android",
+      "appName": "LinkedIn",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 7,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_linkedin.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": true,
+      "platforms": [
+        {
+          "platformId": "linkedin_video",
+          "packageName": "com.linkedin.android",
+          "platformName": "LinkedIn Watch",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_linkedin.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/media_viewer_actor_bottom"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": true
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": true,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.reddit.frontpage": {
+      "packageName": "com.reddit.frontpage",
+      "appName": "Reddit",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 8,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_reddit.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": true,
+      "platforms": [
+        {
+          "platformId": "reddit_watch",
+          "packageName": "com.reddit.frontpage",
+          "platformName": "Reddit Watch",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_reddit.png",
+          "detectors": {
+            "VIEWID_RES_NAME": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                "content_video_view"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.opera.mini.native": {
+      "packageName": "com.opera.mini.native",
+      "appName": "Opera Browser",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 9,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_opera.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": true,
+      "platforms": [
+        {
+          "platformId": "opera_yt_reels",
+          "packageName": "com.opera.mini.native",
+          "platformName": "Opera YT",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_opera.png",
+          "detectors": {},
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "CALIBRATION",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": true
+    },
+    "com.vk.clips": {
+      "packageName": "com.vk.clips",
+      "appName": "VK Clips",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 10,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_vk.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "vk_app_clips",
+          "packageName": "com.vk.clips",
+          "platformName": "VK Clips app",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_vk.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/clip_owner_name_scrollable"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.vkontakte.android": {
+      "packageName": "com.vkontakte.android",
+      "appName": "VK",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 10,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_vk_clips.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "vk_clips",
+          "packageName": "com.vkontakte.android",
+          "platformName": "VK Clips",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_vk_clips.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/fullscreen_clip_overlay_like_text",
+                ":id/clip_owner_view"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.google.android.apps.youtube.music": {
+      "packageName": "com.google.android.apps.youtube.music",
+      "appName": "YouTube Music",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 10,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_music.png",
+      "premiumExclusive": true,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "ytm_shorts",
+          "packageName": "com.google.android.apps.youtube.music",
+          "platformName": "YT Music Samples",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_music.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/reel_player_page_container"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": false,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": true,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.snaptube.premium": {
+      "packageName": "com.snaptube.premium",
+      "appName": "SnapTube",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 11,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_snaptube.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "snaptube_premium",
+          "packageName": "com.snaptube.premium",
+          "platformName": "SnapTube Shorts",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_snaptube.png",
+          "detectors": {
+            "FINDBYID": {
+              "supportedBlockModes": [
+                "PRESS_BACK",
+                "KILL_APP"
+              ],
+              "defaultBlockMode": "PRESS_BACK",
+              "priority": 0,
+              "identifiers": [
+                ":id/playback_gesture_detector",
+                ":id/anp"
+              ],
+              "childNodeLimit": -1,
+              "actionOnLaunch": "NONE",
+              "paramsClass": 0,
+              "params": "",
+              "message": "",
+              "detectionParams": null,
+              "haltOnDetect": true,
+              "coupleWith": []
+            }
+          },
+          "manualConfig": {},
+          "showAlwaysInBlockList": true,
+          "detectionType": "LEGACY",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.sgebrelibanos.aderaser": {
+      "packageName": "com.sgebrelibanos.aderaser",
+      "appName": "CleanTube",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 12,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_cleantube.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [
+        {
+          "platformId": "cleantube_yt_reels",
+          "packageName": "com.sgebrelibanos.aderaser",
+          "platformName": "CleanTube Shorts",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_cleantube.png",
+          "detectors": {},
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "CALIBRATION",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "xyz.blueskyweb.app": {
+      "packageName": "xyz.blueskyweb.app",
+      "appName": "BlueSky",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 13,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_bluesky.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": false,
+      "platforms": [],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    },
+    "com.jio.web": {
+      "packageName": "com.jio.web",
+      "appName": "Jio Web",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 51,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_jiosphere.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": true,
+      "platforms": [
+        {
+          "platformId": "jio_sphere_yt_reels",
+          "packageName": "com.jio.web",
+          "platformName": "JioSphere YT",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_jiosphere.png",
+          "detectors": {},
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "CALIBRATION",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": true
+    },
+    "xyz.penpencil.physicswala": {
+      "packageName": "xyz.penpencil.physicswala",
+      "appName": "PhysicsWala",
+      "actionOnLaunch": "NONE",
+      "paramsClass": -1,
+      "params": "{}",
+      "priority": 52,
+      "iconUrl": "https://curizic.com/NoScroll/icons/ic_pw.png",
+      "premiumExclusive": false,
+      "minAppVersion": -1,
+      "maxAppVersion": -1,
+      "supportInAppYtShorts": true,
+      "platforms": [
+        {
+          "platformId": "pw_yt_reels",
+          "packageName": "xyz.penpencil.physicswala",
+          "platformName": "PW Shorts",
+          "iconUrl": "https://curizic.com/NoScroll/icons/ic_pw.png",
+          "detectors": {},
+          "manualConfig": {},
+          "showAlwaysInBlockList": false,
+          "detectionType": "CALIBRATION",
+          "defaultStatus": true,
+          "customizable": true,
+          "showInDashboard": true,
+          "premiumExclusive": false
+        }
+      ],
+      "showInDashboard": true,
+      "showIfNotInstalled": false,
+      "appOpenActions": [],
+      "browser": false
+    }
+  },
+  "message": "Success",
+  "updateMessage": "",
+  "updateIcon": "",
+  "configVersion": 32
+}

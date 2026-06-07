@@ -1,0 +1,39 @@
+{
+  "emojiSets": [
+    {
+      "setId": "pause_cd_cooldown_01",
+      "placementId": "EMOJI_PAUSE_COUNTDOWN_COOLDOWN",
+      "enabled": true,
+      "createdTimeStamp": 0,
+      "emojis": [
+        {
+          "emojiId": "cd_pct_0_19",
+          "rangeMin": 0,
+          "rangeMax": 19,
+          "emoji": "🔥",
+          "title": "Almost Free",
+          "description": "The cooldown is nearly over. Hang in there!",
+          "animation": "SHAKE"
+        },
+        {
+          "emojiId": "cd_pct_20_49",
+          "rangeMin": 20,
+          "rangeMax": 49,
+          "emoji": "⏳",
+          "title": "Keeping Cool",
+          "description": "Blocker is doing its job. Stay patient.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "cd_pct_50_100",
+          "rangeMin": 50,
+          "rangeMax": 100,
+          "emoji": "❄️",
+          "title": "Chill Out",
+          "description": "Cooldown active. Refine your focus.",
+          "animation": "BOUNCING"
+        }
+      ]
+    }
+  ]
+}

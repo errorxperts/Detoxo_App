@@ -1,0 +1,213 @@
+{
+  "versionAvailability": {
+    "versionInfo": {
+      "versionCode": 93,
+      "versionName": "2.0.0_beta_1",
+      "promptUpdate": true,
+      "forceUpdate": false,
+      "beta": true,
+      "changelog": "1. Complete Revamp\r\n\r\n\r\n"
+    },
+    "warningCode": "UPDATE_PROMPT",
+    "title": "Update Available!",
+    "desc": "",
+    "icon": "",
+    "available": true,
+    "beta": false
+  },
+  "inappNotification": [
+    {
+      "notificationId": "/noscroll/feedback_v2",
+      "title": "Help shape the future of NoScroll 📣",
+      "description": "Share your NoScroll feedback and help us build our next update!",
+      "cta": "Join",
+      "priority": 0,
+      "ctaAction": "URL",
+      "ctaUrl": "https://forms.gle/PPrKcDivKj8UqxE56",
+      "metadata": "{}",
+      "expiry": 4068124200000,
+      "icon": "",
+      "premiumExclusive": true,
+      "guestExclusive": true,
+      "dismissible": true
+    },
+    {
+      "notificationId": "/noscroll/notification_permission",
+      "title": "Notification Permission",
+      "description": "Get notified whenever Accessibility Service stops or to get productivity tips.",
+      "cta": "Allow",
+      "priority": 1,
+      "ctaAction": "NOTIFICATION",
+      "ctaUrl": "",
+      "metadata": "{}",
+      "expiry": 4068124200000,
+      "icon": "",
+      "premiumExclusive": true,
+      "guestExclusive": true,
+      "dismissible": true
+    },
+    {
+      "notificationId": "/noscroll/rating",
+      "title": "Share Your Experience!",
+      "description": "Tell others how NoScroll made your life better! 🚀",
+      "cta": "Rate Now",
+      "priority": 1,
+      "ctaAction": "RATING",
+      "ctaUrl": "",
+      "metadata": "{}",
+      "expiry": 4068124200000,
+      "icon": "",
+      "premiumExclusive": true,
+      "guestExclusive": true,
+      "dismissible": true
+    },
+    {
+      "notificationId": "/noscroll/reddit-official-community",
+      "title": "NoScroll Community",
+      "description": "Join NoScroll Reddit community!",
+      "cta": "Join",
+      "priority": 1,
+      "ctaAction": "URL",
+      "ctaUrl": "https://www.reddit.com/r/NoScroll_Official/",
+      "metadata": "{}",
+      "expiry": 4068124200000,
+      "icon": "",
+      "premiumExclusive": true,
+      "guestExclusive": true,
+      "dismissible": true
+    },
+    {
+      "notificationId": "/noscroll/roadmap",
+      "title": "Quit Scrolling Addiction",
+      "description": "Try our 6-week roadmap now!",
+      "cta": "Download",
+      "priority": 1,
+      "ctaAction": "URL",
+      "ctaUrl": "https://curizic.com/NoScroll/how-to-quit-shorts-reels-addiction.pdf",
+      "metadata": "{}",
+      "expiry": 4068124200000,
+      "icon": "",
+      "premiumExclusive": true,
+      "guestExclusive": true,
+      "dismissible": true
+    }
+  ],
+  "warningMessages": [
+    {
+      "notificationId": "/noscroll/accessibility",
+      "title": "Accessibility Service Required",
+      "description": "NoScroll relies on Accessibility Service to function properly. Please enable it to block shorts, reels, and distracting content.",
+      "cta": "Turn On",
+      "priority": 0,
+      "ctaAction": "ACCESSIBILITY",
+      "ctaUrl": "com.newswarajya.noswipe.reelshortblocker",
+      "metadata": "true",
+      "expiry": 4068124200000,
+      "icon": "",
+      "premiumExclusive": true,
+      "guestExclusive": true,
+      "dismissible": false
+    },
+    {
+      "notificationId": "/noscroll/battery",
+      "title": "Disable Battery Optimization",
+      "description": "NoScroll requires unrestricted access to run smoothly in the background and block distractions effectively. Battery optimization may interrupt its functionality.",
+      "cta": "Open Settings",
+      "priority": 1,
+      "ctaAction": "BATTERY_OPTIMIZATION",
+      "ctaUrl": "com.curizic.annote",
+      "metadata": "{\"key\":\"value\"}",
+      "expiry": 4068124200000,
+      "icon": "",
+      "premiumExclusive": true,
+      "guestExclusive": true,
+      "dismissible": false
+    }
+  ],
+  "adsConfig": null,
+  "admobConfig": {
+    "/home/blocker/blocked_sites": {
+      "adTag": "ca-app-pub-1071824559641088/6443357830",
+      "adType": "BANNER"
+    },
+    "/home/dashboard/banner": {
+      "adTag": "ca-app-pub-1071824559641088/8241955747",
+      "adType": "LARGE_BANNER"
+    },
+    "/home/blocker/blocked_apps": {
+      "adTag": "ca-app-pub-1071824559641088/2618825095",
+      "adType": "BANNER"
+    },
+    "/home/dashboard/plan_switch": {
+      "adTag": "ca-app-pub-1071824559641088/5343259032",
+      "adType": "REWARDED"
+    }
+  },
+  "activePlanDetails": {
+    "aiFeatures": false,
+    "blockAds": false,
+    "premiumFeatures": false,
+    "parentalFeatures": false,
+    "topTierPlan": false,
+    "promptUpgrades": true,
+    "plans": []
+  },
+  "inhouseNativeAdConfig": {
+    "id": "/noscroll/linkwall-ad",
+    "logo": "https://curizic.com/LinkWall/linkwall.png",
+    "title": "LinkWall",
+    "desc": "Protection from phishing attacks",
+    "cta": "Install",
+    "target": "com.swarajyadev.linkprotector",
+    "active": true
+  },
+  "premiumPurchaseCTA": {
+    "id": "/noscroll/home/premium",
+    "title": "Upgrade for more features",
+    "desc": "Get more with NoScroll premium",
+    "cta": "Upgrade",
+    "whatsNew": "LinkedIn support, web support, site & apps blocker and more",
+    "active": true
+  },
+  "videoConfig": {
+    "CONFIG_ACCESS_VID": "--xp1ybU7Kw",
+    "PLAN_SELECTION_VID": "_Xhdk4Ms8V4",
+    "CONFIG_CURIOUS_VID": "_Xhdk4Ms8V4",
+    "STRESSED_DEVICE": "--xp1ybU7Kw"
+  },
+  "featuresAvailability": {
+    "smart_mode": {
+      "featureId": "smart_mode",
+      "minOSVersion": 0,
+      "maxOSVersion": 999,
+      "params": "",
+      "enabled": true,
+      "premiumOnly": false
+    },
+    "memory_warning": {
+      "featureId": "memory_warning",
+      "minOSVersion": 0,
+      "maxOSVersion": 999,
+      "params": "",
+      "enabled": true,
+      "premiumOnly": false
+    },
+    "feed_blocker": {
+      "featureId": "feed_blocker",
+      "minOSVersion": 0,
+      "maxOSVersion": 999,
+      "params": "",
+      "enabled": true,
+      "premiumOnly": true
+    },
+    "reels_by_friends": {
+      "featureId": "reels_by_friends",
+      "minOSVersion": 0,
+      "maxOSVersion": 999,
+      "params": ":id/reply_bar_edittext",
+      "enabled": true,
+      "premiumOnly": false
+    }
+  },
+  "platformConfigVersion": 32
+}

@@ -1,0 +1,984 @@
+{
+  "emojiSets": [
+    {
+      "setId": "pause_round_01",
+      "placementId": "EMOJI_PLAN_PAUSE",
+      "enabled": true,
+      "createdTimeStamp": 0,
+      "emojis": [
+        {
+          "emojiId": "pause_0_2_0",
+          "rangeMin": 0,
+          "rangeMax": 2,
+          "emoji": "✨",
+          "title": "Very Demure",
+          "description": "You're keeping your screen time modest and mindful. We love to see it.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pause_3_5_0",
+          "rangeMin": 3,
+          "rangeMax": 5,
+          "emoji": "👀",
+          "title": "Bombastic Side Eye",
+          "description": "We saw you open the app again. We are judging you respectfully.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_6_8_0",
+          "rangeMin": 6,
+          "rangeMax": 8,
+          "emoji": "🫠",
+          "title": "Brain Is Melting",
+          "description": "Your neurons are liquefying from too much short-form content.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pause_9_11_0",
+          "rangeMin": 9,
+          "rangeMax": 11,
+          "emoji": "🤡",
+          "title": "Clown Activity",
+          "description": "Honk honk. That's the sound of you opening this app again.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_12_14_0",
+          "rangeMin": 12,
+          "rangeMax": 14,
+          "emoji": "🚩",
+          "title": "Walking Red Flag",
+          "description": "If your screen time was a dating profile, everyone would swipe left.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pause_15_17_0",
+          "rangeMin": 15,
+          "rangeMax": 17,
+          "emoji": "👺",
+          "title": "Entering Goblin Mode",
+          "description": "Feral. Unwashed. Consuming content in a dark room. Is this you?",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pause_18_20_0",
+          "rangeMin": 18,
+          "rangeMax": 20,
+          "emoji": "📉",
+          "title": "Down Bad Tremendously",
+          "description": "You are at rock bottom. The only way is up (by closing the app).",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pause_21_23_0",
+          "rangeMin": 21,
+          "rangeMax": 23,
+          "emoji": "🧟",
+          "title": "NPC Energy",
+          "description": "Non-Playable Character. You are just background noise in the simulation.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pause_24_26_0",
+          "rangeMin": 24,
+          "rangeMax": 26,
+          "emoji": "🚮",
+          "title": "Belongs in the Bin",
+          "description": "This session is trash. Dispose of it properly by closing the app.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_27_29_0",
+          "rangeMin": 27,
+          "rangeMax": 30,
+          "emoji": "💀",
+          "title": "Bro Is Cooked",
+          "description": "Overdone. Burnt. Charcoal. There is no saving you now.",
+          "animation": "QUAKING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_round_02",
+      "placementId": "EMOJI_PLAN_PAUSE",
+      "enabled": true,
+      "createdTimeStamp": 1,
+      "emojis": [
+        {
+          "emojiId": "pause_0_2_1",
+          "rangeMin": 0,
+          "rangeMax": 2,
+          "emoji": "🧘",
+          "title": "Protect Your Peace",
+          "description": "Don't let the chaos of the feed disturb your zen right now.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pause_3_5_1",
+          "rangeMin": 3,
+          "rangeMax": 5,
+          "emoji": "📸",
+          "title": "Caught in 4K",
+          "description": "We have high-definition proof that you are procrastinating.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pause_6_8_1",
+          "rangeMin": 6,
+          "rangeMax": 8,
+          "emoji": "🐌",
+          "title": "Speed: 0",
+          "description": "You are moving through your tasks at the pace of a lethargic snail.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pause_9_11_1",
+          "rangeMin": 9,
+          "rangeMax": 11,
+          "emoji": "🎪",
+          "title": "The Whole Circus",
+          "description": "You're not just a clown, you're the entire entertainment industry.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pause_12_14_1",
+          "rangeMin": 12,
+          "rangeMax": 14,
+          "emoji": "🛑",
+          "title": "It's Giving Addiction",
+          "description": "The vibes are not good. The vibes are chemical dependency.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pause_15_17_1",
+          "rangeMin": 15,
+          "rangeMax": 17,
+          "emoji": "🐀",
+          "title": "Rat Behavior",
+          "description": "Scurrying around the internet looking for crumbs of dopamine.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pause_18_20_1",
+          "rangeMin": 18,
+          "rangeMax": 20,
+          "emoji": "🤤",
+          "title": "Drooling Over Pixels",
+          "description": "Wipe your mouth. You're staring at a screen like it's a gourmet meal.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pause_21_23_1",
+          "rangeMin": 21,
+          "rangeMax": 23,
+          "emoji": "🧠",
+          "title": "Smooth Brain",
+          "description": "All the wrinkles in your brain have flattened out. No thoughts left.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pause_24_26_1",
+          "rangeMin": 24,
+          "rangeMax": 26,
+          "emoji": "💩",
+          "title": "Absolute Dog Water",
+          "description": "Your willpower is currently liquid and smells terrible.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pause_27_29_1",
+          "rangeMin": 27,
+          "rangeMax": 30,
+          "emoji": "🪦",
+          "title": "Here Lies Potential",
+          "description": "It died somewhere between the 400th and 500th video.",
+          "animation": "QUAKING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_round_03",
+      "placementId": "EMOJI_PLAN_PAUSE",
+      "enabled": true,
+      "createdTimeStamp": 2,
+      "emojis": [
+        {
+          "emojiId": "pause_0_2_2",
+          "rangeMin": 0,
+          "rangeMax": 2,
+          "emoji": "🌱",
+          "title": "Touch Some Grass?",
+          "description": "Nature is calling. It misses you. Go say hello to a plant.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pause_3_5_2",
+          "rangeMin": 3,
+          "rangeMax": 5,
+          "emoji": "🤨",
+          "title": "Make It Make Sense",
+          "description": "Why are you here? You said you were busy. Explain yourself.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pause_6_8_2",
+          "rangeMin": 6,
+          "rangeMax": 8,
+          "emoji": "🥱",
+          "title": "Mid Behavior",
+          "description": "This scrolling session is mediocre at best. You can do better.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pause_9_11_2",
+          "rangeMin": 9,
+          "rangeMax": 11,
+          "emoji": "🤹",
+          "title": "Played Yourself",
+          "description": "You thought you could handle it, but you couldn't. tragic.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pause_12_14_2",
+          "rangeMin": 12,
+          "rangeMax": 14,
+          "emoji": "🚨",
+          "title": "Police Are On The Way",
+          "description": "The productivity police have been dispatched to your location.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_15_17_2",
+          "rangeMin": 15,
+          "rangeMax": 17,
+          "emoji": "🏚️",
+          "title": "Go Outside Pls",
+          "description": "Your skin needs Vitamin D. You are beginning to look translucent.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pause_18_20_2",
+          "rangeMin": 18,
+          "rangeMax": 20,
+          "emoji": "😰",
+          "title": "Touch Grass Now",
+          "description": "This is an emergency order. Find vegetation and interact with it.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pause_21_23_2",
+          "rangeMin": 21,
+          "rangeMax": 23,
+          "emoji": "📺",
+          "title": "Rotmaxxing",
+          "description": "Optimizing your life for maximum brain rot. A bold, terrible strategy.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_24_26_2",
+          "rangeMin": 24,
+          "rangeMax": 26,
+          "emoji": "🚽",
+          "title": "Skibidi Cringe",
+          "description": "Please stop. Even the memes are embarrassed for you right now.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pause_27_29_2",
+          "rangeMin": 27,
+          "rangeMax": 30,
+          "emoji": "👻",
+          "title": "Ghosting Life",
+          "description": "You have officially become a phantom in the real world.",
+          "animation": "WAVING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_round_04",
+      "placementId": "EMOJI_PLAN_PAUSE",
+      "enabled": true,
+      "createdTimeStamp": 3,
+      "emojis": [
+        {
+          "emojiId": "pause_0_2_3",
+          "rangeMin": 0,
+          "rangeMax": 2,
+          "emoji": "🔋",
+          "title": "Main Character Energy",
+          "description": "You control the algorithm, the algorithm doesn't control you.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_3_5_3",
+          "rangeMin": 3,
+          "rangeMax": 5,
+          "emoji": "🧢",
+          "title": "Stop The Cap",
+          "description": "You're lying to yourself if you say 'just one more video'.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_6_8_3",
+          "rangeMin": 6,
+          "rangeMax": 8,
+          "emoji": "📉",
+          "title": "Stonks Are Down",
+          "description": "Your attention span value is crashing in the stock market of life.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pause_9_11_3",
+          "rangeMin": 9,
+          "rangeMax": 11,
+          "emoji": "🎭",
+          "title": "Mask Off Moment",
+          "description": "Revealing the true procrastinator underneath. We see you.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_12_14_3",
+          "rangeMin": 12,
+          "rangeMax": 14,
+          "emoji": "🙅",
+          "title": "Major Ick",
+          "description": "This lack of self-control is honestly a little bit repulsive.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pause_15_17_3",
+          "rangeMin": 15,
+          "rangeMax": 17,
+          "emoji": "🕸️",
+          "title": "Chronically Online",
+          "description": "You understand memes that nobody in the real world understands.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pause_18_20_3",
+          "rangeMin": 18,
+          "rangeMax": 20,
+          "emoji": "📵",
+          "title": "Addiction Final Boss",
+          "description": "You have reached the final level of wasted time. There is no prize.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pause_21_23_3",
+          "rangeMin": 21,
+          "rangeMax": 23,
+          "emoji": "💊",
+          "title": "Hard Pill To Swallow",
+          "description": "The truth hurts: You are wasting the best years of your life.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_24_26_3",
+          "rangeMin": 24,
+          "rangeMax": 26,
+          "emoji": "🗑️",
+          "title": "Trash Tier",
+          "description": "Rank: Bronze V. Skill: Non-existent. Go practice real life.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_27_29_3",
+          "rangeMin": 27,
+          "rangeMax": 30,
+          "emoji": "☠️",
+          "title": "Dead Inside",
+          "description": "Pulse check? Negative. No signs of motivation found.",
+          "animation": "CHAOS"
+        }
+      ]
+    },
+    {
+      "setId": "pause_round_05",
+      "placementId": "EMOJI_PLAN_PAUSE",
+      "enabled": true,
+      "createdTimeStamp": 4,
+      "emojis": [
+        {
+          "emojiId": "pause_0_2_4",
+          "rangeMin": 0,
+          "rangeMax": 2,
+          "emoji": "💅",
+          "title": "Slay The Day",
+          "description": "You have better things to do than scroll. Go conquer the world.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_3_5_4",
+          "rangeMin": 3,
+          "rangeMax": 5,
+          "emoji": "🕵️",
+          "title": "Searching For Willpower",
+          "description": "It seems to be missing. Would you like us to help you find it?",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_6_8_4",
+          "rangeMin": 6,
+          "rangeMax": 8,
+          "emoji": "🧊",
+          "title": "Thin Ice Buddy",
+          "description": "You are skating on the edge of a full-blown doomscroll session.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pause_9_11_4",
+          "rangeMin": 9,
+          "rangeMax": 11,
+          "emoji": "🎢",
+          "title": "Emotional Rollercoaster",
+          "description": "Up, down, and spinning around. Get off the ride before you puke.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pause_12_14_4",
+          "rangeMin": 12,
+          "rangeMax": 14,
+          "emoji": "🚧",
+          "title": "Road To Nowhere",
+          "description": "This scroll session leads to a dead end. Turn back now.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_15_17_4",
+          "rangeMin": 15,
+          "rangeMax": 17,
+          "emoji": "🐺",
+          "title": "Alpha is Displeased",
+          "description": "You are not leading the pack. You are trailing far, far behind.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pause_18_20_4",
+          "rangeMin": 18,
+          "rangeMax": 20,
+          "emoji": "🕳️",
+          "title": "Fell Off",
+          "description": "You used to be cool. Now you just watch videos of slime cutting.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pause_21_23_4",
+          "rangeMin": 21,
+          "rangeMax": 23,
+          "emoji": "🤖",
+          "title": "Beep Boop Addicted",
+          "description": "Your programming is stuck in a loop. Reboot required immediately.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pause_24_26_4",
+          "rangeMin": 24,
+          "rangeMax": 26,
+          "emoji": "⛈️",
+          "title": "A Bad Day To Be You",
+          "description": "Thunderclouds of regret are forming over your head.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pause_27_29_4",
+          "rangeMin": 27,
+          "rangeMax": 30,
+          "emoji": "🥀",
+          "title": "Withered Away",
+          "description": "Dust to dust, scroll to scroll. Ashes of time remaining.",
+          "animation": "MELTING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_round_06",
+      "placementId": "EMOJI_PLAN_PAUSE",
+      "enabled": true,
+      "createdTimeStamp": 5,
+      "emojis": [
+        {
+          "emojiId": "pause_0_2_5",
+          "rangeMin": 0,
+          "rangeMax": 2,
+          "emoji": "🍵",
+          "title": "Sipping That Tea",
+          "description": "Mind your own business and stay hydrated. Drama is not for you.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pause_3_5_5",
+          "rangeMin": 3,
+          "rangeMax": 5,
+          "emoji": "🕶️",
+          "title": "Shady Behavior",
+          "description": "Browsing when you should be working? That's suspicious.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_6_8_5",
+          "rangeMin": 6,
+          "rangeMax": 8,
+          "emoji": "🥶",
+          "title": "Cold World",
+          "description": "It's lonely out here when you ignore your real-life friends for reels.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pause_9_11_5",
+          "rangeMin": 9,
+          "rangeMax": 11,
+          "emoji": "🐒",
+          "title": "Monke See Monke Do",
+          "description": "Monkey brain sees bright colors, monkey brain presses click.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_12_14_5",
+          "rangeMin": 12,
+          "rangeMax": 14,
+          "emoji": "🥊",
+          "title": "Fighting Demons",
+          "description": "You are in the ring with your own bad habits. Don't let them win.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_15_17_5",
+          "rangeMin": 15,
+          "rangeMax": 17,
+          "emoji": "👹",
+          "title": "Demon Time",
+          "description": "It's 3AM somewhere, and you are making terrible life decisions.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pause_18_20_5",
+          "rangeMin": 18,
+          "rangeMax": 20,
+          "emoji": "🚮",
+          "title": "Throw It Away",
+          "description": "Your phone. The app. Your bad habits. Toss them all.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_21_23_5",
+          "rangeMin": 21,
+          "rangeMax": 23,
+          "emoji": "😶",
+          "title": "Head Empty",
+          "description": "Echo... echo... Is there any intelligent life inside that skull?",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pause_24_26_5",
+          "rangeMin": 24,
+          "rangeMax": 26,
+          "emoji": "☣️",
+          "title": "Toxic Waste",
+          "description": "Radioactive levels of laziness detected. Evacuate the area.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pause_27_29_5",
+          "rangeMin": 27,
+          "rangeMax": 30,
+          "emoji": "⚰️",
+          "title": "Coffin Dance",
+          "description": "Cue the music. The pallbearers are waiting for your productivity.",
+          "animation": "SINKING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_round_07",
+      "placementId": "EMOJI_PLAN_PAUSE",
+      "enabled": true,
+      "createdTimeStamp": 6,
+      "emojis": [
+        {
+          "emojiId": "pause_0_2_6",
+          "rangeMin": 0,
+          "rangeMax": 2,
+          "emoji": "🕊️",
+          "title": "Fly Away Birdie",
+          "description": "Be free from the cage of endless content consumption.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pause_3_5_6",
+          "rangeMin": 3,
+          "rangeMax": 5,
+          "emoji": "🐸",
+          "title": "None of My Business",
+          "description": "But that screen time report is looking a little concerning...",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pause_6_8_6",
+          "rangeMin": 6,
+          "rangeMax": 8,
+          "emoji": "🌪️",
+          "title": "A Whole Mess",
+          "description": "Your schedule is currently a disaster zone. Evacuate the app.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pause_9_11_6",
+          "rangeMin": 9,
+          "rangeMax": 11,
+          "emoji": "🎫",
+          "title": "Ticket to Clown Town",
+          "description": "One way ticket. No refunds. Enjoy your stay in distraction land.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pause_12_14_6",
+          "rangeMin": 12,
+          "rangeMax": 14,
+          "emoji": "🧱",
+          "title": "Talking to a Wall",
+          "description": "Is anyone home? Or is your brain currently buffering?",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pause_15_17_6",
+          "rangeMin": 15,
+          "rangeMax": 17,
+          "emoji": "🐉",
+          "title": "Sicko Mode",
+          "description": "You have entered a legendary state of unproductivity.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pause_18_20_6",
+          "rangeMin": 18,
+          "rangeMax": 20,
+          "emoji": "🚽",
+          "title": "Flushed Away",
+          "description": "There goes your potential, swirling down the digital drain.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pause_21_23_6",
+          "rangeMin": 21,
+          "rangeMax": 23,
+          "emoji": "💾",
+          "title": "Memory Full",
+          "description": "You cannot consume any more content. Your hard drive is fried.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_24_26_6",
+          "rangeMin": 24,
+          "rangeMax": 26,
+          "emoji": "☢️",
+          "title": "Radioactive",
+          "description": "You're glowing in the dark from all this screen exposure.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pause_27_29_6",
+          "rangeMin": 27,
+          "rangeMax": 30,
+          "emoji": "🦴",
+          "title": "Rattled",
+          "description": "Nothing left but dry bones and regret.",
+          "animation": "QUAKING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_round_08",
+      "placementId": "EMOJI_PLAN_PAUSE",
+      "enabled": true,
+      "createdTimeStamp": 7,
+      "emojis": [
+        {
+          "emojiId": "pause_0_2_7",
+          "rangeMin": 0,
+          "rangeMax": 2,
+          "emoji": "✨",
+          "title": "Sparkle On",
+          "description": "Your real life is brighter than any screen pixel. Remember that.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "pause_3_5_7",
+          "rangeMin": 3,
+          "rangeMax": 5,
+          "emoji": "📓",
+          "title": "Adding To The List",
+          "description": "Noting this down in your permanent record of wasted time.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_6_8_7",
+          "rangeMin": 6,
+          "rangeMax": 8,
+          "emoji": "📉",
+          "title": "Falling Off",
+          "description": "You used to be productive. What happened? Come back to us.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "pause_9_11_7",
+          "rangeMin": 9,
+          "rangeMax": 11,
+          "emoji": "🤥",
+          "title": "Pinocchio Nose",
+          "description": "It grows every time you say 'I'll close it in 5 minutes'.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pause_12_14_7",
+          "rangeMin": 12,
+          "rangeMax": 14,
+          "emoji": "⚠️",
+          "title": "Hazardous Material",
+          "description": "Exposure to this much cringe content is dangerous to your health.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pause_15_17_7",
+          "rangeMin": 15,
+          "rangeMax": 17,
+          "emoji": "🌑",
+          "title": "Dark Sided",
+          "description": "You have strayed from the light. Return to the path of focus.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pause_18_20_7",
+          "rangeMin": 18,
+          "rangeMax": 20,
+          "emoji": "💩",
+          "title": "Stinky Behavior",
+          "description": "We can smell the procrastination from here. It smells like regret.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_21_23_7",
+          "rangeMin": 21,
+          "rangeMax": 23,
+          "emoji": "🧟‍♂️",
+          "title": "Walking Dead",
+          "description": "The zombies are coming, and you are one of them.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pause_24_26_7",
+          "rangeMin": 24,
+          "rangeMax": 26,
+          "emoji": "🤮",
+          "title": "Sickening",
+          "description": "We are physically ill watching you scroll this much.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_27_29_7",
+          "rangeMin": 27,
+          "rangeMax": 30,
+          "emoji": "🏴‍☠️",
+          "title": "Walk the Plank",
+          "description": "Mutiny on the productivity ship. You're going overboard.",
+          "animation": "WAVING"
+        }
+      ]
+    },
+    {
+      "setId": "pause_round_09",
+      "placementId": "EMOJI_PLAN_PAUSE",
+      "enabled": true,
+      "createdTimeStamp": 8,
+      "emojis": [
+        {
+          "emojiId": "pause_0_2_8",
+          "rangeMin": 0,
+          "rangeMax": 2,
+          "emoji": "🎧",
+          "title": "Vibes Only",
+          "description": "Curate your reality, don't just consume someone else's.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_3_5_8",
+          "rangeMin": 3,
+          "rangeMax": 5,
+          "emoji": "🤌",
+          "title": "What Are You Doing?",
+          "description": "An Italian gesture of confusion at your current life choices.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pause_6_8_8",
+          "rangeMin": 6,
+          "rangeMax": 8,
+          "emoji": "🧂",
+          "title": "Salty Much?",
+          "description": "Don't get mad at the blocker, get mad at your lack of discipline.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_9_11_8",
+          "rangeMin": 9,
+          "rangeMax": 11,
+          "emoji": "🥜",
+          "title": "Acting Nuts",
+          "description": "This behavior is objectively squirrel-like. Gather your acorns elsewhere.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pause_12_14_8",
+          "rangeMin": 12,
+          "rangeMax": 14,
+          "emoji": "📵",
+          "title": "Put It Down",
+          "description": "Drop the device. Slowly. Keep your hands where we can see them.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pause_15_17_8",
+          "rangeMin": 15,
+          "rangeMax": 17,
+          "emoji": "🦇",
+          "title": "Batty Behavior",
+          "description": "You're hanging upside down in a cave of digital noise.",
+          "animation": "FLY"
+        },
+        {
+          "emojiId": "pause_18_20_8",
+          "rangeMin": 18,
+          "rangeMax": 20,
+          "emoji": "🥀",
+          "title": "No Rizz",
+          "description": "Zero charisma. Zero focus. Just a person staring at a glowing rectangle.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pause_21_23_8",
+          "rangeMin": 21,
+          "rangeMax": 23,
+          "emoji": "🔌",
+          "title": "Pull The Plug",
+          "description": "Disconnect life support. The internet has taken over.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "pause_24_26_8",
+          "rangeMin": 24,
+          "rangeMax": 26,
+          "emoji": "🦠",
+          "title": "You Are The Virus",
+          "description": "In the computer of life, you are currently the malware.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "pause_27_29_8",
+          "rangeMin": 27,
+          "rangeMax": 30,
+          "emoji": "😵",
+          "title": "K.O.",
+          "description": "Game Over. The internet won. You lost. Insert coin to try again.",
+          "animation": "CHAOS"
+        }
+      ]
+    },
+    {
+      "setId": "pause_round_10",
+      "placementId": "EMOJI_PLAN_PAUSE",
+      "enabled": true,
+      "createdTimeStamp": 9,
+      "emojis": [
+        {
+          "emojiId": "pause_0_2_9",
+          "rangeMin": 0,
+          "rangeMax": 2,
+          "emoji": "🧸",
+          "title": "Soft Life Era",
+          "description": "Stress less, scroll less. Embrace the comfort of missing out.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pause_3_5_9",
+          "rangeMin": 3,
+          "rangeMax": 5,
+          "emoji": "🦗",
+          "title": "Crickets...",
+          "description": "The sound of your productivity right now. Absolute silence.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "pause_6_8_9",
+          "rangeMin": 6,
+          "rangeMax": 8,
+          "emoji": "🥀",
+          "title": "Withered Vibes",
+          "description": "You are dehydrating your potential by staring at this screen.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "pause_9_11_9",
+          "rangeMin": 9,
+          "rangeMax": 11,
+          "emoji": "🤕",
+          "title": "Hurts To Watch",
+          "description": "It's physically painful for us to witness this level of procrastination.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "pause_12_14_9",
+          "rangeMin": 12,
+          "rangeMax": 14,
+          "emoji": "🚷",
+          "title": "Do Not Enter",
+          "description": "This zone is restricted to people who have finished their work.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "pause_15_17_9",
+          "rangeMin": 15,
+          "rangeMax": 17,
+          "emoji": "🧟‍♀️",
+          "title": "She's Turned!",
+          "description": "We lost another one to the infinite scroll. Tragic scene.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "pause_18_20_9",
+          "rangeMin": 18,
+          "rangeMax": 20,
+          "emoji": "😿",
+          "title": "Crying in the Club",
+          "description": "You're going to regret this later, so start crying now.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "pause_21_23_9",
+          "rangeMin": 21,
+          "rangeMax": 23,
+          "emoji": "💤",
+          "title": "Sleepwalking",
+          "description": "You are awake, but you are not really here. Wake up.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "pause_24_26_9",
+          "rangeMin": 24,
+          "rangeMax": 26,
+          "emoji": "🆘",
+          "title": "Send Help",
+          "description": "Blinking SOS signals. Someone save this user from themselves.",
+          "animation": "FLASH"
+        },
+        {
+          "emojiId": "pause_27_29_9",
+          "rangeMin": 27,
+          "rangeMax": 30,
+          "emoji": "🦖",
+          "title": "Extinct",
+          "description": "Like the dinosaurs, your attention span has been wiped out.",
+          "animation": "LUMBER"
+        }
+      ]
+    }
+  ]
+}

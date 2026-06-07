@@ -1,0 +1,1074 @@
+{
+  "emojiSets": [
+    {
+      "setId": "curious_round_01",
+      "placementId": "EMOJI_CURIOUS_PLAN",
+      "enabled": true,
+      "createdTimeStamp": 0,
+      "emojis": [
+        {
+          "emojiId": "curious_2_0",
+          "rangeMin": 0,
+          "rangeMax": 5,
+          "emoji": "🎯",
+          "title": "Stay Sharp",
+          "description": "You opened this for a reason. Don't forget it.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_4_0",
+          "rangeMin": 6,
+          "rangeMax": 10,
+          "emoji": "🤨",
+          "title": "Still Worth It?",
+          "description": "Is this specific video actually improving your life?",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_6_0",
+          "rangeMin": 11,
+          "rangeMax": 15,
+          "emoji": "📉",
+          "title": "Slippery Slope",
+          "description": "It starts with one video. It ends with a wasted hour.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "curious_8_0",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🫵",
+          "title": "You vs You",
+          "description": "The only person holding you back right now is you.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_10_0",
+          "rangeMin": 21,
+          "rangeMax": 25,
+          "emoji": "😟",
+          "title": "Disappointed",
+          "description": "We expected better from you today.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_12_0",
+          "rangeMin": 26,
+          "rangeMax": 30,
+          "emoji": "😰",
+          "title": "Anxiety Loading",
+          "description": "Procrastination is just borrowing anxiety from the future.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_14_0",
+          "rangeMin": 31,
+          "rangeMax": 35,
+          "emoji": "🚩",
+          "title": "Red Flag",
+          "description": "This behavior is a red flag for your future success.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_16_0",
+          "rangeMin": 36,
+          "rangeMax": 40,
+          "emoji": "🤮",
+          "title": "Sickening",
+          "description": "It's actually gross how much time you are wasting.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_18_0",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🆘",
+          "title": "Send Help",
+          "description": "You clearly can't stop yourself. It's sad.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_20_0",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🏆",
+          "title": "Be A Winner",
+          "description": "Winners know when to quit. Quit now.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_999_0",
+          "rangeMin": 51,
+          "rangeMax": 60,
+          "emoji": "🤥",
+          "title": "You Lied",
+          "description": "You set a limit and you broke it. Shame.",
+          "animation": "SCANNING"
+        }
+      ]
+    },
+    {
+      "setId": "curious_round_02",
+      "placementId": "EMOJI_CURIOUS_PLAN",
+      "enabled": true,
+      "createdTimeStamp": 1,
+      "emojis": [
+        {
+          "emojiId": "curious_2_1",
+          "rangeMin": 0,
+          "rangeMax": 5,
+          "emoji": "🧘",
+          "title": "Conscious Scroll",
+          "description": "Are you scrolling, or is the app scrolling you? Stay awake.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_4_1",
+          "rangeMin": 6,
+          "rangeMax": 10,
+          "emoji": "🧱",
+          "title": "Laying Bricks",
+          "description": "Are you building a wall of excuses or a bridge to success?",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_6_1",
+          "rangeMin": 11,
+          "rangeMax": 15,
+          "emoji": "🥱",
+          "title": "Bored Yet?",
+          "description": "If you are bored, close the app. Don't punish yourself.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_8_1",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🌪️",
+          "title": "Spiral Alert",
+          "description": "You are circling the drain of unproductivity.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "curious_10_1",
+          "rangeMin": 21,
+          "rangeMax": 25,
+          "emoji": "📉",
+          "title": "Stock Crash",
+          "description": "Your productivity stock just took a massive dip.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "curious_12_1",
+          "rangeMin": 26,
+          "rangeMax": 30,
+          "emoji": "🎢",
+          "title": "Downhill",
+          "description": "It's all downhill from here. Stop while you have dignity.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "curious_14_1",
+          "rangeMin": 31,
+          "rangeMax": 35,
+          "emoji": "📉",
+          "title": "Rock Bottom",
+          "description": "You are digging a hole. Stop digging.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "curious_16_1",
+          "rangeMin": 36,
+          "rangeMax": 40,
+          "emoji": "🚔",
+          "title": "Time Police",
+          "description": "You are under arrest for murdering your own time.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_18_1",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "💩",
+          "title": "Get It Together",
+          "description": "This performance is poop. Improve.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_20_1",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🦁",
+          "title": "Limit Reached",
+          "description": "You hit your limit. Don't be a sheep. Leave.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_999_1",
+          "rangeMin": 51,
+          "rangeMax": 60,
+          "emoji": "🤡",
+          "title": "Clown World",
+          "description": "You are the mayor of Clown Town right now.",
+          "animation": "BOUNCING"
+        }
+      ]
+    },
+    {
+      "setId": "curious_round_03",
+      "placementId": "EMOJI_CURIOUS_PLAN",
+      "enabled": true,
+      "createdTimeStamp": 2,
+      "emojis": [
+        {
+          "emojiId": "curious_2_2",
+          "rangeMin": 0,
+          "rangeMax": 5,
+          "emoji": "🦁",
+          "title": "Own Your Time",
+          "description": "Lions don't concern themselves with the opinions of sheep (or algorithms).",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_4_2",
+          "rangeMin": 6,
+          "rangeMax": 10,
+          "emoji": "🔋",
+          "title": "Energy Check",
+          "description": "Is this recharging you, or draining your motivation?",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "curious_6_2",
+          "rangeMin": 11,
+          "rangeMax": 15,
+          "emoji": "🤡",
+          "title": "Distraction Trap",
+          "description": "You are falling for the trap. Climb out while you can.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_8_2",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🥀",
+          "title": "Potential Wilting",
+          "description": "Your talent is withering while you watch this.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "curious_10_2",
+          "rangeMin": 21,
+          "rangeMax": 25,
+          "emoji": "🧟",
+          "title": "Zombie Mode",
+          "description": "Lights are on, but nobody is home. Wake up.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_12_2",
+          "rangeMin": 26,
+          "rangeMax": 30,
+          "emoji": "💊",
+          "title": "Hard Pill",
+          "description": "You are avoiding your problems. They are still there.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_14_2",
+          "rangeMin": 31,
+          "rangeMax": 35,
+          "emoji": "🤥",
+          "title": "Liar Liar",
+          "description": "You promised yourself you wouldn't do this.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_16_2",
+          "rangeMin": 36,
+          "rangeMax": 40,
+          "emoji": "🚮",
+          "title": "Garbage Day",
+          "description": "You are filling your mind with absolute trash.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "curious_18_2",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🧟‍♀️",
+          "title": "Brain Rot",
+          "description": "It's terminal. You are turning into a zombie.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_20_2",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "✨",
+          "title": "Be Free",
+          "description": "The shackles are off. Go create something beautiful.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "curious_999_2",
+          "rangeMin": 51,
+          "rangeMax": 60,
+          "emoji": "📉",
+          "title": "Weakness",
+          "description": "This is pure weakness. Be stronger.",
+          "animation": "SINKING"
+        }
+      ]
+    },
+    {
+      "setId": "curious_round_04",
+      "placementId": "EMOJI_CURIOUS_PLAN",
+      "enabled": true,
+      "createdTimeStamp": 3,
+      "emojis": [
+        {
+          "emojiId": "curious_2_3",
+          "rangeMin": 0,
+          "rangeMax": 5,
+          "emoji": "✨",
+          "title": "Be Intentional",
+          "description": "Don't let your eyes glaze over. Keep your mind active.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "curious_4_3",
+          "rangeMin": 6,
+          "rangeMax": 10,
+          "emoji": "🚮",
+          "title": "Trash or Treasure?",
+          "description": "Most of this feed is junk. Sift for the gold and leave.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_6_3",
+          "rangeMin": 11,
+          "rangeMax": 15,
+          "emoji": "🎣",
+          "title": "Don't Take The Bait",
+          "description": "The algorithm is fishing for your attention. Don't bite.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_8_3",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🚫",
+          "title": "Say No",
+          "description": "Saying no to this app means saying yes to your life.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_10_3",
+          "rangeMin": 21,
+          "rangeMax": 25,
+          "emoji": "🗑️",
+          "title": "Bin Habits",
+          "description": "Throw this habit in the trash where it belongs.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_12_3",
+          "rangeMin": 26,
+          "rangeMax": 30,
+          "emoji": "🛌",
+          "title": "Sleepwalking",
+          "description": "You are sleepwalking through your potential.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_14_3",
+          "rangeMin": 31,
+          "rangeMax": 35,
+          "emoji": "🤡",
+          "title": "Clowning Around",
+          "description": "Your goals are laughing at you right now.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_16_3",
+          "rangeMin": 36,
+          "rangeMax": 40,
+          "emoji": "💀",
+          "title": "Dead Dreams",
+          "description": "This is where dreams go to die. On a glowing screen.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_18_3",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "💥",
+          "title": "Implosion",
+          "description": "Your day is imploding. Evacuate.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "curious_20_3",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🚪",
+          "title": "The Door",
+          "description": "Walk through it. The real world is better.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_999_3",
+          "rangeMin": 51,
+          "rangeMax": 60,
+          "emoji": "🚮",
+          "title": "Wasted",
+          "description": "You are wasting your life. It's not funny anymore.",
+          "animation": "CHAOS"
+        }
+      ]
+    },
+    {
+      "setId": "curious_round_05",
+      "placementId": "EMOJI_CURIOUS_PLAN",
+      "enabled": true,
+      "createdTimeStamp": 4,
+      "emojis": [
+        {
+          "emojiId": "curious_2_4",
+          "rangeMin": 0,
+          "rangeMax": 5,
+          "emoji": "🪜",
+          "title": "Build, Don't Consume",
+          "description": "Every minute here is a minute not building your empire.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_4_4",
+          "rangeMin": 6,
+          "rangeMax": 10,
+          "emoji": "🕰️",
+          "title": "Tick Tock",
+          "description": "That was 4 minutes. You can never earn them back.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_6_4",
+          "rangeMin": 11,
+          "rangeMax": 15,
+          "emoji": "💪",
+          "title": "Flex Your Will",
+          "description": "Your willpower is a muscle. Exercise it by closing this.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_8_4",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🧸",
+          "title": "Soft Life?",
+          "description": "Do you want a soft life or a successful life? Choose.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_10_4",
+          "rangeMin": 21,
+          "rangeMax": 25,
+          "emoji": "💔",
+          "title": "Heartbreaking",
+          "description": "It breaks our heart to see you waste your talent.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "curious_12_4",
+          "rangeMin": 26,
+          "rangeMax": 30,
+          "emoji": "📵",
+          "title": "Put. It. Down.",
+          "description": "We are asking nicely. Please.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_14_4",
+          "rangeMin": 31,
+          "rangeMax": 35,
+          "emoji": "🏚️",
+          "title": "Dilapidated",
+          "description": "Your discipline is crumbling. Repair it.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "curious_16_4",
+          "rangeMin": 36,
+          "rangeMax": 40,
+          "emoji": "🥀",
+          "title": "Withered",
+          "description": "Your motivation is shriveling up.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "curious_18_4",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "📵",
+          "title": "Addict",
+          "description": "Yeah, we said it. Prove us wrong.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_20_4",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🤝",
+          "title": "Promise Kept",
+          "description": "You promised to stop here. Keep your word.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_999_4",
+          "rangeMin": 51,
+          "rangeMax": 60,
+          "emoji": "🧟",
+          "title": "Lost Cause",
+          "description": "We tried to warn you. You didn't listen.",
+          "animation": "LUMBER"
+        }
+      ]
+    },
+    {
+      "setId": "curious_round_06",
+      "placementId": "EMOJI_CURIOUS_PLAN",
+      "enabled": true,
+      "createdTimeStamp": 5,
+      "emojis": [
+        {
+          "emojiId": "curious_2_5",
+          "rangeMin": 0,
+          "rangeMax": 5,
+          "emoji": "🌱",
+          "title": "Grow Through It",
+          "description": "Use this for inspiration, not procrastination.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_4_5",
+          "rangeMin": 6,
+          "rangeMax": 10,
+          "emoji": "🛑",
+          "title": "Discipline",
+          "description": "Discipline is choosing what you want most over what you want now.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_6_5",
+          "rangeMin": 11,
+          "rangeMax": 15,
+          "emoji": "📉",
+          "title": "Standard Drop",
+          "description": "You have high standards. This content is lowering them.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "curious_8_5",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "⏳",
+          "title": "Life is Short",
+          "description": "Too short to spend it watching strangers dance.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "curious_10_5",
+          "rangeMin": 21,
+          "rangeMax": 25,
+          "emoji": "🛑",
+          "title": "Halfway Point",
+          "description": "You are deep in it now. Turn back before it's too late.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_12_5",
+          "rangeMin": 26,
+          "rangeMax": 30,
+          "emoji": "🦟",
+          "title": "Parasite",
+          "description": "This app is feeding off your energy.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "curious_14_5",
+          "rangeMin": 31,
+          "rangeMax": 35,
+          "emoji": "🦈",
+          "title": "Predators",
+          "description": "Marketers love users like you. Don't be prey.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "curious_16_5",
+          "rangeMin": 36,
+          "rangeMax": 40,
+          "emoji": "🌪️",
+          "title": "Hot Mess",
+          "description": "Get it together. This is embarrassing.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "curious_18_5",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🦴",
+          "title": "Lazy Bones",
+          "description": "The laziness is seeping into your marrow.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_20_5",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🦸",
+          "title": "Hero Arc",
+          "description": "The hero leaves the cave. Be the hero.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_999_5",
+          "rangeMin": 51,
+          "rangeMax": 60,
+          "emoji": "🥀",
+          "title": "Pathetic",
+          "description": "Harsh? Maybe. True? Yes. Close the app.",
+          "animation": "MELTING"
+        }
+      ]
+    },
+    {
+      "setId": "curious_round_07",
+      "placementId": "EMOJI_CURIOUS_PLAN",
+      "enabled": true,
+      "createdTimeStamp": 6,
+      "emojis": [
+        {
+          "emojiId": "curious_2_6",
+          "rangeMin": 0,
+          "rangeMax": 5,
+          "emoji": "👀",
+          "title": "Focus Check",
+          "description": "Are you actually watching, or just zoning out?",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_4_6",
+          "rangeMin": 6,
+          "rangeMax": 10,
+          "emoji": "🛌",
+          "title": "Don't Get Comfy",
+          "description": "Comfort zones are where dreams go to die.",
+          "animation": "SLIDE"
+        },
+        {
+          "emojiId": "curious_6_6",
+          "rangeMin": 11,
+          "rangeMax": 15,
+          "emoji": "🌫️",
+          "title": "Brain Fog",
+          "description": "Can you feel your clarity fading? That's the dopamine hit.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "curious_8_6",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "📵",
+          "title": "Disconnect to Connect",
+          "description": "Your real life connections are waiting.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_10_6",
+          "rangeMin": 21,
+          "rangeMax": 25,
+          "emoji": "🧩",
+          "title": "Lost The Plot",
+          "description": "You had a plan for today. This was not it.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "curious_12_6",
+          "rangeMin": 26,
+          "rangeMax": 30,
+          "emoji": "🧱",
+          "title": "Hit The Wall",
+          "description": "You've seen enough. There is nothing new here.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_14_6",
+          "rangeMin": 31,
+          "rangeMax": 35,
+          "emoji": "🧠",
+          "title": "Smooth Brain",
+          "description": "You are smoothing out your brain wrinkles. Stop.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "curious_16_6",
+          "rangeMin": 36,
+          "rangeMax": 40,
+          "emoji": "⛓️",
+          "title": "Slave to the Scroll",
+          "description": "Break the chains. Be free.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_18_6",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "📉",
+          "title": "Failure Mode",
+          "description": "This is what failure looks like. Close the app.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "curious_20_6",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🌅",
+          "title": "New Day",
+          "description": "Start fresh. Close the app.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_999_6",
+          "rangeMin": 51,
+          "rangeMax": 60,
+          "emoji": "📵",
+          "title": "Get Out",
+          "description": "You don't belong here anymore. Go.",
+          "animation": "QUAKING"
+        }
+      ]
+    },
+    {
+      "setId": "curious_round_08",
+      "placementId": "EMOJI_CURIOUS_PLAN",
+      "enabled": true,
+      "createdTimeStamp": 7,
+      "emojis": [
+        {
+          "emojiId": "curious_2_7",
+          "rangeMin": 0,
+          "rangeMax": 5,
+          "emoji": "💎",
+          "title": "You Are Valuable",
+          "description": "Your time is worth more than these 15-second clips.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_4_7",
+          "rangeMin": 6,
+          "rangeMax": 10,
+          "emoji": "🤏",
+          "title": "Small Minds",
+          "description": "Small minds discuss people (and reels). Great minds discuss ideas.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_6_7",
+          "rangeMin": 11,
+          "rangeMax": 15,
+          "emoji": "🚶",
+          "title": "Walk Away",
+          "description": "The most powerful move you can make right now is leaving.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_8_7",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "😬",
+          "title": "Cringe",
+          "description": "Imagine explaining to your future self why you watched this.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_10_7",
+          "rangeMin": 21,
+          "rangeMax": 25,
+          "emoji": "🗣️",
+          "title": "Actions Speak",
+          "description": "Your actions are screaming 'I don't want to succeed'.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_12_7",
+          "rangeMin": 26,
+          "rangeMax": 30,
+          "emoji": "🕯️",
+          "title": "Burning Out",
+          "description": "You are burning daylight.",
+          "animation": "MELTING"
+        },
+        {
+          "emojiId": "curious_14_7",
+          "rangeMin": 31,
+          "rangeMax": 35,
+          "emoji": "🐌",
+          "title": "So Slow",
+          "description": "You are moving towards your dreams at snail speed.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_16_7",
+          "rangeMin": 36,
+          "rangeMax": 40,
+          "emoji": "🤐",
+          "title": "No Words",
+          "description": "We are speechless at your lack of control.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_18_7",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "👀",
+          "title": "We See You",
+          "description": "And we are judging you hard.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_20_7",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "✅",
+          "title": "Mission Complete",
+          "description": "You came, you saw, you are leaving. Good.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_999_7",
+          "rangeMin": 51,
+          "rangeMax": 60,
+          "emoji": "☠️",
+          "title": "Time Death",
+          "description": "You killed the time. It's dead. Are you happy?",
+          "animation": "CHAOS"
+        }
+      ]
+    },
+    {
+      "setId": "curious_round_09",
+      "placementId": "EMOJI_CURIOUS_PLAN",
+      "enabled": true,
+      "createdTimeStamp": 8,
+      "emojis": [
+        {
+          "emojiId": "curious_2_8",
+          "rangeMin": 0,
+          "rangeMax": 5,
+          "emoji": "🛡️",
+          "title": "Guard Your Mind",
+          "description": "Don't let the junk get in. Filter what you see.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_4_8",
+          "rangeMin": 6,
+          "rangeMax": 10,
+          "emoji": "🏃",
+          "title": "Run Your Race",
+          "description": "Stop watching others run theirs.",
+          "animation": "BOUNCING"
+        },
+        {
+          "emojiId": "curious_6_8",
+          "rangeMin": 11,
+          "rangeMax": 15,
+          "emoji": "🤥",
+          "title": "Lying to Yourself",
+          "description": "You said 'just a few minutes'. Be honest.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_8_8",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "🧼",
+          "title": "Wash It Off",
+          "description": "You need a mental shower after this much content.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_10_8",
+          "rangeMin": 21,
+          "rangeMax": 25,
+          "emoji": "🥶",
+          "title": "Cold Truth",
+          "description": "Nobody is coming to save you. You have to save yourself.",
+          "animation": "SINKING"
+        },
+        {
+          "emojiId": "curious_12_8",
+          "rangeMin": 26,
+          "rangeMax": 30,
+          "emoji": "👋",
+          "title": "Goodbye?",
+          "description": "Are you going to leave, or do we have to force you?",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_14_8",
+          "rangeMin": 31,
+          "rangeMax": 35,
+          "emoji": "🕸️",
+          "title": "Cobwebs",
+          "description": "Your ambition is gathering dust.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "curious_16_8",
+          "rangeMin": 36,
+          "rangeMax": 40,
+          "emoji": "🌵",
+          "title": "Dry Spell",
+          "description": "Your productivity is in a drought.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_18_8",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "⛈️",
+          "title": "Storm Coming",
+          "description": "The regret storm is approaching.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_20_8",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🔋",
+          "title": "Recharged",
+          "description": "You have had your fill. Go use that energy.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_999_8",
+          "rangeMin": 51,
+          "rangeMax": 60,
+          "emoji": "🧊",
+          "title": "Zero Willpower",
+          "description": "You have zero self-control. Prove us wrong.",
+          "animation": "SINKING"
+        }
+      ]
+    },
+    {
+      "setId": "curious_round_10",
+      "placementId": "EMOJI_CURIOUS_PLAN",
+      "enabled": true,
+      "createdTimeStamp": 9,
+      "emojis": [
+        {
+          "emojiId": "curious_2_9",
+          "rangeMin": 0,
+          "rangeMax": 5,
+          "emoji": "🌤️",
+          "title": "Bright Future",
+          "description": "Your goals are waiting for you. Don't keep them waiting too long.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_4_9",
+          "rangeMin": 6,
+          "rangeMax": 10,
+          "emoji": "🥇",
+          "title": "Be The 1%",
+          "description": "The 1% don't doomscroll. They create.",
+          "animation": "GLOW"
+        },
+        {
+          "emojiId": "curious_6_9",
+          "rangeMin": 11,
+          "rangeMax": 15,
+          "emoji": "🎲",
+          "title": "Gambling Time",
+          "description": "You're betting your future on cheap entertainment.",
+          "animation": "CHAOS"
+        },
+        {
+          "emojiId": "curious_8_9",
+          "rangeMin": 16,
+          "rangeMax": 20,
+          "emoji": "⛓️",
+          "title": "Chains",
+          "description": "You are chaining yourself to the screen. Break free.",
+          "animation": "LUMBER"
+        },
+        {
+          "emojiId": "curious_10_9",
+          "rangeMin": 21,
+          "rangeMax": 25,
+          "emoji": "🎭",
+          "title": "Spectator",
+          "description": "Stop watching life and go live it.",
+          "animation": "SCANNING"
+        },
+        {
+          "emojiId": "curious_12_9",
+          "rangeMin": 26,
+          "rangeMax": 30,
+          "emoji": "😤",
+          "title": "Do Better",
+          "description": "You know you are capable of more than this.",
+          "animation": "BREATHING"
+        },
+        {
+          "emojiId": "curious_14_9",
+          "rangeMin": 31,
+          "rangeMax": 35,
+          "emoji": "🚫",
+          "title": "Enough",
+          "description": "Seriously. That is enough.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_16_9",
+          "rangeMin": 36,
+          "rangeMax": 40,
+          "emoji": "🛑",
+          "title": "STOP NOW",
+          "description": "Not in 5 minutes. NOW.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_18_9",
+          "rangeMin": 41,
+          "rangeMax": 45,
+          "emoji": "🏁",
+          "title": "Last Chance",
+          "description": "Redeem yourself. Leave now.",
+          "animation": "WAVING"
+        },
+        {
+          "emojiId": "curious_20_9",
+          "rangeMin": 46,
+          "rangeMax": 50,
+          "emoji": "🛑",
+          "title": "HARD STOP",
+          "description": "No excuses. No 'one more'. Done.",
+          "animation": "QUAKING"
+        },
+        {
+          "emojiId": "curious_999_9",
+          "rangeMin": 51,
+          "rangeMax": 60,
+          "emoji": "🤬",
+          "title": "Leave!",
+          "description": "Why are you still here?!",
+          "animation": "QUAKING"
+        }
+      ]
+    }
+  ]
+}
