@@ -1,14 +1,13 @@
+import 'package:detoxo/core/navigation/routes.dart';
+import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
+import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
+import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
+import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:detoxo/core/navigation/routes.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
-import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
-import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
-import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
-import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
 
 /// Boots the app state, then routes to onboarding / PIN lock / permissions /
 /// home depending on what the user has already set up.
@@ -75,21 +74,13 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.block, size: 56, color: scheme.onPrimaryContainer),
-            ),
+            Image.asset('assets/images/detox_logo_no_bg.png', fit: BoxFit.contain),
             const SizedBox(height: 24),
             Text(
               'Detoxo',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
             const Text('Reclaim your attention'),
