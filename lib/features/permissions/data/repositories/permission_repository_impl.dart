@@ -3,6 +3,7 @@ import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
+import 'package:detoxo/core/platform/platform_capabilities.dart';
 import 'package:detoxo/core/platform_channels/engine_channel.dart';
 
 /// Resolves permission status via the native channel (accessibility, overlay,
@@ -14,6 +15,10 @@ class PermissionRepositoryImpl implements PermissionRepository {
 
   @override
   Future<List<PermissionStatus>> statuses() async {
+    // The Android permission funnel has no iOS equivalent. Returning an empty
+    // list makes PermissionsCubit.allRequiredGranted vacuously true, so the
+    // splash gate routes straight to /home on iOS.
+    if (!PlatformCapabilities.usesAndroidPermissionFunnel) return const [];
     final result = <PermissionStatus>[];
     for (final p in AppPermission.values) {
       result.add(await status(p));
@@ -23,6 +28,9 @@ class PermissionRepositoryImpl implements PermissionRepository {
 
   @override
   Future<PermissionStatus> status(AppPermission permission) async {
+    if (!PlatformCapabilities.usesAndroidPermissionFunnel) {
+      return PermissionStatus(kind: permission, state: PermissionState.denied);
+    }
     final granted = switch (permission) {
       AppPermission.accessibility => await _channel.isAccessibilityEnabled(),
       AppPermission.overlay => await _channel.canDrawOverlays(),
@@ -40,6 +48,7 @@ class PermissionRepositoryImpl implements PermissionRepository {
 
   @override
   Future<void> request(AppPermission permission) async {
+    if (!PlatformCapabilities.usesAndroidPermissionFunnel) return;
     switch (permission) {
       case AppPermission.accessibility:
         await _channel.openAccessibilitySettings();

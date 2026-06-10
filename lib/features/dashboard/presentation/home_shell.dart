@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/blocklist_tab.dart';
 import 'package:detoxo/features/dashboard/presentation/dashboard_tab.dart';
 import 'package:detoxo/features/dashboard/presentation/more_tab.dart';
 
-/// The main authenticated surface: Dashboard / Blocklist / More tabs.
+/// The main authenticated surface: Dashboard / Blocklist / More tabs over the
+/// ambient gradient, with a floating frosted tab bar.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -17,30 +19,37 @@ class _HomeShellState extends State<HomeShell> {
 
   static const _tabs = [DashboardTab(), BlocklistTab(), MoreTab()];
 
+  static const _items = [
+    AdaptiveTabItem(
+      label: 'Dashboard',
+      icon: Icons.dashboard_outlined,
+      selectedIcon: Icons.dashboard,
+      sfSymbol: 'square.grid.2x2',
+    ),
+    AdaptiveTabItem(
+      label: 'Blocklist',
+      icon: Icons.block_outlined,
+      selectedIcon: Icons.block,
+      sfSymbol: 'nosign',
+    ),
+    AdaptiveTabItem(
+      label: 'More',
+      icon: Icons.more_horiz,
+      sfSymbol: 'ellipsis',
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(child: IndexedStack(index: _index, children: _tabs)),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.block_outlined),
-            selectedIcon: Icon(Icons.block),
-            label: 'Blocklist',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.more_horiz),
-            selectedIcon: Icon(Icons.more_horiz),
-            label: 'More',
-          ),
-        ],
+    return GlassScaffold(
+      body: IndexedStack(index: _index, children: _tabs),
+      bottomBar: GlassBottomBar(
+        enableBlur: !PlatformAdaptive.useCupertino,
+        child: AdaptiveTabBar(
+          items: _items,
+          currentIndex: _index,
+          onChanged: (i) => setState(() => _index = i),
+        ),
       ),
     );
   }

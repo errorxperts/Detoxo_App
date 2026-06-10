@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
@@ -15,8 +16,7 @@ class PermissionsScreen extends StatefulWidget {
   State<PermissionsScreen> createState() => _PermissionsScreenState();
 }
 
-class _PermissionsScreenState extends State<PermissionsScreen>
-    with WidgetsBindingObserver {
+class _PermissionsScreenState extends State<PermissionsScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -46,85 +46,79 @@ class _PermissionsScreenState extends State<PermissionsScreen>
         AppPermission.deviceAdmin => Icons.shield,
       };
 
-  String _descFor(AppPermission p) => switch (p) {
-        AppPermission.accessibility =>
-          'Lets Detoxo detect and block reels & shorts. Required.',
-        AppPermission.overlay =>
-          'Shows the block / PIN screen over other apps. Required.',
-        AppPermission.notifications =>
-          'Alerts you if protection stops.',
-        AppPermission.usageAccess =>
-          'Powers app usage limits.',
-        AppPermission.batteryOptimization =>
-          'Keeps the blocker alive in the background.',
-        AppPermission.deviceAdmin =>
-          'Optional uninstall protection.',
+  String _whyFor(AppPermission p) => switch (p) {
+        AppPermission.accessibility => 'Lets Detoxo detect and block reels & shorts.',
+        AppPermission.overlay => 'Shows the block / PIN screen over other apps.',
+        AppPermission.notifications => 'Alerts you if protection stops.',
+        AppPermission.usageAccess => 'Powers app usage limits.',
+        AppPermission.batteryOptimization => 'Keeps the blocker alive in the background.',
+        AppPermission.deviceAdmin => 'Optional uninstall protection.',
       };
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Set up protection')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('Set up protection')),
       body: BlocBuilder<PermissionsCubit, List<PermissionStatus>>(
         builder: (context, statuses) {
-          final allRequired = context.read<PermissionsCubit>().allRequiredGranted;
+          final cubit = context.read<PermissionsCubit>();
+          final allRequired = cubit.allRequiredGranted;
+          final required = statuses.where((s) => s.kind.required).toList();
+          final optional = statuses.where((s) => !s.kind.required).toList();
+          final grantedReq = required.where((s) => s.granted).length;
+          final progress = required.isEmpty ? 1.0 : grantedReq / required.length;
+
           return Column(
             children: [
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
                   children: [
                     Text(
-                      'Grant a few permissions so Detoxo can do its job. '
-                      'Required ones are marked.',
+                      'Grant a few permissions so Detoxo can do its job.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                    const SizedBox(height: 16),
-                    for (final status in statuses)
-                      Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          leading: Icon(_iconFor(status.kind)),
-                          title: Row(
-                            children: [
-                              Flexible(child: Text(status.kind.label)),
-                              if (status.kind.required) ...[
-                                const SizedBox(width: 6),
-                                const _RequiredChip(),
-                              ],
-                            ],
-                          ),
-                          subtitle: Text(_descFor(status.kind)),
-                          trailing: status.granted
-                              ? const Icon(Icons.check_circle,
-                                  color: Colors.green)
-                              : FilledButton.tonal(
-                                  onPressed: () => context
-                                      .read<PermissionsCubit>()
-                                      .request(status.kind),
-                                  child: const Text('Grant'),
-                                ),
+                    const SizedBox(height: AppSpacing.md),
+                    Row(
+                      children: [
+                        Expanded(child: ProgressBar(progress: progress)),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          '$grantedReq of ${required.length}',
+                          style: Theme.of(context).textTheme.labelMedium,
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    if (required.isNotEmpty) ...[
+                      const _SectionLabel('Required to block'),
+                      EntranceList(
+                        children: [
+                          for (final s in required) _card(context, s),
+                        ],
                       ),
+                      const SizedBox(height: AppSpacing.lg),
+                    ],
+                    if (optional.isNotEmpty) ...[
+                      const _SectionLabel('Recommended'),
+                      EntranceList(
+                        children: [
+                          for (final s in optional) _card(context, s),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
               SafeArea(
+                top: false,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52),
-                      ),
-                      onPressed: allRequired
-                          ? () => context.go(Routes.home)
-                          : null,
-                      child: Text(
-                        allRequired ? 'Continue' : 'Grant required permissions',
-                      ),
-                    ),
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: PrimaryButton(
+                    label: allRequired ? 'Continue' : 'Grant required permissions',
+                    expand: true,
+                    onPressed: allRequired ? () => context.go(Routes.home) : null,
                   ),
                 ),
               ),
@@ -134,23 +128,37 @@ class _PermissionsScreenState extends State<PermissionsScreen>
       ),
     );
   }
+
+  Widget _card(BuildContext context, PermissionStatus status) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: PermissionCard(
+        icon: _iconFor(status.kind),
+        title: status.kind.label,
+        why: _whyFor(status.kind),
+        granted: status.granted,
+        isRequired: status.kind.required,
+        onGrant: () => context.read<PermissionsCubit>().request(status.kind),
+      ),
+    );
+  }
 }
 
-class _RequiredChip extends StatelessWidget {
-  const _RequiredChip();
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.label);
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: scheme.errorContainer,
-        borderRadius: BorderRadius.circular(8),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: AppSpacing.sm),
       child: Text(
-        'Required',
-        style: TextStyle(fontSize: 11, color: scheme.onErrorContainer),
+        label.toUpperCase(),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
       ),
     );
   }

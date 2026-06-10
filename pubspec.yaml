@@ -67,6 +67,11 @@ dependencies:
   collection: ^1.19.1
   flutter_gen: ^5.14.1
 
+  # Design system: motion, type ramp, and native iOS controls.
+  flutter_animate: ^4.5.2
+  google_fonts: ^8.1.0
+  cupertino_native: ^0.1.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -83,7 +88,6 @@ dev_dependencies:
   drift_dev: ^2.33.0
   bloc_test: ^10.0.0
   mocktail: ^1.0.5
-  flutter_gen_runner:
   flutter_launcher_icons: ^0.14.4
 
 # App launcher icon configuration. Regenerate with: dart run flutter_launcher_icons

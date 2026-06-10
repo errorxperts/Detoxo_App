@@ -1,11 +1,12 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/app_router.dart';
 import 'package:detoxo/core/theme/app_theme.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
@@ -16,10 +17,16 @@ import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
-import 'package:detoxo/app/unsupported_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Light status/nav icons over the dark ambient gradient.
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.light,
+  ));
   await configureDependencies();
   runApp(const DetoxoApp());
 }
@@ -27,20 +34,11 @@ Future<void> main() async {
 class DetoxoApp extends StatelessWidget {
   const DetoxoApp({super.key});
 
-  bool get _isAndroid => Platform.isAndroid;
-
   @override
   Widget build(BuildContext context) {
-    if (!_isAndroid) {
-      return MaterialApp(
-        title: 'Detoxo',
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        home: const UnsupportedScreen(),
-        debugShowCheckedModeBanner: false,
-      );
-    }
-
+    // Cross-platform: the UI runs everywhere. Native blocking is Android-only
+    // (engine / permission channels degrade to safe defaults off-Android), so
+    // iOS is UI-complete preview only.
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => ServiceCubit(sl<EngineRepository>())),
@@ -61,7 +59,13 @@ class DetoxoApp extends StatelessWidget {
         BlocProvider(create: (_) => PinCubit(sl<PinRepository>())),
         BlocProvider(create: (_) => PremiumCubit(sl<PremiumRepository>())),
       ],
-      child: _Router(),
+      // Mirror the user's vibration preference into the haptics gate so press
+      // micro-interactions respect it.
+      child: BlocListener<SettingsCubit, AppSettings>(
+        listenWhen: (a, b) => a.vibrationEnabled != b.vibrationEnabled,
+        listener: (_, state) => AppHaptics.enabled = state.vibrationEnabled,
+        child: _Router(),
+      ),
     );
   }
 }
@@ -80,7 +84,7 @@ class _RouterState extends State<_Router> {
       title: 'Detoxo',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.dark, // dark-first
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
     );

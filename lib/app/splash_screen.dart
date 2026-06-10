@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
@@ -69,24 +70,46 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
+    final text = Theme.of(context).textTheme;
+    return GlassScaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(Assets.images.detoxLogoNoBg.path, fit: BoxFit.contain),
-            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: AppShadows.glowIndigo,
+              ),
+              child: Image.asset(
+                Assets.images.detoxLogoNoBg.path,
+                width: 120,
+                height: 120,
+                fit: BoxFit.contain,
+              ),
+            )
+                .animate()
+                .fadeIn(duration: AppDurations.medium)
+                .scaleXY(begin: 0.85, end: 1, curve: Curves.easeOutBack),
+            const SizedBox(height: AppSpacing.xl),
             Text(
               'Detoxo',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 8),
-            const Text('Reclaim your attention'),
-            const SizedBox(height: 32),
-            const CircularProgressIndicator(),
+              style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+            )
+                .animate()
+                .fadeIn(delay: 200.ms, duration: AppDurations.normal)
+                .slideY(begin: 0.2, end: 0),
+            const SizedBox(height: AppSpacing.xs),
+            Text('Reclaim your attention', style: text.bodyMedium)
+                .animate()
+                .fadeIn(delay: 350.ms, duration: AppDurations.normal),
+            const SizedBox(height: AppSpacing.xxl),
+            const SizedBox(
+              width: 26,
+              height: 26,
+              child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.accent),
+            ).animate().fadeIn(delay: 500.ms),
           ],
         ),
       ),

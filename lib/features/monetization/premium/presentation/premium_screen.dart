@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/monetization/premium/domain/entities/premium_entitlement.dart';
 import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
 
 class PremiumScreen extends StatelessWidget {
   const PremiumScreen({super.key});
@@ -18,61 +19,53 @@ class PremiumScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Detoxo Premium')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('Detoxo Premium')),
       body: BlocBuilder<PremiumCubit, PremiumEntitlement>(
         builder: (context, premium) {
+          final text = Theme.of(context).textTheme;
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.md),
             children: [
-              Icon(
-                Icons.workspace_premium,
-                size: 64,
-                color: Theme.of(context).colorScheme.tertiary,
-              ),
-              const SizedBox(height: 12),
-              Center(
-                child: Text(
-                  premium.isPremium ? 'You are Premium 🎉' : 'Go Premium',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-              ),
-              const SizedBox(height: 20),
+              _Hero(isPremium: premium.isPremium),
+              const SizedBox(height: AppSpacing.lg),
               SectionCard(
                 title: "What's included",
                 child: Column(
                   children: [
                     for (final feature in _features)
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.check_circle, color: Colors.green),
-                        title: Text(feature),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(child: Text(feature)),
+                          ],
+                        ),
                       ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
               if (!premium.isPremium)
-                FullWidthButton(
+                PrimaryButton(
                   label: 'Upgrade',
+                  tint: AppColors.accent,
+                  expand: true,
                   onPressed: () => _upgrade(context),
                 )
               else
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () => context.read<PremiumCubit>().restore(),
-                    child: const Text('Restore purchases'),
-                  ),
+                SecondaryButton(
+                  label: 'Restore purchases',
+                  expand: true,
+                  onPressed: () => context.read<PremiumCubit>().restore(),
                 ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 'Tip: enable “Premium dev-unlock” in Settings to try premium '
                 'features without a store purchase in this build.',
-                style: Theme.of(context).textTheme.bodySmall,
+                style: text.bodySmall,
                 textAlign: TextAlign.center,
               ),
             ],
@@ -85,8 +78,48 @@ class PremiumScreen extends StatelessWidget {
   Future<void> _upgrade(BuildContext context) async {
     final error = await context.read<PremiumCubit>().purchase('premium_yearly');
     if (context.mounted && error != null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(error)));
+      GlassToast.show(context, error, tone: AppTone.danger);
     }
+  }
+}
+
+class _Hero extends StatelessWidget {
+  const _Hero({required this.isPremium});
+
+  final bool isPremium;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return GlassCard(
+      accent: AppColors.accent,
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppGradients.brand,
+              boxShadow: AppShadows.glowTeal,
+            ),
+            child: const Icon(Icons.workspace_premium, size: 40, color: Colors.white),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            isPremium ? 'You are Premium 🎉' : 'Go Premium',
+            style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            isPremium
+                ? 'Thanks for supporting Detoxo.'
+                : 'Unlock every feature and reclaim your focus.',
+            textAlign: TextAlign.center,
+            style: text.bodyMedium?.copyWith(color: context.glass.onGlassMuted),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: AppDurations.normal).slideY(begin: 0.08, end: 0);
   }
 }

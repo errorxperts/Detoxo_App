@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
+import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/plans/domain/repositories/content_repository.dart';
 import 'package:detoxo/features/blocking/plans/presentation/countdown_cubit.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
 
 /// Lets the user pause blocking for a chosen duration, with a mindful quote and
-/// a live countdown while paused.
+/// a live glass countdown while paused.
 class PauseScreen extends StatelessWidget {
   const PauseScreen({super.key});
 
@@ -31,6 +32,7 @@ class _PauseView extends StatefulWidget {
 
 class _PauseViewState extends State<_PauseView> {
   String _quote = 'A short pause is fine. Choosing when is the point.';
+  Duration? _ringTotal;
 
   static const _durations = [
     Duration(minutes: 5),
@@ -53,24 +55,31 @@ class _PauseViewState extends State<_PauseView> {
 
   void _syncCountdown(AppSettings settings) {
     if (settings.isPaused && settings.pauseUntil != null) {
+      _ringTotal ??= settings.pauseUntil!.difference(DateTime.now());
       context.read<CountdownCubit>().start(settings.pauseUntil!);
     } else {
+      _ringTotal = null;
       context.read<CountdownCubit>().stop();
     }
   }
 
+  void _pauseFor(Duration d) {
+    _ringTotal = d;
+    context.read<SettingsCubit>().pauseFor(d);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Pause')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('Pause')),
       body: BlocConsumer<SettingsCubit, AppSettings>(
         listener: (context, settings) => _syncCountdown(settings),
         builder: (context, settings) {
           return Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: settings.isPaused
-                ? _PausedView(quote: _quote)
-                : const _PickerView(durations: _durations),
+                ? _PausedView(quote: _quote, total: _ringTotal)
+                : _PickerView(durations: _durations, onPick: _pauseFor),
           );
         },
       ),
@@ -79,35 +88,45 @@ class _PauseViewState extends State<_PauseView> {
 }
 
 class _PickerView extends StatelessWidget {
-  const _PickerView({required this.durations});
+  const _PickerView({required this.durations, required this.onPick});
 
   final List<Duration> durations;
+  final ValueChanged<Duration> onPick;
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 8),
+        const SizedBox(height: AppSpacing.xs),
+        const Icon(Icons.self_improvement, size: 56, color: AppColors.accent)
+            .animate()
+            .fadeIn()
+            .scaleXY(begin: 0.9, end: 1, curve: Curves.easeOutBack),
+        const SizedBox(height: AppSpacing.lg),
         Text(
           'Take a mindful pause',
-          style: Theme.of(context)
-              .textTheme
-              .headlineSmall
-              ?.copyWith(fontWeight: FontWeight.w800),
+          textAlign: TextAlign.center,
+          style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
-        const SizedBox(height: 8),
-        const Text('Blocking resumes automatically when the timer ends.'),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'Blocking resumes automatically when the timer ends.',
+          textAlign: TextAlign.center,
+          style: text.bodyMedium,
+        ),
+        const SizedBox(height: AppSpacing.xl),
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          alignment: WrapAlignment.center,
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
           children: [
             for (final d in durations)
-              FilledButton.tonal(
-                onPressed: () =>
-                    context.read<SettingsCubit>().pauseFor(d),
-                child: Text('${d.inMinutes} min'),
+              AppChip(
+                label: '${d.inMinutes} min',
+                selected: false,
+                onSelected: () => onPick(d),
               ),
           ],
         ),
@@ -117,43 +136,48 @@ class _PickerView extends StatelessWidget {
 }
 
 class _PausedView extends StatelessWidget {
-  const _PausedView({required this.quote});
+  const _PausedView({required this.quote, required this.total});
 
   final String quote;
+  final Duration? total;
 
   @override
   Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
     final remaining = context.watch<CountdownCubit>().state;
+    final totalSecs = (total?.inSeconds ?? remaining.inSeconds).clamp(1, 1 << 30);
+    final progress = remaining.inSeconds / totalSecs;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.self_improvement, size: 64),
-        const SizedBox(height: 16),
-        Text(
-          formatCountdown(remaining),
-          style: Theme.of(context)
-              .textTheme
-              .displayMedium
-              ?.copyWith(fontWeight: FontWeight.w800, fontFeatures: const []),
+        ProgressRing(
+          progress: progress,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Blocking resumes in',
+                style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(formatCountdown(remaining), style: AppTypography.mono(text.displaySmall)),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        const Text('Blocking is paused'),
-        const SizedBox(height: 32),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+        const SizedBox(height: AppSpacing.xl),
+        SectionCard(
           child: Text(
             quote,
             textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontStyle: FontStyle.italic),
+            style: text.titleMedium?.copyWith(fontStyle: FontStyle.italic),
           ),
         ),
-        const SizedBox(height: 32),
-        OutlinedButton(
+        const SizedBox(height: AppSpacing.xl),
+        SecondaryButton(
+          label: 'Resume blocking now',
+          expand: true,
           onPressed: () => context.read<SettingsCubit>().resume(),
-          child: const Text('Resume blocking now'),
         ),
       ],
     );

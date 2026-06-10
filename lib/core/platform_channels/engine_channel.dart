@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 
 import 'package:detoxo/core/constants/channel_constants.dart';
+import 'package:detoxo/core/platform/platform_capabilities.dart';
 import 'package:detoxo/core/utils/app_logger.dart';
 
 /// Low-level wrapper over the native command MethodChannel and the engine
@@ -18,7 +19,13 @@ class EngineChannel {
   Stream<Map<String, dynamic>>? _eventStream;
 
   /// Broadcast stream of native engine events (status / detection / blocked).
+  ///
+  /// Off-Android there is no native engine, so the stream is empty (subscribing
+  /// to the EventChannel would otherwise emit a logged error every launch).
   Stream<Map<String, dynamic>> events() {
+    if (!PlatformCapabilities.supportsBlockingEngine) {
+      return const Stream<Map<String, dynamic>>.empty();
+    }
     return _eventStream ??= _events
         .receiveBroadcastStream()
         .map((dynamic e) => Map<String, dynamic>.from(e as Map))
@@ -29,6 +36,9 @@ class EngineChannel {
   }
 
   Future<T?> _invoke<T>(String method, [Map<String, dynamic>? args]) async {
+    // No native engine off-Android: short-circuit so screens render with safe
+    // defaults instead of paying a MissingPluginException round-trip per call.
+    if (!PlatformCapabilities.supportsBlockingEngine) return null;
     try {
       return await _commands.invokeMethod<T>(method, args);
     } on PlatformException catch (e) {

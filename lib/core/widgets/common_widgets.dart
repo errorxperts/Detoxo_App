@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 
-/// A titled, padded card section used across screens.
+import 'package:detoxo/core/design_system/design_system.dart';
+
+/// Shared composites kept at their original names/APIs so the ~13 screens that
+/// already use them keep compiling — now reskinned over the glass design system.
+/// New screens should prefer the design-system components directly
+/// (`GlassCard`, `StatCard`, `GlassListTile`, `PrimaryButton`, …).
+
+/// A titled, padded glass section used across screens.
 class SectionCard extends StatelessWidget {
   const SectionCard({
     required this.child,
     this.title,
     this.trailing,
-    this.padding = const EdgeInsets.all(16),
+    this.padding = const EdgeInsets.all(AppSpacing.md),
     super.key,
   });
 
@@ -17,31 +24,30 @@ class SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: padding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (title != null) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title!,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
+    return GlassContainer(
+      padding: padding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (title != null) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title!,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
-                  ?trailing,
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
-            child,
+                ),
+                ?trailing,
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
           ],
-        ),
+          child,
+        ],
       ),
     );
   }
@@ -62,24 +68,23 @@ class StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: scheme.primaryContainer.withValues(alpha: 0.45),
-          borderRadius: BorderRadius.circular(18),
-        ),
+      child: GlassContainer(
+        enableBlur: false,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        tintTop: AppColors.seed.withValues(alpha: 0.18),
+        tintBottom: AppColors.seed.withValues(alpha: 0.05),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: scheme.primary),
+            Icon(icon, color: AppColors.accent),
             const SizedBox(height: 10),
             Text(
               value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w800),
             ),
             Text(label, style: Theme.of(context).textTheme.bodySmall),
           ],
@@ -108,19 +113,19 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 56, color: Theme.of(context).colorScheme.outline),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
             Text(
               title,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             if (subtitle != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
@@ -129,7 +134,7 @@ class EmptyState extends StatelessWidget {
                     ),
               ),
             ],
-            if (action != null) ...[const SizedBox(height: 20), action!],
+            if (action != null) ...[const SizedBox(height: AppSpacing.lg), action!],
           ],
         ),
       ),
@@ -156,18 +161,21 @@ class FeatureTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: GlassListTile(
         onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: scheme.primaryContainer,
-          foregroundColor: scheme.onPrimaryContainer,
-          child: Icon(icon),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.accent.withValues(alpha: 0.16),
+            borderRadius: AppRadius.brMd,
+          ),
+          child: Icon(icon, color: AppColors.accent),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(subtitle),
+        title: title,
+        subtitle: subtitle,
         trailing: trailing ?? const Icon(Icons.chevron_right),
       ),
     );
@@ -186,16 +194,8 @@ class FullWidthButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: FilledButton(
-        onPressed: onPressed,
-        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-        child: Text(label),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      PrimaryButton(label: label, onPressed: onPressed, expand: true);
 }
 
 /// Formats a [Duration] as mm:ss (or h:mm:ss).
