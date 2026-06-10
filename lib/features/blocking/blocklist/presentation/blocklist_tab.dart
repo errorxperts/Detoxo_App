@@ -80,12 +80,9 @@ class _BlocklistTabState extends State<BlocklistTab> {
             ),
             const SizedBox(height: AppSpacing.md),
             if (showSearch) ...[
-              TextField(
+              AppSearchField(
+                hintText: 'Search apps & feeds',
                 onChanged: (v) => setState(() => _query = v),
-                decoration: const InputDecoration(
-                  hintText: 'Search apps & feeds',
-                  prefixIcon: Icon(Icons.search),
-                ),
               ),
               const SizedBox(height: AppSpacing.md),
             ],
@@ -155,8 +152,8 @@ class _TargetAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fallback = Container(
-      width: 40,
-      height: 40,
+      width: 34,
+      height: 34,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: AppColors.accent.withValues(alpha: 0.16),
@@ -172,8 +169,8 @@ class _TargetAvatar extends StatelessWidget {
       borderRadius: AppRadius.brMd,
       child: CachedNetworkImage(
         imageUrl: target.iconUrl,
-        width: 40,
-        height: 40,
+        width: 34,
+        height: 34,
         fit: BoxFit.cover,
         placeholder: (_, _) => fallback,
         errorWidget: (_, _, _) => fallback,

@@ -13,7 +13,7 @@ class GlassCard extends StatelessWidget {
   const GlassCard({
     required this.child,
     this.onTap,
-    this.padding = AppInsets.cardLg,
+    this.padding = AppInsets.card,
     this.accent,
     this.blurSigma,
     super.key,
@@ -31,7 +31,7 @@ class GlassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final card = GlassContainer(
       padding: padding,
-      blurSigma: blurSigma ?? 18,
+      blurSigma: blurSigma ?? 16,
       tintTop: accent?.withValues(alpha: 0.20),
       tintBottom: accent?.withValues(alpha: 0.06),
       borderColor: accent?.withValues(alpha: 0.40),
@@ -73,6 +73,7 @@ class StatCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return GlassContainer(
       enableBlur: false,
+      padding: const EdgeInsets.all(14),
       tintTop: AppColors.seed.withValues(alpha: 0.18),
       tintBottom: AppColors.seed.withValues(alpha: 0.05),
       child: Column(
@@ -89,7 +90,7 @@ class StatCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.xs),
           TweenAnimationBuilder<int>(
             key: ValueKey(value),
             tween: IntTween(begin: 0, end: value),

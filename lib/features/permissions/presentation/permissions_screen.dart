@@ -89,7 +89,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> with WidgetsBindi
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.md),
                     if (required.isNotEmpty) ...[
                       const _SectionLabel('Required to block'),
                       EntranceList(
@@ -97,7 +97,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> with WidgetsBindi
                           for (final s in required) _card(context, s),
                         ],
                       ),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.md),
                     ],
                     if (optional.isNotEmpty) ...[
                       const _SectionLabel('Recommended'),

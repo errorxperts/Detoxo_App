@@ -13,6 +13,7 @@ export 'components/badges.dart';
 export 'components/buttons.dart';
 export 'components/cards.dart';
 export 'components/feedback.dart';
+export 'components/inputs.dart';
 export 'components/list_tiles.dart';
 export 'components/overlays.dart';
 export 'components/permission_card.dart';

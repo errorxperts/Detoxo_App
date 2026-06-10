@@ -99,11 +99,11 @@ class _PickerView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: AppSpacing.xs),
-        const Icon(Icons.self_improvement, size: 56, color: AppColors.accent)
+        const Icon(Icons.self_improvement, size: 44, color: AppColors.accent)
             .animate()
             .fadeIn()
             .scaleXY(begin: 0.9, end: 1, curve: Curves.easeOutBack),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         Text(
           'Take a mindful pause',
           textAlign: TextAlign.center,
@@ -115,7 +115,7 @@ class _PickerView extends StatelessWidget {
           textAlign: TextAlign.center,
           style: text.bodyMedium,
         ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.lg),
         Wrap(
           alignment: WrapAlignment.center,
           spacing: AppSpacing.sm,
@@ -164,7 +164,7 @@ class _PausedView extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.lg),
         SectionCard(
           child: Text(
             quote,
@@ -172,7 +172,7 @@ class _PausedView extends StatelessWidget {
             style: text.titleMedium?.copyWith(fontStyle: FontStyle.italic),
           ),
         ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.lg),
         SecondaryButton(
           label: 'Resume blocking now',
           expand: true,

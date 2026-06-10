@@ -12,7 +12,7 @@ class SectionCard extends StatelessWidget {
     required this.child,
     this.title,
     this.trailing,
-    this.padding = const EdgeInsets.all(AppSpacing.md),
+    this.padding = const EdgeInsets.all(14),
     super.key,
   });
 
@@ -43,7 +43,7 @@ class SectionCard extends StatelessWidget {
                 ?trailing,
               ],
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: 10),
           ],
           child,
         ],
@@ -70,13 +70,14 @@ class StatTile extends StatelessWidget {
     return Expanded(
       child: GlassContainer(
         enableBlur: false,
+        padding: const EdgeInsets.all(14),
         tintTop: AppColors.seed.withValues(alpha: 0.18),
         tintBottom: AppColors.seed.withValues(alpha: 0.05),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, color: AppColors.accent),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               value,
               style: Theme.of(context)
@@ -118,21 +119,21 @@ class EmptyState extends StatelessWidget {
     final outline = Theme.of(context).colorScheme.outline;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxl),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (animatedIcon != null)
               AppAnimatedIcon(
                 icon: animatedIcon!,
-                size: 56,
+                size: 44,
                 color: outline,
                 loop: loopAnimation,
                 playOnAppear: !loopAnimation,
               )
             else
-              Icon(icon, size: 56, color: outline),
-            const SizedBox(height: AppSpacing.md),
+              Icon(icon, size: 44, color: outline),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -205,19 +206,19 @@ class _FeatureTileState extends State<FeatureTile> {
     final leading = widget.animatedIcon != null
         ? AppAnimatedIcon(
             icon: widget.animatedIcon!,
-            size: 24,
+            size: 20,
             color: AppColors.accent,
             controller: _iconController,
             playOnAppear: true,
           )
-        : Icon(widget.icon, color: AppColors.accent);
+        : Icon(widget.icon, size: 20, color: AppColors.accent);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: GlassListTile(
         onTap: _onTap,
         leading: Container(
-          width: 44,
-          height: 44,
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
             color: AppColors.accent.withValues(alpha: 0.16),
             borderRadius: AppRadius.brMd,

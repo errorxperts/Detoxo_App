@@ -86,7 +86,7 @@ class _StatusCard extends StatelessWidget {
           children: [
             const AppAnimatedIcon(
               icon: AppIcon.info,
-              size: 36,
+              size: 28,
               color: AppColors.warning,
               playOnAppear: true,
             ),
@@ -117,7 +117,7 @@ class _StatusCard extends StatelessWidget {
           else
             const AppAnimatedIcon(
               icon: AppIcon.statusOff,
-              size: 36,
+              size: 28,
               color: AppColors.danger,
               playOnAppear: true,
             ),

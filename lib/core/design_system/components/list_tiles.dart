@@ -27,10 +27,10 @@ class GlassListTile extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final row = GlassContainer(
       enableBlur: false,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
-          if (leading != null) ...[leading!, const SizedBox(width: AppSpacing.md)],
+          if (leading != null) ...[leading!, const SizedBox(width: AppSpacing.sm)],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

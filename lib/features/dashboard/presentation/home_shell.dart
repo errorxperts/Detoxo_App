@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 
 /// The main authenticated surface: Dashboard / Blocklist / More over the ambient
-/// gradient, with a frosted floating bar that hides as you scroll.
+/// gradient, with a frosted floating bar that hides as you scroll. The active
+/// tab expands into an accent "pill"; the others stay icon-only (compact).
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -47,18 +48,16 @@ class _HomeShellState extends State<HomeShell> {
         duration: AppDurations.normal,
         curve: AppCurves.standard,
         showIcon: false,
-        body: (context, controller) => SafeArea(
-          bottom: false,
-          child: _tab(controller),
-        ),
+        body: (context, controller) => SafeArea(bottom: false, child: _tab(controller)),
         child: GlassContainer(
           borderRadius: AppRadius.pill,
           blurSigma: AppBlur.bar,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xs),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs, vertical: AppSpacing.xxs),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               for (var i = 0; i < _items.length; i++)
-                _AnimatedNavItem(
+                _NavPillItem(
                   icon: _items[i].icon,
                   label: _items[i].label,
                   selected: _index == i,
@@ -75,11 +74,12 @@ class _HomeShellState extends State<HomeShell> {
   }
 }
 
-/// A bottom-nav item whose icon plays its Lucide morph each time the tab
-/// becomes selected. The icon is controller-driven (`interactive: false`) so
-/// the opaque [GestureDetector] keeps owning the tap.
-class _AnimatedNavItem extends StatefulWidget {
-  const _AnimatedNavItem({
+/// A bottom-nav item: icon-only when unselected, an accent icon+label pill when
+/// selected. The label expands/collapses via [AnimatedSize], and the Lucide icon
+/// morph replays each time the tab becomes selected (controller-driven, so the
+/// opaque [GestureDetector] keeps owning the tap).
+class _NavPillItem extends StatefulWidget {
+  const _NavPillItem({
     required this.icon,
     required this.label,
     required this.selected,
@@ -92,10 +92,10 @@ class _AnimatedNavItem extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_AnimatedNavItem> createState() => _AnimatedNavItemState();
+  State<_NavPillItem> createState() => _NavPillItemState();
 }
 
-class _AnimatedNavItemState extends State<_AnimatedNavItem> {
+class _NavPillItemState extends State<_NavPillItem> {
   final AnimatedIconController _controller = AnimatedIconController();
 
   bool get _reduceMotion => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
@@ -103,7 +103,6 @@ class _AnimatedNavItemState extends State<_AnimatedNavItem> {
   @override
   void initState() {
     super.initState();
-    // Play once for the tab that's already active on launch.
     if (widget.selected) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && !_reduceMotion) _controller.animate();
@@ -112,12 +111,11 @@ class _AnimatedNavItemState extends State<_AnimatedNavItem> {
   }
 
   @override
-  void didUpdateWidget(_AnimatedNavItem oldWidget) {
+  void didUpdateWidget(_NavPillItem oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.selected && !oldWidget.selected) {
       if (!_reduceMotion) _controller.animate();
     } else if (!widget.selected && oldWidget.selected) {
-      // Settle to the first frame so re-selecting replays the morph cleanly.
       _controller.reset();
     }
   }
@@ -133,38 +131,35 @@ class _AnimatedNavItemState extends State<_AnimatedNavItem> {
     final color = widget.selected
         ? AppColors.accent
         : Theme.of(context).colorScheme.onSurfaceVariant;
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: AppDurations.fast,
-          curve: AppCurves.standard,
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-          decoration: BoxDecoration(
-            color: widget.selected
-                ? AppColors.accent.withValues(alpha: 0.16)
-                : Colors.transparent,
-            borderRadius: AppRadius.brPill,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AppAnimatedIcon(
-                icon: widget.icon,
-                color: color,
-                controller: _controller,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: AppDurations.fast,
+        curve: AppCurves.standard,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xs),
+        decoration: BoxDecoration(
+          color: widget.selected ? AppColors.accent.withValues(alpha: 0.16) : Colors.transparent,
+          borderRadius: AppRadius.brPill,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppAnimatedIcon(icon: widget.icon, size: 20, color: color, controller: _controller),
+            AnimatedSize(
+              duration: AppDurations.fast,
+              curve: AppCurves.standard,
+              child: Padding(
+                padding: const EdgeInsets.only(left: AppSpacing.xxs),
+                child: Text(
+                  widget.label,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelMedium?.copyWith(color: color, fontWeight: FontWeight.w700),
+                ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                widget.label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: color,
-                      fontWeight: widget.selected ? FontWeight.w700 : FontWeight.w500,
-                    ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -169,7 +169,7 @@ class AdaptiveButton extends StatelessWidget {
       button = CNButton(
         label: label,
         tint: tint,
-        height: 50,
+        height: 44,
         shrinkWrap: !expand,
         style: switch (variant) {
           AdaptiveButtonVariant.filled => CNButtonStyle.glass,
@@ -186,7 +186,7 @@ class AdaptiveButton extends StatelessWidget {
                 onPressed: onPressed,
                 style: FilledButton.styleFrom(
                   backgroundColor: tint,
-                  minimumSize: const Size.fromHeight(50),
+                  minimumSize: const Size.fromHeight(44),
                 ),
                 child: Text(label),
               )
@@ -194,14 +194,14 @@ class AdaptiveButton extends StatelessWidget {
                 onPressed: onPressed,
                 style: FilledButton.styleFrom(
                   backgroundColor: tint,
-                  minimumSize: const Size.fromHeight(50),
+                  minimumSize: const Size.fromHeight(44),
                 ),
                 icon: Icon(icon),
                 label: Text(label),
               ),
         AdaptiveButtonVariant.tinted => FilledButton.tonal(
             onPressed: onPressed,
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(50)),
+            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
             child: child ?? Text(label),
           ),
         AdaptiveButtonVariant.plain => TextButton(

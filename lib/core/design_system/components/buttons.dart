@@ -120,8 +120,8 @@ class _AnimatedIconButtonState extends State<AnimatedIconButton> {
   Widget build(BuildContext context) {
     final disabled = widget.onPressed == null;
     final pill = Container(
-      height: 50,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       decoration: BoxDecoration(
         color: disabled ? widget.tint.withValues(alpha: 0.4) : widget.tint,
         borderRadius: AppRadius.brPill,

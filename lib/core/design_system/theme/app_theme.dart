@@ -126,20 +126,22 @@ abstract final class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(64, 48),
+          minimumSize: const Size(64, 44),
           shape: RoundedRectangleBorder(borderRadius: AppRadius.brMd),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(64, 48),
+          minimumSize: const Size(64, 44),
           side: BorderSide(color: scheme.outline),
           shape: RoundedRectangleBorder(borderRadius: AppRadius.brMd),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         fillColor: isDark ? AppColors.glassFillTopDark : null,
         border: OutlineInputBorder(
           borderRadius: AppRadius.brMd,
