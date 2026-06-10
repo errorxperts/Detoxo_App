@@ -1,6 +1,5 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// A temporary suspension of blocking, followed by a cooldown lockdown.
 /// Phase math is verified from the reference app: active -> cooldown -> idle.
@@ -12,6 +11,15 @@ class PauseSession extends Equatable {
     required this.planToResume,
     this.allowInCooldown = false,
   });
+
+  factory PauseSession.fromJson(Map<String, dynamic> json) => PauseSession(
+        startedAt:
+            DateTime.fromMillisecondsSinceEpoch(json['startedAt'] as int? ?? 0),
+        pauseDuration: Duration(milliseconds: json['pauseMs'] as int? ?? 0),
+        cooldownDuration: Duration(milliseconds: json['cooldownMs'] as int? ?? 0),
+        planToResume: BlockingPlan.fromWire(json['planToResume'] as String?),
+        allowInCooldown: json['allowInCooldown'] as bool? ?? false,
+      );
 
   final DateTime startedAt;
   final Duration pauseDuration;
@@ -41,15 +49,6 @@ class PauseSession extends Equatable {
         'planToResume': planToResume.wire,
         'allowInCooldown': allowInCooldown,
       };
-
-  factory PauseSession.fromJson(Map<String, dynamic> json) => PauseSession(
-        startedAt:
-            DateTime.fromMillisecondsSinceEpoch(json['startedAt'] as int? ?? 0),
-        pauseDuration: Duration(milliseconds: json['pauseMs'] as int? ?? 0),
-        cooldownDuration: Duration(milliseconds: json['cooldownMs'] as int? ?? 0),
-        planToResume: BlockingPlan.fromWire(json['planToResume'] as String?),
-        allowInCooldown: json['allowInCooldown'] as bool? ?? false,
-      );
 
   @override
   List<Object?> get props =>

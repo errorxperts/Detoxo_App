@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-
 import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:flutter/material.dart';
 
 /// Shared composites kept at their original names/APIs so the ~13 screens that
 /// already use them keep compiling — now reskinned over the glass design system.
@@ -71,7 +70,6 @@ class StatTile extends StatelessWidget {
     return Expanded(
       child: GlassContainer(
         enableBlur: false,
-        padding: const EdgeInsets.all(AppSpacing.md),
         tintTop: AppColors.seed.withValues(alpha: 0.18),
         tintBottom: AppColors.seed.withValues(alpha: 0.05),
         child: Column(

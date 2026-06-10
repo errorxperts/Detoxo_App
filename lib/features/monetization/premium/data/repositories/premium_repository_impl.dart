@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:detoxo/core/error/failures.dart';
+import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/core/utils/result.dart';
 import 'package:detoxo/features/monetization/premium/domain/entities/premium_entitlement.dart';
 import 'package:detoxo/features/monetization/premium/domain/repositories/premium_repository.dart';
-import 'package:detoxo/core/storage/local_store.dart';
 
 /// Premium entitlement. Offline-first: defaults to free, with a local dev-unlock
 /// for testing gated features. Real Play Billing wires into [purchase]/[restore]
@@ -28,7 +28,7 @@ class PremiumRepositoryImpl implements PremiumRepository {
   }
 
   @override
-  Future<void> setDevUnlock(bool unlocked) async {
+  Future<void> setDevUnlock({required bool unlocked}) async {
     await _store.write(StoreKeys.premiumDevUnlock, unlocked ? 'true' : 'false');
     _controller.add(await current());
   }

@@ -1,9 +1,8 @@
+import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
+import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-
-import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
-import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
 
 /// Manages the per-day usage quota with a device-local midnight reset.
 class DailyLimitCubit extends Cubit<DailyLimit> {

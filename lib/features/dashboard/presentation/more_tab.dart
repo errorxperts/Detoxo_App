@@ -1,10 +1,9 @@
+import 'package:detoxo/core/navigation/routes.dart';
+import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:detoxo/core/navigation/routes.dart';
-import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
 
 /// Entry points to the secondary features and settings.
 class MoreTab extends StatelessWidget {

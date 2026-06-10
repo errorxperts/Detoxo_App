@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/features/monetization/premium/domain/entities/premium_entitlement.dart';
 import 'package:detoxo/features/monetization/premium/domain/repositories/premium_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Exposes the current premium entitlement and the actions that change it.
 class PremiumCubit extends Cubit<PremiumEntitlement> {
@@ -16,8 +15,8 @@ class PremiumCubit extends Cubit<PremiumEntitlement> {
 
   Future<void> load() async => emit(await _repo.current());
 
-  Future<void> toggleDevUnlock(bool unlocked) =>
-      _repo.setDevUnlock(unlocked);
+  Future<void> toggleDevUnlock({required bool unlocked}) =>
+      _repo.setDevUnlock(unlocked: unlocked);
 
   Future<String?> purchase(String productId) async {
     final result = await _repo.purchase(productId);

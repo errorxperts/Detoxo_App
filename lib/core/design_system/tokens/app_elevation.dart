@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
+import 'package:flutter/material.dart';
 
 /// On a dark mesh, "elevation" reads as a soft colored glow, not a drop shadow.
 abstract final class AppShadows {

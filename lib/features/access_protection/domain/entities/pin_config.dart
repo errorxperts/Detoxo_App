@@ -1,6 +1,5 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// PIN-lock configuration. The secret is stored encrypted (secure storage); the
 /// retry ladder escalates lockouts on repeated failures.
@@ -14,6 +13,20 @@ class PinConfig extends Equatable {
     this.lockedUntil,
     this.biometricEnabled = false,
   });
+
+  factory PinConfig.fromJson(Map<String, dynamic> json) => PinConfig(
+        type: PinType.fromWire(json['type'] as String?),
+        secret: json['secret'] as String? ?? '',
+        scopes: ((json['scopes'] as List?)?.cast<String>() ?? const [])
+            .map(PinScope.fromWire)
+            .toSet(),
+        verifiedEmail: json['verifiedEmail'] as String? ?? '',
+        retryCount: json['retryCount'] as int? ?? 0,
+        lockedUntil: json['lockedUntil'] == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(json['lockedUntil'] as int),
+        biometricEnabled: json['biometricEnabled'] as bool? ?? false,
+      );
 
   final PinType type;
   final String secret;
@@ -58,20 +71,6 @@ class PinConfig extends Equatable {
         'lockedUntil': lockedUntil?.millisecondsSinceEpoch,
         'biometricEnabled': biometricEnabled,
       };
-
-  factory PinConfig.fromJson(Map<String, dynamic> json) => PinConfig(
-        type: PinType.fromWire(json['type'] as String?),
-        secret: json['secret'] as String? ?? '',
-        scopes: ((json['scopes'] as List?)?.cast<String>() ?? const [])
-            .map(PinScope.fromWire)
-            .toSet(),
-        verifiedEmail: json['verifiedEmail'] as String? ?? '',
-        retryCount: json['retryCount'] as int? ?? 0,
-        lockedUntil: json['lockedUntil'] == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(json['lockedUntil'] as int),
-        biometricEnabled: json['biometricEnabled'] as bool? ?? false,
-      );
 
   @override
   List<Object?> get props =>

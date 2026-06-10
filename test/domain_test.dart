@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
-import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/sessions.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('enum wire mapping', () {

@@ -5,7 +5,7 @@ import 'package:detoxo/features/monetization/premium/domain/entities/premium_ent
 abstract interface class PremiumRepository {
   Stream<PremiumEntitlement> watch();
   Future<PremiumEntitlement> current();
-  Future<void> setDevUnlock(bool unlocked);
+  Future<void> setDevUnlock({required bool unlocked});
   Future<Result<void>> purchase(String productId);
   Future<void> restore();
 }

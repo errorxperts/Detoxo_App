@@ -1,6 +1,5 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// The user's blocking configuration. This is the single object Dart persists
 /// locally and pushes to the native engine; the service reads from it.
@@ -14,6 +13,20 @@ class AppSettings extends Equatable {
     this.pauseUntil,
     this.onboarded = false,
   });
+
+  factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
+        activePlan: BlockingPlan.fromWire(json['activePlan'] as String?),
+        defaultBlockMode: BlockingMode.fromWire(json['defaultBlockMode'] as String?),
+        enabledPlatformIds:
+            ((json['enabledPlatformIds'] as List?)?.cast<String>() ?? const [])
+                .toSet(),
+        vibrationEnabled: json['vibrationEnabled'] as bool? ?? true,
+        masterEnabled: json['masterEnabled'] as bool? ?? true,
+        pauseUntil: json['pauseUntil'] == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(json['pauseUntil'] as int),
+        onboarded: json['onboarded'] as bool? ?? false,
+      );
 
   final BlockingPlan activePlan;
   final BlockingMode defaultBlockMode;
@@ -58,20 +71,6 @@ class AppSettings extends Equatable {
         'pauseUntil': pauseUntil?.millisecondsSinceEpoch,
         'onboarded': onboarded,
       };
-
-  factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
-        activePlan: BlockingPlan.fromWire(json['activePlan'] as String?),
-        defaultBlockMode: BlockingMode.fromWire(json['defaultBlockMode'] as String?),
-        enabledPlatformIds:
-            ((json['enabledPlatformIds'] as List?)?.cast<String>() ?? const [])
-                .toSet(),
-        vibrationEnabled: json['vibrationEnabled'] as bool? ?? true,
-        masterEnabled: json['masterEnabled'] as bool? ?? true,
-        pauseUntil: json['pauseUntil'] == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(json['pauseUntil'] as int),
-        onboarded: json['onboarded'] as bool? ?? false,
-      );
 
   @override
   List<Object?> get props => [

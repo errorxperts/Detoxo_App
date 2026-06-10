@@ -1,14 +1,13 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart';
-
 import 'package:detoxo/core/constants/app_constants.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/app_notice.dart';
-import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/blocking/shared/data/models/initial_config_model.dart';
 import 'package:detoxo/features/blocking/shared/data/models/platform_config_model.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/app_notice.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
+import 'package:flutter/services.dart';
 
 /// Offline-first config: reads the bundled JSON assets. A remote refresh can be
 /// layered in later behind the same interface (see networking doc) — the rest of

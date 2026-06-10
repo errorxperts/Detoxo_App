@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/services.dart';
-
 import 'package:detoxo/core/constants/app_constants.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/mindful_quote.dart';
 import 'package:detoxo/features/blocking/plans/domain/repositories/content_repository.dart';
+import 'package:flutter/services.dart';
 
 /// Bundled dynamic content (mindful quotes). Emoji bands can be loaded the same
 /// way from the other bundled JSON files when those screens need them.

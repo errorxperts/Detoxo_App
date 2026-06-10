@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/core/di/injector.dart';
-import 'package:detoxo/features/limits/web_blocker/domain/entities/web_block_entry.dart';
+import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:detoxo/features/limits/web_blocker/domain/entities/web_block_entry.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_repository.dart';
 import 'package:detoxo/features/limits/web_blocker/presentation/web_block_cubit.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class WebBlockScreen extends StatelessWidget {
   const WebBlockScreen({super.key});
@@ -57,7 +56,7 @@ class _WebBlockView extends StatelessWidget {
                       Switch(
                         value: entry.enabled,
                         onChanged: (v) =>
-                            context.read<WebBlockCubit>().toggle(i, v),
+                            context.read<WebBlockCubit>().toggle(i, enabled: v),
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline),

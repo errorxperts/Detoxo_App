@@ -1,10 +1,9 @@
+import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
-import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
 
 /// Configure (or disable) the PIN lock and which sections it guards.
 class PinSetupScreen extends StatefulWidget {

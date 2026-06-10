@@ -1,27 +1,26 @@
-import 'package:get_it/get_it.dart';
-
-import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/core/platform_channels/engine_channel.dart';
-import 'package:detoxo/features/analytics/data/repositories/analytics_repository_impl.dart';
-import 'package:detoxo/features/limits/web_blocker/data/repositories/web_block_repository_impl.dart';
-import 'package:detoxo/features/limits/app_blocker/data/repositories/app_block_repository_impl.dart';
-import 'package:detoxo/features/limits/daily_limit/data/repositories/daily_limit_repository_impl.dart';
-import 'package:detoxo/features/blocking/shared/data/repositories/config_repository_impl.dart';
-import 'package:detoxo/features/blocking/plans/data/repositories/content_repository_impl.dart';
-import 'package:detoxo/features/blocking/shared/data/repositories/engine_repository_impl.dart';
-import 'package:detoxo/features/permissions/data/repositories/permission_repository_impl.dart';
+import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/features/access_protection/data/repositories/pin_repository_impl.dart';
-import 'package:detoxo/features/monetization/premium/data/repositories/premium_repository_impl.dart';
+import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
+import 'package:detoxo/features/analytics/data/repositories/analytics_repository_impl.dart';
+import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
+import 'package:detoxo/features/blocking/plans/data/repositories/content_repository_impl.dart';
+import 'package:detoxo/features/blocking/plans/domain/repositories/content_repository.dart';
+import 'package:detoxo/features/blocking/shared/data/repositories/config_repository_impl.dart';
+import 'package:detoxo/features/blocking/shared/data/repositories/engine_repository_impl.dart';
 import 'package:detoxo/features/blocking/shared/data/repositories/settings_repository_impl.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
-import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
-import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
-import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_repository.dart';
+import 'package:detoxo/features/limits/app_blocker/data/repositories/app_block_repository_impl.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block_repository.dart';
+import 'package:detoxo/features/limits/daily_limit/data/repositories/daily_limit_repository_impl.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
+import 'package:detoxo/features/limits/web_blocker/data/repositories/web_block_repository_impl.dart';
+import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_repository.dart';
+import 'package:detoxo/features/monetization/premium/data/repositories/premium_repository_impl.dart';
 import 'package:detoxo/features/monetization/premium/domain/repositories/premium_repository.dart';
-import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
-import 'package:detoxo/features/blocking/plans/domain/repositories/content_repository.dart';
+import 'package:detoxo/features/permissions/data/repositories/permission_repository_impl.dart';
+import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
+import 'package:get_it/get_it.dart';
 
 /// Service locator. Composition root for the whole app; blocs resolve their
 /// dependencies from here (registered as interfaces for testability).
@@ -32,10 +31,8 @@ Future<void> configureDependencies() async {
   final store = await LocalStore.create();
   sl
     ..registerSingleton<LocalStore>(store)
-    ..registerLazySingleton<EngineChannel>(EngineChannel.new);
-
-  // Repositories (interface -> implementation).
-  sl
+    ..registerLazySingleton<EngineChannel>(EngineChannel.new)
+    // Repositories (interface -> implementation).
     ..registerLazySingleton<ConfigRepository>(ConfigRepositoryImpl.new)
     ..registerLazySingleton<SettingsRepository>(
       () => SettingsRepositoryImpl(sl()),

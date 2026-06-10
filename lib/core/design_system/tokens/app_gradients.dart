@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
+import 'package:flutter/material.dart';
 
 /// Reusable gradients. The ambient mesh is the app-wide backdrop that the
 /// transparent scaffolds sit on top of.
@@ -29,8 +28,6 @@ abstract final class AppGradients {
 
   /// Brand CTA gradient (indigo → teal) for primary hero surfaces.
   static const LinearGradient brand = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
     colors: [AppColors.seed, AppColors.accent],
   );
 }

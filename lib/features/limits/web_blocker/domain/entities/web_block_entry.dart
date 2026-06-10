@@ -1,5 +1,5 @@
-import 'package:equatable/equatable.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// A website blocklist entry. Matching logic lives in the web-blocker use case.
 class WebBlockEntry extends Equatable {
@@ -10,6 +10,16 @@ class WebBlockEntry extends Equatable {
     this.blockMode = BlockingMode.pressBack,
     this.pausedUntil,
   });
+
+  factory WebBlockEntry.fromJson(Map<String, dynamic> json) => WebBlockEntry(
+        pattern: json['pattern'] as String? ?? '',
+        matchType: WebMatchType.fromWire(json['matchType'] as String?),
+        enabled: json['enabled'] as bool? ?? true,
+        blockMode: BlockingMode.fromWire(json['blockMode'] as String?),
+        pausedUntil: json['pausedUntil'] == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(json['pausedUntil'] as int),
+      );
 
   final String pattern;
   final WebMatchType matchType;
@@ -43,16 +53,6 @@ class WebBlockEntry extends Equatable {
         'blockMode': blockMode.wire,
         'pausedUntil': pausedUntil?.millisecondsSinceEpoch,
       };
-
-  factory WebBlockEntry.fromJson(Map<String, dynamic> json) => WebBlockEntry(
-        pattern: json['pattern'] as String? ?? '',
-        matchType: WebMatchType.fromWire(json['matchType'] as String?),
-        enabled: json['enabled'] as bool? ?? true,
-        blockMode: BlockingMode.fromWire(json['blockMode'] as String?),
-        pausedUntil: json['pausedUntil'] == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(json['pausedUntil'] as int),
-      );
 
   @override
   List<Object?> get props => [pattern, matchType, enabled, blockMode, pausedUntil];

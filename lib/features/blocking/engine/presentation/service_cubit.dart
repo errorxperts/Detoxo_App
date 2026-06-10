@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Tracks the live native-engine status and block counters.
 class ServiceCubit extends Cubit<ServiceSnapshot> {

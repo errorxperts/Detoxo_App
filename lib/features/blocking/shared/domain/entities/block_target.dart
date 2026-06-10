@@ -1,6 +1,5 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// A user-facing, blockable content surface (e.g. "Instagram Reels"), derived
 /// from the platform config. Drives the dashboard blocklist toggles.

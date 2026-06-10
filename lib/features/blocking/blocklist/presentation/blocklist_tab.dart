@@ -1,8 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
@@ -10,6 +6,9 @@ import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.da
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 /// Lists every blockable surface and lets the user toggle each. Premium targets
 /// are gated behind the premium upgrade — but use the same switch rhythm as
@@ -118,7 +117,8 @@ class _BlocklistTabState extends State<BlocklistTab> {
         enabled: !locked,
         locked: locked,
         onLockedTap: () => context.push(Routes.premium),
-        onChanged: (v) => context.read<SettingsCubit>().togglePlatform(target.platformId, v),
+        onChanged: (v) =>
+            context.read<SettingsCubit>().togglePlatform(target.platformId, enabled: v),
       ),
     );
   }

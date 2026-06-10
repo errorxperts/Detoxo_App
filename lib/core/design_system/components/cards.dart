@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-
 import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/widgets/common_widgets.dart' show SectionCard;
+import 'package:flutter/material.dart';
 
 /// A frosted, optionally tappable surface. Use for hero/status cards and any
 /// standalone glass panel. For titled sections use [SectionCard] (common_widgets).
@@ -73,7 +73,6 @@ class StatCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return GlassContainer(
       enableBlur: false,
-      padding: const EdgeInsets.all(AppSpacing.md),
       tintTop: AppColors.seed.withValues(alpha: 0.18),
       tintBottom: AppColors.seed.withValues(alpha: 0.05),
       child: Column(

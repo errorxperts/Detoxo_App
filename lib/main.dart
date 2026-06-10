@@ -1,22 +1,21 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/app_router.dart';
 import 'package:detoxo/core/theme/app_theme.dart';
+import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
+import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
+import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
+import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
-import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
-import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
-import 'package:detoxo/features/monetization/premium/domain/repositories/premium_repository.dart';
-import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
-import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
-import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
-import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
+import 'package:detoxo/features/monetization/premium/domain/repositories/premium_repository.dart';
+import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
+import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
+import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

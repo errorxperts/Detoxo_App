@@ -67,7 +67,7 @@ dependencies:
   collection: ^1.19.1
   flutter_gen: ^5.14.1
 
-  # Design system: motion, type ramp, and native iOS controls.
+  # Design system: motion, type ramp, native iOS controls, floating nav.
   flutter_animate: ^4.5.2
   google_fonts: ^8.1.0
   cupertino_native: ^0.1.1
@@ -77,11 +77,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
+  # Lint rule sets. `lints` provides the Dart core/recommended rules; the
+  # `flutter_lints` set builds on top with Flutter-specific rules. Both are
+  # activated and extended in `analysis_options.yaml`.
+  lints: ^6.1.0
   flutter_lints: ^6.0.0
   build_runner: ^2.15.0
   freezed: ^3.2.6-dev.1

@@ -1,13 +1,12 @@
+import 'package:detoxo/core/di/injector.dart';
+import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
+import 'package:detoxo/features/analytics/presentation/analytics_cubit.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
+import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-
-import 'package:detoxo/core/di/injector.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
-import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
-import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
-import 'package:detoxo/features/analytics/presentation/analytics_cubit.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
 
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({super.key});

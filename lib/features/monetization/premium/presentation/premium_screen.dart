@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/monetization/premium/domain/entities/premium_entitlement.dart';
 import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class PremiumScreen extends StatelessWidget {
   const PremiumScreen({super.key});

@@ -1,8 +1,7 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
-import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Loads the local block-event history and persists incoming block events.
 class AnalyticsCubit extends Cubit<List<BlockEvent>> {

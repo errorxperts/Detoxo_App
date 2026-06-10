@@ -1,13 +1,12 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_blur.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 /// Branded loading indicator (replaces bare `CircularProgressIndicator`).
 class LoadingState extends StatelessWidget {
@@ -130,14 +129,15 @@ class _RingPainter extends CustomPainter {
       ..shader = const SweepGradient(
         colors: [AppColors.accent, AppColors.seed, AppColors.accent],
       ).createShader(Rect.fromCircle(center: center, radius: radius));
-    canvas.drawCircle(center, radius, track);
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -math.pi / 2,
-      math.pi * 2 * progress,
-      false,
-      arc,
-    );
+    canvas
+      ..drawCircle(center, radius, track)
+      ..drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -math.pi / 2,
+        math.pi * 2 * progress,
+        false,
+        arc,
+      );
   }
 
   @override

@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-
 import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/components/buttons.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:flutter/material.dart';
 
 /// Generic shell for a permission row: leading icon, title + required/optional
 /// pill, a one-line "why", and a trailing grant control or granted check.
@@ -32,7 +31,6 @@ class PermissionCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return GlassContainer(
       enableBlur: false,
-      padding: const EdgeInsets.all(AppSpacing.md),
       borderColor: granted ? AppColors.success.withValues(alpha: 0.4) : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

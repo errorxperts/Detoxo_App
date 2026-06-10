@@ -1,13 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
+import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
-import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
-import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -35,7 +34,7 @@ class SettingsScreen extends StatelessWidget {
                   subtitle: const Text('Master switch for all detection'),
                   value: settings.masterEnabled,
                   onChanged: (v) =>
-                      context.read<SettingsCubit>().setMasterEnabled(v),
+                      context.read<SettingsCubit>().setMasterEnabled(enabled: v),
                 ),
               ),
               const SizedBox(height: 12),
@@ -70,7 +69,7 @@ class SettingsScreen extends StatelessWidget {
                   title: const Text('Vibrate on block'),
                   value: settings.vibrationEnabled,
                   onChanged: (v) =>
-                      context.read<SettingsCubit>().setVibration(v),
+                      context.read<SettingsCubit>().setVibration(enabled: v),
                 ),
               ),
               const SizedBox(height: 12),
@@ -124,7 +123,7 @@ class _DeveloperSection extends StatelessWidget {
         title: const Text('Premium dev-unlock'),
         subtitle: const Text('Unlock premium features locally for testing'),
         value: isPremium,
-        onChanged: (v) => context.read<PremiumCubit>().toggleDevUnlock(v),
+        onChanged: (v) => context.read<PremiumCubit>().toggleDevUnlock(unlocked: v),
       ),
     );
   }

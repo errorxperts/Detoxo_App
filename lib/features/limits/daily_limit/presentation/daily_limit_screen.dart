@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/core/di/injector.dart';
+import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DailyLimitScreen extends StatelessWidget {
   const DailyLimitScreen({super.key});

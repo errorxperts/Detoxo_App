@@ -1,5 +1,5 @@
-import 'package:equatable/equatable.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// A single runtime permission's status in the onboarding funnel.
 class PermissionStatus extends Equatable {

@@ -1,5 +1,10 @@
 # Detoxo — static analysis configuration.
-# Clean-code oriented: stricter language modes + a curated lint set on top of flutter_lints.
+#
+# Clean-code oriented: the official Dart `lints` recommended set and Flutter's
+# `flutter_lints` set, plus stricter language modes and a comprehensive, curated
+# layer of additional rules on top. Mutually-exclusive and extremely high-churn
+# style rules (e.g. always_specify_types, public_member_api_docs, double quotes)
+# are intentionally omitted so the set stays internally consistent.
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
@@ -13,18 +18,90 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
+    - "**/*.gen.dart"
     - "lib/generated/**"
     - "build/**"
 
 linter:
   rules:
+    # ── Correctness / safety ────────────────────────────────────────────────
+    - avoid_dynamic_calls
+    - avoid_slow_async_io
+    - avoid_type_to_string
+    - cancel_subscriptions
+    - close_sinks
+    - collection_methods_unrelated_type
+    - comment_references
+    - literal_only_boolean_expressions
+    - no_adjacent_strings_in_list
+    - no_self_assignments
+    - only_throw_errors
+    - throw_in_finally
+    - unawaited_futures
+    - unnecessary_statements
+    - unsafe_variance
+    - use_build_context_synchronously
+
+    # ── Async ───────────────────────────────────────────────────────────────
+    # Note: `discarded_futures` is intentionally omitted — it fires on every
+    # fire-and-forget UI callback. `unawaited_futures` (below) still catches the
+    # genuinely risky case of a dropped Future inside an async body.
+    - avoid_void_async
+    - unnecessary_await_in_return
+
+    # ── Style / clarity (non-conflicting) ───────────────────────────────────
     - always_declare_return_types
+    - always_put_required_named_parameters_first
+    - always_use_package_imports
+    - avoid_bool_literals_in_conditional_expressions
+    - avoid_escaping_inner_quotes
+    - avoid_field_initializers_in_const_classes
+    - avoid_multiple_declarations_per_line
+    - avoid_positional_boolean_parameters
     - avoid_print
+    - avoid_redundant_argument_values
+    - avoid_setters_without_getters
+    - avoid_unused_constructor_parameters
+    - cascade_invocations
+    - cast_nullable_to_non_nullable
+    - combinators_ordering
+    - deprecated_consistency
+    - directives_ordering
+    - eol_at_end_of_file
+    - join_return_with_assignment
+    - leading_newlines_in_multiline_strings
+    - missing_whitespace_between_adjacent_strings
+    - no_literal_bool_comparisons
+    - no_runtimeType_toString
+    - noop_primitive_operations
+    - omit_local_variable_types
+    - parameter_assignments
     - prefer_const_constructors
     - prefer_const_constructors_in_immutables
     - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - prefer_final_in_for_each
     - prefer_final_locals
+    - prefer_if_elements_to_conditional_expressions
+    - prefer_null_aware_method_calls
     - prefer_single_quotes
+    - require_trailing_commas
+    - sized_box_shrink_expand
     - sort_child_properties_last
-    - unawaited_futures
+    - sort_constructors_first
+    - sort_unnamed_constructors_first
+    - tighten_type_of_initializing_formals
+    - unnecessary_breaks
+    - unnecessary_lambdas
+    - unnecessary_library_directive
+    - unnecessary_null_aware_operator_on_extension_on_nullable
+    - unnecessary_null_checks
+    - unnecessary_parenthesis
+    - unnecessary_raw_strings
+    - unnecessary_to_list_in_spreads
+    - use_colored_box
+    - use_decorated_box
+    - use_enums
+    - use_named_constants
+    - use_string_buffers
     - use_super_parameters

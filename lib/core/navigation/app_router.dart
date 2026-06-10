@@ -1,19 +1,18 @@
-import 'package:go_router/go_router.dart';
-
-import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
-import 'package:detoxo/features/limits/app_blocker/presentation/app_block_screen.dart';
-import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_screen.dart';
-import 'package:detoxo/features/dashboard/presentation/home_shell.dart';
-import 'package:detoxo/features/onboarding/presentation/onboarding_screen.dart';
-import 'package:detoxo/features/blocking/plans/presentation/pause_screen.dart';
-import 'package:detoxo/features/permissions/presentation/permissions_screen.dart';
+import 'package:detoxo/app/splash_screen.dart';
+import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_lock_screen.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_setup_screen.dart';
-import 'package:detoxo/features/monetization/premium/presentation/premium_screen.dart';
-import 'package:detoxo/features/settings/presentation/settings_screen.dart';
-import 'package:detoxo/app/splash_screen.dart';
+import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
+import 'package:detoxo/features/blocking/plans/presentation/pause_screen.dart';
+import 'package:detoxo/features/dashboard/presentation/home_shell.dart';
+import 'package:detoxo/features/limits/app_blocker/presentation/app_block_screen.dart';
+import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_screen.dart';
 import 'package:detoxo/features/limits/web_blocker/presentation/web_block_screen.dart';
-import 'package:detoxo/core/navigation/routes.dart';
+import 'package:detoxo/features/monetization/premium/presentation/premium_screen.dart';
+import 'package:detoxo/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:detoxo/features/permissions/presentation/permissions_screen.dart';
+import 'package:detoxo/features/settings/presentation/settings_screen.dart';
+import 'package:go_router/go_router.dart';
 
 /// App navigation graph. Gating (onboarding / PIN / permissions) is performed
 /// imperatively from the splash screen after state is loaded.

@@ -1,11 +1,10 @@
 import 'dart:async';
 
-import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/monetization/premium/domain/repositories/premium_repository.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Loads the blockable targets (derived from the platform config), pushes the
 /// raw config to the native engine on first load, and tracks premium status via

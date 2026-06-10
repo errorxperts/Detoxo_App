@@ -1,6 +1,6 @@
+import 'package:detoxo/features/blocking/shared/domain/entities/app_notice.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/app_notice.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
 
 /// Loads the detection config (offline bundle, refreshed remotely) and exposes

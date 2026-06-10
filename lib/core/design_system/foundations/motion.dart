@@ -1,8 +1,7 @@
+import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
-import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 
 /// Global haptics gate, mirrored from `AppSettings.vibrationEnabled`. Set once
 /// from a high-level `BlocListener` so leaf widgets stay context-light.
@@ -42,8 +41,6 @@ class _AppPressableState extends State<AppPressable> with SingleTickerProviderSt
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: AppDurations.instant,
-    lowerBound: 0,
-    upperBound: 1,
   );
 
   @override

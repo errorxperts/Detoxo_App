@@ -1,9 +1,9 @@
 import 'dart:convert';
 
+import 'package:detoxo/core/storage/local_store.dart';
+import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
-import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
-import 'package:detoxo/core/storage/local_store.dart';
 
 /// Local block-event buffer (capped JSON list). A cloud sink (Firebase
 /// Analytics) can be added behind the same interface later.

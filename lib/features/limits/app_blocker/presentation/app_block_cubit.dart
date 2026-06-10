@@ -1,7 +1,6 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/features/limits/app_blocker/domain/entities/app_block_entry.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Manages the full-app blocklist (CRUD + persistence).
 class AppBlockCubit extends Cubit<List<AppBlockEntry>> {
@@ -24,7 +23,7 @@ class AppBlockCubit extends Cubit<List<AppBlockEntry>> {
     await _commit(next);
   }
 
-  Future<void> toggle(int index, bool enabled) async {
+  Future<void> toggle(int index, {required bool enabled}) async {
     final next = [...state];
     next[index] = next[index].copyWith(enabled: enabled);
     await _commit(next);

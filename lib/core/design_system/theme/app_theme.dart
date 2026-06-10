@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/typography/app_typography.dart';
+import 'package:flutter/material.dart';
 
 /// Brightness-dependent glass values, read via
 /// `Theme.of(context).extension<GlassTokens>()` or the `context.glass` shortcut.
@@ -110,7 +109,7 @@ abstract final class AppTheme {
       // Opaque base for raw scaffolds; flagship screens use GlassScaffold,
       // which sets its own transparent scaffold over the ambient mesh.
       scaffoldBackgroundColor: scheme.surface,
-      extensions: [isDark ? GlassTokens.dark : GlassTokens.light],
+      extensions: [if (isDark) GlassTokens.dark else GlassTokens.light],
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         backgroundColor: Colors.transparent,

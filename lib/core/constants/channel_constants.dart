@@ -1,6 +1,6 @@
 /// Names of the platform channels bridging Dart and native Android.
 ///
-/// The native [AccessibilityService] hosts the hot detection/block path; Dart
+/// The native `AccessibilityService` hosts the hot detection/block path; Dart
 /// drives configuration and reads a live event/status stream.
 abstract final class Channels {
   /// MethodChannel: Dart → native commands (push config, set plan, query

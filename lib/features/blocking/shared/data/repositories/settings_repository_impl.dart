@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
-import 'package:detoxo/core/storage/local_store.dart';
 
 /// Persists [AppSettings] as JSON in [LocalStore] and broadcasts changes.
 class SettingsRepositoryImpl implements SettingsRepository {

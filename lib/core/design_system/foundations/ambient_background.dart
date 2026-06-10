@@ -1,11 +1,10 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_blur.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 /// Full-screen ambient gradient + soft brand "mesh" blobs. ONE cheap paint
 /// layer (no per-card blur) so glass surfaces above it have something real to

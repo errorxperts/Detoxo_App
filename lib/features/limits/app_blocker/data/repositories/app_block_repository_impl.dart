@@ -1,7 +1,8 @@
 import 'dart:convert';
+
+import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/entities/app_block_entry.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block_repository.dart';
-import 'package:detoxo/core/storage/local_store.dart';
 
 /// Full-app blocklist persistence.
 class AppBlockRepositoryImpl implements AppBlockRepository {

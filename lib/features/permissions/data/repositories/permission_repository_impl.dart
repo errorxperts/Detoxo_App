@@ -1,10 +1,9 @@
-import 'package:permission_handler/permission_handler.dart' as ph;
-
+import 'package:detoxo/core/platform/platform_capabilities.dart';
+import 'package:detoxo/core/platform_channels/engine_channel.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
-import 'package:detoxo/core/platform/platform_capabilities.dart';
-import 'package:detoxo/core/platform_channels/engine_channel.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 
 /// Resolves permission status via the native channel (accessibility, overlay,
 /// usage, battery, device-admin) and permission_handler (notifications).

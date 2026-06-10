@@ -1,5 +1,5 @@
-import 'package:equatable/equatable.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// A fully-blocked app (PIN-locked or daily-limited).
 class AppBlockEntry extends Equatable {
@@ -10,6 +10,14 @@ class AppBlockEntry extends Equatable {
     this.lockAction = AppLockAction.closeApp,
     this.dailyLimitMinutes = 0,
   });
+
+  factory AppBlockEntry.fromJson(Map<String, dynamic> json) => AppBlockEntry(
+        packageName: json['packageName'] as String? ?? '',
+        appName: json['appName'] as String? ?? '',
+        enabled: json['enabled'] as bool? ?? true,
+        lockAction: AppLockAction.fromWire(json['lockAction'] as String?),
+        dailyLimitMinutes: json['dailyLimitMinutes'] as int? ?? 0,
+      );
 
   final String packageName;
   final String appName;
@@ -37,14 +45,6 @@ class AppBlockEntry extends Equatable {
         'lockAction': lockAction.wire,
         'dailyLimitMinutes': dailyLimitMinutes,
       };
-
-  factory AppBlockEntry.fromJson(Map<String, dynamic> json) => AppBlockEntry(
-        packageName: json['packageName'] as String? ?? '',
-        appName: json['appName'] as String? ?? '',
-        enabled: json['enabled'] as bool? ?? true,
-        lockAction: AppLockAction.fromWire(json['lockAction'] as String?),
-        dailyLimitMinutes: json['dailyLimitMinutes'] as int? ?? 0,
-      );
 
   @override
   List<Object?> get props =>

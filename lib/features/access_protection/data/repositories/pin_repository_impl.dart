@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:detoxo/core/error/failures.dart';
+import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/core/utils/result.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
-import 'package:detoxo/core/storage/local_store.dart';
 
 /// PIN persistence (secure storage) + email-OTP recovery.
 ///

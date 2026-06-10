@@ -1,8 +1,7 @@
 import 'package:cupertino_native/cupertino_native.dart';
-import 'package:flutter/material.dart';
-
 import 'package:detoxo/core/design_system/adaptive/platform_adaptive.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
+import 'package:flutter/material.dart';
 
 /// This is the ONLY file that imports `cupertino_native`. Every adaptive
 /// control renders a native `CN*` widget on iOS/macOS and a hand-built Material

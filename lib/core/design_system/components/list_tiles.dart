@@ -1,17 +1,15 @@
-import 'package:flutter/material.dart';
-
 import 'package:detoxo/core/design_system/adaptive/adaptive_controls.dart';
 import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:flutter/material.dart';
 
 /// A glass row used in lists (feature entries, quick actions). Flat translucent
 /// fill (no per-row blur) so a long list stays smooth.
 class GlassListTile extends StatelessWidget {
   const GlassListTile({
-    this.leading,
-    required this.title,
+    required this.title, this.leading,
     this.subtitle,
     this.trailing,
     this.onTap,
@@ -58,10 +56,8 @@ class GlassListTile extends StatelessWidget {
 class AdaptiveSwitchTile extends StatelessWidget {
   const AdaptiveSwitchTile({
     required this.title,
-    this.subtitle,
+    required this.value, required this.onChanged, this.subtitle,
     this.leading,
-    required this.value,
-    required this.onChanged,
     this.enabled = true,
     this.locked = false,
     this.onLockedTap,

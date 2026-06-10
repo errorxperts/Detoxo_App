@@ -1,6 +1,5 @@
-import 'package:equatable/equatable.dart';
-
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:equatable/equatable.dart';
 
 /// Live status of the native engine plus block counters, streamed to the UI.
 class ServiceSnapshot extends Equatable {

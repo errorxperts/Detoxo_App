@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/core/di/injector.dart';
+import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/entities/app_block_entry.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block_repository.dart';
 import 'package:detoxo/features/limits/app_blocker/presentation/app_block_cubit.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AppBlockScreen extends StatelessWidget {
   const AppBlockScreen({super.key});
@@ -57,7 +56,7 @@ class _AppBlockView extends StatelessWidget {
                       Switch(
                         value: entry.enabled,
                         onChanged: (v) =>
-                            context.read<AppBlockCubit>().toggle(i, v),
+                            context.read<AppBlockCubit>().toggle(i, enabled: v),
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete_outline),

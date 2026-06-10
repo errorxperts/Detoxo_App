@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
@@ -8,6 +5,8 @@ import 'package:detoxo/features/blocking/plans/domain/repositories/content_repos
 import 'package:detoxo/features/blocking/plans/presentation/countdown_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Lets the user pause blocking for a chosen duration, with a mindful quote and
 /// a live glass countdown while paused.

@@ -1,8 +1,7 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Owns the user's [AppSettings]. Every mutation persists locally and pushes the
 /// new settings to the native engine so the running service stays in sync.
@@ -30,16 +29,16 @@ class SettingsCubit extends Cubit<AppSettings> {
   Future<void> setDefaultBlockMode(BlockingMode mode) =>
       _commit(state.copyWith(defaultBlockMode: mode));
 
-  Future<void> setMasterEnabled(bool enabled) =>
+  Future<void> setMasterEnabled({required bool enabled}) =>
       _commit(state.copyWith(masterEnabled: enabled));
 
-  Future<void> setVibration(bool enabled) =>
+  Future<void> setVibration({required bool enabled}) =>
       _commit(state.copyWith(vibrationEnabled: enabled));
 
-  Future<void> setOnboarded(bool value) =>
+  Future<void> setOnboarded({required bool value}) =>
       _commit(state.copyWith(onboarded: value));
 
-  Future<void> togglePlatform(String platformId, bool enabled) {
+  Future<void> togglePlatform(String platformId, {required bool enabled}) {
     final next = Set<String>.from(state.enabledPlatformIds);
     if (enabled) {
       next.add(platformId);

@@ -1,7 +1,8 @@
 import 'dart:convert';
+
+import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/entities/web_block_entry.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_repository.dart';
-import 'package:detoxo/core/storage/local_store.dart';
 
 /// Website blocklist persistence (JSON list in [LocalStore]).
 class WebBlockRepositoryImpl implements WebBlockRepository {

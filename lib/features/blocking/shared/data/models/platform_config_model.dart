@@ -97,7 +97,7 @@ abstract class AppOpenActionModel with _$AppOpenActionModel {
 }
 
 /// The `OVERLAY` detector's `params` field is itself an escaped JSON string.
-/// Parse it lazily with [OverlayParamsModel.tryParse].
+/// Parse it lazily with `OverlayParamsModel.tryParse`.
 @freezed
 abstract class OverlayParamsModel with _$OverlayParamsModel {
   const factory OverlayParamsModel({

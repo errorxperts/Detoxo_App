@@ -1,10 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
-
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/blocklist_tab.dart';
 import 'package:detoxo/features/dashboard/presentation/dashboard_tab.dart';
 import 'package:detoxo/features/dashboard/presentation/more_tab.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 
 /// The main authenticated surface: Dashboard / Blocklist / More over the ambient
 /// gradient, with a frosted floating bar that hides as you scroll.
@@ -43,7 +42,6 @@ class _HomeShellState extends State<HomeShell> {
         fit: StackFit.expand,
         borderRadius: AppRadius.brPill,
         barColor: Colors.transparent,
-        barAlignment: Alignment.bottomCenter,
         width: barWidth > 460 ? 460 : barWidth,
         offset: AppSpacing.sm,
         duration: AppDurations.normal,

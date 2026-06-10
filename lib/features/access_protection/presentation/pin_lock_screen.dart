@@ -1,10 +1,9 @@
+import 'package:detoxo/core/navigation/routes.dart';
+import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-import 'package:detoxo/core/navigation/routes.dart';
-import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
 
 /// Full-screen PIN gate shown at launch when a PIN guards the app.
 class PinLockScreen extends StatefulWidget {

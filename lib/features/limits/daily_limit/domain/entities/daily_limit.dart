@@ -8,6 +8,12 @@ class DailyLimit extends Equatable {
     this.dateSignature = '',
   });
 
+  factory DailyLimit.fromJson(Map<String, dynamic> json) => DailyLimit(
+        limit: Duration(milliseconds: json['limitMs'] as int? ?? 0),
+        consumed: Duration(milliseconds: json['consumedMs'] as int? ?? 0),
+        dateSignature: json['dateSignature'] as String? ?? '',
+      );
+
   final Duration limit;
   final Duration consumed;
   final String dateSignature;
@@ -23,7 +29,6 @@ class DailyLimit extends Equatable {
     if (dateSignature == todaySignature) return this;
     return DailyLimit(
       limit: limit,
-      consumed: Duration.zero,
       dateSignature: todaySignature,
     );
   }
@@ -40,12 +45,6 @@ class DailyLimit extends Equatable {
         'consumedMs': consumed.inMilliseconds,
         'dateSignature': dateSignature,
       };
-
-  factory DailyLimit.fromJson(Map<String, dynamic> json) => DailyLimit(
-        limit: Duration(milliseconds: json['limitMs'] as int? ?? 0),
-        consumed: Duration(milliseconds: json['consumedMs'] as int? ?? 0),
-        dateSignature: json['dateSignature'] as String? ?? '',
-      );
 
   @override
   List<Object?> get props => [limit, consumed, dateSignature];

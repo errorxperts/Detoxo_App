@@ -1,12 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-
 import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_blur.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 /// Frosted modal bottom sheet. Use instead of raw `showModalBottomSheet` so
 /// every sheet shares the glass chrome, drag handle and radius.

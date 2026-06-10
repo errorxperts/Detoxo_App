@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:detoxo/core/constants/channel_constants.dart';
+import 'package:detoxo/core/platform_channels/engine_channel.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
-import 'package:detoxo/core/platform_channels/engine_channel.dart';
 
 /// Bridges the native engine to the domain. Translates raw channel maps into
 /// typed [ServiceSnapshot] / [BlockEvent] streams and pushes config/settings.

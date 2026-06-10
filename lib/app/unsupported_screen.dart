@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-
 import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:flutter/material.dart';
 
 /// Shown on platforms (iOS) where the core AccessibilityService-based blocker
 /// cannot run. See docs/15-ios-cross-platform.md for the FamilyControls path.

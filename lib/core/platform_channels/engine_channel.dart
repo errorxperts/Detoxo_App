@@ -1,10 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
-
 import 'package:detoxo/core/constants/channel_constants.dart';
 import 'package:detoxo/core/platform/platform_capabilities.dart';
 import 'package:detoxo/core/utils/app_logger.dart';
+import 'package:flutter/services.dart';
 
 /// Low-level wrapper over the native command MethodChannel and the engine
 /// EventChannel. Repositories build on top of this; it owns no domain logic.

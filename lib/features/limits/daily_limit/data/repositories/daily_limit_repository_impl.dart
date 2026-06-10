@@ -1,7 +1,8 @@
 import 'dart:convert';
+
+import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
-import 'package:detoxo/core/storage/local_store.dart';
 
 /// Daily usage quota persistence.
 class DailyLimitRepositoryImpl implements DailyLimitRepository {

@@ -1,9 +1,8 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:local_auth/local_auth.dart';
-
-import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:local_auth/local_auth.dart';
 
 /// PIN setup + verification with the escalating lockout ladder, plus biometric
 /// unlock and email-OTP recovery.

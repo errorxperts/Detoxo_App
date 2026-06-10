@@ -1,7 +1,6 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Drives the permission funnel: loads statuses, requests, and re-checks (e.g.
 /// when the app resumes after the user returns from a system settings screen).

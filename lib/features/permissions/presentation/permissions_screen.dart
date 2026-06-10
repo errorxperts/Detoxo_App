@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 /// Guided permission funnel. Re-checks statuses whenever the app resumes (the
 /// user typically grants from a system settings screen and returns).

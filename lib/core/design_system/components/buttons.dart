@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-
 import 'package:detoxo/core/design_system/adaptive/adaptive_controls.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
+import 'package:flutter/material.dart';
 
 /// Primary call-to-action. Filled & brand-tinted (native CNButton on iOS).
 /// `expand: true` makes it full-width (the old `FullWidthButton` behaviour).
@@ -25,7 +24,6 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) => AdaptiveButton(
         label: label,
         onPressed: onPressed,
-        variant: AdaptiveButtonVariant.filled,
         tint: tint,
         expand: expand,
         icon: icon,

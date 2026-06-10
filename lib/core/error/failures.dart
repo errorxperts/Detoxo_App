@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 
 /// Base type for recoverable, user-facing error states.
 ///
-/// Repositories convert thrown [AppException]s (see `exceptions.dart`) into
+/// Repositories convert thrown `AppException`s (see `exceptions.dart`) into
 /// [Failure]s so the domain/presentation layers never depend on data-layer
 /// implementation details.
 sealed class Failure extends Equatable {
