@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
@@ -32,7 +33,8 @@ class _DailyLimitViewState extends State<_DailyLimitView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Daily limit')),
-      body: BlocBuilder<DailyLimitCubit, DailyLimit>(
+      body: SafeArea(
+        child: BlocBuilder<DailyLimitCubit, DailyLimit>(
         builder: (context, limit) {
           final minutes = _draftMinutes ?? limit.limit.inMinutes.toDouble();
           final consumed = limit.consumed.inMinutes;
@@ -76,8 +78,10 @@ class _DailyLimitViewState extends State<_DailyLimitView> {
                       onChanged: (v) => setState(() => _draftMinutes = v),
                     ),
                     const SizedBox(height: 8),
-                    FullWidthButton(
+                    AnimatedIconButton(
                       label: 'Save limit',
+                      icon: AppIcon.check,
+                      expand: true,
                       onPressed: () {
                         context
                             .read<DailyLimitCubit>()
@@ -100,6 +104,7 @@ class _DailyLimitViewState extends State<_DailyLimitView> {
             ],
           );
         },
+        ),
       ),
     );
   }
@@ -120,7 +125,12 @@ class _InfoBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, size: 20),
+          const AppAnimatedIcon(
+            icon: AppIcon.info,
+            size: 20,
+            interactive: true,
+            playOnAppear: true,
+          ),
           const SizedBox(width: 10),
           Expanded(child: Text(text, style: Theme.of(context).textTheme.bodySmall)),
         ],

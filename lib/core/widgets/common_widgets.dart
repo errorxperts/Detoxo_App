@@ -92,13 +92,17 @@ class StatTile extends StatelessWidget {
   }
 }
 
-/// A friendly empty / placeholder state.
+/// A friendly empty / placeholder state. Pass [animatedIcon] for a morphing
+/// glyph — [loopAnimation] runs it continuously (ambient), otherwise it plays
+/// once on appear.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     required this.icon,
     required this.title,
     this.subtitle,
     this.action,
+    this.animatedIcon,
+    this.loopAnimation = false,
     super.key,
   });
 
@@ -106,16 +110,28 @@ class EmptyState extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget? action;
+  final AppIcon? animatedIcon;
+  final bool loopAnimation;
 
   @override
   Widget build(BuildContext context) {
+    final outline = Theme.of(context).colorScheme.outline;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 56, color: Theme.of(context).colorScheme.outline),
+            if (animatedIcon != null)
+              AppAnimatedIcon(
+                icon: animatedIcon!,
+                size: 56,
+                color: outline,
+                loop: loopAnimation,
+                playOnAppear: !loopAnimation,
+              )
+            else
+              Icon(icon, size: 56, color: outline),
             const SizedBox(height: AppSpacing.md),
             Text(
               title,
@@ -140,14 +156,17 @@ class EmptyState extends StatelessWidget {
   }
 }
 
-/// A labelled navigation tile for the "more features" list.
-class FeatureTile extends StatelessWidget {
+/// A labelled navigation tile for the "more features" list. Pass [animatedIcon]
+/// for a morphing badge glyph that plays on appear and replays on every tap;
+/// [icon] is the static fallback for un-migrated call sites.
+class FeatureTile extends StatefulWidget {
   const FeatureTile({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
     this.trailing,
+    this.animatedIcon,
     super.key,
   });
 
@@ -156,13 +175,46 @@ class FeatureTile extends StatelessWidget {
   final String subtitle;
   final VoidCallback onTap;
   final Widget? trailing;
+  final AppIcon? animatedIcon;
+
+  @override
+  State<FeatureTile> createState() => _FeatureTileState();
+}
+
+class _FeatureTileState extends State<FeatureTile> {
+  final AnimatedIconController _iconController = AnimatedIconController();
+
+  @override
+  void dispose() {
+    _iconController.dispose();
+    super.dispose();
+  }
+
+  void _onTap() {
+    if (widget.animatedIcon != null &&
+        !(MediaQuery.maybeDisableAnimationsOf(context) ?? false)) {
+      _iconController
+        ..reset()
+        ..animate();
+    }
+    widget.onTap();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final leading = widget.animatedIcon != null
+        ? AppAnimatedIcon(
+            icon: widget.animatedIcon!,
+            size: 24,
+            color: AppColors.accent,
+            controller: _iconController,
+            playOnAppear: true,
+          )
+        : Icon(widget.icon, color: AppColors.accent);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: GlassListTile(
-        onTap: onTap,
+        onTap: _onTap,
         leading: Container(
           width: 44,
           height: 44,
@@ -170,11 +222,11 @@ class FeatureTile extends StatelessWidget {
             color: AppColors.accent.withValues(alpha: 0.16),
             borderRadius: AppRadius.brMd,
           ),
-          child: Icon(icon, color: AppColors.accent),
+          child: Center(child: leading),
         ),
-        title: title,
-        subtitle: subtitle,
-        trailing: trailing ?? const Icon(Icons.chevron_right),
+        title: widget.title,
+        subtitle: widget.subtitle,
+        trailing: widget.trailing ?? const Icon(Icons.chevron_right),
       ),
     );
   }

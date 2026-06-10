@@ -75,6 +75,51 @@ class _AppPressableState extends State<AppPressable> with SingleTickerProviderSt
   }
 }
 
+/// Scale-on-press feedback driven by raw pointer events. Unlike [AppPressable]
+/// this adds NO tap recognizer, so it can wrap a widget that owns its own tap
+/// (Material buttons, `InkWell`) without fighting it in the gesture arena — the
+/// child's `onPressed`/ripple still fires. Used to give every adaptive button a
+/// subtle squish on Android.
+class PressScale extends StatefulWidget {
+  const PressScale({required this.child, this.pressedScale = 0.97, super.key});
+
+  final Widget child;
+  final double pressedScale;
+
+  @override
+  State<PressScale> createState() => _PressScaleState();
+}
+
+class _PressScaleState extends State<PressScale> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: AppDurations.instant,
+  );
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerDown: (_) => _c.forward(),
+      onPointerUp: (_) => _c.reverse(),
+      onPointerCancel: (_) => _c.reverse(),
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (_, child) => Transform.scale(
+          scale: 1 - (_c.value * (1 - widget.pressedScale)),
+          child: child,
+        ),
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 /// Entrance animation helpers (flutter_animate) for a consistent fade + slide-up.
 extension EntranceX on Widget {
   /// Single-item entrance: fade + slide-up.

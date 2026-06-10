@@ -82,7 +82,8 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
             TextButton(onPressed: _disable, child: const Text('Disable')),
         ],
       ),
-      body: ListView(
+      body: SafeArea(
+        child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           SectionCard(
@@ -155,6 +156,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
           const SizedBox(height: 20),
           FullWidthButton(label: 'Save PIN', onPressed: _save),
         ],
+        ),
       ),
     );
   }

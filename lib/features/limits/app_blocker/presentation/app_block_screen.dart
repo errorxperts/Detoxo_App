@@ -30,7 +30,8 @@ class _AppBlockView extends StatelessWidget {
         icon: const Icon(Icons.add),
         label: const Text('Add app'),
       ),
-      body: BlocBuilder<AppBlockCubit, List<AppBlockEntry>>(
+      body: SafeArea(
+        child: BlocBuilder<AppBlockCubit, List<AppBlockEntry>>(
         builder: (context, entries) {
           if (entries.isEmpty) {
             return const EmptyState(
@@ -70,6 +71,7 @@ class _AppBlockView extends StatelessWidget {
             },
           );
         },
+        ),
       ),
     );
   }

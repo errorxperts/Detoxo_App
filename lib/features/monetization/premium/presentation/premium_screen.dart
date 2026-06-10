@@ -32,12 +32,19 @@ class PremiumScreen extends StatelessWidget {
                 title: "What's included",
                 child: Column(
                   children: [
-                    for (final feature in _features)
+                    for (final (i, feature) in _features.indexed)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                         child: Row(
                           children: [
-                            const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                            AppAnimatedIcon(
+                              icon: AppIcon.check,
+                              color: AppColors.success,
+                              size: 20,
+                              interactive: true,
+                              playOnAppear: true,
+                              appearDelay: AppDurations.stagger * i,
+                            ),
                             const SizedBox(width: AppSpacing.sm),
                             Expanded(child: Text(feature)),
                           ],
@@ -48,8 +55,9 @@ class PremiumScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               if (!premium.isPremium)
-                PrimaryButton(
+                AnimatedIconButton(
                   label: 'Upgrade',
+                  icon: AppIcon.premium,
                   tint: AppColors.accent,
                   expand: true,
                   onPressed: () => _upgrade(context),
@@ -102,7 +110,13 @@ class _Hero extends StatelessWidget {
               gradient: AppGradients.brand,
               boxShadow: AppShadows.glowTeal,
             ),
-            child: const Icon(Icons.workspace_premium, size: 40, color: Colors.white),
+            child: const AppAnimatedIcon(
+              icon: AppIcon.premium,
+              size: 40,
+              color: Colors.white,
+              interactive: true,
+              playOnAppear: true,
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(

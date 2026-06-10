@@ -31,7 +31,8 @@ class _WebBlockView extends StatelessWidget {
         icon: const Icon(Icons.add),
         label: const Text('Add site'),
       ),
-      body: BlocBuilder<WebBlockCubit, List<WebBlockEntry>>(
+      body: SafeArea(
+        child: BlocBuilder<WebBlockCubit, List<WebBlockEntry>>(
         builder: (context, entries) {
           if (entries.isEmpty) {
             return const EmptyState(
@@ -70,6 +71,7 @@ class _WebBlockView extends StatelessWidget {
             },
           );
         },
+        ),
       ),
     );
   }

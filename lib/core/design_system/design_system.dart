@@ -19,6 +19,7 @@ export 'components/permission_card.dart';
 export 'components/selection.dart';
 // Foundations
 export 'foundations/ambient_background.dart';
+export 'foundations/animated_icons.dart';
 export 'foundations/glass_container.dart';
 export 'foundations/motion.dart';
 // Typography + theme

@@ -1,5 +1,6 @@
 import 'package:cupertino_native/cupertino_native.dart';
 import 'package:detoxo/core/design_system/adaptive/platform_adaptive.dart';
+import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:flutter/material.dart';
 
@@ -209,7 +210,9 @@ class AdaptiveButton extends StatelessWidget {
           ),
       };
     }
-    return expand ? SizedBox(width: double.infinity, child: button) : button;
+    final sized = expand ? SizedBox(width: double.infinity, child: button) : button;
+    // iOS CNButton animates natively; add a Material press-squish on Android.
+    return PlatformAdaptive.useCupertino ? sized : PressScale(child: sized);
   }
 }
 

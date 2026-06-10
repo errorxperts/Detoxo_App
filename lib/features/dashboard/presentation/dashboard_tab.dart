@@ -26,8 +26,12 @@ class DashboardTab extends StatelessWidget {
       onRefresh: () => context.read<ServiceCubit>().refresh(),
       child: ListView(
         controller: scrollController,
-        padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl + AppSpacing.xl),
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.floatingNavClearance + MediaQuery.viewPaddingOf(context).bottom,
+        ),
         children: [
           Text(
             'Detoxo',
@@ -45,18 +49,16 @@ class DashboardTab extends StatelessWidget {
             title: 'Quick actions',
             child: Column(
               children: [
-                GlassListTile(
-                  leading: const Icon(Icons.pause_circle_outline, color: AppColors.accent),
+                _AnimatedActionTile(
+                  icon: AppIcon.pause,
                   title: 'Take a mindful pause',
                   subtitle: 'Temporarily allow, then cool down',
-                  trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(Routes.pause),
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                GlassListTile(
-                  leading: const Icon(Icons.tune, color: AppColors.accent),
+                _AnimatedActionTile(
+                  icon: AppIcon.tune,
                   title: 'Choose what to block',
-                  trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(Routes.blocklist),
                 ),
               ],
@@ -82,7 +84,12 @@ class _StatusCard extends StatelessWidget {
         accent: AppColors.warning,
         child: Row(
           children: [
-            const Icon(Icons.info_outline, size: 36, color: AppColors.warning),
+            const AppAnimatedIcon(
+              icon: AppIcon.info,
+              size: 36,
+              color: AppColors.warning,
+              playOnAppear: true,
+            ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
@@ -108,7 +115,12 @@ class _StatusCard extends StatelessWidget {
           if (running)
             const StatusDot(color: AppColors.accent, size: 16)
           else
-            const Icon(Icons.gpp_bad, size: 36, color: AppColors.danger),
+            const AppAnimatedIcon(
+              icon: AppIcon.statusOff,
+              size: 36,
+              color: AppColors.danger,
+              playOnAppear: true,
+            ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
@@ -126,8 +138,9 @@ class _StatusCard extends StatelessWidget {
                 ),
                 if (!running) ...[
                   const SizedBox(height: AppSpacing.sm),
-                  PrimaryButton(
+                  AnimatedIconButton(
                     label: 'Enable now',
+                    icon: AppIcon.shieldCheck,
                     tint: AppColors.danger,
                     onPressed: () =>
                         context.read<PermissionsCubit>().request(AppPermission.accessibility),
@@ -182,13 +195,71 @@ class _PausedBanner extends StatelessWidget {
     final remaining = settings.pauseUntil!.difference(DateTime.now());
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: GlassListTile(
-        leading: const Icon(Icons.pause_circle_filled, color: AppColors.warning),
+      child: _AnimatedActionTile(
+        icon: AppIcon.pause,
+        iconColor: AppColors.warning,
         title: 'Paused',
         subtitle: 'Blocking resumes in ${formatCountdown(remaining)}',
-        trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push(Routes.pause),
       ),
+    );
+  }
+}
+
+/// A [GlassListTile] whose leading glyph morphs on appear and replays on every
+/// tap. The tile (via `AppPressable`) owns the gesture, so the icon is
+/// controller-driven (`interactive: false`).
+class _AnimatedActionTile extends StatefulWidget {
+  const _AnimatedActionTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.subtitle,
+    this.iconColor = AppColors.accent,
+  });
+
+  final AppIcon icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+  final Color iconColor;
+
+  @override
+  State<_AnimatedActionTile> createState() => _AnimatedActionTileState();
+}
+
+class _AnimatedActionTileState extends State<_AnimatedActionTile> {
+  final AnimatedIconController _controller = AnimatedIconController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTap() {
+    if (!(MediaQuery.maybeDisableAnimationsOf(context) ?? false)) {
+      _controller
+        ..reset()
+        ..animate();
+    }
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassListTile(
+      leading: AppAnimatedIcon(
+        icon: widget.icon,
+        size: 24,
+        color: widget.iconColor,
+        controller: _controller,
+        playOnAppear: true,
+      ),
+      title: widget.title,
+      subtitle: widget.subtitle,
+      trailing: const Icon(Icons.chevron_right),
+      onTap: _onTap,
     );
   }
 }

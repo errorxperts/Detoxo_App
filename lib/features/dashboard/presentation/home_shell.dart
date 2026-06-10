@@ -18,9 +18,9 @@ class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
   static const _items = [
-    (icon: Icons.dashboard_outlined, selected: Icons.dashboard, label: 'Dashboard'),
-    (icon: Icons.block_outlined, selected: Icons.block, label: 'Blocklist'),
-    (icon: Icons.more_horiz, selected: Icons.more_horiz, label: 'More'),
+    (icon: AppIcon.dashboard, label: 'Dashboard'),
+    (icon: AppIcon.blocklist, label: 'Blocklist'),
+    (icon: AppIcon.more, label: 'More'),
   ];
 
   Widget _tab(ScrollController controller) {
@@ -58,9 +58,8 @@ class _HomeShellState extends State<HomeShell> {
           child: Row(
             children: [
               for (var i = 0; i < _items.length; i++)
-                _NavItem(
+                _AnimatedNavItem(
                   icon: _items[i].icon,
-                  selectedIcon: _items[i].selected,
                   label: _items[i].label,
                   selected: _index == i,
                   onTap: () {
@@ -76,46 +75,92 @@ class _HomeShellState extends State<HomeShell> {
   }
 }
 
-class _NavItem extends StatelessWidget {
-  const _NavItem({
+/// A bottom-nav item whose icon plays its Lucide morph each time the tab
+/// becomes selected. The icon is controller-driven (`interactive: false`) so
+/// the opaque [GestureDetector] keeps owning the tap.
+class _AnimatedNavItem extends StatefulWidget {
+  const _AnimatedNavItem({
     required this.icon,
-    required this.selectedIcon,
     required this.label,
     required this.selected,
     required this.onTap,
   });
 
-  final IconData icon;
-  final IconData selectedIcon;
+  final AppIcon icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
   @override
+  State<_AnimatedNavItem> createState() => _AnimatedNavItemState();
+}
+
+class _AnimatedNavItemState extends State<_AnimatedNavItem> {
+  final AnimatedIconController _controller = AnimatedIconController();
+
+  bool get _reduceMotion => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Play once for the tab that's already active on launch.
+    if (widget.selected) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_reduceMotion) _controller.animate();
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedNavItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selected && !oldWidget.selected) {
+      if (!_reduceMotion) _controller.animate();
+    } else if (!widget.selected && oldWidget.selected) {
+      // Settle to the first frame so re-selecting replays the morph cleanly.
+      _controller.reset();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.accent : Theme.of(context).colorScheme.onSurfaceVariant;
+    final color = widget.selected
+        ? AppColors.accent
+        : Theme.of(context).colorScheme.onSurfaceVariant;
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onTap,
+        onTap: widget.onTap,
         child: AnimatedContainer(
           duration: AppDurations.fast,
           curve: AppCurves.standard,
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
           decoration: BoxDecoration(
-            color: selected ? AppColors.accent.withValues(alpha: 0.16) : Colors.transparent,
+            color: widget.selected
+                ? AppColors.accent.withValues(alpha: 0.16)
+                : Colors.transparent,
             borderRadius: AppRadius.brPill,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(selected ? selectedIcon : icon, color: color, size: 22),
+              AppAnimatedIcon(
+                icon: widget.icon,
+                color: color,
+                controller: _controller,
+              ),
               const SizedBox(height: 2),
               Text(
-                label,
+                widget.label,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: color,
-                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      fontWeight: widget.selected ? FontWeight.w700 : FontWeight.w500,
                     ),
               ),
             ],

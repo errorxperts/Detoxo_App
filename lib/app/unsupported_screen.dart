@@ -9,13 +9,15 @@ class UnsupportedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: EmptyState(
-        icon: Icons.phonelink_erase,
-        title: 'Detoxo runs on Android',
-        subtitle:
-            'The reel/short blocker relies on Android’s Accessibility Service, '
-            'which has no equivalent on this platform. An iOS Screen Time / '
-            'Family Controls version is a separate effort.',
+      body: SafeArea(
+        child: EmptyState(
+          icon: Icons.phonelink_erase,
+          title: 'Detoxo runs on Android',
+          subtitle:
+              'The reel/short blocker relies on Android’s Accessibility Service, '
+              'which has no equivalent on this platform. An iOS Screen Time / '
+              'Family Controls version is a separate effort.',
+        ),
       ),
     );
   }

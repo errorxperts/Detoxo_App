@@ -62,8 +62,12 @@ class _BlocklistTabState extends State<BlocklistTab> {
 
         return ListView(
           controller: widget.scrollController,
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl + AppSpacing.xl),
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.floatingNavClearance + MediaQuery.viewPaddingOf(context).bottom,
+          ),
           children: [
             Text(
               'What to block',

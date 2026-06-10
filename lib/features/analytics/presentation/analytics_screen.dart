@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
@@ -31,11 +32,14 @@ class _AnalyticsView extends StatelessWidget {
     final fmt = DateFormat('MMM d, HH:mm');
     return Scaffold(
       appBar: AppBar(title: const Text('Activity')),
-      body: BlocBuilder<AnalyticsCubit, List<BlockEvent>>(
+      body: SafeArea(
+        child: BlocBuilder<AnalyticsCubit, List<BlockEvent>>(
         builder: (context, events) {
           if (events.isEmpty) {
             return const EmptyState(
               icon: Icons.bar_chart,
+              animatedIcon: AppIcon.activity,
+              loopAnimation: true,
               title: 'Nothing blocked yet',
               subtitle: 'Block events will show up here as they happen.',
             );
@@ -48,7 +52,9 @@ class _AnalyticsView extends StatelessWidget {
               return Card(
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
-                  leading: const Icon(Icons.block),
+                  // Static first frame: rows recycle in a ListView.builder, so
+                  // a per-row morph would replay on every scroll.
+                  leading: const AppAnimatedIcon(icon: AppIcon.ban, size: 24),
                   title: Text(e.platformId),
                   subtitle: Text('${e.packageName} · ${e.mode.wire}'),
                   trailing: Text(
@@ -60,6 +66,7 @@ class _AnalyticsView extends StatelessWidget {
             },
           );
         },
+        ),
       ),
     );
   }

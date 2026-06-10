@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
@@ -16,6 +17,10 @@ class PinLockScreen extends StatefulWidget {
 class _PinLockScreenState extends State<PinLockScreen> {
   String _entry = '';
   String? _error;
+  final AnimatedIconController _lockController = AnimatedIconController();
+  final AnimatedIconController _backspaceController = AnimatedIconController();
+
+  bool get _reduceMotion => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
   @override
   void initState() {
@@ -24,6 +29,13 @@ class _PinLockScreenState extends State<PinLockScreen> {
     if (config.biometricEnabled) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _tryBiometric());
     }
+  }
+
+  @override
+  void dispose() {
+    _lockController.dispose();
+    _backspaceController.dispose();
+    super.dispose();
   }
 
   Future<void> _tryBiometric() async {
@@ -46,6 +58,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
     if (ok) {
       context.go(Routes.home);
     } else {
+      if (!_reduceMotion) _lockController.animate();
       setState(() {
         _error = 'Incorrect PIN';
         _entry = '';
@@ -54,7 +67,14 @@ class _PinLockScreenState extends State<PinLockScreen> {
   }
 
   void _backspace() {
-    if (_entry.isNotEmpty) setState(() => _entry = _entry.substring(0, _entry.length - 1));
+    if (_entry.isNotEmpty) {
+      if (!_reduceMotion) {
+        _backspaceController
+          ..reset()
+          ..animate();
+      }
+      setState(() => _entry = _entry.substring(0, _entry.length - 1));
+    }
   }
 
   Future<void> _forgotPin() async {
@@ -75,7 +95,11 @@ class _PinLockScreenState extends State<PinLockScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.lock, size: 48),
+              AppAnimatedIcon(
+                icon: AppIcon.pinLock,
+                size: 48,
+                controller: _lockController,
+              ),
               const SizedBox(height: 16),
               Text(
                 'Enter your PIN',
@@ -103,6 +127,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
                 enabled: !config.isLockedOut,
                 onKey: _onKey,
                 onBackspace: _backspace,
+                backspaceController: _backspaceController,
               ),
               const SizedBox(height: 8),
               TextButton(
@@ -166,11 +191,13 @@ class _Keypad extends StatelessWidget {
     required this.enabled,
     required this.onKey,
     required this.onBackspace,
+    required this.backspaceController,
   });
 
   final bool enabled;
   final ValueChanged<String> onKey;
   final VoidCallback onBackspace;
+  final AnimatedIconController backspaceController;
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +215,11 @@ class _Keypad extends StatelessWidget {
           _key('0'),
           IconButton(
             onPressed: enabled ? onBackspace : null,
-            icon: const Icon(Icons.backspace_outlined),
+            icon: AppAnimatedIcon(
+              icon: AppIcon.backspace,
+              size: 24,
+              controller: backspaceController,
+            ),
           ),
         ],
       ),

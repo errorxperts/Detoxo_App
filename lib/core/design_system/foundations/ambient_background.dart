@@ -87,7 +87,6 @@ class GlassScaffold extends StatelessWidget {
     this.bottomBar,
     this.floatingActionButton,
     this.extendBody = true,
-    this.extendBehindAppBar = true,
     this.animatedBackground = true,
     this.safeArea = true,
     super.key,
@@ -98,19 +97,24 @@ class GlassScaffold extends StatelessWidget {
   final Widget? bottomBar;
   final Widget? floatingActionButton;
   final bool extendBody;
-  final bool extendBehindAppBar;
   final bool animatedBackground;
   final bool safeArea;
 
   @override
   Widget build(BuildContext context) {
-    final content = safeArea ? SafeArea(bottom: bottomBar == null, child: body) : body;
+    final hasAppBar = appBar != null;
+    // The app bar already clears the status bar, so only inset the top when
+    // there's no app bar; the bottom bar handles its own bottom inset.
+    final content = safeArea
+        ? SafeArea(top: !hasAppBar, bottom: bottomBar == null, child: body)
+        : body;
     return AmbientBackground(
       animated: animatedBackground,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         extendBody: extendBody,
-        extendBodyBehindAppBar: extendBehindAppBar,
+        // extendBodyBehindAppBar stays at its default (false) so the body sits
+        // below the frosted app bar instead of being hidden behind it.
         appBar: appBar,
         bottomNavigationBar: bottomBar,
         floatingActionButton: floatingActionButton,
@@ -120,8 +124,7 @@ class GlassScaffold extends StatelessWidget {
   }
 }
 
-/// A frosted top app bar. Content scrolls under it because [GlassScaffold]
-/// extends the body behind the app bar.
+/// A frosted top app bar that blurs the ambient gradient behind it.
 class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   const GlassAppBar({this.title, this.actions, this.leading, super.key});
 

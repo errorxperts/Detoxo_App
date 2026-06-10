@@ -11,6 +11,11 @@ abstract final class AppSpacing {
   static const double xxl = 32;
   static const double xxxl = 48;
 
+  /// Bottom clearance a scroll view needs so its last item isn't hidden behind
+  /// the floating bottom nav (pill height + offset + breathing room). Add the
+  /// device's bottom safe-area inset on top of this at the call site.
+  static const double floatingNavClearance = 96;
+
   // Ready-made gaps to cut Column/Row boilerplate.
   static const SizedBox gapXs = SizedBox(height: xs, width: xs);
   static const SizedBox gapSm = SizedBox(height: sm, width: sm);

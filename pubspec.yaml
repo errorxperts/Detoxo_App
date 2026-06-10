@@ -72,6 +72,7 @@ dependencies:
   google_fonts: ^8.1.0
   cupertino_native: ^0.1.1
   flutter_floating_bottom_bar: ^1.2.1
+  not_static_icons: ^0.46.0
 
 dev_dependencies:
   flutter_test:

@@ -21,7 +21,8 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: BlocBuilder<SettingsCubit, AppSettings>(
+      body: SafeArea(
+        child: BlocBuilder<SettingsCubit, AppSettings>(
         builder: (context, settings) {
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -79,6 +80,7 @@ class SettingsScreen extends StatelessWidget {
             ],
           );
         },
+        ),
       ),
     );
   }
