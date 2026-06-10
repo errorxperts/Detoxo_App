@@ -13,7 +13,9 @@ import 'package:detoxo/features/permissions/domain/entities/permission_status.da
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 
 class DashboardTab extends StatelessWidget {
-  const DashboardTab({super.key});
+  const DashboardTab({this.scrollController, super.key});
+
+  final ScrollController? scrollController;
 
   // Only the three "real" blocking styles — pause is handled separately.
   static const _plans = [BlockingPlan.blockAll, BlockingPlan.curious, BlockingPlan.oneReel];
@@ -24,6 +26,7 @@ class DashboardTab extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () => context.read<ServiceCubit>().refresh(),
       child: ListView(
+        controller: scrollController,
         padding: const EdgeInsets.fromLTRB(
             AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl + AppSpacing.xl),
         children: [

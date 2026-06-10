@@ -15,7 +15,9 @@ import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart
 /// are gated behind the premium upgrade — but use the same switch rhythm as
 /// every other row (a disabled switch is replaced by a "Premium" pill).
 class BlocklistTab extends StatefulWidget {
-  const BlocklistTab({super.key});
+  const BlocklistTab({this.scrollController, super.key});
+
+  final ScrollController? scrollController;
 
   @override
   State<BlocklistTab> createState() => _BlocklistTabState();
@@ -60,6 +62,7 @@ class _BlocklistTabState extends State<BlocklistTab> {
         final browsers = filtered.where((t) => t.isBrowser).toList();
 
         return ListView(
+          controller: widget.scrollController,
           padding: const EdgeInsets.fromLTRB(
               AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxxl + AppSpacing.xl),
           children: [

@@ -1,0 +1,37 @@
+/// Single import surface for the Detoxo design system: tokens, theme,
+/// foundations, adaptive controls and reusable components.
+library;
+
+// Motion engine — re-exported so screens get `.animate()` / `.ms` / `.seconds`.
+export 'package:flutter_animate/flutter_animate.dart';
+
+// Tokens
+export 'tokens/app_blur.dart';
+export 'tokens/app_colors.dart';
+export 'tokens/app_elevation.dart';
+export 'tokens/app_gradients.dart';
+export 'tokens/app_motion.dart';
+export 'tokens/app_spacing.dart';
+
+// Typography + theme
+export 'theme/app_theme.dart';
+export 'typography/app_typography.dart';
+
+// Foundations
+export 'foundations/ambient_background.dart';
+export 'foundations/glass_container.dart';
+export 'foundations/motion.dart';
+
+// Adaptive
+export 'adaptive/adaptive_controls.dart';
+export 'adaptive/platform_adaptive.dart';
+
+// Components
+export 'components/badges.dart';
+export 'components/buttons.dart';
+export 'components/cards.dart';
+export 'components/feedback.dart';
+export 'components/list_tiles.dart';
+export 'components/overlays.dart';
+export 'components/permission_card.dart';
+export 'components/selection.dart';

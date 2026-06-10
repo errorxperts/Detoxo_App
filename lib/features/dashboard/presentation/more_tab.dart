@@ -8,13 +8,16 @@ import 'package:detoxo/core/widgets/common_widgets.dart';
 
 /// Entry points to the secondary features and settings.
 class MoreTab extends StatelessWidget {
-  const MoreTab({super.key});
+  const MoreTab({this.scrollController, super.key});
+
+  final ScrollController? scrollController;
 
   @override
   Widget build(BuildContext context) {
     final isPremium = context.watch<PremiumCubit>().state.isPremium;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      controller: scrollController,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
       children: [
         Text(
           'More',
