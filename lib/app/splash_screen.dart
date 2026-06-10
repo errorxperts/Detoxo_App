@@ -5,6 +5,7 @@ import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -74,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset('assets/images/detox_logo_no_bg.png', fit: BoxFit.contain),
+            Image.asset(Assets.images.detoxLogoNoBg.path, fit: BoxFit.contain),
             const SizedBox(height: 24),
             Text(
               'Detoxo',
