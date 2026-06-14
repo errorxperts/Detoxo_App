@@ -88,19 +88,61 @@ abstract final class AppTheme {
   static ThemeData dark() => _base(Brightness.dark);
   static ThemeData light() => _base(Brightness.light);
 
+  /// The flagship dark scheme — a full Material 3 token set (lavender primary,
+  /// mint-teal secondary, deep-navy surfaces). Surfaces are overridden again in
+  /// [_base] for the glass aesthetic, but the scheme is the source of truth for
+  /// `colorScheme.*` reads across the app.
+  static const ColorScheme _darkScheme = ColorScheme(
+    brightness: Brightness.dark,
+    primary: Color(0xFFD0BCFF),
+    onPrimary: Color(0xFF3C0091),
+    primaryContainer: Color(0xFFA078FF),
+    onPrimaryContainer: Color(0xFF340080),
+    secondary: Color(0xFF44E2CD),
+    onSecondary: Color(0xFF003731),
+    secondaryContainer: Color(0xFF03C6B2),
+    onSecondaryContainer: Color(0xFF004D44),
+    tertiary: Color(0xFFC0C1FF),
+    onTertiary: Color(0xFF1000A9),
+    tertiaryContainer: Color(0xFF8083FF),
+    onTertiaryContainer: Color(0xFF0D0096),
+    error: Color(0xFFFFB4AB),
+    onError: Color(0xFF690005),
+    errorContainer: Color(0xFF93000A),
+    onErrorContainer: Color(0xFFFFDAD6),
+    surface: Color(0xFF0B1326),
+    onSurface: Color(0xFFDAE2FD),
+    onSurfaceVariant: Color(0xFFCBC3D7),
+    surfaceDim: Color(0xFF0B1326),
+    surfaceBright: Color(0xFF31394D),
+    surfaceContainerLowest: Color(0xFF060E20),
+    surfaceContainerLow: Color(0xFF131B2E),
+    surfaceContainer: Color(0xFF171F33),
+    surfaceContainerHigh: Color(0xFF222A3D),
+    surfaceContainerHighest: Color(0xFF2D3449),
+    outline: Color(0xFF958EA0),
+    outlineVariant: Color(0xFF494454),
+    inverseSurface: Color(0xFFDAE2FD),
+    onInverseSurface: Color(0xFF283044),
+    inversePrimary: Color(0xFF6D3BD7),
+    surfaceTint: Color(0xFFD0BCFF),
+  );
+
   static ThemeData _base(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
 
-    final scheme = ColorScheme.fromSeed(
-      seedColor: AppColors.seed,
-      brightness: brightness,
-      secondary: AppColors.accent,
-      error: AppColors.danger,
-    ).copyWith(
-      surface: isDark ? AppColors.surfaceDark : null,
-      surfaceContainerHighest: isDark ? AppColors.cardDark : null,
-      outline: isDark ? AppColors.hairlineDark : AppColors.hairlineLight,
-    );
+    // Dark is the flagship: build the M3 scheme explicitly from the design
+    // tokens (a light-lavender primary can't be reproduced via `fromSeed`).
+    // Light stays seed-derived — the app is dark-first (`themeMode: dark`).
+    final scheme = isDark
+        ? _darkScheme
+        : ColorScheme.fromSeed(
+            seedColor: AppColors.seed,
+            secondary: AppColors.accent,
+            error: AppColors.danger,
+          ).copyWith(
+            outline: AppColors.hairlineLight,
+          );
 
     final base = ThemeData(
       useMaterial3: true,

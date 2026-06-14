@@ -4,14 +4,15 @@ import 'package:flutter/material.dart';
 /// flips with light/dark goes through [ColorScheme] or the `GlassTokens`
 /// theme extension instead.
 ///
-/// A calm, focus-oriented scheme (deep indigo + teal accent) extended for the
-/// glassmorphic, dark-first redesign.
+/// A calm, focus-oriented scheme (lavender violet + mint-teal accent) extended
+/// for the glassmorphic, dark-first redesign. The full Material 3 dark
+/// ColorScheme is built explicitly from these tokens in `app_theme.dart`.
 abstract final class AppColors {
   // ── Brand ───────────────────────────────────────────────────────────────
-  static const Color seed = Color(0xFF4C5BD4); // indigo (primary)
-  static const Color accent = Color(0xFF1FB6A6); // teal (secondary)
-  static const Color indigoBright = Color(0xFF6B79F0); // active indigo on dark
-  static const Color tealBright = Color(0xFF2BD4C0); // active teal on dark
+  static const Color seed = Color(0xFF6D3BD7); // violet seed (light theme + gradients)
+  static const Color accent = Color(0xFF44E2CD); // mint-teal (secondary)
+  static const Color indigoBright = Color(0xFFA078FF); // active violet on dark
+  static const Color tealBright = Color(0xFF3CDDC7); // active mint on dark
 
   // ── Semantic ────────────────────────────────────────────────────────────
   static const Color danger = Color(0xFFE5484D);
@@ -19,15 +20,15 @@ abstract final class AppColors {
   static const Color success = Color(0xFF30A46C);
 
   // ── Dark surfaces (existing names preserved) ────────────────────────────
-  static const Color surfaceDark = Color(0xFF14151A); // scaffold base / mesh end
-  static const Color cardDark = Color(0xFF1E2026); // opaque card fallback
+  static const Color surfaceDark = Color(0xFF0B1326); // scaffold base / mesh end
+  static const Color cardDark = Color(0xFF171F33); // opaque card fallback
 
-  // ── Ambient mesh stops (deep indigo → near-black) ───────────────────────
-  static const Color meshTop = Color(0xFF1B1E3A);
-  static const Color meshMid = Color(0xFF15131F);
-  static const Color meshBottom = Color(0xFF0C0D12);
-  static const Color meshGlowIndigo = Color(0xFF3A3DA8);
-  static const Color meshGlowTeal = Color(0xFF14695F);
+  // ── Ambient mesh stops (deep navy → near-black) ─────────────────────────
+  static const Color meshTop = Color(0xFF131B2E);
+  static const Color meshMid = Color(0xFF0B1326);
+  static const Color meshBottom = Color(0xFF060E20);
+  static const Color meshGlowIndigo = Color(0xFF6D3BD7);
+  static const Color meshGlowTeal = Color(0xFF1E8C7E);
 
   // ── Onboarding tones (folded in from hardcoded screen consts) ───────────
   static const Color onbTeal = Color(0xFF0F8B7E); // was OnboardingScreen._teal
@@ -55,7 +56,7 @@ abstract final class AppColors {
   static const Color hairlineLight = Color(0x14101012);
 
   // ── Soft glow colors for dark-UI shadows ────────────────────────────────
-  static const Color glowIndigo = Color(0x554C5BD4);
-  static const Color glowTeal = Color(0x551FB6A6);
+  static const Color glowIndigo = Color(0x55D0BCFF); // lavender glow
+  static const Color glowTeal = Color(0x5544E2CD); // mint glow
   static const Color shadowDark = Color(0x66000000);
 }

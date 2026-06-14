@@ -77,33 +77,31 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: AppShadows.glowIndigo,
-              ),
-              child: Image.asset(
-                Assets.images.detoxLogoNoBg.path,
-                width: 120,
-                height: 120,
-                fit: BoxFit.contain,
-              ),
-            )
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: AppShadows.glowIndigo,
+                  ),
+                  child: Image.asset(
+                    Assets.images.detoxLogoNoBg.path,
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.contain,
+                  ),
+                )
                 .animate()
                 .fadeIn(duration: AppDurations.medium)
                 .scaleXY(begin: 0.85, end: 1, curve: Curves.easeOutBack),
             const SizedBox(height: AppSpacing.xl),
-            Text(
-              'Detoxo',
-              style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
-            )
+            Text('Detoxo', style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w800))
                 .animate()
                 .fadeIn(delay: 200.ms, duration: AppDurations.normal)
                 .slideY(begin: 0.2, end: 0),
             const SizedBox(height: AppSpacing.xs),
-            Text('Reclaim your attention', style: text.bodyMedium)
-                .animate()
-                .fadeIn(delay: 350.ms, duration: AppDurations.normal),
+            Text(
+              'Reclaim your attention',
+              style: text.bodyMedium,
+            ).animate().fadeIn(delay: 350.ms, duration: AppDurations.normal),
             const SizedBox(height: AppSpacing.xxl),
             const SizedBox(
               width: 26,

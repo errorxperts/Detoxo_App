@@ -2,28 +2,48 @@ import 'dart:async';
 
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
-import 'package:detoxo/core/platform/platform_capabilities.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
-import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
+import 'package:detoxo/features/dashboard/presentation/widgets/blocker_capsule.dart';
+import 'package:detoxo/features/dashboard/presentation/widgets/command_center_card.dart';
+import 'package:detoxo/features/dashboard/presentation/widgets/dashboard_top_bar.dart';
+import 'package:detoxo/features/dashboard/presentation/widgets/mode_toggle.dart';
+import 'package:detoxo/features/dashboard/presentation/widgets/protection_status_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+// Placeholder constants for metrics the app doesn't track yet. Time Saved is
+// derived from real block counts at a rough per-block estimate; Streak and the
+// ring's daily goal are stand-ins until proper tracking lands.
+// TODO(metrics): replace with measured time-saved + a real streak + a
+// user-configurable daily goal.
+const int _secondsSavedPerBlock = 30;
+const int _dailyBlockGoal = 50;
+const int _placeholderStreak = 12;
+
+/// The three hero modes. "Conscious" relabels the existing `curious` plan;
+/// "Pause" routes into the dedicated mindful-pause flow.
+const _modeOptions = [
+  ModeOption(icon: AppIcon.ban, label: 'Block All'),
+  ModeOption(icon: AppIcon.shieldCheck, label: 'Conscious'),
+  ModeOption(icon: AppIcon.pause, label: 'Pause'),
+];
 
 class DashboardTab extends StatelessWidget {
   const DashboardTab({this.scrollController, super.key});
 
   final ScrollController? scrollController;
 
-  // Only the three "real" blocking styles — pause is handled separately.
-  static const _plans = [BlockingPlan.blockAll, BlockingPlan.curious, BlockingPlan.oneReel];
-  static const _planLabels = ['Block all', 'Curious', 'One reel'];
-
   @override
   Widget build(BuildContext context) {
+    final snapshot = context.watch<ServiceCubit>().state;
+    final settings = context.watch<SettingsCubit>().state;
+    final now = DateTime.now();
+    final pauseLive = settings.isPauseContractLive(now);
+
     return RefreshIndicator(
       onRefresh: () => context.read<ServiceCubit>().refresh(),
       child: ListView(
@@ -35,159 +55,95 @@ class DashboardTab extends StatelessWidget {
           AppSpacing.floatingNavClearance + MediaQuery.viewPaddingOf(context).bottom,
         ),
         children: [
-          Text(
-            'Detoxo',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
-          ).animate().fadeIn(duration: AppDurations.normal),
-          const SizedBox(height: AppSpacing.md),
-          const _StatusCard(),
-          const SizedBox(height: AppSpacing.md),
-          const _StatsRow(),
+          const DashboardTopBar(),
+          const SizedBox(height: AppSpacing.lg),
+          CommandCenterCard(
+            timeSaved: _formatTimeSaved(snapshot.blocksTotal),
+            progress: (snapshot.blocksToday / _dailyBlockGoal).clamp(0.0, 1.0),
+            statusLabel: _statusLabel(settings.activePlan, pauseLive: pauseLive),
+            blockedValue: '${snapshot.blocksToday}',
+            streakValue: '$_placeholderStreak',
+            modeOptions: _modeOptions,
+            selectedMode: _selectedMode(settings.activePlan, pauseLive: pauseLive),
+            modeEnabled: settings.switcherEnabled(now),
+            onModeChanged: (i) => _onModeChanged(context, i),
+          ).animate().fadeIn(duration: AppDurations.normal).slideY(begin: 0.08, end: 0),
           const SizedBox(height: AppSpacing.md),
           const _SessionBanners(),
-          const _PlanSelector(plans: _plans, labels: _planLabels),
+          const ProtectionStatusCard(),
           const SizedBox(height: AppSpacing.md),
-          SectionCard(
-            title: 'Quick actions',
-            child: Column(
-              children: [
-                _AnimatedActionTile(
-                  icon: AppIcon.pause,
-                  title: 'Take a mindful pause',
-                  subtitle: 'Temporarily allow, then cool down',
-                  onTap: () => context.push(Routes.pause),
+          Row(
+            children: [
+              Expanded(
+                child: BlockerCapsule(
+                  icon: AppIcon.appBlocker,
+                  title: 'App Blocker',
+                  caption: 'Restricted',
+                  onTap: () => context.push(Routes.appBlock),
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                _AnimatedActionTile(
-                  icon: AppIcon.tune,
-                  title: 'Choose what to block',
-                  onTap: () => context.push(Routes.blocklist),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusCard extends StatelessWidget {
-  const _StatusCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    // iOS / non-Android: blocking is Android-only — be honest, don't offer a
-    // dead "Enable now" CTA.
-    if (PlatformCapabilities.isBlockingPreviewOnly) {
-      return GlassCard(
-        accent: AppColors.warning,
-        child: Row(
-          children: [
-            const AppAnimatedIcon(
-              icon: AppIcon.info,
-              size: 28,
-              color: AppColors.warning,
-              playOnAppear: true,
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Preview mode',
-                      style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 4),
-                  const Text('Blocking runs on Android. iOS support is coming soon.'),
-                ],
               ),
-            ),
-          ],
-        ),
-      ).animate().fadeIn(duration: AppDurations.normal).slideY(begin: 0.08, end: 0);
-    }
-
-    final running = context.watch<ServiceCubit>().state.status == ServiceStatus.running;
-    return GlassCard(
-      accent: running ? AppColors.accent : AppColors.danger,
-      child: Row(
-        children: [
-          if (running)
-            const StatusDot(color: AppColors.accent, size: 16)
-          else
-            const AppAnimatedIcon(
-              icon: AppIcon.statusOff,
-              size: 28,
-              color: AppColors.danger,
-              playOnAppear: true,
-            ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  running ? 'Protection active' : 'Protection off',
-                  style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: BlockerCapsule(
+                  icon: AppIcon.websiteBlocker,
+                  title: 'Web Blocker',
+                  caption: 'Active',
+                  accent: Theme.of(context).colorScheme.secondary,
+                  onTap: () => context.push(Routes.webBlock),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  running
-                      ? 'Detoxo is watching for reels & shorts.'
-                      : 'Enable the accessibility service to start blocking.',
-                ),
-                if (!running) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  AnimatedIconButton(
-                    label: 'Enable now',
-                    icon: AppIcon.shieldCheck,
-                    tint: AppColors.danger,
-                    onPressed: () =>
-                        context.read<PermissionsCubit>().request(AppPermission.accessibility),
-                  ),
-                ],
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
-    ).animate().fadeIn(duration: AppDurations.normal).slideY(begin: 0.08, end: 0);
-  }
-}
-
-class _StatsRow extends StatelessWidget {
-  const _StatsRow();
-
-  @override
-  Widget build(BuildContext context) {
-    final snapshot = context.watch<ServiceCubit>().state;
-    return Row(
-      children: [
-        Expanded(
-          child: StatCard(
-            label: 'Blocked today',
-            value: snapshot.blocksToday,
-            icon: Icons.today,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: StatCard(
-            label: 'Blocked all-time',
-            value: snapshot.blocksTotal,
-            icon: Icons.shield_moon,
-          ),
-        ),
-      ],
     );
   }
+
+  /// Block All / Conscious switch the plan directly; Conscious opens its
+  /// configurable session screen and Pause opens the mindful-pause flow —
+  /// mirroring the old plan selector's routing.
+  static void _onModeChanged(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll);
+      case 1:
+        context.push(Routes.curious);
+      case 2:
+        context.push(Routes.pause);
+    }
+  }
+
+  static int _selectedMode(BlockingPlan plan, {required bool pauseLive}) {
+    if (pauseLive) return 2;
+    return switch (plan) {
+      BlockingPlan.blockAll => 0,
+      BlockingPlan.curious => 1,
+      BlockingPlan.paused => 2,
+      BlockingPlan.oneReel => -1, // not represented in the hero toggle
+    };
+  }
+
+  static String _statusLabel(BlockingPlan plan, {required bool pauseLive}) {
+    if (pauseLive) return 'PAUSED';
+    return switch (plan) {
+      BlockingPlan.blockAll => 'BLOCK ALL',
+      BlockingPlan.curious => 'CONSCIOUS',
+      BlockingPlan.oneReel => 'ONE REEL',
+      BlockingPlan.paused => 'PAUSED',
+    };
+  }
+
+  static String _formatTimeSaved(int blocks) {
+    final totalMinutes = (blocks * _secondsSavedPerBlock / 60).round();
+    final h = totalMinutes ~/ 60;
+    final m = totalMinutes % 60;
+    return h == 0 ? '${m}m' : '${h}h ${m}m';
+  }
 }
 
-/// Shown above the plan selector while a Pause or Curious contract is live.
-/// Owns a 1 Hz ticker so the remaining time actually counts down (the cubit
-/// only emits on phase changes, not every second).
+/// Shown beneath the hero while a Pause or Curious contract is live. Owns a
+/// 1 Hz ticker so the remaining time counts down (the cubit only emits on phase
+/// changes, not every second).
 class _SessionBanners extends StatefulWidget {
   const _SessionBanners();
 
@@ -221,15 +177,15 @@ class _SessionBannersState extends State<_SessionBanners> {
     if (settings.isPauseContractLive(now)) {
       final cooling = settings.pausePhase(now) == SessionPhase.cooldown;
       final remaining = settings.pauseSession!.remainingIn(now);
-      banners.add(_AnimatedActionTile(
-        icon: AppIcon.pause,
-        iconColor: AppColors.warning,
-        title: cooling ? 'Winding down' : 'Paused',
-        subtitle: cooling
-            ? 'Reels still allowed • ${formatCountdown(remaining)} left'
-            : 'Reels allowed • ${formatCountdown(remaining)} left',
-        onTap: () => context.push(Routes.pause),
-      ));
+      banners.add(
+        _AnimatedActionTile(
+          icon: AppIcon.pause,
+          iconColor: AppColors.warning,
+          title: cooling ? 'Winding down' : 'Paused',
+          subtitle: 'Reels allowed • ${formatCountdown(remaining)} left',
+          onTap: () => context.push(Routes.pause),
+        ),
+      );
     }
 
     if (settings.isCuriousContractLive(now)) {
@@ -239,14 +195,14 @@ class _SessionBannersState extends State<_SessionBanners> {
       final coolingSub = session.allowInCooldown
           ? 'Videos allowed • ${formatCountdown(remaining)} left'
           : 'Reels paused • ${formatCountdown(remaining)} left';
-      banners.add(_AnimatedActionTile(
-        icon: AppIcon.tune,
-        title: cooling ? 'Curious — cooling down' : 'Curious — watching',
-        subtitle: cooling
-            ? coolingSub
-            : 'Reels allowed • ${formatCountdown(remaining)} left',
-        onTap: () => context.push(Routes.curious),
-      ));
+      banners.add(
+        _AnimatedActionTile(
+          icon: AppIcon.shieldCheck,
+          title: cooling ? 'Conscious — cooling down' : 'Conscious — watching',
+          subtitle: cooling ? coolingSub : 'Reels allowed • ${formatCountdown(remaining)} left',
+          onTap: () => context.push(Routes.curious),
+        ),
+      );
     }
 
     if (banners.isEmpty) return const SizedBox.shrink();
@@ -266,7 +222,7 @@ class _SessionBannersState extends State<_SessionBanners> {
 
 /// A [GlassListTile] whose leading glyph morphs on appear and replays on every
 /// tap. The tile (via `AppPressable`) owns the gesture, so the icon is
-/// controller-driven (`interactive: false`).
+/// controller-driven.
 class _AnimatedActionTile extends StatefulWidget {
   const _AnimatedActionTile({
     required this.icon,
@@ -318,41 +274,6 @@ class _AnimatedActionTileState extends State<_AnimatedActionTile> {
       subtitle: widget.subtitle,
       trailing: const Icon(Icons.chevron_right),
       onTap: _onTap,
-    );
-  }
-}
-
-class _PlanSelector extends StatelessWidget {
-  const _PlanSelector({required this.plans, required this.labels});
-
-  final List<BlockingPlan> plans;
-  final List<String> labels;
-
-  @override
-  Widget build(BuildContext context) {
-    final settings = context.watch<SettingsCubit>().state;
-    final selected = plans.indexOf(settings.activePlan);
-    final locked = !settings.switcherEnabled();
-    return SectionCard(
-      title: 'Blocking plan',
-      trailing: locked
-          ? const Pill(label: 'Locked in cooldown', tone: AppTone.warning)
-          : null,
-      child: AdaptiveSegmentedControl(
-        labels: labels,
-        selectedIndex: selected < 0 ? 0 : selected,
-        enabled: !locked,
-        // Curious opens its configurable session screen; the others switch
-        // the plan directly.
-        onChanged: (i) {
-          final plan = plans[i];
-          if (plan == BlockingPlan.curious) {
-            context.push(Routes.curious);
-          } else {
-            context.read<SettingsCubit>().setPlan(plan);
-          }
-        },
-      ),
     );
   }
 }

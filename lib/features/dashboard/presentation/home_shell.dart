@@ -74,10 +74,10 @@ class _HomeShellState extends State<HomeShell> {
   }
 }
 
-/// A bottom-nav item: icon-only when unselected, an accent icon+label pill when
-/// selected. The label expands/collapses via [AnimatedSize], and the Lucide icon
-/// morph replays each time the tab becomes selected (controller-driven, so the
-/// opaque [GestureDetector] keeps owning the tap).
+/// A bottom-nav item: a muted icon when unselected, and a primary→secondary
+/// gradient circle when selected. The Lucide icon morph replays each time the
+/// tab becomes selected (controller-driven, so the opaque [GestureDetector]
+/// keeps owning the tap).
 class _NavPillItem extends StatefulWidget {
   const _NavPillItem({
     required this.icon,
@@ -128,38 +128,46 @@ class _NavPillItemState extends State<_NavPillItem> {
 
   @override
   Widget build(BuildContext context) {
-    final color = widget.selected
-        ? AppColors.accent
-        : Theme.of(context).colorScheme.onSurfaceVariant;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.onTap,
-      child: AnimatedContainer(
-        duration: AppDurations.fast,
-        curve: AppCurves.standard,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xs),
-        decoration: BoxDecoration(
-          color: widget.selected ? AppColors.accent.withValues(alpha: 0.16) : Colors.transparent,
-          borderRadius: AppRadius.brPill,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppAnimatedIcon(icon: widget.icon, size: 20, color: color, controller: _controller),
-            AnimatedSize(
-              duration: AppDurations.fast,
-              curve: AppCurves.standard,
-              child: Padding(
-                padding: const EdgeInsets.only(left: AppSpacing.xxs),
-                child: Text(
-                  widget.label,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelMedium?.copyWith(color: color, fontWeight: FontWeight.w700),
-                ),
-              ),
-            ),
-          ],
+    final scheme = Theme.of(context).colorScheme;
+    final iconColor = widget.selected ? scheme.onPrimary : scheme.onSurfaceVariant;
+    return Semantics(
+      button: true,
+      selected: widget.selected,
+      label: widget.label,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          curve: AppCurves.standard,
+          width: widget.selected ? 44 : 32,
+          height: widget.selected ? 44 : 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: widget.selected
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [scheme.primary, scheme.secondary],
+                  )
+                : null,
+            boxShadow: widget.selected
+                ? [
+                    BoxShadow(
+                      color: scheme.secondary.withValues(alpha: 0.40),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: AppAnimatedIcon(
+            icon: widget.icon,
+            size: 24,
+            color: iconColor,
+            controller: _controller,
+          ),
         ),
       ),
     );
