@@ -72,14 +72,20 @@ class EngineRepositoryImpl implements EngineRepository {
   Future<void> pushConfig(String configJson) => _channel.pushConfig(configJson);
 
   @override
-  Future<void> pushSettings(AppSettings settings) => _channel.pushSettings({
-        'activePlan': settings.activePlan.wire,
-        'defaultBlockMode': settings.defaultBlockMode.wire,
-        'enabledPlatforms': settings.enabledPlatformIds.toList(),
-        'vibration': settings.vibrationEnabled,
-        'masterEnabled': settings.masterEnabled,
-        'pauseUntil': settings.pauseUntil?.millisecondsSinceEpoch ?? 0,
-      });
+  Future<void> pushSettings(AppSettings settings) {
+    // Push the *derived* enforcement state so Pause/Curious contracts work over
+    // the existing channel: native is suspended only during the pause window
+    // (nativePauseUntil); cooldown/curious resolve to a concrete blocking plan.
+    final now = DateTime.now();
+    return _channel.pushSettings({
+      'activePlan': settings.effectiveNativePlan(now).wire,
+      'defaultBlockMode': settings.defaultBlockMode.wire,
+      'enabledPlatforms': settings.enabledPlatformIds.toList(),
+      'vibration': settings.vibrationEnabled,
+      'masterEnabled': settings.masterEnabled,
+      'pauseUntil': settings.nativePauseUntil(now)?.millisecondsSinceEpoch ?? 0,
+    });
+  }
 
   @override
   Future<void> performBack() => _channel.performBack();

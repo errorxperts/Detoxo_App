@@ -6,6 +6,7 @@ abstract final class Routes {
   static const String home = '/home';
   static const String blocklist = '/blocklist';
   static const String pause = '/pause';
+  static const String curious = '/curious';
   static const String pinSetup = '/pin/setup';
   static const String pinLock = '/pin/lock';
   static const String settings = '/settings';

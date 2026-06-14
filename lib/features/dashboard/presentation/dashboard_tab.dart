@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/platform/platform_capabilities.dart';
@@ -42,7 +44,7 @@ class DashboardTab extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           const _StatsRow(),
           const SizedBox(height: AppSpacing.md),
-          const _PausedBanner(),
+          const _SessionBanners(),
           const _PlanSelector(plans: _plans, labels: _planLabels),
           const SizedBox(height: AppSpacing.md),
           SectionCard(
@@ -183,24 +185,80 @@ class _StatsRow extends StatelessWidget {
   }
 }
 
-/// Shown above the plan selector when blocking is paused — keeps the paused
-/// state visible without making it a fourth segment (de-dups the old chip).
-class _PausedBanner extends StatelessWidget {
-  const _PausedBanner();
+/// Shown above the plan selector while a Pause or Curious contract is live.
+/// Owns a 1 Hz ticker so the remaining time actually counts down (the cubit
+/// only emits on phase changes, not every second).
+class _SessionBanners extends StatefulWidget {
+  const _SessionBanners();
+
+  @override
+  State<_SessionBanners> createState() => _SessionBannersState();
+}
+
+class _SessionBannersState extends State<_SessionBanners> {
+  Timer? _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsCubit>().state;
-    if (!settings.isPaused) return const SizedBox.shrink();
-    final remaining = settings.pauseUntil!.difference(DateTime.now());
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: _AnimatedActionTile(
+    final now = DateTime.now();
+    final banners = <Widget>[];
+
+    if (settings.isPauseContractLive(now)) {
+      final cooling = settings.pausePhase(now) == SessionPhase.cooldown;
+      final remaining = settings.pauseSession!.remainingIn(now);
+      banners.add(_AnimatedActionTile(
         icon: AppIcon.pause,
         iconColor: AppColors.warning,
-        title: 'Paused',
-        subtitle: 'Blocking resumes in ${formatCountdown(remaining)}',
+        title: cooling ? 'Winding down' : 'Paused',
+        subtitle: cooling
+            ? 'Reels still allowed • ${formatCountdown(remaining)} left'
+            : 'Reels allowed • ${formatCountdown(remaining)} left',
         onTap: () => context.push(Routes.pause),
+      ));
+    }
+
+    if (settings.isCuriousContractLive(now)) {
+      final session = settings.curiousSession!;
+      final cooling = settings.curiousPhase(now) == SessionPhase.cooldown;
+      final remaining = session.remainingIn(now);
+      final coolingSub = session.allowInCooldown
+          ? 'Videos allowed • ${formatCountdown(remaining)} left'
+          : 'Reels paused • ${formatCountdown(remaining)} left';
+      banners.add(_AnimatedActionTile(
+        icon: AppIcon.tune,
+        title: cooling ? 'Curious — cooling down' : 'Curious — watching',
+        subtitle: cooling
+            ? coolingSub
+            : 'Reels allowed • ${formatCountdown(remaining)} left',
+        onTap: () => context.push(Routes.curious),
+      ));
+    }
+
+    if (banners.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Column(
+        children: [
+          for (var i = 0; i < banners.length; i++) ...[
+            if (i > 0) const SizedBox(height: AppSpacing.xs),
+            banners[i],
+          ],
+        ],
       ),
     );
   }
@@ -274,12 +332,26 @@ class _PlanSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsCubit>().state;
     final selected = plans.indexOf(settings.activePlan);
+    final locked = !settings.switcherEnabled();
     return SectionCard(
       title: 'Blocking plan',
+      trailing: locked
+          ? const Pill(label: 'Locked in cooldown', tone: AppTone.warning)
+          : null,
       child: AdaptiveSegmentedControl(
         labels: labels,
         selectedIndex: selected < 0 ? 0 : selected,
-        onChanged: (i) => context.read<SettingsCubit>().setPlan(plans[i]),
+        enabled: !locked,
+        // Curious opens its configurable session screen; the others switch
+        // the plan directly.
+        onChanged: (i) {
+          final plan = plans[i];
+          if (plan == BlockingPlan.curious) {
+            context.push(Routes.curious);
+          } else {
+            context.read<SettingsCubit>().setPlan(plan);
+          }
+        },
       ),
     );
   }

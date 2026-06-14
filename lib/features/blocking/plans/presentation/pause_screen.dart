@@ -1,84 +1,39 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/features/blocking/plans/domain/entities/emoji_band.dart';
+import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
 import 'package:detoxo/features/blocking/plans/domain/repositories/content_repository.dart';
-import 'package:detoxo/features/blocking/plans/presentation/countdown_cubit.dart';
+import 'package:detoxo/features/blocking/plans/presentation/widgets/animated_emoji.dart';
+import 'package:detoxo/features/blocking/plans/presentation/widgets/mindful_countdown_view.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Lets the user pause blocking for a chosen duration, with a mindful quote and
-/// a live glass countdown while paused.
+/// Lets the user start a mindful pause (allowed window → mandatory cooldown),
+/// then shows the live Mindful Countdown for each phase.
 class PauseScreen extends StatelessWidget {
   const PauseScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CountdownCubit(),
-      child: const _PauseView(),
-    );
-  }
-}
-
-class _PauseView extends StatefulWidget {
-  const _PauseView();
-
-  @override
-  State<_PauseView> createState() => _PauseViewState();
-}
-
-class _PauseViewState extends State<_PauseView> {
-  String _quote = 'A short pause is fine. Choosing when is the point.';
-  Duration? _ringTotal;
-
-  static const _durations = [
-    Duration(minutes: 5),
-    Duration(minutes: 10),
-    Duration(minutes: 15),
-    Duration(minutes: 30),
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadQuote();
-    _syncCountdown(context.read<SettingsCubit>().state);
-  }
-
-  Future<void> _loadQuote() async {
-    final quote = await sl<ContentRepository>().randomQuote();
-    if (mounted) setState(() => _quote = quote.text);
-  }
-
-  void _syncCountdown(AppSettings settings) {
-    if (settings.isPaused && settings.pauseUntil != null) {
-      _ringTotal ??= settings.pauseUntil!.difference(DateTime.now());
-      context.read<CountdownCubit>().start(settings.pauseUntil!);
-    } else {
-      _ringTotal = null;
-      context.read<CountdownCubit>().stop();
-    }
-  }
-
-  void _pauseFor(Duration d) {
-    _ringTotal = d;
-    context.read<SettingsCubit>().pauseFor(d);
-  }
+  static String planLabel(BlockingPlan p) => switch (p) {
+        BlockingPlan.blockAll => 'Block all',
+        BlockingPlan.curious => 'Curious',
+        BlockingPlan.oneReel => 'One reel',
+        BlockingPlan.paused => 'Block all',
+      };
 
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
       appBar: const GlassAppBar(title: Text('Pause')),
-      body: BlocConsumer<SettingsCubit, AppSettings>(
-        listener: (context, settings) => _syncCountdown(settings),
+      body: BlocBuilder<SettingsCubit, AppSettings>(
         builder: (context, settings) {
           return Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
-            child: settings.isPaused
-                ? _PausedView(quote: _quote, total: _ringTotal)
-                : _PickerView(durations: _durations, onPick: _pauseFor),
+            child: settings.isPauseContractLive()
+                ? const _PausedView()
+                : const _PickerView(),
           );
         },
       ),
@@ -86,32 +41,58 @@ class _PauseViewState extends State<_PauseView> {
   }
 }
 
-class _PickerView extends StatelessWidget {
-  const _PickerView({required this.durations, required this.onPick});
+class _PickerView extends StatefulWidget {
+  const _PickerView();
 
-  final List<Duration> durations;
-  final ValueChanged<Duration> onPick;
+  @override
+  State<_PickerView> createState() => _PickerViewState();
+}
+
+class _PickerViewState extends State<_PickerView> {
+  int _selectedMin = SessionDefaults.pauseOptions.first;
+  EmojiPlacement? _preview;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreview();
+  }
+
+  Future<void> _loadPreview() async {
+    final placement =
+        await sl<ContentRepository>().emojiPlacement(EmojiPlacementId.pauseCountdown);
+    if (mounted) setState(() => _preview = placement);
+  }
+
+  void _start() {
+    context.read<SettingsCubit>().startPause(pause: Duration(minutes: _selectedMin));
+  }
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final cooldownMin = SessionDefaults.pauseCooldown.inMinutes.clamp(1, 999);
+    final resume = PauseScreen.planLabel(context.watch<SettingsCubit>().state.activePlan);
+    final band = _preview?.itemFor(_selectedMin);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: AppSpacing.xs),
-        const Icon(Icons.self_improvement, size: 44, color: AppColors.accent)
-            .animate()
-            .fadeIn()
-            .scaleXY(begin: 0.9, end: 1, curve: Curves.easeOutBack),
+        if (band != null)
+          AnimatedEmoji(emoji: band.emoji, animation: band.animation, size: 56)
+        else
+          const Icon(Icons.self_improvement, size: 44, color: AppColors.accent),
         const SizedBox(height: AppSpacing.md),
         Text(
-          'Take a mindful pause',
+          band?.title ?? 'Take a mindful pause',
           textAlign: TextAlign.center,
           style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Blocking resumes automatically when the timer ends.',
+          band?.description ??
+              'Choose how long to allow content. Blocking returns automatically.',
           textAlign: TextAlign.center,
           style: text.bodyMedium,
         ),
@@ -121,64 +102,97 @@ class _PickerView extends StatelessWidget {
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
           children: [
-            for (final d in durations)
+            for (final m in SessionDefaults.pauseOptions)
               AppChip(
-                label: '${d.inMinutes} min',
-                selected: false,
-                onSelected: () => onPick(d),
+                label: '$m min',
+                selected: m == _selectedMin,
+                onSelected: () => setState(() => _selectedMin = m),
               ),
           ],
         ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          'Reels allowed for $_selectedMin min, then a $cooldownMin-min '
+          'wind-down. Blocking (“$resume”) resumes after that.',
+          textAlign: TextAlign.center,
+          style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        PrimaryButton(label: 'Start pause', expand: true, onPressed: _start),
       ],
     );
   }
 }
 
 class _PausedView extends StatelessWidget {
-  const _PausedView({required this.quote, required this.total});
+  const _PausedView();
 
-  final String quote;
-  final Duration? total;
+  MindfulPhaseSpec _describe(BuildContext context, DateTime now) {
+    final session = context.read<SettingsCubit>().state.pauseSession;
+    if (session == null) {
+      return const MindfulPhaseSpec(
+        phase: SessionPhase.idle,
+        label: 'Done',
+        remaining: Duration.zero,
+        progress: 0,
+      );
+    }
+    final phase = session.phaseAt(now);
+    final remaining = session.remainingIn(now);
+    final phaseMs = session.phaseLengthAt(now).inMilliseconds;
+    final progress = phaseMs <= 0 ? 0.0 : remaining.inMilliseconds / phaseMs;
+
+    if (phase == SessionPhase.cooldown) {
+      return MindfulPhaseSpec(
+        phase: phase,
+        label: 'Winding down',
+        remaining: remaining,
+        progress: progress.clamp(0, 1),
+        placement: EmojiPlacementId.pauseCountdownCooldown,
+        bucket: session.cooldownProgressPct(now),
+      );
+    }
+    return MindfulPhaseSpec(
+      phase: phase,
+      label: 'Reels allowed for',
+      remaining: remaining,
+      progress: progress.clamp(0, 1),
+      placement: EmojiPlacementId.pauseCountdown,
+      bucket: session.pauseDuration.inMinutes,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final remaining = context.watch<CountdownCubit>().state;
-    final totalSecs = (total?.inSeconds ?? remaining.inSeconds).clamp(1, 1 << 30);
-    final progress = remaining.inSeconds / totalSecs;
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ProgressRing(
-          progress: progress,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Blocking resumes in',
-                style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+    return MindfulCountdownView(
+      describe: (now) => _describe(context, now),
+      placements: const {
+        EmojiPlacementId.pauseCountdown,
+        EmojiPlacementId.pauseCountdownCooldown,
+      },
+      actionsBuilder: (phase) {
+        if (phase == SessionPhase.idle) return const SizedBox.shrink();
+        return Column(
+          children: [
+            if (phase == SessionPhase.cooldown)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Text(
+                  'Content’s still allowed while it winds down — blocking '
+                  'returns when this ends.',
+                  textAlign: TextAlign.center,
+                  style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+                ),
               ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(formatCountdown(remaining), style: AppTypography.mono(text.displaySmall)),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        SectionCard(
-          child: Text(
-            quote,
-            textAlign: TextAlign.center,
-            style: text.titleMedium?.copyWith(fontStyle: FontStyle.italic),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        SecondaryButton(
-          label: 'Resume blocking now',
-          expand: true,
-          onPressed: () => context.read<SettingsCubit>().resume(),
-        ),
-      ],
+            SecondaryButton(
+              label: 'Resume blocking now',
+              expand: true,
+              onPressed: () => context.read<SettingsCubit>().resumeNow(),
+            ),
+          ],
+        );
+      },
     );
   }
 }

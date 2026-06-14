@@ -9,7 +9,7 @@ class PauseSession extends Equatable {
     required this.pauseDuration,
     required this.cooldownDuration,
     required this.planToResume,
-    this.allowInCooldown = false,
+    this.allowInCooldown = true, // verified: allowInLockDown defaults to true
   });
 
   factory PauseSession.fromJson(Map<String, dynamic> json) => PauseSession(
@@ -18,7 +18,7 @@ class PauseSession extends Equatable {
         pauseDuration: Duration(milliseconds: json['pauseMs'] as int? ?? 0),
         cooldownDuration: Duration(milliseconds: json['cooldownMs'] as int? ?? 0),
         planToResume: BlockingPlan.fromWire(json['planToResume'] as String?),
-        allowInCooldown: json['allowInCooldown'] as bool? ?? false,
+        allowInCooldown: json['allowInCooldown'] as bool? ?? true,
       );
 
   final DateTime startedAt;
@@ -42,6 +42,19 @@ class PauseSession extends Equatable {
     return diff.isNegative ? Duration.zero : diff;
   }
 
+  /// The wall-clock duration of the phase active at [now] (for ring progress).
+  Duration phaseLengthAt(DateTime now) =>
+      now.isBefore(pauseEnd) ? pauseDuration : cooldownDuration;
+
+  /// 0..100 progress through the cooldown window — drives the cooldown emoji
+  /// band (`EMOJI_PAUSE_COUNTDOWN_COOLDOWN`).
+  int cooldownProgressPct(DateTime now) {
+    final total = cooldownDuration.inMilliseconds;
+    if (total <= 0) return 100;
+    final elapsed = now.difference(pauseEnd).inMilliseconds;
+    return ((elapsed / total) * 100).clamp(0, 100).round();
+  }
+
   Map<String, dynamic> toJson() => {
         'startedAt': startedAt.millisecondsSinceEpoch,
         'pauseMs': pauseDuration.inMilliseconds,
@@ -62,12 +75,26 @@ class CuriousSession extends Equatable {
     required this.sessionDuration,
     required this.cooldownDuration,
     this.allowInCooldown = false,
+    this.disablePlanSwitchInCooldown = false,
   });
+
+  factory CuriousSession.fromJson(Map<String, dynamic> json) => CuriousSession(
+        startedAt:
+            DateTime.fromMillisecondsSinceEpoch(json['startedAt'] as int? ?? 0),
+        sessionDuration: Duration(milliseconds: json['sessionMs'] as int? ?? 0),
+        cooldownDuration: Duration(milliseconds: json['cooldownMs'] as int? ?? 0),
+        allowInCooldown: json['allowInCooldown'] as bool? ?? false,
+        disablePlanSwitchInCooldown:
+            json['disablePlanSwitchInCooldown'] as bool? ?? false,
+      );
 
   final DateTime startedAt;
   final Duration sessionDuration;
   final Duration cooldownDuration;
   final bool allowInCooldown;
+
+  /// When true, the plan switcher is locked while this session is in cooldown.
+  final bool disablePlanSwitchInCooldown;
 
   DateTime get sessionEnd => startedAt.add(sessionDuration);
   DateTime get cooldownEnd => sessionEnd.add(cooldownDuration);
@@ -84,7 +111,44 @@ class CuriousSession extends Equatable {
     return diff.isNegative ? Duration.zero : diff;
   }
 
+  /// The wall-clock duration of the phase active at [now] (for ring progress).
+  Duration phaseLengthAt(DateTime now) =>
+      now.isBefore(sessionEnd) ? sessionDuration : cooldownDuration;
+
+  /// 0..100 progress through the cooldown window (drives the cooldown band).
+  int cooldownProgressPct(DateTime now) {
+    final total = cooldownDuration.inMilliseconds;
+    if (total <= 0) return 100;
+    final elapsed = now.difference(sessionEnd).inMilliseconds;
+    return ((elapsed / total) * 100).clamp(0, 100).round();
+  }
+
+  /// Whole minutes elapsed in the watch session — drives the curious emoji band
+  /// (`EMOJI_CURIOUS_PLAN`, bucketed by minutes elapsed).
+  int minutesElapsedInSession(DateTime now) {
+    final ms = now.difference(startedAt).inMilliseconds
+        .clamp(0, sessionDuration.inMilliseconds);
+    return (ms / 60000).floor();
+  }
+
+  /// Gray-out the plan switcher when in cooldown with the lock enabled.
+  bool planSwitchLockedAt(DateTime now) =>
+      disablePlanSwitchInCooldown && phaseAt(now) == SessionPhase.cooldown;
+
+  Map<String, dynamic> toJson() => {
+        'startedAt': startedAt.millisecondsSinceEpoch,
+        'sessionMs': sessionDuration.inMilliseconds,
+        'cooldownMs': cooldownDuration.inMilliseconds,
+        'allowInCooldown': allowInCooldown,
+        'disablePlanSwitchInCooldown': disablePlanSwitchInCooldown,
+      };
+
   @override
-  List<Object?> get props =>
-      [startedAt, sessionDuration, cooldownDuration, allowInCooldown];
+  List<Object?> get props => [
+        startedAt,
+        sessionDuration,
+        cooldownDuration,
+        allowInCooldown,
+        disablePlanSwitchInCooldown,
+      ];
 }
