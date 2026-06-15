@@ -1,10 +1,11 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/plans/data/repositories/content_repository_impl.dart';
+import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/emoji_band.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/sessions.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/animated_digit_timer.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/animated_emoji.dart';
-import 'package:detoxo/features/blocking/plans/presentation/widgets/mindful_countdown.dart';
+import 'package:detoxo/features/blocking/plans/presentation/widgets/countdown_ring.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
@@ -84,125 +85,105 @@ void main() {
     });
   });
 
-  group('Session helpers', () {
+  group('PauseSession helpers', () {
     final start = DateTime(2026, 1, 1, 10);
 
-    test('PauseSession cooldownProgressPct ramps 0→100 across cooldown', () {
+    test('phaseAt: active in window then idle (no wind-down)', () {
       final s = PauseSession(
         startedAt: start,
         pauseDuration: const Duration(minutes: 5),
-        cooldownDuration: const Duration(minutes: 10),
+        cooldownDuration: Duration.zero,
         planToResume: BlockingPlan.blockAll,
       );
-      expect(s.cooldownProgressPct(start.add(const Duration(minutes: 5))), 0);
-      expect(s.cooldownProgressPct(start.add(const Duration(minutes: 10))), 50);
-      expect(s.cooldownProgressPct(start.add(const Duration(minutes: 15))), 100);
-    });
-
-    test('CuriousSession minutes elapsed + cooldown lock', () {
-      final s = CuriousSession(
-        startedAt: start,
-        sessionDuration: const Duration(minutes: 25),
-        cooldownDuration: const Duration(minutes: 5),
-        disablePlanSwitchInCooldown: true,
-      );
-      expect(s.minutesElapsedInSession(start.add(const Duration(minutes: 11))), 11);
-      // In session → not locked; in cooldown → locked.
-      expect(s.planSwitchLockedAt(start.add(const Duration(minutes: 10))), isFalse);
-      expect(s.planSwitchLockedAt(start.add(const Duration(minutes: 27))), isTrue);
+      expect(s.phaseAt(start.add(const Duration(minutes: 2))), SessionPhase.active);
+      expect(s.phaseAt(start.add(const Duration(minutes: 6))), SessionPhase.idle);
     });
   });
 
-  group('AppSettings derived enforcement', () {
+  group('ConsciousState', () {
+    test('fromMap parses native snapshot', () {
+      final s = ConsciousState.fromMap(const {
+        'bankMs': 120000,
+        'maxBankMs': 600000,
+        'watching': true,
+        'blocked': false,
+        'active': true,
+      });
+      expect(s.banked, const Duration(minutes: 2));
+      expect(s.maxBank, const Duration(minutes: 10));
+      expect(s.watching, isTrue);
+      expect(s.hasAllowance, isTrue);
+      expect(s.progress, closeTo(0.2, 0.001));
+    });
+
+    test('empty bank → blocked, no allowance, zero progress', () {
+      const s = ConsciousState(active: true, blocked: true);
+      expect(s.hasAllowance, isFalse);
+      expect(s.progress, 0);
+    });
+
+    test('progress is clamped and safe when maxBank is zero', () {
+      const s = ConsciousState(bankMs: 5, maxBankMs: 0);
+      expect(s.progress, 0);
+    });
+  });
+
+  group('AppSettings derived enforcement (pause-only)', () {
     final now = DateTime(2026, 1, 1, 12);
 
-    AppSettings pause({required bool allow, required BlockingPlan resume}) => AppSettings(
-          activePlan: BlockingPlan.paused,
+    AppSettings pause({required BlockingPlan plan}) => AppSettings(
+          activePlan: plan,
           pauseSession: PauseSession(
             startedAt: now,
             pauseDuration: const Duration(minutes: 5),
-            cooldownDuration: const Duration(minutes: 5),
-            planToResume: resume,
-            allowInCooldown: allow,
+            cooldownDuration: Duration.zero,
+            planToResume: BlockingPlan.blockAll,
           ),
         );
 
-    test('pause window allows content (suspended through cooldown by default)', () {
-      final s = pause(allow: true, resume: BlockingPlan.oneReel);
+    test('pause window suspends all blocking until the window end', () {
+      final s = pause(plan: BlockingPlan.blockAll);
       final mid = now.add(const Duration(minutes: 2));
       expect(s.isPaused(mid), isTrue);
-      // Allowed cooldown → suspended right through to the contract end.
-      expect(s.nativePauseUntil(mid), now.add(const Duration(minutes: 10)));
+      expect(s.isPauseContractLive(mid), isTrue);
+      expect(s.nativePauseUntil(mid), now.add(const Duration(minutes: 5)));
+      expect(s.effectiveNativePlan(mid), BlockingPlan.blockAll);
     });
 
-    test('allowed cooldown keeps content suspended (the fix)', () {
-      final s = pause(allow: true, resume: BlockingPlan.blockAll);
-      final cooldown = now.add(const Duration(minutes: 7));
-      expect(s.isPauseContractLive(cooldown), isTrue);
-      expect(s.isPaused(cooldown), isFalse); // not the allowed window…
-      expect(s.nativePauseUntil(cooldown), now.add(const Duration(minutes: 10))); // …but still allowed
+    test('after the window, blocking resumes with no suspension', () {
+      final s = pause(plan: BlockingPlan.blockAll);
+      final after = now.add(const Duration(minutes: 6));
+      expect(s.isPauseContractLive(after), isFalse);
+      expect(s.nativePauseUntil(after), isNull);
+      expect(s.effectiveNativePlan(after), BlockingPlan.blockAll);
     });
 
-    test('un-allowed cooldown blocks via the resume plan (no Block-All override)', () {
-      final s = pause(allow: false, resume: BlockingPlan.oneReel);
-      final cooldown = now.add(const Duration(minutes: 7));
-      expect(s.nativePauseUntil(cooldown), isNull);
-      expect(s.effectiveNativePlan(cooldown), BlockingPlan.oneReel);
+    test('Conscious pushes through unchanged — native owns the bank', () {
+      const s = AppSettings(activePlan: BlockingPlan.curious);
+      expect(s.nativePauseUntil(), isNull);
+      expect(s.effectiveNativePlan(), BlockingPlan.curious);
     });
 
-    test('curious: session allowed; cooldown blocks/allows per toggle; lock', () {
-      final blocking = AppSettings(
-        activePlan: BlockingPlan.curious,
-        curiousSession: CuriousSession(
-          startedAt: now,
-          sessionDuration: const Duration(minutes: 5),
-          cooldownDuration: const Duration(minutes: 5),
-          disablePlanSwitchInCooldown: true,
-        ),
-      );
-      final inSession = now.add(const Duration(minutes: 1));
-      final cooldown = now.add(const Duration(minutes: 7));
-      // Session → content allowed (suspended), switcher free.
-      expect(blocking.nativePauseUntil(inSession), now.add(const Duration(minutes: 5)));
-      expect(blocking.switcherEnabled(inSession), isTrue);
-      // Cooldown (toggle off) → blocked (Block-All), no suspension, switcher locked.
-      expect(blocking.nativePauseUntil(cooldown), isNull);
-      expect(blocking.effectiveNativePlan(cooldown), BlockingPlan.blockAll);
-      expect(blocking.switcherEnabled(cooldown), isFalse);
-
-      final allowed = AppSettings(
-        activePlan: BlockingPlan.curious,
-        curiousSession: CuriousSession(
-          startedAt: now,
-          sessionDuration: const Duration(minutes: 5),
-          cooldownDuration: const Duration(minutes: 5),
-          allowInCooldown: true,
-        ),
-      );
-      // Cooldown (toggle on) → still suspended (allowed).
-      expect(allowed.nativePauseUntil(cooldown), now.add(const Duration(minutes: 10)));
+    test('legacy persisted PAUSED plan migrates to Block All on load', () {
+      // Old builds stored activePlan='PAUSED' while a pause ran; the new model
+      // never does, so a stale value must collapse to Block All (no phantom UI).
+      final back = AppSettings.fromJson(const {'activePlan': 'PAUSED'});
+      expect(back.activePlan, BlockingPlan.blockAll);
+      expect(back.effectiveNativePlan(), BlockingPlan.blockAll);
     });
 
-    test('JSON round-trips with both sessions', () {
+    test('JSON round-trips the pause session', () {
       final s = AppSettings(
-        activePlan: BlockingPlan.paused,
         pauseSession: PauseSession(
           startedAt: now,
           pauseDuration: const Duration(minutes: 5),
-          cooldownDuration: const Duration(minutes: 5),
+          cooldownDuration: Duration.zero,
           planToResume: BlockingPlan.blockAll,
-        ),
-        curiousSession: CuriousSession(
-          startedAt: now,
-          sessionDuration: const Duration(minutes: 25),
-          cooldownDuration: const Duration(minutes: 5),
-          disablePlanSwitchInCooldown: true,
         ),
       );
       final back = AppSettings.fromJson(s.toJson());
       expect(back.pauseSession, s.pauseSession);
-      expect(back.curiousSession, s.curiousSession);
-      expect(back.activePlan, BlockingPlan.paused);
+      expect(back.activePlan, BlockingPlan.blockAll);
     });
   });
 
@@ -218,41 +199,37 @@ void main() {
     });
 
     tearDown(() async {
-      await cubit.close(); // cancels the session ticker
+      await cubit.close(); // cancels the pause ticker
     });
 
-    test('startPause enters paused with a live contract', () async {
+    test('startPause sets Block All with a live pause window', () async {
       await cubit.startPause(pause: const Duration(minutes: 5));
-      expect(cubit.state.activePlan, BlockingPlan.paused);
+      expect(cubit.state.activePlan, BlockingPlan.blockAll);
       expect(cubit.state.pauseSession, isNotNull);
       expect(cubit.state.isPaused(), isTrue);
       expect(engine.pushed, isNotEmpty);
     });
 
-    test('resumeNow ends the contract and resumes the plan', () async {
+    test('resumeNow ends the pause and blocks immediately', () async {
       await cubit.startPause(pause: const Duration(minutes: 5));
       await cubit.resumeNow();
       expect(cubit.state.pauseSession, isNull);
-      expect(cubit.state.activePlan, BlockingPlan.blockAll); // resumed plan
-    });
-
-    test('startCurious then stopCurious clears the contract', () async {
-      await cubit.startCurious();
-      expect(cubit.state.activePlan, BlockingPlan.curious);
-      expect(cubit.state.curiousSession, isNotNull);
-      await cubit.stopCurious();
       expect(cubit.state.activePlan, BlockingPlan.blockAll);
-      expect(cubit.state.curiousSession, isNull);
     });
 
-    test('setPlan is ignored while a curious cooldown locks the switcher', () async {
-      await cubit.startCurious(
-        session: Duration.zero, // immediately in cooldown (default 5-min cooldown)
-        disablePlanSwitchInCooldown: true,
-      );
-      expect(cubit.state.switcherEnabled(), isFalse);
-      await cubit.setPlan(BlockingPlan.blockAll);
-      expect(cubit.state.activePlan, BlockingPlan.curious); // unchanged
+    test('enterConscious then stopConscious flips the plan', () async {
+      await cubit.enterConscious();
+      expect(cubit.state.activePlan, BlockingPlan.curious);
+      expect(cubit.state.pauseSession, isNull);
+      await cubit.stopConscious();
+      expect(cubit.state.activePlan, BlockingPlan.blockAll);
+    });
+
+    test('setPlan clears a live pause', () async {
+      await cubit.startPause(pause: const Duration(minutes: 5));
+      await cubit.setPlan(BlockingPlan.curious);
+      expect(cubit.state.activePlan, BlockingPlan.curious);
+      expect(cubit.state.pauseSession, isNull);
     });
   });
 
@@ -280,28 +257,32 @@ void main() {
       expect(find.text(':'), findsOneWidget);
     });
 
-    testWidgets('MindfulCountdown shows phase label, emoji band and quote',
+    testWidgets('CountdownRing renders its centred digits and emoji',
         (tester) async {
       await tester.pumpWidget(MaterialApp(
         theme: AppTheme.dark(),
         home: const Scaffold(
-          body: MindfulCountdown(
-            phaseLabel: 'Blocking resumes in',
-            remaining: Duration(minutes: 4, seconds: 12),
-            progress: 0.8,
-            quote: 'Reels can wait.',
-            emoji: EmojiItem(
-              id: 'x', rangeMin: 0, rangeMax: 5, emoji: '🎯', title: 'Stay Sharp',
-              description: 'Focus.', animation: EmojiAnimation.breathing,
+          body: Center(
+            child: CountdownRing(
+              progress: 0.8,
+              center: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedEmoji(
+                    emoji: '🎯',
+                    animation: EmojiAnimation.breathing,
+                    size: 30,
+                  ),
+                  AnimatedDigitTimer(remaining: Duration(minutes: 4, seconds: 12)),
+                ],
+              ),
             ),
           ),
         ),
       ));
       await tester.pump(const Duration(milliseconds: 16));
-      expect(find.text('Blocking resumes in'), findsOneWidget);
-      expect(find.text('Stay Sharp'), findsOneWidget);
-      expect(find.text('Reels can wait.'), findsOneWidget);
       expect(find.text('🎯'), findsOneWidget);
+      expect(find.text(':'), findsOneWidget);
       await tester.pumpWidget(const SizedBox());
     });
   });
@@ -345,6 +326,12 @@ class _FakeEngineRepo implements EngineRepository {
 
   @override
   Stream<BlockEvent> blockStream() => const Stream.empty();
+
+  @override
+  Stream<ConsciousState> consciousStream() => const Stream.empty();
+
+  @override
+  Future<ConsciousState> consciousCurrent() async => const ConsciousState();
 
   @override
   Future<ServiceSnapshot> currentStatus() async => const ServiceSnapshot();

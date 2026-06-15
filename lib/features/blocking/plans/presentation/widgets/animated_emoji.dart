@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
+import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/emoji_band.dart';
 import 'package:flutter/material.dart';
 
@@ -50,9 +51,24 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
   /// Symmetric -1..1 wave for side-to-side / rotation motions.
   double _wave(double t) => math.sin(t * 2 * math.pi);
 
-  Widget _glyph() => Text(
-        widget.emoji,
-        style: TextStyle(fontSize: widget.size, height: 1.1),
+  /// Crossfades to the new glyph (keyed by the emoji itself) so a band change
+  /// dissolves smoothly instead of snapping mid-motion.
+  Widget _glyph() => AnimatedSwitcher(
+        duration: AppDurations.normal,
+        switchInCurve: AppCurves.standard,
+        switchOutCurve: AppCurves.standard,
+        transitionBuilder: (child, anim) => FadeTransition(
+          opacity: anim,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.85, end: 1).animate(anim),
+            child: child,
+          ),
+        ),
+        child: Text(
+          widget.emoji,
+          key: ValueKey(widget.emoji),
+          style: TextStyle(fontSize: widget.size, height: 1.1),
+        ),
       );
 
   Widget _animated(double t, Widget child) {
@@ -148,8 +164,16 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
       if (_c.isAnimating) _c.stop();
       return glyph;
     }
-    _c.duration = _durationFor(widget.animation);
-    if (!_c.isAnimating) _c.repeat();
+    // Only retune + restart the loop when the motion (and thus its duration)
+    // actually changes — reassigning every frame would reset the repeat
+    // mid-cycle and read as a glitch.
+    final duration = _durationFor(widget.animation);
+    if (_c.duration != duration) {
+      _c.duration = duration;
+      _c.repeat();
+    } else if (!_c.isAnimating) {
+      _c.repeat();
+    }
     return AnimatedBuilder(
       animation: _c,
       builder: (_, child) => _animated(_c.value, child!),

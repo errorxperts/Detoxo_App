@@ -6,6 +6,7 @@ import 'package:detoxo/features/access_protection/domain/repositories/pin_reposi
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
+import 'package:detoxo/features/blocking/plans/presentation/conscious_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
@@ -41,6 +42,7 @@ class DetoxoApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => ServiceCubit(sl<EngineRepository>())),
+        BlocProvider(create: (_) => ConsciousCubit(sl<EngineRepository>())),
         BlocProvider(
           create: (_) =>
               SettingsCubit(sl<SettingsRepository>(), sl<EngineRepository>()),

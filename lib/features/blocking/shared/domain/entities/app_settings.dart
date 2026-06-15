@@ -5,12 +5,15 @@ import 'package:equatable/equatable.dart';
 /// The user's blocking configuration. This is the single object Dart persists
 /// locally and pushes to the native engine; the service reads from it.
 ///
-/// Pause / Curious are modelled as live [PauseSession] / [CuriousSession]
-/// contracts. `activePlan` holds the user's *selected* plan (`paused` while a
-/// pause contract is live, `curious` while a curious contract is live); what we
-/// actually push to native is *derived* — see [effectiveNativePlan] /
-/// [nativePauseUntil] — so the verified phase math drives enforcement over the
-/// existing (unchanged) channel.
+/// Pause is modelled as a live [PauseSession]: an allowed window after which
+/// blocking resumes as Block All. `activePlan` holds the *enforced* plan
+/// (Block All / Conscious / One Reel); while a pause is live we *derive* what we
+/// push to native — see [effectiveNativePlan] / [nativePauseUntil] — so the
+/// verified phase math drives enforcement over the existing channel.
+///
+/// Conscious (the `curious` plan) is enforced natively as an earn-as-you-abstain
+/// token bucket; Dart holds no live session for it — the running bank lives in
+/// the engine so it survives the UI being killed.
 class AppSettings extends Equatable {
   const AppSettings({
     this.activePlan = BlockingPlan.blockAll,
@@ -19,12 +22,18 @@ class AppSettings extends Equatable {
     this.vibrationEnabled = true,
     this.masterEnabled = true,
     this.pauseSession,
-    this.curiousSession,
     this.onboarded = false,
   });
 
-  factory AppSettings.fromJson(Map<String, dynamic> json) => AppSettings(
-        activePlan: BlockingPlan.fromWire(json['activePlan'] as String?),
+  factory AppSettings.fromJson(Map<String, dynamic> json) {
+    // Legacy migration: the old model stored `paused` as the active plan while a
+    // pause ran. The new model keeps activePlan = Block All and tracks the live
+    // pause purely via [pauseSession], so collapse any persisted `paused` to
+    // Block All — otherwise an upgrade killed mid-pause would surface a phantom
+    // "Paused" plan forever (no live window to clear it).
+    final plan = BlockingPlan.fromWire(json['activePlan'] as String?);
+    return AppSettings(
+        activePlan: plan == BlockingPlan.paused ? BlockingPlan.blockAll : plan,
         defaultBlockMode: BlockingMode.fromWire(json['defaultBlockMode'] as String?),
         enabledPlatformIds:
             ((json['enabledPlatformIds'] as List?)?.cast<String>() ?? const [])
@@ -34,12 +43,9 @@ class AppSettings extends Equatable {
         pauseSession: json['pauseSession'] == null
             ? null
             : PauseSession.fromJson(json['pauseSession'] as Map<String, dynamic>),
-        curiousSession: json['curiousSession'] == null
-            ? null
-            : CuriousSession.fromJson(
-                json['curiousSession'] as Map<String, dynamic>),
         onboarded: json['onboarded'] as bool? ?? false,
       );
+  }
 
   final BlockingPlan activePlan;
   final BlockingMode defaultBlockMode;
@@ -47,11 +53,8 @@ class AppSettings extends Equatable {
   final bool vibrationEnabled;
   final bool masterEnabled;
 
-  /// Live pause contract (allowed window → mandatory cooldown). Null = none.
+  /// Live pause contract (an allowed window). Null = none.
   final PauseSession? pauseSession;
-
-  /// Live curious (pomodoro) contract. Null = none.
-  final CuriousSession? curiousSession;
   final bool onboarded;
 
   DateTime _now(DateTime? now) => now ?? DateTime.now();
@@ -61,71 +64,32 @@ class AppSettings extends Equatable {
   SessionPhase pausePhase([DateTime? now]) =>
       pauseSession?.phaseAt(_now(now)) ?? SessionPhase.idle;
 
-  SessionPhase curiousPhase([DateTime? now]) =>
-      curiousSession?.phaseAt(_now(now)) ?? SessionPhase.idle;
-
-  /// A pause contract is live (allowed window **or** cooldown) — drives the
-  /// pause screen / dashboard banner.
-  bool isPauseContractLive([DateTime? now]) =>
-      pauseSession != null && pausePhase(now) != SessionPhase.idle;
-
-  bool isCuriousContractLive([DateTime? now]) =>
-      curiousSession != null && curiousPhase(now) != SessionPhase.idle;
+  /// A pause contract is live (inside the allowed window) — drives the pause
+  /// screen / dashboard banner.
+  bool isPauseContractLive([DateTime? now]) {
+    final ps = pauseSession;
+    return ps != null && _now(now).isBefore(ps.pauseEnd);
+  }
 
   /// Content is currently allowed because we're inside the pause window.
-  bool isPaused([DateTime? now]) => pausePhase(now) == SessionPhase.active;
+  bool isPaused([DateTime? now]) => isPauseContractLive(now);
 
-  /// The plan the native detector enforces when it is NOT suspended. Allowed
-  /// phases (pause window, allowed pause cooldown, curious session, allowed
-  /// curious cooldown) are carved out via [nativePauseUntil]; this value only
-  /// bites once suspension lapses.
+  /// The plan the native detector enforces when it is NOT suspended. The pause
+  /// window is carved out via [nativePauseUntil]; this value bites once the
+  /// pause lapses (always Block All — pauses resume into Block All).
   BlockingPlan effectiveNativePlan([DateTime? now]) {
-    final t = _now(now);
     final ps = pauseSession;
-    if (ps != null && ps.phaseAt(t) != SessionPhase.idle) {
-      // Window/allowed-cooldown are suspended; an un-allowed cooldown blocks
-      // with the plan the pause will resume into (One-Reel stays One-Reel, …).
-      return ps.planToResume;
-    }
-    final cs = curiousSession;
-    if (cs != null) {
-      switch (cs.phaseAt(t)) {
-        case SessionPhase.active:
-          return BlockingPlan.curious; // suspended anyway
-        case SessionPhase.cooldown:
-          // Allowed cooldown is suspended; otherwise hard-block the reels.
-          return cs.allowInCooldown ? BlockingPlan.curious : BlockingPlan.blockAll;
-        case SessionPhase.idle:
-          break;
-      }
-    }
+    if (ps != null && _now(now).isBefore(ps.pauseEnd)) return ps.planToResume;
     return activePlan;
   }
 
-  /// Epoch the native side should treat as "content suspended until". Covers
-  /// every phase where content is *allowed*: the pause window (always), the
-  /// pause cooldown when [PauseSession.allowInCooldown], the curious watch
-  /// session (always), and the curious cooldown when allowed. Null otherwise →
-  /// [effectiveNativePlan] blocks.
+  /// Epoch the native side should treat as "all blocking suspended until" — the
+  /// end of the pause window. Null when no pause is live.
   DateTime? nativePauseUntil([DateTime? now]) {
-    final t = _now(now);
     final ps = pauseSession;
-    if (ps != null) {
-      final until = ps.allowInCooldown ? ps.cooldownEnd : ps.pauseEnd;
-      if (t.isBefore(until)) return until;
-    }
-    final cs = curiousSession;
-    if (cs != null) {
-      final phase = cs.phaseAt(t);
-      if (phase == SessionPhase.active) return cs.sessionEnd;
-      if (phase == SessionPhase.cooldown && cs.allowInCooldown) return cs.cooldownEnd;
-    }
+    if (ps != null && _now(now).isBefore(ps.pauseEnd)) return ps.pauseEnd;
     return null;
   }
-
-  /// False when a curious cooldown locks plan switching.
-  bool switcherEnabled([DateTime? now]) =>
-      !(curiousSession?.planSwitchLockedAt(_now(now)) ?? false);
 
   AppSettings copyWith({
     BlockingPlan? activePlan,
@@ -135,8 +99,6 @@ class AppSettings extends Equatable {
     bool? masterEnabled,
     PauseSession? pauseSession,
     bool clearPauseSession = false,
-    CuriousSession? curiousSession,
-    bool clearCuriousSession = false,
     bool? onboarded,
   }) {
     return AppSettings(
@@ -146,8 +108,6 @@ class AppSettings extends Equatable {
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       masterEnabled: masterEnabled ?? this.masterEnabled,
       pauseSession: clearPauseSession ? null : (pauseSession ?? this.pauseSession),
-      curiousSession:
-          clearCuriousSession ? null : (curiousSession ?? this.curiousSession),
       onboarded: onboarded ?? this.onboarded,
     );
   }
@@ -159,7 +119,6 @@ class AppSettings extends Equatable {
         'vibrationEnabled': vibrationEnabled,
         'masterEnabled': masterEnabled,
         'pauseSession': pauseSession?.toJson(),
-        'curiousSession': curiousSession?.toJson(),
         'onboarded': onboarded,
       };
 
@@ -171,7 +130,6 @@ class AppSettings extends Equatable {
         vibrationEnabled,
         masterEnabled,
         pauseSession,
-        curiousSession,
         onboarded,
       ];
 }

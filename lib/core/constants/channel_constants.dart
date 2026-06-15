@@ -42,6 +42,9 @@ abstract final class ChannelMethods {
   static const String foregroundPackage = 'foregroundPackage';
   static const String deviceInfo = 'deviceInfo';
   static const String blockStats = 'blockStats';
+
+  // Conscious (earn-as-you-abstain) bank snapshot.
+  static const String consciousState = 'consciousState';
 }
 
 /// Event `type` values streamed over [Channels.events].
@@ -50,4 +53,7 @@ abstract final class ChannelEvents {
   static const String detection = 'detection';
   static const String blocked = 'blocked';
   static const String foregroundChanged = 'foregroundChanged';
+
+  /// Live Conscious bank update (bankMs / maxBankMs / watching / blocked).
+  static const String consciousState = 'consciousState';
 }

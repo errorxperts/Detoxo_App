@@ -45,6 +45,41 @@ class ConfigStore(context: Context) {
         get() = prefs.getLong(KEY_PAUSE_UNTIL, 0L)
         set(value) = prefs.edit().putLong(KEY_PAUSE_UNTIL, value).apply()
 
+    // ── Conscious (earn-as-you-abstain token bucket) ────────────────────────
+    //
+    // In Conscious mode the user banks allowance while abstaining and spends it
+    // while watching. The engine owns this balance so it keeps ticking when the
+    // Flutter UI is dead. `bank` drains 1:1 while a reel is on screen and refills
+    // at `1 / earnDivisor` of elapsed time while abstaining, capped at `maxBank`.
+
+    /** Currently banked Conscious allowance, in millis (0..maxBank). */
+    var consciousBankMs: Long
+        get() = prefs.getLong(KEY_CONSCIOUS_BANK, 0L)
+        set(value) = prefs.edit().putLong(KEY_CONSCIOUS_BANK, value).apply()
+
+    /** Wall-clock anchor for the last bank accounting tick (epoch millis). */
+    var consciousAnchorMs: Long
+        get() = prefs.getLong(KEY_CONSCIOUS_ANCHOR, 0L)
+        set(value) = prefs.edit().putLong(KEY_CONSCIOUS_ANCHOR, value).apply()
+
+    /** Earn divisor: bank += elapsed / divisor while abstaining (default 10). */
+    var consciousEarnDivisor: Int
+        get() = prefs.getInt(KEY_CONSCIOUS_DIVISOR, 10).coerceAtLeast(1)
+        set(value) = prefs.edit().putInt(KEY_CONSCIOUS_DIVISOR, value.coerceAtLeast(1)).apply()
+
+    /** Maximum banked allowance, in millis (default 10 min). */
+    var consciousMaxBankMs: Long
+        get() = prefs.getLong(KEY_CONSCIOUS_MAX, 600_000L).coerceAtLeast(0L)
+        set(value) = prefs.edit().putLong(KEY_CONSCIOUS_MAX, value.coerceAtLeast(0L)).apply()
+
+    /** Begin a fresh Conscious session: empty bank, anchored to [now]. */
+    fun resetConsciousBank(now: Long) {
+        prefs.edit()
+            .putLong(KEY_CONSCIOUS_BANK, 0L)
+            .putLong(KEY_CONSCIOUS_ANCHOR, now)
+            .apply()
+    }
+
     fun recordBlock(dateKey: String) {
         val storedDate = prefs.getString(KEY_BLOCK_DATE, "")
         val todayCount = if (storedDate == dateKey) prefs.getInt(KEY_BLOCK_TODAY, 0) else 0
@@ -70,6 +105,10 @@ class ConfigStore(context: Context) {
         private const val KEY_VIBRATION = "vibration_enabled"
         private const val KEY_MASTER = "master_enabled"
         private const val KEY_PAUSE_UNTIL = "pause_until"
+        private const val KEY_CONSCIOUS_BANK = "conscious_bank_ms"
+        private const val KEY_CONSCIOUS_ANCHOR = "conscious_anchor_ms"
+        private const val KEY_CONSCIOUS_DIVISOR = "conscious_earn_divisor"
+        private const val KEY_CONSCIOUS_MAX = "conscious_max_bank_ms"
         private const val KEY_BLOCK_DATE = "block_date"
         private const val KEY_BLOCK_TODAY = "block_today"
         private const val KEY_BLOCK_TOTAL = "block_total"

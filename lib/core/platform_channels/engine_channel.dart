@@ -103,4 +103,7 @@ class EngineChannel {
 
   Future<Map<String, dynamic>> blockStats() =>
       invokeMap(ChannelMethods.blockStats);
+
+  Future<Map<String, dynamic>> consciousState() =>
+      invokeMap(ChannelMethods.consciousState);
 }

@@ -4,6 +4,9 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
+import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
+import 'package:detoxo/features/blocking/plans/presentation/conscious_cubit.dart';
+import 'package:detoxo/features/blocking/plans/presentation/widgets/session_dialogs.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/blocker_capsule.dart';
@@ -39,11 +42,6 @@ class DashboardTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final snapshot = context.watch<ServiceCubit>().state;
-    final settings = context.watch<SettingsCubit>().state;
-    final now = DateTime.now();
-    final pauseLive = settings.isPauseContractLive(now);
-
     return RefreshIndicator(
       onRefresh: () => context.read<ServiceCubit>().refresh(),
       child: ListView(
@@ -57,17 +55,10 @@ class DashboardTab extends StatelessWidget {
         children: [
           const DashboardTopBar(),
           const SizedBox(height: AppSpacing.lg),
-          CommandCenterCard(
-            timeSaved: _formatTimeSaved(snapshot.blocksTotal),
-            progress: (snapshot.blocksToday / _dailyBlockGoal).clamp(0.0, 1.0),
-            statusLabel: _statusLabel(settings.activePlan, pauseLive: pauseLive),
-            blockedValue: '${snapshot.blocksToday}',
-            streakValue: '$_placeholderStreak',
-            modeOptions: _modeOptions,
-            selectedMode: _selectedMode(settings.activePlan, pauseLive: pauseLive),
-            modeEnabled: settings.switcherEnabled(now),
-            onModeChanged: (i) => _onModeChanged(context, i),
-          ).animate().fadeIn(duration: AppDurations.normal).slideY(begin: 0.08, end: 0),
+          const _Hero()
+              .animate()
+              .fadeIn(duration: AppDurations.normal)
+              .slideY(begin: 0.08, end: 0),
           const SizedBox(height: AppSpacing.md),
           const _SessionBanners(),
           const ProtectionStatusCard(),
@@ -99,46 +90,120 @@ class DashboardTab extends StatelessWidget {
     );
   }
 
-  /// Block All / Conscious switch the plan directly; Conscious opens its
-  /// configurable session screen and Pause opens the mindful-pause flow —
-  /// mirroring the old plan selector's routing.
-  static void _onModeChanged(BuildContext context, int index) {
-    switch (index) {
-      case 0:
-        context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll);
-      case 1:
-        context.push(Routes.curious);
-      case 2:
-        context.push(Routes.pause);
+}
+
+/// The Command Center hero. Stateful so it can run a 1 Hz ticker while a Pause
+/// session is live — the pause's remaining time decrements every second without
+/// a cubit emit, so the card must tick itself. Conscious self-emits each second
+/// (the native bank is pushed), so it rides the normal rebuild.
+class _Hero extends StatefulWidget {
+  const _Hero();
+
+  @override
+  State<_Hero> createState() => _HeroState();
+}
+
+class _HeroState extends State<_Hero> {
+  Timer? _ticker;
+
+  void _syncTicker({required bool pauseLive}) {
+    if (pauseLive && _ticker == null) {
+      _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted) setState(() {});
+      });
+    } else if (!pauseLive && _ticker != null) {
+      _ticker!.cancel();
+      _ticker = null;
     }
   }
 
-  static int _selectedMode(BlockingPlan plan, {required bool pauseLive}) {
-    if (pauseLive) return 2;
-    return switch (plan) {
-      BlockingPlan.blockAll => 0,
-      BlockingPlan.curious => 1,
-      BlockingPlan.paused => 2,
-      BlockingPlan.oneReel => -1, // not represented in the hero toggle
-    };
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
   }
 
-  static String _statusLabel(BlockingPlan plan, {required bool pauseLive}) {
-    if (pauseLive) return 'PAUSED';
-    return switch (plan) {
-      BlockingPlan.blockAll => 'BLOCK ALL',
-      BlockingPlan.curious => 'CONSCIOUS',
-      BlockingPlan.oneReel => 'ONE REEL',
-      BlockingPlan.paused => 'PAUSED',
-    };
-  }
+  @override
+  Widget build(BuildContext context) {
+    final snapshot = context.watch<ServiceCubit>().state;
+    final settings = context.watch<SettingsCubit>().state;
+    final now = DateTime.now();
+    final pauseLive = settings.isPauseContractLive(now);
+    _syncTicker(pauseLive: pauseLive);
 
-  static String _formatTimeSaved(int blocks) {
-    final totalMinutes = (blocks * _secondsSavedPerBlock / 60).round();
-    final h = totalMinutes ~/ 60;
-    final m = totalMinutes % 60;
-    return h == 0 ? '${m}m' : '${h}h ${m}m';
+    SessionCountdown? countdown;
+    if (pauseLive) {
+      final session = settings.pauseSession!;
+      final remaining = session.remainingIn(now);
+      final total = session.phaseLengthAt(now).inMilliseconds;
+      countdown = SessionCountdown(
+        progress: total <= 0 ? 0.0 : (remaining.inMilliseconds / total).clamp(0.0, 1.0),
+        remaining: remaining,
+        caption: 'apps allowed',
+        tone: AppTone.warning,
+        icon: AppIcon.pause,
+      );
+    } else if (settings.activePlan == BlockingPlan.curious) {
+      final c = context.watch<ConsciousCubit>().state;
+      countdown = SessionCountdown(
+        progress: c.progress,
+        remaining: c.banked,
+        caption: c.watching ? 'spending' : (c.hasAllowance ? 'banked' : 'earning'),
+      );
+    }
+
+    return CommandCenterCard(
+      timeSaved: _formatTimeSaved(snapshot.blocksTotal),
+      progress: (snapshot.blocksToday / _dailyBlockGoal).clamp(0.0, 1.0),
+      statusLabel: _statusLabel(settings.activePlan, pauseLive: pauseLive),
+      blockedValue: '${snapshot.blocksToday}',
+      streakValue: '$_placeholderStreak',
+      modeOptions: _modeOptions,
+      selectedMode: _selectedMode(settings.activePlan, pauseLive: pauseLive),
+      onModeChanged: (i) => _onModeChanged(context, i),
+      countdown: countdown,
+    );
   }
+}
+
+/// Block All switches the plan directly; Conscious and Pause open their global
+/// glass dialogs (the dedicated screens were retired).
+void _onModeChanged(BuildContext context, int index) {
+  switch (index) {
+    case 0:
+      context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll);
+    case 1:
+      SessionDialogs.showConscious(context);
+    case 2:
+      SessionDialogs.showPause(context);
+  }
+}
+
+int _selectedMode(BlockingPlan plan, {required bool pauseLive}) {
+  if (pauseLive) return 2;
+  return switch (plan) {
+    BlockingPlan.blockAll => 0,
+    BlockingPlan.curious => 1,
+    BlockingPlan.paused => 2,
+    BlockingPlan.oneReel => -1, // not represented in the hero toggle
+  };
+}
+
+String _statusLabel(BlockingPlan plan, {required bool pauseLive}) {
+  if (pauseLive) return 'PAUSED';
+  return switch (plan) {
+    BlockingPlan.blockAll => 'BLOCK ALL',
+    BlockingPlan.curious => 'CONSCIOUS',
+    BlockingPlan.oneReel => 'ONE REEL',
+    BlockingPlan.paused => 'PAUSED',
+  };
+}
+
+String _formatTimeSaved(int blocks) {
+  final totalMinutes = (blocks * _secondsSavedPerBlock / 60).round();
+  final h = totalMinutes ~/ 60;
+  final m = totalMinutes % 60;
+  return h == 0 ? '${m}m' : '${h}h ${m}m';
 }
 
 /// Shown beneath the hero while a Pause or Curious contract is live. Owns a
@@ -175,32 +240,38 @@ class _SessionBannersState extends State<_SessionBanners> {
     final banners = <Widget>[];
 
     if (settings.isPauseContractLive(now)) {
-      final cooling = settings.pausePhase(now) == SessionPhase.cooldown;
       final remaining = settings.pauseSession!.remainingIn(now);
       banners.add(
         _AnimatedActionTile(
           icon: AppIcon.pause,
           iconColor: AppColors.warning,
-          title: cooling ? 'Winding down' : 'Paused',
-          subtitle: 'Reels allowed • ${formatCountdown(remaining)} left',
-          onTap: () => context.push(Routes.pause),
+          title: 'Paused',
+          subtitle: 'All apps allowed • ${formatCountdown(remaining)} left',
+          onTap: () => SessionDialogs.showPause(context),
         ),
       );
     }
 
-    if (settings.isCuriousContractLive(now)) {
-      final session = settings.curiousSession!;
-      final cooling = settings.curiousPhase(now) == SessionPhase.cooldown;
-      final remaining = session.remainingIn(now);
-      final coolingSub = session.allowInCooldown
-          ? 'Videos allowed • ${formatCountdown(remaining)} left'
-          : 'Reels paused • ${formatCountdown(remaining)} left';
+    if (settings.activePlan == BlockingPlan.curious) {
+      final c = context.watch<ConsciousCubit>().state;
+      final String title;
+      final String subtitle;
+      if (c.watching) {
+        title = 'Conscious — spending';
+        subtitle = 'Watching • ${formatCountdown(c.banked)} left';
+      } else if (c.hasAllowance) {
+        title = 'Conscious — ready';
+        subtitle = '${formatCountdown(c.banked)} banked • open reels to spend';
+      } else {
+        title = 'Conscious — earning';
+        subtitle = 'Reels blocked • earn ${SessionDefaults.consciousEarnLabel}';
+      }
       banners.add(
         _AnimatedActionTile(
           icon: AppIcon.shieldCheck,
-          title: cooling ? 'Conscious — cooling down' : 'Conscious — watching',
-          subtitle: cooling ? coolingSub : 'Reels allowed • ${formatCountdown(remaining)} left',
-          onTap: () => context.push(Routes.curious),
+          title: title,
+          subtitle: subtitle,
+          onTap: () => SessionDialogs.showConscious(context),
         ),
       );
     }

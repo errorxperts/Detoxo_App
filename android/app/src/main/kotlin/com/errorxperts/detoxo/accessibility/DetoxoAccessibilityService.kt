@@ -11,6 +11,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -45,6 +47,23 @@ class DetoxoAccessibilityService : AccessibilityService() {
     @Volatile private var lastBlockTime = 0L
     @Volatile private var lastBackTime = 0L
 
+    // ── Conscious (earn-as-you-abstain) ──────────────────────────────────────
+    // A 1 Hz accountant runs while the active plan is Conscious so the bank keeps
+    // ticking even when the Flutter UI is dead.
+    private val consciousHandler = Handler(Looper.getMainLooper())
+    private var consciousRunning = false
+    @Volatile private var lastReelAtMs = 0L
+    // Foreground package, tracked for the Conscious accountant: "abstaining"
+    // means the foreground app has no reel surfaces, so the bank only accrues
+    // when the user is genuinely off a reel-bearing app.
+    @Volatile private var foregroundPkg: String? = null
+    private val consciousTick = object : Runnable {
+        override fun run() {
+            accountConscious()
+            consciousHandler.postDelayed(this, CONSCIOUS_TICK_MS)
+        }
+    }
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
@@ -58,16 +77,28 @@ class DetoxoAccessibilityService : AccessibilityService() {
     /** Reload config + settings (called after Dart pushes changes). */
     fun reload() {
         config = DetectionConfig.parse(store.platformsConfigJson)
+        syncConscious()
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
         val pkg = event.packageName?.toString() ?: return
+
+        // Track the foreground app for the Conscious accountant (every package,
+        // including ours). Leaving a reel-bearing app for one without reel
+        // surfaces immediately ends "watching" so the bank can start earning.
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            foregroundPkg = pkg
+            if (config.platformsFor(pkg).isEmpty()) lastReelAtMs = 0L
+        }
+
         if (pkg == packageName) return
         if (!store.masterEnabled) return
 
-        // Plan gate: a live pause window suspends all blocking.
-        if (store.activePlan == "PAUSED" && System.currentTimeMillis() < store.pauseUntil) return
+        // Plan gate: a live Pause window suspends ALL blocking (every app is
+        // allowed) until pauseUntil, after which the active plan resumes. Gated
+        // purely on the clock so it works regardless of the pushed plan name.
+        if (System.currentTimeMillis() < store.pauseUntil) return
 
         // Per-package throttle.
         val now = System.currentTimeMillis()
@@ -91,6 +122,15 @@ class DetoxoAccessibilityService : AccessibilityService() {
             for (detector in platform.detectors) {
                 if (detector.viewDetector != "FINDBYID" && detector.viewDetector != "VIEWID_RES_NAME") continue
                 if (matches(root, event, detector, pkg)) {
+                    // Conscious mode: a reel is on screen. While there's allowance,
+                    // mark "watching" (so the accountant drains the bank) and let
+                    // it play. With an empty bank we leave "watching" untouched and
+                    // fall through to block — so a bounced reel counts as
+                    // abstaining and the bank starts refilling.
+                    if (store.activePlan == PLAN_CONSCIOUS && store.consciousBankMs > 0L) {
+                        lastReelAtMs = now
+                        return
+                    }
                     onDetected(pkg, platform.platformId, detector)
                     if (detector.haltOnDetect) return
                 }
@@ -230,6 +270,91 @@ class DetoxoAccessibilityService : AccessibilityService() {
     private fun dateKey(): String =
         SimpleDateFormat("dd-MM-yyyy", Locale.US).format(System.currentTimeMillis())
 
+    // ---- Conscious accountant ----------------------------------------------
+
+    /** Start/stop the 1 Hz Conscious accountant to match the active plan. */
+    private fun syncConscious() {
+        val conscious = store.activePlan == PLAN_CONSCIOUS
+        when {
+            conscious && !consciousRunning -> {
+                consciousRunning = true
+                // Anchor to now so we don't retroactively credit service downtime
+                // (the persisted bank carries over; the elapsed clock restarts).
+                store.consciousAnchorMs = System.currentTimeMillis()
+                lastReelAtMs = 0L
+                consciousHandler.removeCallbacks(consciousTick)
+                consciousHandler.postDelayed(consciousTick, CONSCIOUS_TICK_MS)
+                emitConsciousState()
+            }
+            !conscious && consciousRunning -> {
+                consciousRunning = false
+                consciousHandler.removeCallbacks(consciousTick)
+            }
+            conscious -> emitConsciousState() // already running; refresh the UI
+        }
+    }
+
+    /** One accounting step: drain while watching, accrue while abstaining. */
+    private fun accountConscious() {
+        if (store.activePlan != PLAN_CONSCIOUS) return
+        val now = System.currentTimeMillis()
+        val anchor = store.consciousAnchorMs.let { if (it <= 0L) now else it }
+        val elapsed = (now - anchor).coerceAtLeast(0L)
+        store.consciousAnchorMs = now // advance first, even when we freeze below
+
+        // Master protection off → freeze the bank: neither drain nor accrue. The
+        // anchor is already advanced so re-enabling doesn't dump a huge credit.
+        if (!store.masterEnabled) {
+            emitConsciousState()
+            return
+        }
+
+        // "Watching": a reel was detected very recently. "In a reel app": the
+        // foreground app has reel surfaces but detection has gone quiet (a paused
+        // video / a non-feed overlay). We only accrue when genuinely off reels,
+        // so a paused reel can never refill the bank (and never drains for free).
+        val watching = (now - lastReelAtMs) < WATCH_STALE_MS
+        val inReelApp = foregroundPkg?.let { config.platformsFor(it).isNotEmpty() } ?: false
+        var bank = store.consciousBankMs
+        if (watching) {
+            bank -= elapsed.coerceAtMost(CONSCIOUS_MAX_STEP_MS)
+            if (bank <= 0L) {
+                bank = 0L
+                lastReelAtMs = 0L
+                pressBackWithRateLimit() // allowance spent → boot the reel
+            }
+        } else if (!inReelApp) {
+            bank = (bank + elapsed / store.consciousEarnDivisor)
+                .coerceAtMost(store.consciousMaxBankMs)
+        }
+        // else: lingering on a reel app with no fresh detection → hold steady.
+        if (bank < 0L) bank = 0L
+        store.consciousBankMs = bank
+        emitConsciousState(bank = bank, watching = watching)
+    }
+
+    private fun emitConsciousState(
+        bank: Long = store.consciousBankMs,
+        watching: Boolean = (System.currentTimeMillis() - lastReelAtMs) < WATCH_STALE_MS,
+    ) {
+        ServiceEventBus.post("consciousState", consciousSnapshot(bank, watching))
+    }
+
+    /** Current Conscious bank state (also used for the pull query). */
+    fun consciousSnapshot(
+        bank: Long = store.consciousBankMs,
+        watching: Boolean = (System.currentTimeMillis() - lastReelAtMs) < WATCH_STALE_MS,
+    ): Map<String, Any?> {
+        val active = store.activePlan == PLAN_CONSCIOUS
+        return mapOf(
+            "bankMs" to bank,
+            "maxBankMs" to store.consciousMaxBankMs,
+            "watching" to (active && watching),
+            "blocked" to (active && bank <= 0L),
+            "active" to active,
+        )
+    }
+
     // ---- Foreground service + lifecycle ------------------------------------
 
     private fun startAsForeground() {
@@ -267,6 +392,8 @@ class DetoxoAccessibilityService : AccessibilityService() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         instance = null
+        consciousRunning = false
+        consciousHandler.removeCallbacks(consciousTick)
         ServiceEventBus.post("serviceStatus", mapOf("running" to false))
         return super.onUnbind(intent)
     }
@@ -282,6 +409,8 @@ class DetoxoAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         instance = null
+        consciousRunning = false
+        consciousHandler.removeCallbacks(consciousTick)
         super.onDestroy()
     }
 
@@ -293,6 +422,18 @@ class DetoxoAccessibilityService : AccessibilityService() {
         private const val BLOCK_DEBOUNCE_MS = 1200L
         private const val BACK_RATE_LIMIT_MS = 1100L
         private const val MAX_NODES = 12000
+
+        /** Active-plan token for Conscious (shares the legacy "CURIOUS" wire). */
+        private const val PLAN_CONSCIOUS = "CURIOUS"
+
+        /** Conscious accountant cadence. */
+        private const val CONSCIOUS_TICK_MS = 1000L
+
+        /** A reel detected within this window counts as "still watching". */
+        private const val WATCH_STALE_MS = 2500L
+
+        /** Cap a single drain step so a delayed tick can't dump the whole bank. */
+        private const val CONSCIOUS_MAX_STEP_MS = 5000L
 
         @Volatile
         var instance: DetoxoAccessibilityService? = null

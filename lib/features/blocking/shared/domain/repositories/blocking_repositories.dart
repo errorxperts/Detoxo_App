@@ -1,3 +1,4 @@
+import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_notice.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
@@ -27,10 +28,16 @@ abstract interface class EngineRepository {
   Stream<ServiceSnapshot> statusStream();
   Stream<BlockEvent> blockStream();
 
+  /// Live Conscious bank updates streamed from the native accountant.
+  Stream<ConsciousState> consciousStream();
+
   Future<void> pushConfig(String configJson);
   Future<void> pushSettings(AppSettings settings);
 
   Future<ServiceSnapshot> currentStatus();
+
+  /// One-shot pull of the current Conscious bank (for initial UI render).
+  Future<ConsciousState> consciousCurrent();
 
   Future<void> performBack();
   Future<void> killApp(String packageName);

@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:detoxo/core/constants/channel_constants.dart';
 import 'package:detoxo/core/platform_channels/engine_channel.dart';
+import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
+import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
@@ -56,6 +58,20 @@ class EngineRepositoryImpl implements EngineRepository {
   }
 
   @override
+  Stream<ConsciousState> consciousStream() async* {
+    await for (final e in _channel.events()) {
+      if (e['type'] != ChannelEvents.consciousState) continue;
+      yield ConsciousState.fromMap(e);
+    }
+  }
+
+  @override
+  Future<ConsciousState> consciousCurrent() async {
+    final map = await _channel.consciousState();
+    return map.isEmpty ? const ConsciousState() : ConsciousState.fromMap(map);
+  }
+
+  @override
   Future<ServiceSnapshot> currentStatus() async {
     final enabled = await _channel.isAccessibilityEnabled();
     final stats = await _channel.blockStats();
@@ -73,9 +89,10 @@ class EngineRepositoryImpl implements EngineRepository {
 
   @override
   Future<void> pushSettings(AppSettings settings) {
-    // Push the *derived* enforcement state so Pause/Curious contracts work over
-    // the existing channel: native is suspended only during the pause window
-    // (nativePauseUntil); cooldown/curious resolve to a concrete blocking plan.
+    // Push the *derived* enforcement state so Pause works over the existing
+    // channel: native suspends all blocking during the pause window
+    // (nativePauseUntil) and enforces the plan after. Conscious is enforced
+    // natively as a token bucket — Dart only ships its tuning constants.
     final now = DateTime.now();
     return _channel.pushSettings({
       'activePlan': settings.effectiveNativePlan(now).wire,
@@ -84,6 +101,8 @@ class EngineRepositoryImpl implements EngineRepository {
       'vibration': settings.vibrationEnabled,
       'masterEnabled': settings.masterEnabled,
       'pauseUntil': settings.nativePauseUntil(now)?.millisecondsSinceEpoch ?? 0,
+      'consciousEarnDivisor': SessionDefaults.consciousEarnDivisor,
+      'consciousMaxBankMs': SessionDefaults.consciousMaxBank.inMilliseconds,
     });
   }
 

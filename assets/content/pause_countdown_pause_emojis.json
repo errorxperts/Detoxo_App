@@ -10,7 +10,7 @@
           "emojiId": "pcd_t0_b0_r0",
           "rangeMin": 0,
           "rangeMax": 3,
-          "emoji": "⚡",
+          "emoji": "😕",
           "title": "Blink mode",
           "description": "Micro-pause unlocked—touch grass between swipes.",
           "animation": "FLASH"
@@ -22,7 +22,7 @@
           "emoji": "🎯",
           "title": "Focused chaos",
           "description": "Enough runway for a curated doom-scroll lap.",
-          "animation": "SHAKE"
+          "animation": "FLASH"
         },
         {
           "emojiId": "pcd_t0_b2_r0",

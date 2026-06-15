@@ -32,6 +32,11 @@ class CommandHandler(
         this.activity = activity
     }
 
+    private companion object {
+        /** Conscious plan token (shares the legacy "CURIOUS" wire). */
+        const val PLAN_CONSCIOUS = "CURIOUS"
+    }
+
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "pushConfig" -> {
@@ -40,7 +45,13 @@ class CommandHandler(
                 result.success(true)
             }
             "pushSettings" -> {
-                call.argument<String>("activePlan")?.let { store.activePlan = it }
+                call.argument<String>("activePlan")?.let { plan ->
+                    // Freshly switching into Conscious starts a new, empty bank.
+                    if (plan == PLAN_CONSCIOUS && store.activePlan != PLAN_CONSCIOUS) {
+                        store.resetConsciousBank(System.currentTimeMillis())
+                    }
+                    store.activePlan = plan
+                }
                 call.argument<String>("defaultBlockMode")?.let { store.defaultBlockMode = it }
                 call.argument<List<String>>("enabledPlatforms")?.let {
                     store.enabledPlatforms = it.toSet()
@@ -48,9 +59,24 @@ class CommandHandler(
                 call.argument<Boolean>("vibration")?.let { store.vibrationEnabled = it }
                 call.argument<Boolean>("masterEnabled")?.let { store.masterEnabled = it }
                 call.argument<Number>("pauseUntil")?.let { store.pauseUntil = it.toLong() }
+                call.argument<Number>("consciousEarnDivisor")?.let {
+                    store.consciousEarnDivisor = it.toInt()
+                }
+                call.argument<Number>("consciousMaxBankMs")?.let {
+                    store.consciousMaxBankMs = it.toLong()
+                }
                 DetoxoAccessibilityService.instance?.reload()
                 result.success(true)
             }
+            "consciousState" -> result.success(
+                DetoxoAccessibilityService.instance?.consciousSnapshot() ?: mapOf(
+                    "bankMs" to store.consciousBankMs,
+                    "maxBankMs" to store.consciousMaxBankMs,
+                    "watching" to false,
+                    "blocked" to (store.activePlan == PLAN_CONSCIOUS && store.consciousBankMs <= 0L),
+                    "active" to (store.activePlan == PLAN_CONSCIOUS),
+                ),
+            )
             "isAccessibilityEnabled" -> result.success(isAccessibilityEnabled())
             "openAccessibilitySettings" ->
                 result.success(launch(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)))
