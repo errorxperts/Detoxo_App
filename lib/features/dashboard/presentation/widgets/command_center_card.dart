@@ -1,33 +1,7 @@
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/features/blocking/plans/presentation/widgets/animated_digit_timer.dart';
-import 'package:detoxo/features/blocking/plans/presentation/widgets/countdown_ring.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/mode_toggle.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/stat_pill.dart';
 import 'package:flutter/material.dart';
-
-/// A live Pause / Conscious session rendered in the hero ring: a 0..1 [progress]
-/// fill, the [remaining] time as ticking digits, a short [caption], and an
-/// optional animated [icon]. When present it replaces the idle TIME-SAVED ring.
-class SessionCountdown {
-  const SessionCountdown({
-    required this.progress,
-    required this.remaining,
-    required this.caption,
-    this.tone = AppTone.accent,
-    this.icon,
-  });
-
-  /// 0..1 ring fill (remaining fraction for Pause, banked fraction for Conscious).
-  final double progress;
-  final Duration remaining;
-
-  /// A one- or two-word live state shown in the ring, e.g. "apps allowed".
-  final String caption;
-  final AppTone tone;
-
-  /// Optional animated icon shown above the digits (e.g. [AppIcon.pause]).
-  final AppIcon? icon;
-}
 
 /// The unified hero ("Command Center"): a gradient progress ring around the
 /// primary metric, a live status badge, two secondary stat pills, and the
@@ -44,7 +18,6 @@ class CommandCenterCard extends StatelessWidget {
     required this.selectedMode,
     required this.onModeChanged,
     this.modeEnabled = true,
-    this.countdown,
     super.key,
   });
 
@@ -59,10 +32,6 @@ class CommandCenterCard extends StatelessWidget {
   final int selectedMode;
   final ValueChanged<int> onModeChanged;
   final bool modeEnabled;
-
-  /// When a Pause / Conscious session is live, the hero ring becomes this
-  /// countdown gauge instead of the TIME-SAVED ring.
-  final SessionCountdown? countdown;
 
   @override
   Widget build(BuildContext context) {
@@ -84,9 +53,39 @@ class CommandCenterCard extends StatelessWidget {
                 SizedBox(
                   width: 240,
                   height: 240,
-                  child: countdown == null
-                      ? _timeSavedRing(context, text, scheme)
-                      : _countdownRing(context, text, countdown!),
+                  child: ProgressRing(
+                    progress: progress,
+                    size: 240,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'TIME SAVED',
+                          style: text.labelSmall?.copyWith(
+                            color: scheme.secondary,
+                            letterSpacing: 2,
+                            fontSize: 11,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        SizedBox(
+                          width: 170,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              timeSaved,
+                              style: text.displaySmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                height: 1,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        _StatusBadge(label: statusLabel),
+                      ],
+                    ),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Row(
@@ -117,62 +116,17 @@ class CommandCenterCard extends StatelessWidget {
     );
   }
 
-  /// The idle hero: a gradient ring around the TIME-SAVED metric.
-  Widget _timeSavedRing(BuildContext context, TextTheme text, ColorScheme scheme) {
-    return ProgressRing(
-      progress: progress,
-      size: 240,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'TIME SAVED',
-            style: text.labelSmall?.copyWith(
-              color: scheme.secondary,
-              letterSpacing: 2,
-              fontSize: 11,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          SizedBox(
-            width: 170,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                timeSaved,
-                style: text.displaySmall?.copyWith(fontWeight: FontWeight.w700, height: 1),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _StatusBadge(label: statusLabel),
-        ],
-      ),
-    );
-  }
-
-  /// The live hero: the read-only countdown gauge with ticking digits, an
-  /// animated emoji and a state pill.
-  Widget _countdownRing(BuildContext context, TextTheme text, SessionCountdown cd) {
-    final icon = cd.icon;
-    return CountdownRing(
-      progress: cd.progress,
-      center: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            AppAnimatedIcon(
-              icon: icon,
-              size: 30,
-              color: AppColors.accent,
-              playOnAppear: true,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-          ],
-          AnimatedDigitTimer(remaining: cd.remaining, style: text.headlineSmall),
-          const SizedBox(height: AppSpacing.xs),
-          Pill(label: cd.caption, tone: cd.tone),
-        ],
+  /// A soft radial glow blob; clipped to the panel corners by the parent's
+  /// rounded clip.
+  static Widget _glow(Color color) {
+    return Container(
+      width: 180,
+      height: 180,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color.withValues(alpha: 0.22), color.withValues(alpha: 0)],
+        ),
       ),
     );
   }
