@@ -1,13 +1,15 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/blocklist_tab.dart';
 import 'package:detoxo/features/dashboard/presentation/dashboard_tab.dart';
-import 'package:detoxo/features/dashboard/presentation/more_tab.dart';
+import 'package:detoxo/features/dashboard/presentation/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 
-/// The main authenticated surface: Dashboard / Blocklist / More over the ambient
+/// The main authenticated surface: Dashboard / Blocklist over the ambient
 /// gradient, with a frosted floating bar that hides as you scroll. The active
-/// tab expands into an accent "pill"; the others stay icon-only (compact).
+/// tab expands into an accent "pill"; the others stay icon-only (compact). The
+/// former "More" tab now lives in a right-side [AppDrawer], openable from each
+/// tab's header menu button.
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -18,32 +20,41 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
 
+  // Drives the end-drawer (the former "More" tab) via the inner Scaffold.
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  void _openDrawer() => _scaffoldKey.currentState?.openEndDrawer();
+
   static const _items = [
     (icon: AppIcon.dashboard, label: 'Dashboard'),
     (icon: AppIcon.blocklist, label: 'Blocklist'),
-    (icon: AppIcon.more, label: 'More'),
   ];
 
   Widget _tab(ScrollController controller) {
     // Only the active tab is built, so the floating bar's single controller
     // attaches cleanly to exactly one scrollable for hide-on-scroll.
     return switch (_index) {
-      0 => DashboardTab(scrollController: controller),
-      1 => BlocklistTab(scrollController: controller),
-      _ => MoreTab(scrollController: controller),
+      0 => DashboardTab(scrollController: controller, onMenu: _openDrawer),
+      _ => BlocklistTab(scrollController: controller, onMenu: _openDrawer),
     };
   }
 
   @override
   Widget build(BuildContext context) {
-    final barWidth = MediaQuery.sizeOf(context).width - AppSpacing.xl;
+    // Size the floating bar to its content (one slot per item) so it stays a
+    // compact centered capsule instead of stretching to the screen width.
+    const slot = 64.0;
+    final screenMax = MediaQuery.sizeOf(context).width - AppSpacing.xl;
+    final contentWidth = _items.length * slot + AppSpacing.sm;
+    final barWidth = contentWidth > screenMax ? screenMax : contentWidth;
     return GlassScaffold(
       safeArea: false,
+      scaffoldKey: _scaffoldKey,
+      endDrawer: const AppDrawer(),
       body: BottomBar(
         fit: StackFit.expand,
         borderRadius: AppRadius.brPill,
         barColor: Colors.transparent,
-        width: barWidth > 460 ? 460 : barWidth,
+        width: barWidth,
         offset: AppSpacing.sm,
         duration: AppDurations.normal,
         curve: AppCurves.standard,
@@ -54,7 +65,7 @@ class _HomeShellState extends State<HomeShell> {
           blurSigma: AppBlur.bar,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs, vertical: AppSpacing.xxs),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               for (var i = 0; i < _items.length; i++)
                 _NavPillItem(

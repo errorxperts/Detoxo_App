@@ -10,8 +10,6 @@ import 'package:detoxo/features/blocking/plans/presentation/conscious_cubit.dart
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/features/monetization/premium/domain/repositories/premium_repository.dart';
-import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:flutter/material.dart';
@@ -51,14 +49,12 @@ class DetoxoApp extends StatelessWidget {
           create: (_) => TargetsCubit(
             sl<ConfigRepository>(),
             sl<EngineRepository>(),
-            sl<PremiumRepository>(),
           ),
         ),
         BlocProvider(
           create: (_) => PermissionsCubit(sl<PermissionRepository>()),
         ),
         BlocProvider(create: (_) => PinCubit(sl<PinRepository>())),
-        BlocProvider(create: (_) => PremiumCubit(sl<PremiumRepository>())),
       ],
       // Mirror the user's vibration preference into the haptics gate so press
       // micro-interactions respect it.

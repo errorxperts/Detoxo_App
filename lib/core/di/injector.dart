@@ -16,8 +16,6 @@ import 'package:detoxo/features/limits/daily_limit/data/repositories/daily_limit
 import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
 import 'package:detoxo/features/limits/web_blocker/data/repositories/web_block_repository_impl.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_repository.dart';
-import 'package:detoxo/features/monetization/premium/data/repositories/premium_repository_impl.dart';
-import 'package:detoxo/features/monetization/premium/domain/repositories/premium_repository.dart';
 import 'package:detoxo/features/permissions/data/repositories/permission_repository_impl.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
 import 'package:get_it/get_it.dart';
@@ -51,7 +49,6 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<DailyLimitRepository>(
       () => DailyLimitRepositoryImpl(sl()),
     )
-    ..registerLazySingleton<PremiumRepository>(() => PremiumRepositoryImpl(sl()))
     ..registerLazySingleton<AnalyticsRepository>(
       () => AnalyticsRepositoryImpl(sl()),
     )

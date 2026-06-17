@@ -36,9 +36,12 @@ const _modeOptions = [
 ];
 
 class DashboardTab extends StatelessWidget {
-  const DashboardTab({this.scrollController, super.key});
+  const DashboardTab({this.scrollController, this.onMenu, super.key});
 
   final ScrollController? scrollController;
+
+  /// Opens the right-side app drawer (former "More" tab).
+  final VoidCallback? onMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +56,7 @@ class DashboardTab extends StatelessWidget {
           AppSpacing.floatingNavClearance + MediaQuery.viewPaddingOf(context).bottom,
         ),
         children: [
-          const DashboardTopBar(),
+          DashboardTopBar(onMenu: onMenu),
           const SizedBox(height: AppSpacing.lg),
           const _Hero()
               .animate()

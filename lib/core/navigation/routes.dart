@@ -13,7 +13,6 @@ abstract final class Routes {
   static const String webBlock = '/web-block';
   static const String appBlock = '/app-block';
   static const String dailyLimit = '/daily-limit';
-  static const String premium = '/premium';
   static const String analytics = '/analytics';
   static const String unsupported = '/unsupported';
 }

@@ -1,22 +1,23 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
+import 'package:detoxo/features/dashboard/presentation/widgets/menu_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
-/// Lists every blockable surface and lets the user toggle each. Premium targets
-/// are gated behind the premium upgrade — but use the same switch rhythm as
-/// every other row (a disabled switch is replaced by a "Premium" pill).
+/// Lists every blockable surface and lets the user toggle each. Every target is
+/// free to use — the app has no paid tier.
 class BlocklistTab extends StatefulWidget {
-  const BlocklistTab({this.scrollController, super.key});
+  const BlocklistTab({this.scrollController, this.onMenu, super.key});
 
   final ScrollController? scrollController;
+
+  /// Opens the right-side app drawer (former "More" tab).
+  final VoidCallback? onMenu;
 
   @override
   State<BlocklistTab> createState() => _BlocklistTabState();
@@ -45,7 +46,6 @@ class _BlocklistTabState extends State<BlocklistTab> {
         }
 
         final settings = context.watch<SettingsCubit>().state;
-        final isPremium = state.isPremium;
         final showSearch = state.targets.length > 8;
 
         final q = _query.trim().toLowerCase();
@@ -69,9 +69,16 @@ class _BlocklistTabState extends State<BlocklistTab> {
             AppSpacing.floatingNavClearance + MediaQuery.viewPaddingOf(context).bottom,
           ),
           children: [
-            Text(
-              'What to block',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'What to block',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                DrawerMenuButton(onTap: widget.onMenu),
+              ],
             ),
             const SizedBox(height: 4),
             Text(
@@ -88,12 +95,12 @@ class _BlocklistTabState extends State<BlocklistTab> {
             ],
             if (apps.isNotEmpty) ...[
               const _GroupHeader('Apps'),
-              for (final target in apps) _targetTile(context, target, settings, isPremium),
+              for (final target in apps) _targetTile(context, target, settings),
             ],
             if (browsers.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.sm),
               const _GroupHeader('Browsers'),
-              for (final target in browsers) _targetTile(context, target, settings, isPremium),
+              for (final target in browsers) _targetTile(context, target, settings),
             ],
             if (filtered.isEmpty)
               const Padding(
@@ -106,8 +113,7 @@ class _BlocklistTabState extends State<BlocklistTab> {
     );
   }
 
-  Widget _targetTile(BuildContext context, BlockTarget target, AppSettings settings, bool isPremium) {
-    final locked = target.premiumExclusive && !isPremium;
+  Widget _targetTile(BuildContext context, BlockTarget target, AppSettings settings) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: AdaptiveSwitchTile(
@@ -115,9 +121,6 @@ class _BlocklistTabState extends State<BlocklistTab> {
         title: target.displayName,
         subtitle: target.appName,
         value: settings.enabledPlatformIds.contains(target.platformId),
-        enabled: !locked,
-        locked: locked,
-        onLockedTap: () => context.push(Routes.premium),
         onChanged: (v) =>
             context.read<SettingsCubit>().togglePlatform(target.platformId, enabled: v),
       ),

@@ -4,7 +4,6 @@ import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
@@ -32,14 +31,12 @@ class _SplashScreenState extends State<SplashScreen> {
     final targets = context.read<TargetsCubit>();
     final permissions = context.read<PermissionsCubit>();
     final pin = context.read<PinCubit>();
-    final premium = context.read<PremiumCubit>();
 
     await Future.wait([
       settings.bootstrap(),
       targets.load(),
       permissions.refresh(),
       pin.load(),
-      premium.load(),
     ]);
 
     // First run: seed the enabled set from each target's default status.
