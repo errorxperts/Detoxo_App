@@ -7,6 +7,10 @@ abstract final class AppConstants {
   static const String appName = 'Detoxo';
   static const String packageName = 'com.errorxperts.detoxo';
 
+  /// User-facing version string. Mirrors the `version` field in pubspec.yaml
+  /// (build-name only) — bump both together.
+  static const String appVersion = '1.0.0';
+
   // Bundled offline config (fallback when the network/remote config is absent).
   static const String bundledPlatformsConfig = 'assets/config/platforms_config.json';
   static const String bundledInitialConfig = 'assets/config/initial_config.json';

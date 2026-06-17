@@ -86,6 +86,10 @@ class GlassScaffold extends StatelessWidget {
     this.appBar,
     this.bottomBar,
     this.floatingActionButton,
+    this.endDrawer,
+    this.scaffoldKey,
+    this.drawerScrimColor,
+    this.endDrawerEnableOpenDragGesture = true,
     this.extendBody = true,
     this.animatedBackground = true,
     this.safeArea = true,
@@ -96,6 +100,14 @@ class GlassScaffold extends StatelessWidget {
   final PreferredSizeWidget? appBar;
   final Widget? bottomBar;
   final Widget? floatingActionButton;
+
+  /// An optional right-side ([endDrawer]) panel. Pass [scaffoldKey] so callers
+  /// can open it via `scaffoldKey.currentState?.openEndDrawer()`.
+  final Widget? endDrawer;
+  final Key? scaffoldKey;
+  final Color? drawerScrimColor;
+  final bool endDrawerEnableOpenDragGesture;
+
   final bool extendBody;
   final bool animatedBackground;
   final bool safeArea;
@@ -111,6 +123,7 @@ class GlassScaffold extends StatelessWidget {
     return AmbientBackground(
       animated: animatedBackground,
       child: Scaffold(
+        key: scaffoldKey,
         backgroundColor: Colors.transparent,
         extendBody: extendBody,
         // extendBodyBehindAppBar stays at its default (false) so the body sits
@@ -118,6 +131,9 @@ class GlassScaffold extends StatelessWidget {
         appBar: appBar,
         bottomNavigationBar: bottomBar,
         floatingActionButton: floatingActionButton,
+        endDrawer: endDrawer,
+        drawerScrimColor: drawerScrimColor,
+        endDrawerEnableOpenDragGesture: endDrawerEnableOpenDragGesture,
         body: content,
       ),
     );

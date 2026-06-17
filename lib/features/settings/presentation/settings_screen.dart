@@ -2,7 +2,6 @@ import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/features/monetization/premium/presentation/premium_cubit.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:flutter/material.dart';
@@ -75,8 +74,6 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               const _AdvancedSection(),
-              const SizedBox(height: 12),
-              const _DeveloperSection(),
             ],
           );
         },
@@ -107,25 +104,6 @@ class _AdvancedSection extends StatelessWidget {
             context.read<PermissionsCubit>().request(AppPermission.deviceAdmin);
           }
         },
-      ),
-    );
-  }
-}
-
-class _DeveloperSection extends StatelessWidget {
-  const _DeveloperSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final isPremium = context.watch<PremiumCubit>().state.isPremium;
-    return SectionCard(
-      title: 'Developer',
-      child: SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        title: const Text('Premium dev-unlock'),
-        subtitle: const Text('Unlock premium features locally for testing'),
-        value: isPremium,
-        onChanged: (v) => context.read<PremiumCubit>().toggleDevUnlock(unlocked: v),
       ),
     );
   }

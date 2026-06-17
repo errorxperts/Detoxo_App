@@ -3,4 +3,3 @@
 
 export 'package:detoxo/features/dashboard/presentation/dashboard_tab.dart';
 export 'package:detoxo/features/dashboard/presentation/home_shell.dart';
-export 'package:detoxo/features/dashboard/presentation/more_tab.dart';
