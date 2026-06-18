@@ -74,6 +74,7 @@ dependencies:
   flutter_floating_bottom_bar: ^1.2.1
   not_static_icons: ^0.46.0
   sleek_circular_slider: ^2.1.0
+  lottie: ^3.3.3
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +84,7 @@ dev_dependencies:
   # `flutter_lints` set builds on top with Flutter-specific rules. Both are
   # activated and extended in `analysis_options.yaml`.
   lints: ^6.1.0
+  flutter_gen_runner: ^5.14.1
   flutter_lints: ^6.0.0
   build_runner: ^2.15.0
   freezed: ^3.2.6-dev.1
@@ -118,6 +120,7 @@ flutter:
     - assets/content/
     - assets/images/
     - assets/tgs/
+    - assets/lottie/
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
