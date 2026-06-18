@@ -2,13 +2,11 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ms_undraw/ms_undraw.dart';
+import 'package:lottie/lottie.dart';
 
-/// One onboarding slide. [illustration] is null for the branded welcome page,
-/// which shows the app logo instead. [accent] tints the slide's glow, dots and
-/// CTA so each page reads as a distinct moment in one continuous space.
 class _Page {
   const _Page({
     required this.accent,
@@ -22,7 +20,7 @@ class _Page {
   final Color accent;
   final String title;
   final String body;
-  final UnDrawIllustration? illustration;
+  final String? illustration;
   final IconData? fallbackIcon;
   final bool isWelcome;
 }
@@ -40,8 +38,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _index = 0;
 
-  static const _pages = [
-    _Page(
+  static final List<_Page> _pages = [
+    const _Page(
       accent: AppColors.seed,
       title: 'Welcome to Detoxo',
       body:
@@ -53,7 +51,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Stop the doom-scroll',
       body:
           'Detoxo detects Reels, Shorts and infinite feeds the moment they appear and pulls you straight back out.',
-      illustration: UnDrawIllustration.screen_time,
+      illustration: Assets.lottie.bow,
       fallbackIcon: Icons.motion_photos_off,
     ),
     _Page(
@@ -61,7 +59,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'You stay in control',
       body:
           'Choose exactly which apps and surfaces to block. Pause when you genuinely need to, with a mindful cooldown.',
-      illustration: UnDrawIllustration.control_panel,
+      illustration: Assets.lottie.nightyNight,
       fallbackIcon: Icons.tune,
     ),
     _Page(
@@ -69,7 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       title: 'Build the habit',
       body:
           'Daily limits, schedules and a PIN lock keep you honest long after the motivation fades.',
-      illustration: UnDrawIllustration.healthy_habit,
+      illustration: Assets.lottie.glasses,
       fallbackIcon: Icons.lock_clock,
     ),
   ];
@@ -105,11 +103,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             controller: _controller,
             itemCount: _pages.length,
             onPageChanged: (i) => setState(() => _index = i),
-            itemBuilder: (context, i) => _PageView(
-              page: _pages[i],
-              controller: _controller,
-              index: i,
-            ),
+            itemBuilder: (context, i) =>
+                _PageView(page: _pages[i], controller: _controller, index: i),
           ),
           // Skip — fades out on the last page.
           SafeArea(
@@ -127,8 +122,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.xl),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.xl),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -142,9 +136,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           width: i == _index ? 22 : 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: i == _index
-                                ? _pages[_index].accent
-                                : context.glass.border,
+                            color: i == _index ? _pages[_index].accent : context.glass.border,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -229,14 +221,12 @@ class _Illustration extends StatelessWidget {
         ),
       ),
       child: SizedBox(
-        height: 170,
+        height: 150,
         child: page.isWelcome
             ? Image.asset('assets/images/detox_logo_no_bg.png', fit: BoxFit.contain)
-            : UnDraw(
-                illustration: page.illustration!,
-                color: Colors.white,
-                placeholder: _fallback(page),
-                errorWidget: _fallback(page),
+            : Lottie.asset(
+                page.illustration ?? '',
+                errorBuilder: (context, error, stackTrace) => _fallback(page),
               ),
       ),
     );
