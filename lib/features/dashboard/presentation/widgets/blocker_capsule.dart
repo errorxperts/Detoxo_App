@@ -40,15 +40,11 @@ class BlockerCapsule extends StatelessWidget {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: c.withValues(alpha: 0.12),
-                    border: Border.all(color: c.withValues(alpha: 0.25)),
-                  ),
+                IconBadge(
+                  size: 44,
+                  color: c,
+                  fillAlpha: 0.12,
+                  bordered: true,
                   child: AppAnimatedIcon(
                     icon: icon,
                     color: c,

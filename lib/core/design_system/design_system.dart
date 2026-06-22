@@ -12,12 +12,14 @@ export 'adaptive/platform_adaptive.dart';
 export 'components/badges.dart';
 export 'components/buttons.dart';
 export 'components/cards.dart';
+export 'components/dialog.dart';
 export 'components/feedback.dart';
 export 'components/inputs.dart';
 export 'components/list_tiles.dart';
 export 'components/overlays.dart';
 export 'components/permission_card.dart';
 export 'components/selection.dart';
+export 'components/toggle.dart';
 // Foundations
 export 'foundations/ambient_background.dart';
 export 'foundations/animated_icons.dart';

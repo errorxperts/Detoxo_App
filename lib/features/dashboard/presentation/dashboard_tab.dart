@@ -53,7 +53,8 @@ class DashboardTab extends StatelessWidget {
           AppSpacing.md,
           AppSpacing.md,
           AppSpacing.md,
-          AppSpacing.floatingNavClearance + MediaQuery.viewPaddingOf(context).bottom,
+          AppSpacing.floatingNavClearance +
+              MediaQuery.viewPaddingOf(context).bottom,
         ),
         children: [
           DashboardTopBar(onMenu: onMenu),
@@ -92,7 +93,6 @@ class DashboardTab extends StatelessWidget {
       ),
     );
   }
-
 }
 
 /// The Command Center hero. Stateful so it can run a 1 Hz ticker while a Pause
@@ -140,7 +140,9 @@ class _HeroState extends State<_Hero> {
       final remaining = session.remainingIn(now);
       final total = session.phaseLengthAt(now).inMilliseconds;
       countdown = SessionCountdown(
-        progress: total <= 0 ? 0.0 : (remaining.inMilliseconds / total).clamp(0.0, 1.0),
+        progress: total <= 0
+            ? 0.0
+            : (remaining.inMilliseconds / total).clamp(0.0, 1.0),
         remaining: remaining,
         caption: 'apps allowed',
         tone: AppTone.warning,
@@ -151,7 +153,9 @@ class _HeroState extends State<_Hero> {
       countdown = SessionCountdown(
         progress: c.progress,
         remaining: c.banked,
-        caption: c.watching ? 'spending' : (c.hasAllowance ? 'banked' : 'earning'),
+        caption: c.watching
+            ? 'spending'
+            : (c.hasAllowance ? 'banked' : 'earning'),
       );
     }
 
@@ -163,7 +167,7 @@ class _HeroState extends State<_Hero> {
       streakValue: '$_placeholderStreak',
       modeOptions: _modeOptions,
       selectedMode: _selectedMode(settings.activePlan, pauseLive: pauseLive),
-      onModeChanged: (i) => _onModeChanged(context, i),
+      onModeChanged: (i) => unawaited(_onModeChanged(context, i)),
       countdown: countdown,
     );
   }
@@ -171,14 +175,14 @@ class _HeroState extends State<_Hero> {
 
 /// Block All switches the plan directly; Conscious and Pause open their global
 /// glass dialogs (the dedicated screens were retired).
-void _onModeChanged(BuildContext context, int index) {
+Future<void> _onModeChanged(BuildContext context, int index) async {
   switch (index) {
     case 0:
-      context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll);
+      await context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll);
     case 1:
-      SessionDialogs.showConscious(context);
+      await SessionDialogs.showConscious(context);
     case 2:
-      SessionDialogs.showPause(context);
+      await SessionDialogs.showPause(context);
   }
 }
 
@@ -250,7 +254,7 @@ class _SessionBannersState extends State<_SessionBanners> {
           iconColor: AppColors.warning,
           title: 'Paused',
           subtitle: 'All apps allowed • ${formatCountdown(remaining)} left',
-          onTap: () => SessionDialogs.showPause(context),
+          onTap: () => unawaited(SessionDialogs.showPause(context)),
         ),
       );
     }
@@ -274,7 +278,7 @@ class _SessionBannersState extends State<_SessionBanners> {
           icon: AppIcon.shieldCheck,
           title: title,
           subtitle: subtitle,
-          onTap: () => SessionDialogs.showConscious(context),
+          onTap: () => unawaited(SessionDialogs.showConscious(context)),
         ),
       );
     }

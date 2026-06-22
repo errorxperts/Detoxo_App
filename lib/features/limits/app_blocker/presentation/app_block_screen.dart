@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/entities/app_block_entry.dart';
@@ -23,8 +24,8 @@ class _AppBlockView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('App blocker')),
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('App blocker')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAdd(context),
         icon: const Icon(Icons.add),
@@ -32,45 +33,46 @@ class _AppBlockView extends StatelessWidget {
       ),
       body: SafeArea(
         child: BlocBuilder<AppBlockCubit, List<AppBlockEntry>>(
-        builder: (context, entries) {
-          if (entries.isEmpty) {
-            return const EmptyState(
-              icon: Icons.apps,
-              title: 'No blocked apps yet',
-              subtitle:
-                  'Add an app package (e.g. com.instagram.android) to lock it.',
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: entries.length,
-            itemBuilder: (context, i) {
-              final entry = entries[i];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  title: Text(entry.appName),
-                  subtitle: Text(entry.packageName),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Switch(
-                        value: entry.enabled,
-                        onChanged: (v) =>
-                            context.read<AppBlockCubit>().toggle(i, enabled: v),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () =>
-                            context.read<AppBlockCubit>().removeAt(i),
-                      ),
-                    ],
-                  ),
-                ),
+          builder: (context, entries) {
+            if (entries.isEmpty) {
+              return const EmptyState(
+                icon: Icons.apps,
+                title: 'No blocked apps yet',
+                subtitle:
+                    'Add an app package (e.g. com.instagram.android) to lock it.',
               );
-            },
-          );
-        },
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: entries.length,
+              itemBuilder: (context, i) {
+                final entry = entries[i];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: AppCard(
+                    title: entry.appName,
+                    subtitle: entry.packageName,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppToggle(
+                          value: entry.enabled,
+                          onChanged: (v) => context
+                              .read<AppBlockCubit>()
+                              .toggle(i, enabled: v),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () =>
+                              context.read<AppBlockCubit>().removeAt(i),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
     );
@@ -80,39 +82,38 @@ class _AppBlockView extends StatelessWidget {
     final cubit = context.read<AppBlockCubit>();
     final pkgController = TextEditingController();
     final nameController = TextEditingController();
-    await showDialog<void>(
+    await AppDialog.show<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Block an app'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'App name'),
-            ),
-            TextField(
-              controller: pkgController,
-              decoration: const InputDecoration(
-                labelText: 'Package (com.example.app)',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+      title: 'Block an app',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: nameController,
+            decoration: const InputDecoration(labelText: 'App name'),
           ),
-          FilledButton(
-            onPressed: () {
-              cubit.add(pkgController.text, nameController.text);
-              Navigator.of(dialogContext).pop();
-            },
-            child: const Text('Add'),
+          const SizedBox(height: AppSpacing.sm),
+          TextField(
+            controller: pkgController,
+            decoration: const InputDecoration(
+              labelText: 'Package (com.example.app)',
+            ),
           ),
         ],
       ),
+      actions: [
+        GhostButton(
+          label: 'Cancel',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        PrimaryButton(
+          label: 'Add',
+          onPressed: () {
+            cubit.add(pkgController.text, nameController.text);
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
     );
   }
 }
