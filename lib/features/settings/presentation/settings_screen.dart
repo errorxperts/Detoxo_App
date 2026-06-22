@@ -205,8 +205,8 @@ class _Spaced extends StatelessWidget {
 
 const _blockModes = <(BlockingMode, String, String)>[
   (BlockingMode.pressBack, 'Press back', 'Gently exits the reel (recommended)'),
-  (BlockingMode.killApp, 'Close the app', 'Force-closes (exit app) the offending app'),
-  (BlockingMode.lockApp, 'Lock app', 'Locks the app behind your PIN, like an app locker'),
+  (BlockingMode.killApp, 'Close the app', 'Force-closes the offending app'),
+  (BlockingMode.lockScreen, 'Lock the screen', 'Locks the device — needs uninstall protection'),
 ];
 
 String _blockModeTitle(BlockingMode m) =>
@@ -385,32 +385,6 @@ class _PermissionSheet extends StatelessWidget {
 class _BlockModeSheet extends StatelessWidget {
   const _BlockModeSheet();
 
-  /// Applies [mode] and closes the sheet. "Lock app" gates the reel behind the
-  /// user's PIN, so picking it without a PIN configured can't enforce anything —
-  /// we send the user to PIN setup instead of silently selecting a dead mode.
-  Future<void> _select(BuildContext context, BlockingMode mode) async {
-    final needsPin = mode == BlockingMode.lockApp &&
-        !context.read<PinCubit>().state.isConfigured;
-    if (needsPin) {
-      final router = GoRouter.of(context);
-      final navigator = Navigator.of(context);
-      final setUp = await AppDialog.confirm(
-        context: context,
-        title: 'Set a PIN first',
-        message:
-            'Lock app hides the reel behind your PIN, like an app locker. '
-            'Set up a PIN to use this mode.',
-        confirmLabel: 'Set up PIN',
-      );
-      if (!setUp) return;
-      navigator.pop(); // close the sheet before leaving the screen
-      unawaited(router.push(Routes.pinSetup));
-      return;
-    }
-    unawaited(context.read<SettingsCubit>().setDefaultBlockMode(mode));
-    Navigator.of(context).pop();
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, AppSettings>(
@@ -425,7 +399,10 @@ class _BlockModeSheet extends StatelessWidget {
                   title: e.$2,
                   subtitle: e.$3,
                   selected: settings.defaultBlockMode == e.$1,
-                  onTap: () => unawaited(_select(context, e.$1)),
+                  onTap: () {
+                    context.read<SettingsCubit>().setDefaultBlockMode(e.$1);
+                    Navigator.of(context).pop();
+                  },
                 ),
               ),
           ],
