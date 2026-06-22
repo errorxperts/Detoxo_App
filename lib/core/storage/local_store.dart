@@ -28,6 +28,13 @@ class LocalStore {
   Future<void> writeSecret(String key, String value) =>
       _secure.write(key: key, value: value);
   Future<void> deleteSecret(String key) => _secure.delete(key: key);
+
+  /// Wipes all local data — both the structured box and every secret. Used by
+  /// "Reset app data"; after this the app re-bootstraps from defaults.
+  Future<void> clearAll() async {
+    await _box.clear();
+    await _secure.deleteAll();
+  }
 }
 
 /// Stable keys for [LocalStore].

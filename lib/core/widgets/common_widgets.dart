@@ -34,10 +34,9 @@ class SectionCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title!,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 ?trailing,
@@ -47,6 +46,33 @@ class SectionCard extends StatelessWidget {
           ],
           child,
         ],
+      ),
+    );
+  }
+}
+
+/// An uppercase group header for settings-style lists (label above a run of
+/// glass rows, instead of nesting them inside another glass card).
+class SectionHeader extends StatelessWidget {
+  const SectionHeader(this.label, {super.key});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 4,
+        top: AppSpacing.md,
+        bottom: AppSpacing.sm,
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
       ),
     );
   }
@@ -80,10 +106,9 @@ class StatTile extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Text(
               value,
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             Text(label, style: Theme.of(context).textTheme.bodySmall),
           ],
@@ -145,11 +170,14 @@ class EmptyState extends StatelessWidget {
                 subtitle!,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                  color: Theme.of(context).colorScheme.outline,
+                ),
               ),
             ],
-            if (action != null) ...[const SizedBox(height: AppSpacing.lg), action!],
+            if (action != null) ...[
+              const SizedBox(height: AppSpacing.lg),
+              action!,
+            ],
           ],
         ),
       ),
@@ -216,14 +244,11 @@ class _FeatureTileState extends State<FeatureTile> {
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: GlassListTile(
         onTap: _onTap,
-        leading: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: AppColors.accent.withValues(alpha: 0.16),
-            borderRadius: AppRadius.brMd,
-          ),
-          child: Center(child: leading),
+        leading: IconBadge(
+          size: 38,
+          shape: BoxShape.rectangle,
+          fillAlpha: 0.16,
+          child: leading,
         ),
         title: widget.title,
         subtitle: widget.subtitle,

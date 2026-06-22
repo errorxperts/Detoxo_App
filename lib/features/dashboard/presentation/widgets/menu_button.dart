@@ -23,15 +23,11 @@ class DrawerMenuButton extends StatelessWidget {
                 AppHaptics.selection();
                 onTap!();
               },
-        child: Container(
-          width: 40,
-          height: 40,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: scheme.primary.withValues(alpha: 0.12),
-            border: Border.all(color: scheme.primary.withValues(alpha: 0.25), width: 2),
-          ),
+        child: IconBadge(
+          color: scheme.primary,
+          fillAlpha: 0.12,
+          bordered: true,
+          borderWidth: 2,
           child: Icon(Icons.menu_rounded, size: 22, color: scheme.primary),
         ),
       ),

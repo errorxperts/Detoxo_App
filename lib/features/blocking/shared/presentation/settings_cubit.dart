@@ -47,6 +47,11 @@ class SettingsCubit extends Cubit<AppSettings> {
   Future<void> setVibration({required bool enabled}) =>
       _commit(state.copyWith(vibrationEnabled: enabled));
 
+  /// Appearance preference. UI-only; pushing to native is harmless (the engine
+  /// ignores the field) and keeps a single persistence path.
+  Future<void> setThemeMode(AppThemeMode mode) =>
+      _commit(state.copyWith(themeMode: mode));
+
   Future<void> setOnboarded({required bool value}) =>
       _commit(state.copyWith(onboarded: value));
 
@@ -76,19 +81,20 @@ class SettingsCubit extends Cubit<AppSettings> {
       cooldownDuration: Duration.zero, // no wind-down: straight to Block All
       planToResume: BlockingPlan.blockAll,
     );
-    return _commit(state.copyWith(
-      activePlan: BlockingPlan.blockAll,
-      pauseSession: session,
-    ));
+    return _commit(
+      state.copyWith(activePlan: BlockingPlan.blockAll, pauseSession: session),
+    );
   }
 
   /// "Resume blocking now" — end the pause immediately and block as Block All.
   Future<void> resumeNow() {
     if (state.pauseSession == null) return Future.value();
-    return _commit(state.copyWith(
-      activePlan: BlockingPlan.blockAll,
-      clearPauseSession: true,
-    ));
+    return _commit(
+      state.copyWith(
+        activePlan: BlockingPlan.blockAll,
+        clearPauseSession: true,
+      ),
+    );
   }
 
   // ── Conscious ───────────────────────────────────────────────────────────────
@@ -117,10 +123,9 @@ class SettingsCubit extends Cubit<AppSettings> {
     // Pause window finished → settle the state to Block All and drop the
     // session. (activePlan is already Block All; this just clears the banner.)
     if (s.pauseSession != null && !s.isPauseContractLive()) {
-      await _commit(s.copyWith(
-        activePlan: BlockingPlan.blockAll,
-        clearPauseSession: true,
-      ));
+      await _commit(
+        s.copyWith(activePlan: BlockingPlan.blockAll, clearPauseSession: true),
+      );
     }
   }
 

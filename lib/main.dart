@@ -8,6 +8,7 @@ import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.da
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/plans/presentation/conscious_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
@@ -19,12 +20,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Light status/nav icons over the dark ambient gradient.
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness.light,
-  ));
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
   await configureDependencies();
   runApp(const DetoxoApp());
 }
@@ -46,10 +49,8 @@ class DetoxoApp extends StatelessWidget {
               SettingsCubit(sl<SettingsRepository>(), sl<EngineRepository>()),
         ),
         BlocProvider(
-          create: (_) => TargetsCubit(
-            sl<ConfigRepository>(),
-            sl<EngineRepository>(),
-          ),
+          create: (_) =>
+              TargetsCubit(sl<ConfigRepository>(), sl<EngineRepository>()),
         ),
         BlocProvider(
           create: (_) => PermissionsCubit(sl<PermissionRepository>()),
@@ -61,13 +62,29 @@ class DetoxoApp extends StatelessWidget {
       child: BlocListener<SettingsCubit, AppSettings>(
         listenWhen: (a, b) => a.vibrationEnabled != b.vibrationEnabled,
         listener: (_, state) => AppHaptics.enabled = state.vibrationEnabled,
-        child: _Router(),
+        // Rebuild MaterialApp when the appearance preference changes.
+        child: BlocSelector<SettingsCubit, AppSettings, AppThemeMode>(
+          selector: (s) => s.themeMode,
+          builder: (_, themeMode) =>
+              _Router(themeMode: _flutterThemeMode(themeMode)),
+        ),
       ),
     );
   }
 }
 
+/// Maps the domain appearance preference to a Flutter [ThemeMode].
+ThemeMode _flutterThemeMode(AppThemeMode mode) => switch (mode) {
+  AppThemeMode.system => ThemeMode.system,
+  AppThemeMode.light => ThemeMode.light,
+  AppThemeMode.dark => ThemeMode.dark,
+};
+
 class _Router extends StatefulWidget {
+  const _Router({required this.themeMode});
+
+  final ThemeMode themeMode;
+
   @override
   State<_Router> createState() => _RouterState();
 }
@@ -81,7 +98,7 @@ class _RouterState extends State<_Router> {
       title: 'Detoxo',
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.dark, // dark-first
+      themeMode: widget.themeMode,
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
     );

@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
@@ -46,15 +47,15 @@ class _WebBlockView extends StatelessWidget {
             itemCount: entries.length,
             itemBuilder: (context, i) {
               final entry = entries[i];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  title: Text(entry.pattern),
-                  subtitle: Text('${entry.matchType.name} · ${entry.blockMode.wire}'),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: AppCard(
+                  title: entry.pattern,
+                  subtitle: '${entry.matchType.name} · ${entry.blockMode.wire}',
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Switch(
+                      AppToggle(
                         value: entry.enabled,
                         onChanged: (v) =>
                             context.read<WebBlockCubit>().toggle(i, enabled: v),
@@ -80,45 +81,42 @@ class _WebBlockView extends StatelessWidget {
     final cubit = context.read<WebBlockCubit>();
     final controller = TextEditingController();
     var type = WebMatchType.domain;
-    await showDialog<void>(
+    await AppDialog.show<void>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setState) => AlertDialog(
-          title: const Text('Block a website'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: controller,
-                decoration: const InputDecoration(hintText: 'e.g. youtube.com'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<WebMatchType>(
-                initialValue: type,
-                decoration: const InputDecoration(labelText: 'Match'),
-                items: WebMatchType.values
-                    .map((t) =>
-                        DropdownMenuItem(value: t, child: Text(t.name)))
-                    .toList(),
-                onChanged: (v) => setState(() => type = v ?? type),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+      title: 'Block a website',
+      content: StatefulBuilder(
+        builder: (context, setState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(hintText: 'e.g. youtube.com'),
             ),
-            FilledButton(
-              onPressed: () {
-                cubit.add(controller.text, type, BlockingMode.pressBack);
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('Add'),
+            const SizedBox(height: AppSpacing.sm),
+            DropdownButtonFormField<WebMatchType>(
+              initialValue: type,
+              decoration: const InputDecoration(labelText: 'Match'),
+              items: WebMatchType.values
+                  .map((t) => DropdownMenuItem(value: t, child: Text(t.name)))
+                  .toList(),
+              onChanged: (v) => setState(() => type = v ?? type),
             ),
           ],
         ),
       ),
+      actions: [
+        GhostButton(
+          label: 'Cancel',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        PrimaryButton(
+          label: 'Add',
+          onPressed: () {
+            cubit.add(controller.text, type, BlockingMode.pressBack);
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
     );
   }
 }

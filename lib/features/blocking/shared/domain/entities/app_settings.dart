@@ -23,6 +23,7 @@ class AppSettings extends Equatable {
     this.masterEnabled = true,
     this.pauseSession,
     this.onboarded = false,
+    this.themeMode = AppThemeMode.dark,
   });
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -33,18 +34,21 @@ class AppSettings extends Equatable {
     // "Paused" plan forever (no live window to clear it).
     final plan = BlockingPlan.fromWire(json['activePlan'] as String?);
     return AppSettings(
-        activePlan: plan == BlockingPlan.paused ? BlockingPlan.blockAll : plan,
-        defaultBlockMode: BlockingMode.fromWire(json['defaultBlockMode'] as String?),
-        enabledPlatformIds:
-            ((json['enabledPlatformIds'] as List?)?.cast<String>() ?? const [])
-                .toSet(),
-        vibrationEnabled: json['vibrationEnabled'] as bool? ?? true,
-        masterEnabled: json['masterEnabled'] as bool? ?? true,
-        pauseSession: json['pauseSession'] == null
-            ? null
-            : PauseSession.fromJson(json['pauseSession'] as Map<String, dynamic>),
-        onboarded: json['onboarded'] as bool? ?? false,
-      );
+      activePlan: plan == BlockingPlan.paused ? BlockingPlan.blockAll : plan,
+      defaultBlockMode: BlockingMode.fromWire(
+        json['defaultBlockMode'] as String?,
+      ),
+      enabledPlatformIds:
+          ((json['enabledPlatformIds'] as List?)?.cast<String>() ?? const [])
+              .toSet(),
+      vibrationEnabled: json['vibrationEnabled'] as bool? ?? true,
+      masterEnabled: json['masterEnabled'] as bool? ?? true,
+      pauseSession: json['pauseSession'] == null
+          ? null
+          : PauseSession.fromJson(json['pauseSession'] as Map<String, dynamic>),
+      onboarded: json['onboarded'] as bool? ?? false,
+      themeMode: AppThemeMode.fromWire(json['themeMode'] as String?),
+    );
   }
 
   final BlockingPlan activePlan;
@@ -56,6 +60,9 @@ class AppSettings extends Equatable {
   /// Live pause contract (an allowed window). Null = none.
   final PauseSession? pauseSession;
   final bool onboarded;
+
+  /// Appearance preference (drives the Flutter `ThemeMode` in the UI layer).
+  final AppThemeMode themeMode;
 
   DateTime _now(DateTime? now) => now ?? DateTime.now();
 
@@ -100,6 +107,7 @@ class AppSettings extends Equatable {
     PauseSession? pauseSession,
     bool clearPauseSession = false,
     bool? onboarded,
+    AppThemeMode? themeMode,
   }) {
     return AppSettings(
       activePlan: activePlan ?? this.activePlan,
@@ -107,29 +115,34 @@ class AppSettings extends Equatable {
       enabledPlatformIds: enabledPlatformIds ?? this.enabledPlatformIds,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       masterEnabled: masterEnabled ?? this.masterEnabled,
-      pauseSession: clearPauseSession ? null : (pauseSession ?? this.pauseSession),
+      pauseSession: clearPauseSession
+          ? null
+          : (pauseSession ?? this.pauseSession),
       onboarded: onboarded ?? this.onboarded,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'activePlan': activePlan.wire,
-        'defaultBlockMode': defaultBlockMode.wire,
-        'enabledPlatformIds': enabledPlatformIds.toList(),
-        'vibrationEnabled': vibrationEnabled,
-        'masterEnabled': masterEnabled,
-        'pauseSession': pauseSession?.toJson(),
-        'onboarded': onboarded,
-      };
+    'activePlan': activePlan.wire,
+    'defaultBlockMode': defaultBlockMode.wire,
+    'enabledPlatformIds': enabledPlatformIds.toList(),
+    'vibrationEnabled': vibrationEnabled,
+    'masterEnabled': masterEnabled,
+    'pauseSession': pauseSession?.toJson(),
+    'onboarded': onboarded,
+    'themeMode': themeMode.wire,
+  };
 
   @override
   List<Object?> get props => [
-        activePlan,
-        defaultBlockMode,
-        enabledPlatformIds,
-        vibrationEnabled,
-        masterEnabled,
-        pauseSession,
-        onboarded,
-      ];
+    activePlan,
+    defaultBlockMode,
+    enabledPlatformIds,
+    vibrationEnabled,
+    masterEnabled,
+    pauseSession,
+    onboarded,
+    themeMode,
+  ];
 }
