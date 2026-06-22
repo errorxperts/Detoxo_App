@@ -8,8 +8,8 @@ import 'package:local_auth/local_auth.dart';
 /// unlock and email-OTP recovery.
 class PinCubit extends Cubit<PinConfig> {
   PinCubit(this._repo, {LocalAuthentication? localAuth})
-      : _localAuth = localAuth ?? LocalAuthentication(),
-        super(const PinConfig());
+    : _localAuth = localAuth ?? LocalAuthentication(),
+      super(const PinConfig());
 
   final PinRepository _repo;
   final LocalAuthentication _localAuth;
@@ -40,6 +40,41 @@ class PinCubit extends Cubit<PinConfig> {
     emit(config);
   }
 
+  /// After a verified recovery, set a fresh custom PIN — keeping the guarded
+  /// scopes, recovery email and biometric preference, and clearing the retry /
+  /// lockout state. Used by the "Forgot PIN" flow instead of disabling the lock.
+  Future<void> resetSecretAfterRecovery(String newSecret) async {
+    final next = state.copyWith(
+      type: PinType.custom,
+      secret: newSecret,
+      retryCount: 0,
+      clearLockout: true,
+    );
+    await _repo.save(next);
+    emit(next);
+  }
+
+  /// Digit count that constitutes a complete entry for the active PIN type, so
+  /// the lock screen can auto-submit at the right length (custom PINs may be
+  /// 4–10 digits; DATE is `ddMMyyyy` = 8, TIME is `HHmm` = 4).
+  int get expectedLength => switch (state.type) {
+    PinType.custom => state.secret.length,
+    PinType.date => 8,
+    PinType.time => 4,
+    _ => 4,
+  };
+
+  /// Whether biometric/device-credential unlock is usable on this device, used
+  /// to hide the biometric toggle where it isn't supported.
+  Future<bool> canUseBiometrics() async {
+    try {
+      return await _localAuth.isDeviceSupported() &&
+          await _localAuth.canCheckBiometrics;
+    } on Exception {
+      return false;
+    }
+  }
+
   /// Verifies [entry]; updates the retry/lockout state on failure.
   Future<bool> verify(String entry) async {
     final config = state;
@@ -68,8 +103,7 @@ class PinCubit extends Cubit<PinConfig> {
   String _expectedSecret(PinConfig config) {
     final now = DateTime.now();
     return switch (config.type) {
-      PinType.date =>
-        '${_two(now.day)}${_two(now.month)}${now.year}',
+      PinType.date => '${_two(now.day)}${_two(now.month)}${now.year}',
       PinType.time => '${_two(now.hour)}${_two(now.minute)}',
       _ => config.secret,
     };
@@ -79,7 +113,8 @@ class PinCubit extends Cubit<PinConfig> {
 
   Future<bool> authenticateBiometric() async {
     try {
-      final canCheck = await _localAuth.canCheckBiometrics ||
+      final canCheck =
+          await _localAuth.canCheckBiometrics ||
           await _localAuth.isDeviceSupported();
       if (!canCheck) return false;
       return await _localAuth.authenticate(

@@ -1,4 +1,4 @@
 
 #Use FlutterGen for Generate assets paths
-dart run build_runner build
+flutter pub get; dart run build_runner build;
 

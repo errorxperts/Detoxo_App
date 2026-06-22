@@ -154,14 +154,10 @@ class _TargetAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = Container(
-      width: 34,
-      height: 34,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: AppColors.accent.withValues(alpha: 0.16),
-        borderRadius: AppRadius.brMd,
-      ),
+    final fallback = IconBadge(
+      size: 34,
+      shape: BoxShape.rectangle,
+      fillAlpha: 0.16,
       child: Text(
         target.displayName.isNotEmpty ? target.displayName.characters.first.toUpperCase() : '?',
         style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.accent),

@@ -5,7 +5,7 @@ import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_rep
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lottie/lottie.dart';
+import 'package:lottie_tgs/lottie.dart';
 
 class _Page {
   const _Page({
