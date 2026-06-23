@@ -1,12 +1,15 @@
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:equatable/equatable.dart';
 
-/// PIN-lock configuration. The secret is stored encrypted (secure storage); the
-/// retry ladder escalates lockouts on repeated failures.
+/// PIN-lock configuration. Custom PINs are stored as a salted SHA-256 hash
+/// (never plaintext); Date/Time PINs are derived from the clock and store no
+/// secret at all. The retry ladder escalates lockouts on repeated failures.
 class PinConfig extends Equatable {
   const PinConfig({
     this.type = PinType.none,
-    this.secret = '',
+    this.secretHash = '',
+    this.salt = '',
+    this.secretLength = 0,
     this.scopes = const {},
     this.verifiedEmail = '',
     this.retryCount = 0,
@@ -16,7 +19,9 @@ class PinConfig extends Equatable {
 
   factory PinConfig.fromJson(Map<String, dynamic> json) => PinConfig(
         type: PinType.fromWire(json['type'] as String?),
-        secret: json['secret'] as String? ?? '',
+        secretHash: json['secretHash'] as String? ?? '',
+        salt: json['salt'] as String? ?? '',
+        secretLength: json['secretLength'] as int? ?? 0,
         scopes: ((json['scopes'] as List?)?.cast<String>() ?? const [])
             .map(PinScope.fromWire)
             .toSet(),
@@ -29,7 +34,17 @@ class PinConfig extends Equatable {
       );
 
   final PinType type;
-  final String secret;
+
+  /// Salted SHA-256 hash of a custom PIN; empty for Date/Time/None.
+  final String secretHash;
+
+  /// Random salt used to derive [secretHash]; empty for Date/Time/None.
+  final String salt;
+
+  /// Digit count of a custom PIN, kept so the lock screen can render the entry
+  /// dots and auto-submit without ever holding the secret.
+  final int secretLength;
+
   final Set<PinScope> scopes;
   final String verifiedEmail;
   final int retryCount;
@@ -44,7 +59,9 @@ class PinConfig extends Equatable {
 
   PinConfig copyWith({
     PinType? type,
-    String? secret,
+    String? secretHash,
+    String? salt,
+    int? secretLength,
     Set<PinScope>? scopes,
     String? verifiedEmail,
     int? retryCount,
@@ -54,7 +71,9 @@ class PinConfig extends Equatable {
   }) =>
       PinConfig(
         type: type ?? this.type,
-        secret: secret ?? this.secret,
+        secretHash: secretHash ?? this.secretHash,
+        salt: salt ?? this.salt,
+        secretLength: secretLength ?? this.secretLength,
         scopes: scopes ?? this.scopes,
         verifiedEmail: verifiedEmail ?? this.verifiedEmail,
         retryCount: retryCount ?? this.retryCount,
@@ -64,7 +83,9 @@ class PinConfig extends Equatable {
 
   Map<String, dynamic> toJson() => {
         'type': type.wire,
-        'secret': secret,
+        'secretHash': secretHash,
+        'salt': salt,
+        'secretLength': secretLength,
         'scopes': scopes.map((e) => e.wire).toList(),
         'verifiedEmail': verifiedEmail,
         'retryCount': retryCount,
@@ -73,8 +94,17 @@ class PinConfig extends Equatable {
       };
 
   @override
-  List<Object?> get props =>
-      [type, secret, scopes, verifiedEmail, retryCount, lockedUntil, biometricEnabled];
+  List<Object?> get props => [
+        type,
+        secretHash,
+        salt,
+        secretLength,
+        scopes,
+        verifiedEmail,
+        retryCount,
+        lockedUntil,
+        biometricEnabled,
+      ];
 }
 
 /// The escalating lockout ladder (verified thresholds from the reference app).

@@ -4,7 +4,9 @@ import 'package:detoxo/core/error/failures.dart';
 import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/core/utils/result.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
+import 'package:detoxo/features/access_protection/domain/pin_hasher.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 
 /// PIN persistence (secure storage) + email-OTP recovery.
 ///
@@ -23,7 +25,26 @@ class PinRepositoryImpl implements PinRepository {
   Future<PinConfig> load() async {
     final raw = await _store.readSecret(StoreKeys.pinConfig);
     if (raw == null) return const PinConfig();
-    return PinConfig.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    final json = jsonDecode(raw) as Map<String, dynamic>;
+
+    // Migrate legacy installs that stored a plaintext custom PIN under `secret`
+    // (pre-hashing): hash it, persist, and drop the plaintext so it never sits
+    // unhashed again.
+    final legacySecret = json['secret'] as String?;
+    final hasHash = (json['secretHash'] as String?)?.isNotEmpty ?? false;
+    final isCustom = PinType.fromWire(json['type'] as String?) == PinType.custom;
+    if (isCustom && !hasHash && legacySecret != null && legacySecret.isNotEmpty) {
+      final salt = PinHasher.newSalt();
+      final migrated = PinConfig.fromJson(json).copyWith(
+        secretHash: PinHasher.hash(salt, legacySecret),
+        salt: salt,
+        secretLength: legacySecret.length,
+      );
+      await save(migrated);
+      return migrated;
+    }
+
+    return PinConfig.fromJson(json);
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:detoxo/core/utils/result.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
+import 'package:detoxo/features/access_protection/domain/pin_hasher.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_gate.dart';
@@ -47,6 +48,56 @@ void main() {
     });
   });
 
+  group('PinHasher', () {
+    test('verifies the right secret and rejects the wrong one', () {
+      final salt = PinHasher.newSalt();
+      final hash = PinHasher.hash(salt, '1234');
+      expect(PinHasher.verify(salt, hash, '1234'), isTrue);
+      expect(PinHasher.verify(salt, hash, '0000'), isFalse);
+    });
+
+    test('different salts produce different hashes for the same secret', () {
+      final a = PinHasher.newSalt();
+      final b = PinHasher.newSalt();
+      expect(a, isNot(b));
+      expect(PinHasher.hash(a, '1234'), isNot(PinHasher.hash(b, '1234')));
+    });
+
+    test('verify is false when salt or hash is empty', () {
+      expect(PinHasher.verify('', 'x', '1234'), isFalse);
+      expect(PinHasher.verify('salt', '', '1234'), isFalse);
+    });
+  });
+
+  group('PinCubit custom verify', () {
+    test('accepts the configured PIN and rejects others (hashed)', () async {
+      final cubit = PinCubit(_FakePinRepo());
+      await cubit.setup(
+        type: PinType.custom,
+        secret: '1357',
+        scopes: {PinScope.app},
+      );
+      // Stored hashed, not in plaintext.
+      expect(cubit.state.secretHash, isNotEmpty);
+      expect(cubit.state.salt, isNotEmpty);
+      expect(await cubit.verify('1357'), isTrue);
+      expect(await cubit.verify('0000'), isFalse);
+    });
+
+    test('disable() clears the configured lock', () async {
+      final cubit = PinCubit(_FakePinRepo());
+      await cubit.setup(
+        type: PinType.custom,
+        secret: '1357',
+        scopes: {PinScope.app},
+      );
+      await cubit.disable();
+      expect(cubit.state.isConfigured, isFalse);
+      expect(cubit.state.type, PinType.none);
+      expect(cubit.state.secretHash, isEmpty);
+    });
+  });
+
   group('PinCubit.resetSecretAfterRecovery', () {
     test(
       'sets a fresh custom PIN, clears lockout, preserves scopes/email/biometric',
@@ -63,7 +114,11 @@ void main() {
         await cubit.resetSecretAfterRecovery('4321');
 
         expect(cubit.state.type, PinType.custom);
-        expect(cubit.state.secret, '4321');
+        // The new PIN is stored hashed (never plaintext) but still verifies.
+        expect(cubit.state.secretHash, isNotEmpty);
+        expect(cubit.state.salt, isNotEmpty);
+        expect(cubit.expectedLength, 4);
+        expect(await cubit.verify('4321'), isTrue);
         expect(cubit.state.retryCount, 0);
         expect(cubit.state.isLockedOut, isFalse);
         expect(cubit.state.scopes, {PinScope.app, PinScope.settings});

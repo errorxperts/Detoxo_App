@@ -91,6 +91,9 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   }
 
   Future<void> _resetData() async {
+    // Reset wipes the PIN itself, so it's a protected change: ask for the PIN
+    // first (no-op when none is configured).
+    if (!await requirePin(context, PinScope.settings) || !mounted) return;
     final ok = await AppDialog.confirm(
       context: context,
       title: 'Reset app data?',
@@ -249,12 +252,9 @@ String _bgLabel(AppBackground b) =>
 /// the picker self-contained.
 String? _bgSvgAsset(AppBackground style, bool dark) => switch (style) {
   AppBackground.aurora => null,
-  AppBackground.bg1 =>
-    dark ? 'assets/images/bg/dark_bg1.svg' : 'assets/images/bg/light_bg1.svg',
-  AppBackground.bg2 =>
-    dark ? 'assets/images/bg/dark_bg2.svg' : 'assets/images/bg/light_bg2.svg',
-  AppBackground.bg3 =>
-    dark ? 'assets/images/bg/dark_bg3.svg' : 'assets/images/bg/light_bg3.svg',
+  AppBackground.bg1 => dark ? 'assets/images/bg/dark_bg1.svg' : 'assets/images/bg/light_bg1.svg',
+  AppBackground.bg2 => dark ? 'assets/images/bg/dark_bg2.svg' : 'assets/images/bg/light_bg2.svg',
+  AppBackground.bg3 => dark ? 'assets/images/bg/dark_bg3.svg' : 'assets/images/bg/light_bg3.svg',
 };
 
 /// A small gradient standing in for the (asset-less) Aurora background in its
@@ -296,9 +296,41 @@ class _OptionTile extends StatelessWidget {
   }
 }
 
-// ── PIN status tile ───────────────────────────────────────────────────────────
+// ── PIN lock: master switch + edit tile ───────────────────────────────────────
 
 class _PinTile extends StatelessWidget {
+  /// Master switch. Turning ON opens setup; turning OFF asks for the PIN and a
+  /// confirmation, then disables. The switch is bound to `isConfigured`, so a
+  /// cancelled turn-off (or a setup the user backs out of) snaps it back.
+  Future<void> _toggle(BuildContext context, {required bool enable}) async {
+    if (enable) {
+      await context.push(Routes.pinSetup);
+      return;
+    }
+    if (!await requirePin(context, PinScope.settings) || !context.mounted) {
+      return;
+    }
+    final ok = await AppDialog.confirm(
+      context: context,
+      title: 'Turn off PIN lock?',
+      message:
+          'Detoxo and its protected sections will no longer ask for a PIN.',
+      confirmLabel: 'Turn off',
+      cancelLabel: 'Keep it on',
+      destructive: true,
+    );
+    if (!ok || !context.mounted) return;
+    await context.read<PinCubit>().disable();
+  }
+
+  /// Edit the configured PIN (type, recovery email, biometrics). Gated by the
+  /// settings scope like every protected change.
+  Future<void> _openSettings(BuildContext context) async {
+    if (await requirePin(context, PinScope.settings) && context.mounted) {
+      unawaited(context.push(Routes.pinSetup));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PinCubit, PinConfig>(
@@ -310,17 +342,28 @@ class _PinTile extends StatelessWidget {
           PinType.time => 'Time',
           _ => '',
         };
-        return FeatureTile(
-          icon: Icons.lock_outline,
-          animatedIcon: AppIcon.pinLock,
-          title: 'PIN lock',
-          subtitle: on ? 'On • $typeLabel PIN' : 'Off — protect Detoxo with a PIN',
-          trailing: Pill(label: on ? 'On' : 'Off', tone: on ? AppTone.success : AppTone.neutral),
-          onTap: () async {
-            if (await requirePin(context, PinScope.settings) && context.mounted) {
-              unawaited(context.push(Routes.pinSetup));
-            }
-          },
+        return Column(
+          children: [
+            _Spaced(
+              AdaptiveSwitchTile(
+                leading: const Icon(Icons.lock_outline, color: AppColors.accent),
+                title: 'PIN lock',
+                subtitle: on
+                    ? 'On • $typeLabel PIN'
+                    : 'Off — protect Detoxo with a PIN',
+                value: on,
+                onChanged: (v) => unawaited(_toggle(context, enable: v)),
+              ),
+            ),
+            if (on)
+              FeatureTile(
+                icon: Icons.tune,
+                animatedIcon: AppIcon.pinLock,
+                title: 'PIN settings',
+                subtitle: 'Type, recovery email & biometrics',
+                onTap: () => _openSettings(context),
+              ),
+          ],
         );
       },
     );
@@ -502,10 +545,7 @@ class _ThemeSheet extends StatelessWidget {
                 ),
               const SizedBox(height: AppSpacing.md),
               const SectionHeader('Background'),
-              _BackgroundCarousel(
-                selected: settings.backgroundId,
-                dark: dark,
-              ),
+              _BackgroundCarousel(selected: settings.backgroundId, dark: dark),
             ],
           ),
         );
@@ -561,10 +601,7 @@ class _BackgroundCarousel extends StatelessWidget {
             color: context.glass.onGlass,
           ),
         ),
-        Text(
-          current.$3,
-          style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
-        ),
+        Text(current.$3, style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted)),
       ],
     );
   }
@@ -589,55 +626,49 @@ class _BgCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final asset = _bgSvgAsset(style, dark);
+    final borderWidth = selected ? 2.0 : 1.0;
+    final preview = asset == null
+        ? DecoratedBox(decoration: BoxDecoration(gradient: _auroraSwatchGradient(dark)))
+        : SvgPicture.asset(asset, fit: BoxFit.cover);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: AppDurations.fast,
         curve: AppCurves.standard,
         width: 116,
-        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(
             color: selected ? AppColors.accent : context.glass.border,
-            width: selected ? 2 : 1,
+            width: borderWidth,
           ),
           boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: AppColors.accent.withValues(alpha: 0.35),
-                    blurRadius: 12,
-                  ),
-                ]
+              ? [BoxShadow(color: AppColors.accent.withValues(alpha: 0.35), blurRadius: 12)]
               : null,
         ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (asset == null)
-              DecoratedBox(
-                decoration: BoxDecoration(gradient: _auroraSwatchGradient(dark)),
-              )
-            else
-              SvgPicture.asset(asset, fit: BoxFit.cover),
-            if (selected)
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    color: AppColors.accent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check,
-                    size: 14,
-                    color: AppColors.surfaceDark,
+        // Clip the preview to a radius concentric with the border so the
+        // accent ring stays perfectly rounded around the tile when selected.
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.md - borderWidth),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              preview,
+              if (selected)
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: AppColors.accent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.check, size: 14, color: AppColors.surfaceDark),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
