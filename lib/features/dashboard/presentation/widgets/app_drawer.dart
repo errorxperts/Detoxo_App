@@ -25,79 +25,93 @@ class AppDrawer extends StatelessWidget {
       backgroundColor: Colors.transparent,
       elevation: 0,
       width: 300,
-      child: GlassContainer(
-        borderRadius: 0,
-        blurSigma: AppBlur.sheet,
-        borderColor: Colors.transparent,
-        padding: EdgeInsets.zero,
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header: wordmark + close.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  AppSpacing.sm,
-                  AppSpacing.xs,
-                  AppSpacing.xs,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        AppConstants.appName,
-                        style: text.titleLarge?.copyWith(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w700,
+      child: DecoratedBox(
+        // A leading hairline defines the panel edge against the content,
+        // especially in the light theme.
+        decoration: BoxDecoration(
+          border: Border(left: BorderSide(color: context.glass.border)),
+        ),
+        child: GlassContainer(
+          borderRadius: 0,
+          blurSigma: AppBlur.sheet,
+          borderColor: Colors.transparent,
+          // Standard translucent glass fill (glass.fillTop/fillBottom) so the
+          // drawer matches the app's glassmorphism; the frosted blur here plus
+          // the background blur behind it keep nav text readable.
+          padding: EdgeInsets.zero,
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header: wordmark + close.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                    AppSpacing.xs,
+                    AppSpacing.xs,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppConstants.appName,
+                          style: text.titleLarge?.copyWith(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      tooltip: 'Close',
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
+                      IconButton(
+                        tooltip: 'Close',
+                        icon: Icon(Icons.close, color: context.glass.onGlass),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Divider(height: 1, color: context.glass.border),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                  children: [
-                    _DrawerItem(
-                      icon: Icons.hourglass_bottom,
-                      label: 'Daily limit',
-                      onTap: () => _go(context, Routes.dailyLimit),
+                Divider(height: 1, color: context.glass.border),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.xs,
                     ),
-                    _DrawerItem(
-                      icon: Icons.bar_chart,
-                      label: 'Activity',
-                      onTap: () => _go(context, Routes.analytics),
-                    ),
-                    _DrawerItem(
-                      icon: Icons.lock,
-                      label: 'PIN lock',
-                      onTap: () => _go(context, Routes.pinSetup),
-                    ),
-                    _DrawerItem(
-                      icon: Icons.settings,
-                      label: 'Settings',
-                      onTap: () => _go(context, Routes.settings),
-                    ),
-                  ],
+                    children: [
+                      _DrawerItem(
+                        icon: Icons.hourglass_bottom,
+                        label: 'Daily limit',
+                        onTap: () => _go(context, Routes.dailyLimit),
+                      ),
+                      _DrawerItem(
+                        icon: Icons.bar_chart,
+                        label: 'Activity',
+                        onTap: () => _go(context, Routes.analytics),
+                      ),
+                      _DrawerItem(
+                        icon: Icons.lock,
+                        label: 'PIN lock',
+                        onTap: () => _go(context, Routes.pinSetup),
+                      ),
+                      _DrawerItem(
+                        icon: Icons.settings,
+                        label: 'Settings',
+                        onTap: () => _go(context, Routes.settings),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              // Footer: version.
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Text(
-                  'v${AppConstants.appVersion}',
-                  style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+                // Footer: version.
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(
+                    'v${AppConstants.appVersion}',
+                    style: text.bodySmall?.copyWith(
+                      color: context.glass.onGlassMuted,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -119,10 +133,13 @@ class _DrawerItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
     return ListTile(
-      leading: Icon(icon, color: scheme.primary),
-      title: Text(label),
+      leading: Icon(icon, color: AppColors.accent),
+      title: Text(
+        label,
+        style: text.bodyLarge?.copyWith(color: context.glass.onGlass),
+      ),
       onTap: onTap,
     );
   }

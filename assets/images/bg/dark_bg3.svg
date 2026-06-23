@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1052" height="621" viewBox="0 0 1052 621" preserveAspectRatio="none">
+            <!-- https://grabient.com/HQVhBYBoFpgRgEx0sADATmcc6AcL0RUVxxjsA2ClOVBFAZgf1DpQHYL2OQ4g?angle=225 -->
+            <defs>
+              <linearGradient id="gradient" x1="0.854" y1="0.146" x2="0.146" y2="0.854">
+        <stop offset="0.000" stop-color="#0e0018" /><stop offset="0.200" stop-color="#241a46" /><stop offset="0.400" stop-color="#5d376c" /><stop offset="0.600" stop-color="#a65383" /><stop offset="0.800" stop-color="#e76e86" /><stop offset="1.000" stop-color="#ff8676" />
+              </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="1052" height="621" fill="url(#gradient)" />
+          </svg>

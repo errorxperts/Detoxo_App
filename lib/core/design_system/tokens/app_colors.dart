@@ -44,16 +44,19 @@ abstract final class AppColors {
   static const Color onGlassMutedDark = Color(0xB3F3F4F8); // ~70%
 
   // ── Glass fill / border / on-glass text (light) ─────────────────────────
-  static const Color glassFillTopLight = Color(0x1A101012);
-  static const Color glassFillBotLight = Color(0x0A101012);
-  static const Color glassBorderLight = Color(0x1A101012);
+  // Deeper tints than a typical glass build so surfaces, borders and secondary
+  // text stay clearly visible against the pale light background (the thin ~10%
+  // values washed out over the bright shader/aurora backgrounds).
+  static const Color glassFillTopLight = Color(0x26101012); // ~15% black
+  static const Color glassFillBotLight = Color(0x14101012); // ~8% black
+  static const Color glassBorderLight = Color(0x2E101012); // ~18% black hairline
   static const Color glassHighlightLight = Color(0x40FFFFFF);
   static const Color onGlassLight = Color(0xFF14151A);
-  static const Color onGlassMutedLight = Color(0xB314151A);
+  static const Color onGlassMutedLight = Color(0xCC14151A); // ~80% black
 
   // ── Hairline / outline (non-glass dividers) ─────────────────────────────
   static const Color hairlineDark = Color(0x1FFFFFFF);
-  static const Color hairlineLight = Color(0x14101012);
+  static const Color hairlineLight = Color(0x24101012); // ~14% black (was ~8%)
 
   // ── Soft glow colors for dark-UI shadows ────────────────────────────────
   static const Color glowIndigo = Color(0x55D0BCFF); // lavender glow

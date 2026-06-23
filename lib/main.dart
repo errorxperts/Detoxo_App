@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/foundations/background_scope.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/app_router.dart';
@@ -62,11 +63,15 @@ class DetoxoApp extends StatelessWidget {
       child: BlocListener<SettingsCubit, AppSettings>(
         listenWhen: (a, b) => a.vibrationEnabled != b.vibrationEnabled,
         listener: (_, state) => AppHaptics.enabled = state.vibrationEnabled,
-        // Rebuild MaterialApp when the appearance preference changes.
-        child: BlocSelector<SettingsCubit, AppSettings, AppThemeMode>(
-          selector: (s) => s.themeMode,
-          builder: (_, themeMode) =>
-              _Router(themeMode: _flutterThemeMode(themeMode)),
+        // Rebuild MaterialApp when the appearance preference changes, and feed
+        // the selected background down via an inherited scope (kept separate so
+        // the design system never imports the domain enum).
+        child: BlocSelector<SettingsCubit, AppSettings, (AppThemeMode, AppBackground)>(
+          selector: (s) => (s.themeMode, s.backgroundId),
+          builder: (_, sel) => BackgroundScope(
+            style: _bgStyle(sel.$2),
+            child: _Router(themeMode: _flutterThemeMode(sel.$1)),
+          ),
         ),
       ),
     );
@@ -78,6 +83,15 @@ ThemeMode _flutterThemeMode(AppThemeMode mode) => switch (mode) {
   AppThemeMode.system => ThemeMode.system,
   AppThemeMode.light => ThemeMode.light,
   AppThemeMode.dark => ThemeMode.dark,
+};
+
+/// Maps the domain background preference to the design-system style enum (which
+/// resolves the dark/light SVG variant for the active theme).
+AppBackgroundStyle _bgStyle(AppBackground background) => switch (background) {
+  AppBackground.aurora => AppBackgroundStyle.aurora,
+  AppBackground.bg1 => AppBackgroundStyle.bg1,
+  AppBackground.bg2 => AppBackgroundStyle.bg2,
+  AppBackground.bg3 => AppBackgroundStyle.bg3,
 };
 
 class _Router extends StatefulWidget {

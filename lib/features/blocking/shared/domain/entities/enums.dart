@@ -150,6 +150,23 @@ enum AppThemeMode {
       values.firstWhere((e) => e.wire == v, orElse: () => AppThemeMode.dark);
 }
 
+/// App-background choice. Domain-level (no Flutter dependency); the presentation
+/// layer maps this to a design-system `AppBackgroundStyle`, which resolves the
+/// dark/light variant for the active theme. [aurora] is the theme-aware default
+/// (the built-in ambient glow); [bg1]–[bg3] are SVG gradient backgrounds.
+enum AppBackground {
+  aurora('AURORA'),
+  bg1('BG1'),
+  bg2('BG2'),
+  bg3('BG3');
+
+  const AppBackground(this.wire);
+  final String wire;
+
+  static AppBackground fromWire(String? v) =>
+      values.firstWhere((e) => e.wire == v, orElse: () => AppBackground.aurora);
+}
+
 /// Phase of a timed session (pause or curious).
 enum SessionPhase { active, cooldown, idle }
 

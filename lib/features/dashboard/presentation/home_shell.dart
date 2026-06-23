@@ -46,10 +46,15 @@ class _HomeShellState extends State<HomeShell> {
     final screenMax = MediaQuery.sizeOf(context).width - AppSpacing.xl;
     final contentWidth = _items.length * slot + AppSpacing.sm;
     final barWidth = contentWidth > screenMax ? screenMax : contentWidth;
+    // Lighter drawer dim in light theme: the scrim sits behind the glass drawer
+    // and is blurred into it, so a heavy black scrim would make the frosted
+    // panel read murky/dark instead of as light glass.
+    final dark = Theme.of(context).brightness == Brightness.dark;
     return GlassScaffold(
       safeArea: false,
       scaffoldKey: _scaffoldKey,
       endDrawer: const AppDrawer(),
+      drawerScrimColor: Colors.black.withValues(alpha: dark ? 0.5 : 0.22),
       body: BottomBar(
         fit: StackFit.expand,
         borderRadius: AppRadius.brPill,

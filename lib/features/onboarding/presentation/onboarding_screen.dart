@@ -233,14 +233,16 @@ class _Illustration extends StatelessWidget {
   }
 
   Widget _fallback(_Page page) {
+    // Use the page's brand accent (not white) so the fallback stays legible in
+    // both light and dark themes.
     return Center(
       child: Container(
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: page.accent.withValues(alpha: 0.18),
           shape: BoxShape.circle,
         ),
-        child: Icon(page.fallbackIcon, size: 64, color: Colors.white),
+        child: Icon(page.fallbackIcon, size: 64, color: page.accent),
       ),
     );
   }

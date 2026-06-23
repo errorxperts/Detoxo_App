@@ -24,6 +24,7 @@ class AppSettings extends Equatable {
     this.pauseSession,
     this.onboarded = false,
     this.themeMode = AppThemeMode.dark,
+    this.backgroundId = AppBackground.aurora,
   });
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -48,6 +49,7 @@ class AppSettings extends Equatable {
           : PauseSession.fromJson(json['pauseSession'] as Map<String, dynamic>),
       onboarded: json['onboarded'] as bool? ?? false,
       themeMode: AppThemeMode.fromWire(json['themeMode'] as String?),
+      backgroundId: AppBackground.fromWire(json['backgroundId'] as String?),
     );
   }
 
@@ -63,6 +65,10 @@ class AppSettings extends Equatable {
 
   /// Appearance preference (drives the Flutter `ThemeMode` in the UI layer).
   final AppThemeMode themeMode;
+
+  /// Animated background choice (drives the design-system background in the UI
+  /// layer; resolves a dark/light shader variant for the active theme).
+  final AppBackground backgroundId;
 
   DateTime _now(DateTime? now) => now ?? DateTime.now();
 
@@ -108,6 +114,7 @@ class AppSettings extends Equatable {
     bool clearPauseSession = false,
     bool? onboarded,
     AppThemeMode? themeMode,
+    AppBackground? backgroundId,
   }) {
     return AppSettings(
       activePlan: activePlan ?? this.activePlan,
@@ -120,6 +127,7 @@ class AppSettings extends Equatable {
           : (pauseSession ?? this.pauseSession),
       onboarded: onboarded ?? this.onboarded,
       themeMode: themeMode ?? this.themeMode,
+      backgroundId: backgroundId ?? this.backgroundId,
     );
   }
 
@@ -132,6 +140,7 @@ class AppSettings extends Equatable {
     'pauseSession': pauseSession?.toJson(),
     'onboarded': onboarded,
     'themeMode': themeMode.wire,
+    'backgroundId': backgroundId.wire,
   };
 
   @override
@@ -144,5 +153,6 @@ class AppSettings extends Equatable {
     pauseSession,
     onboarded,
     themeMode,
+    backgroundId,
   ];
 }
