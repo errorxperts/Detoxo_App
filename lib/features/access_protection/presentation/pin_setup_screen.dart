@@ -22,11 +22,11 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
   );
 
   /// The scopes this screen can toggle; any others persisted by an older build
-  /// (e.g. the retired `planSwitch`) are pruned on load so they aren't re-saved.
+  /// (e.g. the retired `planSwitch` or `appLocker`) are pruned on load so they
+  /// aren't re-saved.
   static const _supportedScopes = {
     PinScope.app,
     PinScope.settings,
-    PinScope.appLocker,
   };
 
   PinType _type = PinType.custom;
@@ -66,6 +66,12 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
   }
 
   Future<void> _save() async {
+    // "None" removes the lock entirely (the default state).
+    if (_type == PinType.none) {
+      await _turnOff();
+      return;
+    }
+
     final email = _emailController.text.trim();
     if (_type == PinType.custom) {
       final pin = _pinController.text.trim();
@@ -119,7 +125,14 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _confirmDisable() async {
+  /// Applies the "None" choice. If a PIN is currently set this confirms before
+  /// disabling; if nothing is configured it just closes (no-op).
+  Future<void> _turnOff() async {
+    final configured = context.read<PinCubit>().state.isConfigured;
+    if (!configured) {
+      Navigator.of(context).pop();
+      return;
+    }
     final ok = await AppDialog.confirm(
       context: context,
       title: 'Turn off PIN lock?',
@@ -184,90 +197,85 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
             _pinTypeHint(_type),
             style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
           ),
-          if (_type != PinType.custom) ...[
+          if (_type == PinType.date || _type == PinType.time) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Right now that is "${_derivedPreview()}".',
               style: text.bodySmall?.copyWith(color: AppColors.accent),
             ),
           ],
-          if (_type == PinType.custom) ...[
-            const SectionHeader('Your PIN'),
+          // None removes the lock, so the PIN, scope, recovery and biometric
+          // sections are hidden — only the type picker and Save remain.
+          if (_type != PinType.none) ...[
+            if (_type == PinType.custom) ...[
+              const SectionHeader('Your PIN'),
+              TextField(
+                controller: _pinController,
+                keyboardType: TextInputType.number,
+                obscureText: true,
+                maxLength: 10,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: const InputDecoration(
+                  labelText: 'PIN',
+                  hintText: 'Enter 4–10 digits',
+                ),
+              ),
+              TextField(
+                controller: _confirmController,
+                keyboardType: TextInputType.number,
+                obscureText: true,
+                maxLength: 10,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: const InputDecoration(labelText: 'Confirm PIN'),
+              ),
+            ],
+            const SectionHeader('Protect'),
+            _scopeTile(
+              PinScope.app,
+              'Opening Detoxo',
+              'Ask for the PIN at launch',
+            ),
+            _scopeTile(
+              PinScope.settings,
+              'Changing protected settings',
+              'Ask before disabling blocking, resetting data or changing the PIN',
+            ),
+            const SectionHeader('Recovery email'),
             TextField(
-              controller: _pinController,
-              keyboardType: TextInputType.number,
-              obscureText: true,
-              maxLength: 10,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
-                labelText: 'PIN',
-                hintText: 'Enter 4–10 digits',
+                labelText: 'Email',
+                hintText: 'you@example.com',
+                helperText: 'Used to reset your PIN if you forget it',
               ),
             ),
-            TextField(
-              controller: _confirmController,
-              keyboardType: TextInputType.number,
-              obscureText: true,
-              maxLength: 10,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(labelText: 'Confirm PIN'),
-            ),
-          ],
-          const SectionHeader('Protect'),
-          _scopeTile(
-            PinScope.app,
-            'Opening Detoxo',
-            'Ask for the PIN at launch',
-          ),
-          _scopeTile(
-            PinScope.settings,
-            'Changing protected settings',
-            'Ask before disabling blocking or changing the PIN',
-          ),
-          _scopeTile(
-            PinScope.appLocker,
-            'App locker',
-            'Ask before managing locked apps',
-          ),
-          const SectionHeader('Recovery email'),
-          TextField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              hintText: 'you@example.com',
-              helperText: 'Used to reset your PIN if you forget it',
-            ),
-          ),
-          if (_biometricAvailable) ...[
-            const SectionHeader('Convenience'),
-            AdaptiveSwitchTile(
-              leading: const Icon(Icons.fingerprint, color: AppColors.accent),
-              title: 'Allow biometric unlock',
-              subtitle: 'Use fingerprint / face to unlock',
-              value: _biometric,
-              onChanged: (v) => setState(() => _biometric = v),
-            ),
+            if (_biometricAvailable) ...[
+              const SectionHeader('Convenience'),
+              AdaptiveSwitchTile(
+                leading: const Icon(Icons.fingerprint, color: AppColors.accent),
+                title: 'Allow biometric unlock',
+                subtitle: 'Use fingerprint / face to unlock',
+                value: _biometric,
+                onChanged: (v) => setState(() => _biometric = v),
+              ),
+            ],
           ],
           const SizedBox(height: AppSpacing.xl),
           AnimatedIconButton(
-            label: 'Save PIN',
+            label: _saveLabel(configured),
             icon: AppIcon.check,
             expand: true,
             onPressed: _save,
           ),
-          if (configured) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Center(
-              child: GhostButton(
-                label: 'Turn off PIN lock',
-                onPressed: _confirmDisable,
-              ),
-            ),
-          ],
         ],
       ),
     );
+  }
+
+  String _saveLabel(bool configured) {
+    if (_type == PinType.none) return configured ? 'Turn off PIN lock' : 'Done';
+    return 'Save PIN';
   }
 
   Widget _scopeTile(PinScope scope, String label, String subtitle) => Padding(
@@ -291,6 +299,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
 /// Human labels & hints for the PIN types, shared by the setup row and the
 /// bottom-sheet picker.
 String _pinTypeLabel(PinType t) => switch (t) {
+  PinType.none => 'None — no lock',
   PinType.custom => 'Custom PIN',
   PinType.date => "Today's date",
   PinType.time => 'Current time',
@@ -298,6 +307,7 @@ String _pinTypeLabel(PinType t) => switch (t) {
 };
 
 String _pinTypeHint(PinType t) => switch (t) {
+  PinType.none => "Detoxo won't ask for a PIN — this is the default.",
   PinType.custom => 'A PIN you choose (4–10 digits).',
   PinType.date => 'Derived from the date (ddMMyyyy) — changes daily.',
   PinType.time => 'Derived from the clock (HHmm) — changes each minute.',
@@ -316,7 +326,12 @@ class _PinTypePicker extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (final type in const [PinType.custom, PinType.date, PinType.time])
+        for (final type in const [
+          PinType.none,
+          PinType.custom,
+          PinType.date,
+          PinType.time,
+        ])
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.xs),
             child: GlassListTile(

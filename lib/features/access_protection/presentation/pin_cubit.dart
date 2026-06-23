@@ -1,4 +1,5 @@
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
+import 'package:detoxo/features/access_protection/domain/pin_hasher.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,9 +24,14 @@ class PinCubit extends Cubit<PinConfig> {
     String verifiedEmail = '',
     bool biometricEnabled = false,
   }) async {
+    // Custom PINs are stored as a salted hash; Date/Time derive from the clock
+    // and keep no secret at all.
+    final salt = type == PinType.custom ? PinHasher.newSalt() : '';
     final config = PinConfig(
       type: type,
-      secret: secret,
+      secretHash: type == PinType.custom ? PinHasher.hash(salt, secret) : '',
+      salt: salt,
+      secretLength: type == PinType.custom ? secret.length : 0,
       scopes: scopes,
       verifiedEmail: verifiedEmail,
       biometricEnabled: biometricEnabled,
@@ -44,9 +50,12 @@ class PinCubit extends Cubit<PinConfig> {
   /// scopes, recovery email and biometric preference, and clearing the retry /
   /// lockout state. Used by the "Forgot PIN" flow instead of disabling the lock.
   Future<void> resetSecretAfterRecovery(String newSecret) async {
+    final salt = PinHasher.newSalt();
     final next = state.copyWith(
       type: PinType.custom,
-      secret: newSecret,
+      secretHash: PinHasher.hash(salt, newSecret),
+      salt: salt,
+      secretLength: newSecret.length,
       retryCount: 0,
       clearLockout: true,
     );
@@ -58,7 +67,7 @@ class PinCubit extends Cubit<PinConfig> {
   /// the lock screen can auto-submit at the right length (custom PINs may be
   /// 4–10 digits; DATE is `ddMMyyyy` = 8, TIME is `HHmm` = 4).
   int get expectedLength => switch (state.type) {
-    PinType.custom => state.secret.length,
+    PinType.custom => state.secretLength,
     PinType.date => 8,
     PinType.time => 4,
     _ => 4,
@@ -80,7 +89,7 @@ class PinCubit extends Cubit<PinConfig> {
     final config = state;
     if (config.isLockedOut) return false;
 
-    final ok = entry == _expectedSecret(config);
+    final ok = _matches(config, entry);
     if (ok) {
       final reset = config.copyWith(retryCount: 0, clearLockout: true);
       await _repo.save(reset);
@@ -99,13 +108,16 @@ class PinCubit extends Cubit<PinConfig> {
     return false;
   }
 
-  /// DATE/TIME PINs are derived from the clock; others compare the stored secret.
-  String _expectedSecret(PinConfig config) {
+  /// Whether [entry] matches the configured PIN. DATE/TIME are derived from the
+  /// clock; custom PINs compare against the salted hash (never plaintext).
+  bool _matches(PinConfig config, String entry) {
     final now = DateTime.now();
     return switch (config.type) {
-      PinType.date => '${_two(now.day)}${_two(now.month)}${now.year}',
-      PinType.time => '${_two(now.hour)}${_two(now.minute)}',
-      _ => config.secret,
+      PinType.date => entry == '${_two(now.day)}${_two(now.month)}${now.year}',
+      PinType.time => entry == '${_two(now.hour)}${_two(now.minute)}',
+      PinType.custom =>
+        PinHasher.verify(config.salt, config.secretHash, entry),
+      _ => false,
     };
   }
 

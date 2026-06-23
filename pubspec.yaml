@@ -65,6 +65,7 @@ dependencies:
   intl: ^0.20.2
   uuid: ^4.5.3
   collection: ^1.19.1
+  crypto: ^3.0.6
   flutter_gen:
   lottie_tgs:
 
@@ -78,6 +79,8 @@ dependencies:
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
   # Lint rule sets. `lints` provides the Dart core/recommended rules; the

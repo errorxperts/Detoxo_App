@@ -180,13 +180,18 @@ class AdaptiveButton extends StatelessWidget {
       );
     } else {
       final child = icon == null ? Text(label) : null;
+      // Min HEIGHT of 44 for a comfortable tap target, with Material's default
+      // min width (64). NB: `Size.fromHeight(44)` is `Size(infinity, 44)` —
+      // its infinite min width crashes in any unbounded-width parent (e.g. a
+      // dialog actions Row). Full-width is expressed via `expand` below, not here.
+      const minSize = Size(64, 44);
       button = switch (variant) {
         AdaptiveButtonVariant.filled => icon == null
             ? FilledButton(
                 onPressed: onPressed,
                 style: FilledButton.styleFrom(
                   backgroundColor: tint,
-                  minimumSize: const Size.fromHeight(44),
+                  minimumSize: minSize,
                 ),
                 child: Text(label),
               )
@@ -194,14 +199,14 @@ class AdaptiveButton extends StatelessWidget {
                 onPressed: onPressed,
                 style: FilledButton.styleFrom(
                   backgroundColor: tint,
-                  minimumSize: const Size.fromHeight(44),
+                  minimumSize: minSize,
                 ),
                 icon: Icon(icon),
                 label: Text(label),
               ),
         AdaptiveButtonVariant.tinted => FilledButton.tonal(
             onPressed: onPressed,
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+            style: FilledButton.styleFrom(minimumSize: minSize),
             child: child ?? Text(label),
           ),
         AdaptiveButtonVariant.plain => TextButton(

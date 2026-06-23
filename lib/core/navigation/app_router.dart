@@ -1,10 +1,8 @@
 import 'package:detoxo/app/splash_screen.dart';
 import 'package:detoxo/core/navigation/routes.dart';
-import 'package:detoxo/features/access_protection/presentation/pin_gate.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_lock_screen.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_setup_screen.dart';
 import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/dashboard/presentation/home_shell.dart';
 import 'package:detoxo/features/limits/app_blocker/presentation/app_block_screen.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_screen.dart';
@@ -36,8 +34,7 @@ GoRouter buildRouter() => GoRouter(
     GoRoute(path: Routes.webBlock, builder: (_, _) => const WebBlockScreen()),
     GoRoute(
       path: Routes.appBlock,
-      builder: (_, _) =>
-          const PinGuard(scope: PinScope.appLocker, child: AppBlockScreen()),
+      builder: (_, _) => const AppBlockScreen(),
     ),
     GoRoute(
       path: Routes.dailyLimit,
