@@ -249,12 +249,9 @@ String _bgLabel(AppBackground b) =>
 /// the picker self-contained.
 String? _bgSvgAsset(AppBackground style, bool dark) => switch (style) {
   AppBackground.aurora => null,
-  AppBackground.bg1 =>
-    dark ? 'assets/images/bg/dark_bg1.svg' : 'assets/images/bg/light_bg1.svg',
-  AppBackground.bg2 =>
-    dark ? 'assets/images/bg/dark_bg2.svg' : 'assets/images/bg/light_bg2.svg',
-  AppBackground.bg3 =>
-    dark ? 'assets/images/bg/dark_bg3.svg' : 'assets/images/bg/light_bg3.svg',
+  AppBackground.bg1 => dark ? 'assets/images/bg/dark_bg1.svg' : 'assets/images/bg/light_bg1.svg',
+  AppBackground.bg2 => dark ? 'assets/images/bg/dark_bg2.svg' : 'assets/images/bg/light_bg2.svg',
+  AppBackground.bg3 => dark ? 'assets/images/bg/dark_bg3.svg' : 'assets/images/bg/light_bg3.svg',
 };
 
 /// A small gradient standing in for the (asset-less) Aurora background in its
@@ -502,10 +499,7 @@ class _ThemeSheet extends StatelessWidget {
                 ),
               const SizedBox(height: AppSpacing.md),
               const SectionHeader('Background'),
-              _BackgroundCarousel(
-                selected: settings.backgroundId,
-                dark: dark,
-              ),
+              _BackgroundCarousel(selected: settings.backgroundId, dark: dark),
             ],
           ),
         );
@@ -561,10 +555,7 @@ class _BackgroundCarousel extends StatelessWidget {
             color: context.glass.onGlass,
           ),
         ),
-        Text(
-          current.$3,
-          style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
-        ),
+        Text(current.$3, style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted)),
       ],
     );
   }
@@ -589,55 +580,49 @@ class _BgCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final asset = _bgSvgAsset(style, dark);
+    final borderWidth = selected ? 2.0 : 1.0;
+    final preview = asset == null
+        ? DecoratedBox(decoration: BoxDecoration(gradient: _auroraSwatchGradient(dark)))
+        : SvgPicture.asset(asset, fit: BoxFit.cover);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: AppDurations.fast,
         curve: AppCurves.standard,
         width: 116,
-        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(
             color: selected ? AppColors.accent : context.glass.border,
-            width: selected ? 2 : 1,
+            width: borderWidth,
           ),
           boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: AppColors.accent.withValues(alpha: 0.35),
-                    blurRadius: 12,
-                  ),
-                ]
+              ? [BoxShadow(color: AppColors.accent.withValues(alpha: 0.35), blurRadius: 12)]
               : null,
         ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (asset == null)
-              DecoratedBox(
-                decoration: BoxDecoration(gradient: _auroraSwatchGradient(dark)),
-              )
-            else
-              SvgPicture.asset(asset, fit: BoxFit.cover),
-            if (selected)
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    color: AppColors.accent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.check,
-                    size: 14,
-                    color: AppColors.surfaceDark,
+        // Clip the preview to a radius concentric with the border so the
+        // accent ring stays perfectly rounded around the tile when selected.
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.md - borderWidth),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              preview,
+              if (selected)
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: AppColors.accent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.check, size: 14, color: AppColors.surfaceDark),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
