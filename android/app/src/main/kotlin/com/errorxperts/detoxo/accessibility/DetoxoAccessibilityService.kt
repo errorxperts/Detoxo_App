@@ -206,8 +206,8 @@ class DetoxoAccessibilityService : AccessibilityService() {
         Log.i(TAG, "blocked $platformId in $pkg via $mode")
 
         when (mode) {
-            "KILL_APP" -> { performBackInternal(); killApp(pkg) }
-            "LOCK_SCREEN" -> { performBackInternal(); lockScreen() }
+            "KILL_APP" -> { blockVibrate(); performBackInternal(); killApp(pkg) }
+            "LOCK_SCREEN" -> { blockVibrate(); performBackInternal(); lockScreen() }
             "NONE" -> { /* no-op */ }
             else -> pressBackWithRateLimit()
         }
@@ -226,7 +226,7 @@ class DetoxoAccessibilityService : AccessibilityService() {
         if (now - lastBackTime <= BACK_RATE_LIMIT_MS) return
         lastBackTime = now
         performBackInternal()
-        if (store.vibrationEnabled) vibrate()
+        blockVibrate()
     }
 
     private fun performBackInternal() {
@@ -254,6 +254,11 @@ class DetoxoAccessibilityService : AccessibilityService() {
         }
     }
 
+    /** Vibrate for a block, honoring the user's haptics setting. */
+    private fun blockVibrate() {
+        if (store.vibrationEnabled) vibrate()
+    }
+
     private fun vibrate() {
         try {
             val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -262,7 +267,9 @@ class DetoxoAccessibilityService : AccessibilityService() {
                 @Suppress("DEPRECATION")
                 getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             }
-            vibrator.vibrate(VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE))
+            // Firm, clearly-felt block buzz. On devices without amplitude control
+            // the 255 is ignored and it plays at default strength.
+            vibrator.vibrate(VibrationEffect.createOneShot(BLOCK_VIBRATION_MS, 255))
         } catch (_: Throwable) {
         }
     }
@@ -422,6 +429,9 @@ class DetoxoAccessibilityService : AccessibilityService() {
         private const val BLOCK_DEBOUNCE_MS = 1200L
         private const val BACK_RATE_LIMIT_MS = 1100L
         private const val MAX_NODES = 12000
+
+        /** Firm single block buzz — longer/stronger than a stray system tap. */
+        private const val BLOCK_VIBRATION_MS = 60L
 
         /** Active-plan token for Conscious (shares the legacy "CURIOUS" wire). */
         private const val PLAN_CONSCIOUS = "CURIOUS"

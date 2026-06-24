@@ -15,6 +15,16 @@ abstract final class AppHaptics {
   static void selection() {
     if (enabled) HapticFeedback.selectionClick();
   }
+
+  /// Confirming pulse — a completed, successful action (PIN / biometric unlock).
+  static void success() {
+    if (enabled) HapticFeedback.mediumImpact();
+  }
+
+  /// Firm rejection pulse — wrong PIN, failed/invalid action.
+  static void error() {
+    if (enabled) HapticFeedback.heavyImpact();
+  }
 }
 
 /// Scale-on-press micro-interaction with optional haptic feedback. Wrap any

@@ -15,6 +15,7 @@ class BlockTarget extends Equatable {
     required this.premiumExclusive,
     required this.defaultEnabled,
     required this.isBrowser,
+    this.isInstalled = true,
   });
 
   final String platformId;
@@ -28,6 +29,11 @@ class BlockTarget extends Equatable {
   final bool defaultEnabled;
   final bool isBrowser;
 
+  /// Whether the owning app is installed on this device. `true` when install
+  /// state is unknown (off-Android), so the full list renders interactively.
+  /// Drives the greyed-out "Not installed" treatment in the blocklist.
+  final bool isInstalled;
+
   @override
-  List<Object?> get props => [platformId, packageName, displayName];
+  List<Object?> get props => [platformId, packageName, displayName, isInstalled];
 }

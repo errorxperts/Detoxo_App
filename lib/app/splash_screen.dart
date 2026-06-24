@@ -39,10 +39,11 @@ class _SplashScreenState extends State<SplashScreen> {
       pin.load(),
     ]);
 
-    // First run: seed the enabled set from each target's default status.
+    // First run: seed the enabled set from each installed target's default
+    // status — don't pre-enable apps the user doesn't have.
     if (settings.state.enabledPlatformIds.isEmpty) {
       final defaults = targets.state.targets
-          .where((t) => t.defaultEnabled)
+          .where((t) => t.defaultEnabled && t.isInstalled)
           .map((t) => t.platformId)
           .toSet();
       if (defaults.isNotEmpty) await settings.setEnabledPlatforms(defaults);

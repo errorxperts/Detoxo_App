@@ -1,9 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
+import 'package:detoxo/features/blocking/blocklist/presentation/widgets/block_app_tile.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/menu_button.dart';
 import 'package:flutter/material.dart';
@@ -95,12 +93,14 @@ class _BlocklistTabState extends State<BlocklistTab> {
             ],
             if (apps.isNotEmpty) ...[
               const _GroupHeader('Apps'),
-              for (final target in apps) _targetTile(context, target, settings),
+              for (final group in BlockAppGroup.from(apps))
+                _appTile(context, group, settings.enabledPlatformIds),
             ],
             if (browsers.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.sm),
               const _GroupHeader('Browsers'),
-              for (final target in browsers) _targetTile(context, target, settings),
+              for (final group in BlockAppGroup.from(browsers))
+                _appTile(context, group, settings.enabledPlatformIds),
             ],
             if (filtered.isEmpty)
               const Padding(
@@ -113,17 +113,12 @@ class _BlocklistTabState extends State<BlocklistTab> {
     );
   }
 
-  Widget _targetTile(BuildContext context, BlockTarget target, AppSettings settings) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: AdaptiveSwitchTile(
-        leading: _TargetAvatar(target: target),
-        title: target.displayName,
-        subtitle: target.appName,
-        value: settings.enabledPlatformIds.contains(target.platformId),
-        onChanged: (v) =>
-            context.read<SettingsCubit>().togglePlatform(target.platformId, enabled: v),
-      ),
+  Widget _appTile(BuildContext context, BlockAppGroup group, Set<String> enabledIds) {
+    return BlockAppTile(
+      group: group,
+      enabledIds: enabledIds,
+      onToggle: (id, {required enabled}) =>
+          context.read<SettingsCubit>().togglePlatform(id, enabled: enabled),
     );
   }
 }
@@ -143,36 +138,6 @@ class _GroupHeader extends StatelessWidget {
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
             ),
-      ),
-    );
-  }
-}
-
-class _TargetAvatar extends StatelessWidget {
-  const _TargetAvatar({required this.target});
-  final BlockTarget target;
-
-  @override
-  Widget build(BuildContext context) {
-    final fallback = IconBadge(
-      size: 34,
-      shape: BoxShape.rectangle,
-      fillAlpha: 0.16,
-      child: Text(
-        target.displayName.isNotEmpty ? target.displayName.characters.first.toUpperCase() : '?',
-        style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.accent),
-      ),
-    );
-    if (target.iconUrl.isEmpty) return fallback;
-    return ClipRRect(
-      borderRadius: AppRadius.brMd,
-      child: CachedNetworkImage(
-        imageUrl: target.iconUrl,
-        width: 34,
-        height: 34,
-        fit: BoxFit.cover,
-        placeholder: (_, _) => fallback,
-        errorWidget: (_, _, _) => fallback,
       ),
     );
   }

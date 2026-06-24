@@ -669,7 +669,7 @@
         }
       ],
       "showInDashboard": true,
-      "showIfNotInstalled": false,
+      "showIfNotInstalled": true,
       "appOpenActions": [],
       "browser": false
     },
@@ -1023,7 +1023,7 @@
         }
       ],
       "showInDashboard": true,
-      "showIfNotInstalled": false,
+      "showIfNotInstalled": true,
       "appOpenActions": [],
       "browser": false
     },
@@ -1182,7 +1182,7 @@
         }
       ],
       "showInDashboard": true,
-      "showIfNotInstalled": false,
+      "showIfNotInstalled": true,
       "appOpenActions": [],
       "browser": false
     },

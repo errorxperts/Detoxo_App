@@ -106,4 +106,12 @@ class EngineChannel {
 
   Future<Map<String, dynamic>> consciousState() =>
       invokeMap(ChannelMethods.consciousState);
+
+  /// Package names of the device's user-launchable apps. Returns `null` when the
+  /// native engine is unavailable (iOS / tests / channel error) — callers treat
+  /// `null` as "install state unknown" and show the full blocklist.
+  Future<Set<String>?> installedPackages() async {
+    final res = await _invoke<List<dynamic>>(ChannelMethods.installedPackages);
+    return res?.cast<String>().toSet();
+  }
 }

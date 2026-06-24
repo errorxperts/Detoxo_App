@@ -6,8 +6,12 @@ import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
@@ -16,6 +20,7 @@ import com.errorxperts.detoxo.admin.DetoxoDeviceAdminReceiver
 import com.errorxperts.detoxo.engine.ConfigStore
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.util.concurrent.Executors
 
 /**
  * Handles Dart -> native commands: config/settings push, permission queries and
@@ -27,6 +32,11 @@ class CommandHandler(
 ) : MethodChannel.MethodCallHandler {
 
     private val store = ConfigStore(context)
+
+    // Off-main-thread executor for the (potentially slow) installed-apps query;
+    // results are posted back on the platform thread, which Flutter requires.
+    private val ioExecutor = Executors.newSingleThreadExecutor()
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     fun attachActivity(activity: Activity?) {
         this.activity = activity
@@ -125,7 +135,45 @@ class CommandHandler(
                 result.success(mapOf("today" to today, "total" to total, "date" to date))
             }
             "deviceInfo" -> result.success(deviceInfo())
+            "installedPackages" -> {
+                // Enumerating launchable apps can take 100s of ms on busy
+                // devices — run it off the platform thread, post back on it.
+                ioExecutor.execute {
+                    val packages = queryLaunchablePackages()
+                    mainHandler.post { result.success(packages) }
+                }
+            }
             else -> result.notImplemented()
+        }
+    }
+
+    /**
+     * User-facing, launchable apps: every package exposing a MAIN/LAUNCHER
+     * activity, de-duplicated (an app may register several launcher aliases).
+     * Satisfied by the manifest `<queries>` MAIN entry, so it does not strictly
+     * need QUERY_ALL_PACKAGES. Returns an empty list on failure so the Dart side
+     * still treats install state as "unknown" rather than dropping the blocklist.
+     */
+    private fun queryLaunchablePackages(): List<String>? {
+        return try {
+            val pm = context.packageManager
+            val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+            val resolved: List<ResolveInfo> =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    pm.queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(0L))
+                } else {
+                    @Suppress("DEPRECATION")
+                    pm.queryIntentActivities(intent, 0)
+                }
+            val seen = LinkedHashSet<String>(resolved.size)
+            for (info in resolved) {
+                info.activityInfo?.packageName?.let { seen.add(it) }
+            }
+            seen.toList()
+        } catch (_: Throwable) {
+            // null (not empty) => Dart treats install state as unknown and shows
+            // the full blocklist rather than hiding every app.
+            null
         }
     }
 

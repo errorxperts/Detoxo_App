@@ -7,7 +7,14 @@ import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dar
 /// Loads the detection config (offline bundle, refreshed remotely) and exposes
 /// it as user-facing block targets.
 abstract interface class ConfigRepository {
-  Future<List<BlockTarget>> loadBlockTargets();
+  /// Builds the user-facing block targets from the catalog.
+  ///
+  /// When [installedPackages] is non-null, targets are made install-aware: each
+  /// is tagged [BlockTarget.isInstalled], uninstalled apps that aren't flagged
+  /// `showIfNotInstalled` are dropped, and installed apps sort first. Passing
+  /// `null` (off-Android / install state unknown) returns the full catalog with
+  /// everything marked installed.
+  Future<List<BlockTarget>> loadBlockTargets({Set<String>? installedPackages});
 
   /// The raw platforms-config JSON to push to the native engine.
   Future<String> rawConfigJson();
@@ -42,4 +49,8 @@ abstract interface class EngineRepository {
   Future<void> performBack();
   Future<void> killApp(String packageName);
   Future<void> lockScreen();
+
+  /// Package names of the device's user-launchable apps, or `null` when install
+  /// state can't be determined (off-Android / channel error).
+  Future<Set<String>?> installedPackages();
 }

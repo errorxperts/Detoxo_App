@@ -1,15 +1,16 @@
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/features/blocking/blocklist/presentation/blocklist_tab.dart';
+import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
 import 'package:detoxo/features/dashboard/presentation/dashboard_tab.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 
-/// The main authenticated surface: Dashboard / Blocklist over the ambient
+/// The main authenticated surface: Dashboard / Activity over the ambient
 /// gradient, with a frosted floating bar that hides as you scroll. The active
 /// tab expands into an accent "pill"; the others stay icon-only (compact). The
 /// former "More" tab now lives in a right-side [AppDrawer], openable from each
-/// tab's header menu button.
+/// tab's header menu button. (All blocking management now lives in the App
+/// Blocker screen, reached from the dashboard capsule.)
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
 
@@ -26,7 +27,7 @@ class _HomeShellState extends State<HomeShell> {
 
   static const _items = [
     (icon: AppIcon.dashboard, label: 'Dashboard'),
-    (icon: AppIcon.blocklist, label: 'Blocklist'),
+    (icon: AppIcon.activity, label: 'Activity'),
   ];
 
   Widget _tab(ScrollController controller) {
@@ -34,7 +35,7 @@ class _HomeShellState extends State<HomeShell> {
     // attaches cleanly to exactly one scrollable for hide-on-scroll.
     return switch (_index) {
       0 => DashboardTab(scrollController: controller, onMenu: _openDrawer),
-      _ => BlocklistTab(scrollController: controller, onMenu: _openDrawer),
+      _ => AnalyticsTab(scrollController: controller, onMenu: _openDrawer),
     };
   }
 

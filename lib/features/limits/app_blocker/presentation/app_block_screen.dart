@@ -1,17 +1,26 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
+import 'package:detoxo/features/blocking/blocklist/presentation/widgets/block_app_tile.dart';
+import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/entities/app_block_entry.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block_repository.dart';
 import 'package:detoxo/features/limits/app_blocker/presentation/app_block_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// One place to manage blocking: the curated catalog of built-in feeds/surfaces
+/// (install-aware, from [TargetsCubit]/[SettingsCubit]) and custom whole-app
+/// locks the user adds ([AppBlockCubit]). The two systems enforce differently —
+/// this screen just unifies their management.
 class AppBlockScreen extends StatelessWidget {
   const AppBlockScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // TargetsCubit + SettingsCubit are global (main.dart); only the custom-block
+    // cubit is scoped to this route.
     return BlocProvider(
       create: (_) => AppBlockCubit(sl<AppBlockRepository>())..load(),
       child: const _AppBlockView(),
@@ -19,62 +28,163 @@ class AppBlockScreen extends StatelessWidget {
   }
 }
 
-class _AppBlockView extends StatelessWidget {
+class _AppBlockView extends StatefulWidget {
   const _AppBlockView();
+
+  @override
+  State<_AppBlockView> createState() => _AppBlockViewState();
+}
+
+class _AppBlockViewState extends State<_AppBlockView> {
+  String _query = '';
 
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      appBar: const GlassAppBar(title: Text('App blocker')),
+      appBar: const GlassAppBar(title: Text('Block apps')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAdd(context),
         icon: const Icon(Icons.add),
         label: const Text('Add app'),
       ),
       body: SafeArea(
-        child: BlocBuilder<AppBlockCubit, List<AppBlockEntry>>(
-          builder: (context, entries) {
-            if (entries.isEmpty) {
-              return const EmptyState(
-                icon: Icons.apps,
-                title: 'No blocked apps yet',
-                subtitle:
-                    'Add an app package (e.g. com.instagram.android) to lock it.',
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: entries.length,
-              itemBuilder: (context, i) {
-                final entry = entries[i];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: AppCard(
-                    title: entry.appName,
-                    subtitle: entry.packageName,
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AppToggle(
-                          value: entry.enabled,
-                          onChanged: (v) => context
-                              .read<AppBlockCubit>()
-                              .toggle(i, enabled: v),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () =>
-                              context.read<AppBlockCubit>().removeAt(i),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+        child: BlocBuilder<TargetsCubit, TargetsState>(
+          builder: (context, targets) {
+            final enabledIds = context.watch<SettingsCubit>().state.enabledPlatformIds;
+            final custom = context.watch<AppBlockCubit>().state;
+
+            return ListView(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                // Clear the extended FAB.
+                96 + MediaQuery.viewPaddingOf(context).bottom,
+              ),
+              children: [
+                Text(
+                  'Lock the apps you add, and switch off the built-in feeds you '
+                  "don't want to see.",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                ..._customSection(context, custom),
+                const SizedBox(height: AppSpacing.lg),
+                ..._curatedSection(context, targets, enabledIds),
+              ],
             );
           },
         ),
       ),
+    );
+  }
+
+  // ── Custom whole-app locks ────────────────────────────────────────────────
+  List<Widget> _customSection(BuildContext context, List<AppBlockEntry> custom) {
+    return [
+      const _SectionHeader('Custom apps'),
+      if (custom.isEmpty)
+        const _Hint(
+          icon: Icons.add_circle_outline,
+          text: 'Tap "Add app" to lock any app by its package name.',
+        )
+      else
+        for (var i = 0; i < custom.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: AppCard(
+              title: custom[i].appName,
+              subtitle: custom[i].packageName,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AppToggle(
+                    value: custom[i].enabled,
+                    onChanged: (v) =>
+                        context.read<AppBlockCubit>().toggle(i, enabled: v),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => context.read<AppBlockCubit>().removeAt(i),
+                  ),
+                ],
+              ),
+            ),
+          ),
+    ];
+  }
+
+  // ── Curated, install-aware feeds & surfaces ───────────────────────────────
+  List<Widget> _curatedSection(
+    BuildContext context,
+    TargetsState state,
+    Set<String> enabledIds,
+  ) {
+    if (state.isLoading) {
+      return const [
+        _SectionHeader('Apps & feeds'),
+        Padding(
+          padding: EdgeInsets.only(top: AppSpacing.md),
+          child: LoadingState(message: 'Loading apps…'),
+        ),
+      ];
+    }
+    if (state.error != null) {
+      return [
+        const _SectionHeader('Apps & feeds'),
+        EmptyState(
+          icon: Icons.error_outline,
+          title: 'Could not load apps',
+          subtitle: state.error,
+          action: SecondaryButton(
+            label: 'Retry',
+            onPressed: () => context.read<TargetsCubit>().load(),
+          ),
+        ),
+      ];
+    }
+
+    final q = _query.trim().toLowerCase();
+    final filtered = q.isEmpty
+        ? state.targets
+        : state.targets
+            .where((t) =>
+                t.displayName.toLowerCase().contains(q) ||
+                t.appName.toLowerCase().contains(q))
+            .toList();
+    final apps = filtered.where((t) => !t.isBrowser).toList();
+    final browsers = filtered.where((t) => t.isBrowser).toList();
+
+    return [
+      const _SectionHeader('Apps & feeds'),
+      if (state.targets.length > 8) ...[
+        AppSearchField(
+          hintText: 'Search apps & feeds',
+          onChanged: (v) => setState(() => _query = v),
+        ),
+        const SizedBox(height: AppSpacing.md),
+      ],
+      if (apps.isNotEmpty)
+        for (final group in BlockAppGroup.from(apps)) _appTile(context, group, enabledIds),
+      if (browsers.isNotEmpty) ...[
+        const SizedBox(height: AppSpacing.sm),
+        const _GroupLabel('Browsers'),
+        for (final group in BlockAppGroup.from(browsers)) _appTile(context, group, enabledIds),
+      ],
+      if (filtered.isEmpty)
+        const Padding(
+          padding: EdgeInsets.only(top: AppSpacing.md),
+          child: EmptyState(icon: Icons.search_off, title: 'No matches'),
+        ),
+    ];
+  }
+
+  Widget _appTile(BuildContext context, BlockAppGroup group, Set<String> enabledIds) {
+    return BlockAppTile(
+      group: group,
+      enabledIds: enabledIds,
+      onToggle: (id, {required enabled}) =>
+          context.read<SettingsCubit>().togglePlatform(id, enabled: enabled),
     );
   }
 
@@ -114,6 +224,76 @@ class _AppBlockView extends StatelessWidget {
           },
         ),
       ],
+    );
+  }
+}
+
+/// Section title with a thin rule — separates "Custom apps" from "Apps & feeds".
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader(this.label);
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Text(
+        label,
+        style: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.copyWith(fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+}
+
+/// Smaller uppercase sub-label used within a section (e.g. "Browsers").
+class _GroupLabel extends StatelessWidget {
+  const _GroupLabel(this.label);
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: AppSpacing.xs),
+      child: Text(
+        label.toUpperCase(),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
+      ),
+    );
+  }
+}
+
+/// A muted inline hint shown when a section is empty.
+class _Hint extends StatelessWidget {
+  const _Hint({required this.icon, required this.text});
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: context.glass.onGlassMuted),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: context.glass.onGlassMuted),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

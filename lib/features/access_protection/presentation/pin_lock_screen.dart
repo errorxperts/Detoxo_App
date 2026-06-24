@@ -7,7 +7,6 @@ import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_recovery_sheet.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -87,6 +86,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
   }
 
   void _succeed() {
+    AppHaptics.success();
     if (widget.onUnlocked != null) {
       widget.onUnlocked!();
     } else {
@@ -137,7 +137,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
   /// A wrong PIN gets a distinct stronger buzz (gated on the haptics setting)
   /// plus the existing shake.
   void _wrongPinFeedback() {
-    if (AppHaptics.enabled) HapticFeedback.heavyImpact();
+    AppHaptics.error();
     if (!_reduceMotion) _lockController.animate();
   }
 
@@ -445,7 +445,7 @@ class _DigitKey extends StatelessWidget {
       label: digit,
       excludeSemantics: true,
       child: enabled
-          ? AppPressable(onTap: () => onKey(digit), child: key)
+          ? AppPressable(haptic: false, onTap: () => onKey(digit), child: key)
           : Opacity(opacity: 0.4, child: key),
     );
   }

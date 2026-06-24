@@ -17,7 +17,10 @@ class TargetsCubit extends Cubit<TargetsState> {
     try {
       final raw = await _config.rawConfigJson();
       await _engine.pushConfig(raw);
-      final targets = await _config.loadBlockTargets();
+      // null off-Android / on error => blocklist falls back to showing all.
+      final installed = await _engine.installedPackages();
+      final targets =
+          await _config.loadBlockTargets(installedPackages: installed);
       emit(TargetsState(targets: targets));
     } on Exception catch (e) {
       emit(TargetsState(error: e.toString()));
