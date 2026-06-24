@@ -43,6 +43,9 @@ abstract final class ChannelMethods {
   static const String deviceInfo = 'deviceInfo';
   static const String blockStats = 'blockStats';
 
+  // Installed user-launchable apps (drives the install-aware blocklist).
+  static const String installedPackages = 'installedPackages';
+
   // Conscious (earn-as-you-abstain) bank snapshot.
   static const String consciousState = 'consciousState';
 }

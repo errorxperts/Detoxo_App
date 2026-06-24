@@ -114,4 +114,7 @@ class EngineRepositoryImpl implements EngineRepository {
 
   @override
   Future<void> lockScreen() => _channel.lockScreen();
+
+  @override
+  Future<Set<String>?> installedPackages() => _channel.installedPackages();
 }

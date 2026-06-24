@@ -31,20 +31,38 @@ class ConfigRepositoryImpl implements ConfigRepository {
       _cachedRaw ??= await _bundle.loadString(AppConstants.bundledPlatformsConfig);
 
   @override
-  Future<List<BlockTarget>> loadBlockTargets() async {
+  Future<List<BlockTarget>> loadBlockTargets({
+    Set<String>? installedPackages,
+  }) async {
     final config = await _config();
     final targets = <BlockTarget>[];
     for (final app in config.featuredApps.values) {
       for (final platform in app.platforms) {
         if (!platform.showInDashboard && !platform.showAlwaysInBlockList) continue;
-        targets.add(_toTarget(app, platform));
+        final packageName = platform.packageName.isNotEmpty
+            ? platform.packageName
+            : app.packageName;
+        // Unknown install state (null) => treat as installed and show all.
+        final isInstalled =
+            installedPackages == null || installedPackages.contains(packageName);
+        // Hide uninstalled apps unless flagged as a suggestion to surface.
+        if (!isInstalled && !app.showIfNotInstalled) continue;
+        targets.add(_toTarget(app, platform, isInstalled: isInstalled));
       }
     }
-    targets.sort((a, b) => a.appName.compareTo(b.appName));
+    // Installed apps first, then alphabetically by app name.
+    targets.sort((a, b) {
+      if (a.isInstalled != b.isInstalled) return a.isInstalled ? -1 : 1;
+      return a.appName.compareTo(b.appName);
+    });
     return targets;
   }
 
-  BlockTarget _toTarget(AppDetailsModel app, PlatformModel platform) {
+  BlockTarget _toTarget(
+    AppDetailsModel app,
+    PlatformModel platform, {
+    required bool isInstalled,
+  }) {
     final modes = <BlockingMode>{};
     for (final detector in platform.detectors.values) {
       for (final m in detector.supportedBlockModes) {
@@ -67,6 +85,7 @@ class ConfigRepositoryImpl implements ConfigRepository {
       premiumExclusive: platform.premiumExclusive,
       defaultEnabled: platform.defaultStatus,
       isBrowser: app.isBrowser,
+      isInstalled: isInstalled,
     );
   }
 

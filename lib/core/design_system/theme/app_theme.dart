@@ -76,8 +76,7 @@ class GlassTokens extends ThemeExtension<GlassTokens> {
 
 /// `context.glass.onGlass` shortcut for the [GlassTokens] extension.
 extension GlassThemeX on BuildContext {
-  GlassTokens get glass =>
-      Theme.of(this).extension<GlassTokens>() ?? GlassTokens.dark;
+  GlassTokens get glass => Theme.of(this).extension<GlassTokens>() ?? GlassTokens.dark;
 }
 
 /// Centralised, dark-first themes built from a single seed colour (Material 3),
@@ -140,9 +139,7 @@ abstract final class AppTheme {
             seedColor: AppColors.seed,
             secondary: AppColors.accent,
             error: AppColors.danger,
-          ).copyWith(
-            outline: AppColors.hairlineLight,
-          );
+          ).copyWith(outline: AppColors.hairlineLight);
 
     final base = ThemeData(
       useMaterial3: true,
@@ -185,10 +182,7 @@ abstract final class AppTheme {
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         fillColor: isDark ? AppColors.glassFillTopDark : null,
-        border: OutlineInputBorder(
-          borderRadius: AppRadius.brMd,
-          borderSide: BorderSide.none,
-        ),
+        border: OutlineInputBorder(borderRadius: AppRadius.brMd, borderSide: BorderSide.none),
       ),
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(borderRadius: AppRadius.brPill),
@@ -201,11 +195,7 @@ abstract final class AppTheme {
         indicatorColor: scheme.secondaryContainer.withValues(alpha: 0.5),
       ),
       listTileTheme: const ListTileThemeData(contentPadding: AppInsets.listTile),
-      dividerTheme: DividerThemeData(
-        color: scheme.outline,
-        thickness: 1,
-        space: AppSpacing.md,
-      ),
+      dividerTheme: DividerThemeData(color: scheme.outline, thickness: 1, space: AppSpacing.md),
     );
 
     return base.copyWith(

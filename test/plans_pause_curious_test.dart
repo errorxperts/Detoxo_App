@@ -344,4 +344,7 @@ class _FakeEngineRepo implements EngineRepository {
 
   @override
   Future<void> lockScreen() async {}
+
+  @override
+  Future<Set<String>?> installedPackages() async => null;
 }
