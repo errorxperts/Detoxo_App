@@ -45,6 +45,40 @@ class ConfigStore(context: Context) {
         get() = prefs.getLong(KEY_PAUSE_UNTIL, 0L)
         set(value) = prefs.edit().putLong(KEY_PAUSE_UNTIL, value).apply()
 
+    // ── Website blocking ────────────────────────────────────────────────────
+
+    /** The active website blocklist (JSON `[{pattern,matchType}]`), or null. */
+    var webBlocklistJson: String?
+        get() = prefs.getString(KEY_WEB_BLOCKLIST, null)
+        set(value) = prefs.edit().putString(KEY_WEB_BLOCKLIST, value).apply()
+
+    /** Whether the bundled adult-domain set is enforced. */
+    var blockAdultWebsites: Boolean
+        get() = prefs.getBoolean(KEY_BLOCK_ADULT, false)
+        set(value) = prefs.edit().putBoolean(KEY_BLOCK_ADULT, value).apply()
+
+    /** Whether websites of blocked apps are enforced (rules are Dart-derived). */
+    var blockWebsitesForBlockedApps: Boolean
+        get() = prefs.getBoolean(KEY_BLOCK_FOR_APPS, false)
+        set(value) = prefs.edit().putBoolean(KEY_BLOCK_FOR_APPS, value).apply()
+
+    /** Counter for website blocks (kept separate from the reel block counter). */
+    fun recordWebBlock(dateKey: String) {
+        val storedDate = prefs.getString(KEY_WEB_BLOCK_DATE, "")
+        val todayCount = if (storedDate == dateKey) prefs.getInt(KEY_WEB_BLOCK_TODAY, 0) else 0
+        prefs.edit()
+            .putString(KEY_WEB_BLOCK_DATE, dateKey)
+            .putInt(KEY_WEB_BLOCK_TODAY, todayCount + 1)
+            .putInt(KEY_WEB_BLOCK_TOTAL, prefs.getInt(KEY_WEB_BLOCK_TOTAL, 0) + 1)
+            .apply()
+    }
+
+    /** (today, total) website block counts. Call after [recordWebBlock]. */
+    fun webBlockStats(): Pair<Int, Int> = Pair(
+        prefs.getInt(KEY_WEB_BLOCK_TODAY, 0),
+        prefs.getInt(KEY_WEB_BLOCK_TOTAL, 0),
+    )
+
     // ── Conscious (earn-as-you-abstain token bucket) ────────────────────────
     //
     // In Conscious mode the user banks allowance while abstaining and spends it
@@ -112,5 +146,11 @@ class ConfigStore(context: Context) {
         private const val KEY_BLOCK_DATE = "block_date"
         private const val KEY_BLOCK_TODAY = "block_today"
         private const val KEY_BLOCK_TOTAL = "block_total"
+        private const val KEY_WEB_BLOCKLIST = "web_blocklist_json"
+        private const val KEY_BLOCK_ADULT = "block_adult_websites"
+        private const val KEY_BLOCK_FOR_APPS = "block_websites_for_blocked_apps"
+        private const val KEY_WEB_BLOCK_DATE = "web_block_date"
+        private const val KEY_WEB_BLOCK_TODAY = "web_block_today"
+        private const val KEY_WEB_BLOCK_TOTAL = "web_block_total"
     }
 }

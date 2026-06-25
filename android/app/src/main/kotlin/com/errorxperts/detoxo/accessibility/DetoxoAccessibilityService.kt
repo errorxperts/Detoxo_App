@@ -22,10 +22,12 @@ import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.app.NotificationCompat
 import com.errorxperts.detoxo.R
 import com.errorxperts.detoxo.admin.DetoxoDeviceAdminReceiver
+import com.errorxperts.detoxo.engine.BrowserUrlExtractor
 import com.errorxperts.detoxo.engine.ConfigStore
 import com.errorxperts.detoxo.engine.DetectionConfig
 import com.errorxperts.detoxo.engine.DetectorRule
 import com.errorxperts.detoxo.engine.ServiceEventBus
+import com.errorxperts.detoxo.engine.WebBlockEngine
 import java.text.SimpleDateFormat
 import java.util.ArrayDeque
 import java.util.Locale
@@ -46,6 +48,13 @@ class DetoxoAccessibilityService : AccessibilityService() {
     private val lastEventByPackage = ConcurrentHashMap<String, Long>()
     @Volatile private var lastBlockTime = 0L
     @Volatile private var lastBackTime = 0L
+
+    // ── Website blocking ──────────────────────────────────────────────────────
+    private val webEngine by lazy { WebBlockEngine(this) }
+    // Last seen host per browser package — avoids re-pressing back on a host that
+    // is still on screen while the back navigation settles.
+    private val lastUrlByPkg = ConcurrentHashMap<String, String>()
+    @Volatile private var lastWebBlockTime = 0L
 
     // ── Conscious (earn-as-you-abstain) ──────────────────────────────────────
     // A 1 Hz accountant runs while the active plan is Conscious so the bank keeps
@@ -77,6 +86,8 @@ class DetoxoAccessibilityService : AccessibilityService() {
     /** Reload config + settings (called after Dart pushes changes). */
     fun reload() {
         config = DetectionConfig.parse(store.platformsConfigJson)
+        webEngine.setBlocklist(store.webBlocklistJson)
+        webEngine.setAdultEnabled(store.blockAdultWebsites)
         syncConscious()
     }
 
@@ -105,6 +116,20 @@ class DetoxoAccessibilityService : AccessibilityService() {
         val last = lastEventByPackage[pkg] ?: 0L
         if (now - last < THROTTLE_MS) return
         lastEventByPackage[pkg] = now
+
+        // Website blocking: only browsers reach this branch (a cheap set check),
+        // and only on window/content changes, so non-browser apps pay nothing and
+        // reel detection below is untouched. A browser carries no reel surfaces,
+        // so we return either way.
+        if (BrowserUrlExtractor.isBrowser(pkg)) {
+            if (webEngine.hasAnyRules() &&
+                (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
+                    event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED)
+            ) {
+                handleBrowser(pkg)
+            }
+            return
+        }
 
         val platforms = config.platformsFor(pkg)
         if (platforms.isEmpty()) return
@@ -186,6 +211,36 @@ class DetoxoAccessibilityService : AccessibilityService() {
             }
         }
         return false
+    }
+
+    // ---- Website blocking --------------------------------------------------
+
+    /**
+     * Reads the browser's address bar, and if the host is blocked, presses back
+     * and reports it. Debounced per-host so a content-change storm on the same
+     * blocked page produces at most one back press per window.
+     */
+    private fun handleBrowser(pkg: String) {
+        val root = rootInActiveWindow ?: return
+        val host = BrowserUrlExtractor.extractHost(root, pkg, MAX_NODES) ?: return
+        if (!webEngine.matchHost(host)) {
+            lastUrlByPkg[pkg] = host
+            return
+        }
+        val now = System.currentTimeMillis()
+        val sameAsLast = host == lastUrlByPkg[pkg]
+        if (sameAsLast && now - lastWebBlockTime <= BLOCK_DEBOUNCE_MS) return
+        lastUrlByPkg[pkg] = host
+        lastWebBlockTime = now
+
+        store.recordWebBlock(dateKey())
+        val (today, total) = store.webBlockStats()
+        ServiceEventBus.post(
+            "webBlocked",
+            mapOf("host" to host, "mode" to "PRESS_BACK", "today" to today, "total" to total),
+        )
+        Log.i(TAG, "web-blocked $host in $pkg")
+        pressBackWithRateLimit()
     }
 
     // ---- Block execution ---------------------------------------------------

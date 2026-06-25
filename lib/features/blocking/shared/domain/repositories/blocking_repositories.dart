@@ -41,6 +41,10 @@ abstract interface class EngineRepository {
   Future<void> pushConfig(String configJson);
   Future<void> pushSettings(AppSettings settings);
 
+  /// Pushes the active website blocklist (JSON `[{pattern, matchType}]`) to the
+  /// native engine's URL matcher.
+  Future<void> pushWebBlocklist(String json);
+
   Future<ServiceSnapshot> currentStatus();
 
   /// One-shot pull of the current Conscious bank (for initial UI render).

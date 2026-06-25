@@ -18,6 +18,10 @@ abstract final class ChannelMethods {
   static const String pushConfig = 'pushConfig';
   static const String pushSettings = 'pushSettings';
 
+  /// Website blocklist push: a small JSON list of `{pattern, matchType}` rules
+  /// the native `WebBlockEngine` matches browser URLs against.
+  static const String pushWebBlocklist = 'pushWebBlocklist';
+
   // Permission + service status queries.
   static const String isAccessibilityEnabled = 'isAccessibilityEnabled';
   static const String openAccessibilitySettings = 'openAccessibilitySettings';
@@ -55,6 +59,10 @@ abstract final class ChannelEvents {
   static const String serviceStatus = 'serviceStatus';
   static const String detection = 'detection';
   static const String blocked = 'blocked';
+
+  /// A blocked website was detected in a browser and backed out of.
+  /// Payload: `{host, mode, today, total}`.
+  static const String webBlocked = 'webBlocked';
   static const String foregroundChanged = 'foregroundChanged';
 
   /// Live Conscious bank update (bankMs / maxBankMs / watching / blocked).

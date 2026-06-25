@@ -42,6 +42,7 @@ abstract final class StoreKeys {
   static const String settings = 'app_settings';
   static const String pinConfig = 'pin_config'; // secret
   static const String webBlocklist = 'web_blocklist';
+  static const String webBlockStats = 'web_block_stats';
   static const String appBlocklist = 'app_blocklist';
   static const String dailyLimit = 'daily_limit';
   static const String premiumDevUnlock = 'premium_dev_unlock';
