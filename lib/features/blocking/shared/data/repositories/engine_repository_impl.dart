@@ -103,8 +103,14 @@ class EngineRepositoryImpl implements EngineRepository {
       'pauseUntil': settings.nativePauseUntil(now)?.millisecondsSinceEpoch ?? 0,
       'consciousEarnDivisor': SessionDefaults.consciousEarnDivisor,
       'consciousMaxBankMs': SessionDefaults.consciousMaxBank.inMilliseconds,
+      'blockAdultWebsites': settings.blockAdultWebsites,
+      'blockWebsitesForBlockedApps': settings.blockWebsitesForBlockedApps,
     });
   }
+
+  @override
+  Future<void> pushWebBlocklist(String json) =>
+      _channel.pushWebBlocklist(json);
 
   @override
   Future<void> performBack() => _channel.performBack();

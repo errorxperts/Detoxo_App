@@ -15,7 +15,9 @@ import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block
 import 'package:detoxo/features/limits/daily_limit/data/repositories/daily_limit_repository_impl.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
 import 'package:detoxo/features/limits/web_blocker/data/repositories/web_block_repository_impl.dart';
+import 'package:detoxo/features/limits/web_blocker/data/repositories/web_block_stats_repository_impl.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_repository.dart';
+import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_stats_repository.dart';
 import 'package:detoxo/features/permissions/data/repositories/permission_repository_impl.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
 import 'package:get_it/get_it.dart';
@@ -42,6 +44,9 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<PinRepository>(() => PinRepositoryImpl(sl()))
     ..registerLazySingleton<WebBlockRepository>(
       () => WebBlockRepositoryImpl(sl()),
+    )
+    ..registerLazySingleton<WebBlockStatsRepository>(
+      () => WebBlockStatsRepositoryImpl(sl(), sl()),
     )
     ..registerLazySingleton<AppBlockRepository>(
       () => AppBlockRepositoryImpl(sl()),

@@ -108,5 +108,14 @@
         <intent>
             <action android:name="android.intent.action.MAIN"/>
         </intent>
+        <!-- Web browsers (package visibility for the website blocker). -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="http"/>
+        </intent>
     </queries>
 </manifest>

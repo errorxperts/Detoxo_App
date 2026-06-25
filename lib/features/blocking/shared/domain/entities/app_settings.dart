@@ -24,6 +24,9 @@ class AppSettings extends Equatable {
     this.pauseSession,
     this.onboarded = false,
     this.themeMode = AppThemeMode.dark,
+    this.backgroundId = AppBackground.aurora,
+    this.blockAdultWebsites = false,
+    this.blockWebsitesForBlockedApps = false,
   });
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -48,6 +51,10 @@ class AppSettings extends Equatable {
           : PauseSession.fromJson(json['pauseSession'] as Map<String, dynamic>),
       onboarded: json['onboarded'] as bool? ?? false,
       themeMode: AppThemeMode.fromWire(json['themeMode'] as String?),
+      backgroundId: AppBackground.fromWire(json['backgroundId'] as String?),
+      blockAdultWebsites: json['blockAdultWebsites'] as bool? ?? false,
+      blockWebsitesForBlockedApps:
+          json['blockWebsitesForBlockedApps'] as bool? ?? false,
     );
   }
 
@@ -63,6 +70,16 @@ class AppSettings extends Equatable {
 
   /// Appearance preference (drives the Flutter `ThemeMode` in the UI layer).
   final AppThemeMode themeMode;
+
+  /// Animated background choice (drives the design-system background in the UI
+  /// layer; resolves a dark/light shader variant for the active theme).
+  final AppBackground backgroundId;
+
+  /// Website-blocker toggles, pushed to native via [toJson]/pushSettings. The
+  /// variable-length blocklist itself ships separately (pushWebBlocklist); these
+  /// are the two scalar switches the engine reads each tick.
+  final bool blockAdultWebsites;
+  final bool blockWebsitesForBlockedApps;
 
   DateTime _now(DateTime? now) => now ?? DateTime.now();
 
@@ -108,6 +125,9 @@ class AppSettings extends Equatable {
     bool clearPauseSession = false,
     bool? onboarded,
     AppThemeMode? themeMode,
+    AppBackground? backgroundId,
+    bool? blockAdultWebsites,
+    bool? blockWebsitesForBlockedApps,
   }) {
     return AppSettings(
       activePlan: activePlan ?? this.activePlan,
@@ -120,6 +140,10 @@ class AppSettings extends Equatable {
           : (pauseSession ?? this.pauseSession),
       onboarded: onboarded ?? this.onboarded,
       themeMode: themeMode ?? this.themeMode,
+      backgroundId: backgroundId ?? this.backgroundId,
+      blockAdultWebsites: blockAdultWebsites ?? this.blockAdultWebsites,
+      blockWebsitesForBlockedApps:
+          blockWebsitesForBlockedApps ?? this.blockWebsitesForBlockedApps,
     );
   }
 
@@ -132,6 +156,9 @@ class AppSettings extends Equatable {
     'pauseSession': pauseSession?.toJson(),
     'onboarded': onboarded,
     'themeMode': themeMode.wire,
+    'backgroundId': backgroundId.wire,
+    'blockAdultWebsites': blockAdultWebsites,
+    'blockWebsitesForBlockedApps': blockWebsitesForBlockedApps,
   };
 
   @override
@@ -144,5 +171,8 @@ class AppSettings extends Equatable {
     pauseSession,
     onboarded,
     themeMode,
+    backgroundId,
+    blockAdultWebsites,
+    blockWebsitesForBlockedApps,
   ];
 }

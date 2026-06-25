@@ -70,6 +70,11 @@ class EngineChannel {
   Future<void> pushSettings(Map<String, dynamic> settings) =>
       invokeVoid(ChannelMethods.pushSettings, settings);
 
+  /// Pushes the website blocklist (JSON-encoded `[{pattern, matchType}]`) to the
+  /// native engine.
+  Future<void> pushWebBlocklist(String json) =>
+      invokeVoid(ChannelMethods.pushWebBlocklist, {'json': json});
+
   Future<bool> isAccessibilityEnabled() =>
       invokeBool(ChannelMethods.isAccessibilityEnabled);
 

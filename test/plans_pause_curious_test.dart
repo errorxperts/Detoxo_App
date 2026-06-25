@@ -322,6 +322,9 @@ class _FakeEngineRepo implements EngineRepository {
   Future<void> pushConfig(String configJson) async {}
 
   @override
+  Future<void> pushWebBlocklist(String json) async {}
+
+  @override
   Stream<ServiceSnapshot> statusStream() => const Stream.empty();
 
   @override

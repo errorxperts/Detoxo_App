@@ -75,6 +75,17 @@ class CommandHandler(
                 call.argument<Number>("consciousMaxBankMs")?.let {
                     store.consciousMaxBankMs = it.toLong()
                 }
+                call.argument<Boolean>("blockAdultWebsites")?.let {
+                    store.blockAdultWebsites = it
+                }
+                call.argument<Boolean>("blockWebsitesForBlockedApps")?.let {
+                    store.blockWebsitesForBlockedApps = it
+                }
+                DetoxoAccessibilityService.instance?.reload()
+                result.success(true)
+            }
+            "pushWebBlocklist" -> {
+                store.webBlocklistJson = call.argument<String>("json")
                 DetoxoAccessibilityService.instance?.reload()
                 result.success(true)
             }
