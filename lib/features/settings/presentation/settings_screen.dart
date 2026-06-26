@@ -78,6 +78,15 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
     );
   }
 
+  /// Replays the one-time feature tour. The walkthrough lives on the dashboard
+  /// (where its highlighted targets are), so we clear the "seen" flag and return
+  /// home; the dashboard's coordinator restarts the showcase on the flag's
+  /// true→false edge once it's front-most.
+  void _replayShowcase() {
+    unawaited(context.read<SettingsCubit>().setShowcaseSeen(value: false));
+    context.go(Routes.home);
+  }
+
   /// Disabling protection is a sensitive change, so it asks for the PIN (when
   /// the `settings` scope guards it); enabling proceeds directly. The switch is
   /// bound to `settings.masterEnabled`, so a cancelled PIN snaps it back.
@@ -159,6 +168,13 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
 
               // ── General: appearance & app info ──────────────────────────
               const SectionHeader('General'),
+              FeatureTile(
+                icon: Icons.tips_and_updates_outlined,
+                animatedIcon: AppIcon.info,
+                title: 'Feature tour',
+                subtitle: "Replay the walkthrough of Detoxo's features",
+                onTap: _replayShowcase,
+              ),
               FeatureTile(
                 icon: _themeIcon(settings.themeMode),
                 title: 'Appearance',

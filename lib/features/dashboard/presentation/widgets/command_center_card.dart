@@ -44,6 +44,7 @@ class CommandCenterCard extends StatelessWidget {
     required this.selectedMode,
     required this.onModeChanged,
     this.modeEnabled = true,
+    this.modeCellBuilder,
     this.countdown,
     super.key,
   });
@@ -59,6 +60,10 @@ class CommandCenterCard extends StatelessWidget {
   final int selectedMode;
   final ValueChanged<int> onModeChanged;
   final bool modeEnabled;
+
+  /// Optional per-cell decorator forwarded to [ModeToggle.cellBuilder] — used to
+  /// attach feature-showcase targets to the individual mode cells.
+  final Widget Function(int index, Widget child)? modeCellBuilder;
 
   /// When a Pause / Conscious session is live, the hero ring becomes this
   /// countdown gauge instead of the TIME-SAVED ring.
@@ -108,6 +113,7 @@ class CommandCenterCard extends StatelessWidget {
                   selectedIndex: selectedMode,
                   onChanged: onModeChanged,
                   enabled: modeEnabled,
+                  cellBuilder: modeCellBuilder,
                 ),
               ],
             ),

@@ -1,8 +1,11 @@
 import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/features/additional_feature/showcase_view/showcase_view.dart';
 import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
+import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/dashboard/presentation/dashboard_tab.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 
 /// The main authenticated surface: Dashboard / Activity over the ambient
@@ -65,7 +68,12 @@ class _HomeShellState extends State<HomeShell> {
         duration: AppDurations.normal,
         curve: AppCurves.standard,
         showIcon: false,
-        body: (context, controller) => SafeArea(bottom: false, child: _tab(controller)),
+        body: (context, controller) => buildFeatureShowcaseScope(
+          // Persist on finish AND dismiss so a skipped tour is remembered too.
+          onSeen: () =>
+              context.read<SettingsCubit>().setShowcaseSeen(value: true),
+          child: SafeArea(bottom: false, child: _tab(controller)),
+        ),
         child: GlassContainer(
           borderRadius: AppRadius.pill,
           blurSigma: AppBlur.bar,

@@ -19,6 +19,7 @@ class ModeToggle extends StatelessWidget {
     required this.selectedIndex,
     required this.onChanged,
     this.enabled = true,
+    this.cellBuilder,
     super.key,
   });
 
@@ -28,6 +29,11 @@ class ModeToggle extends StatelessWidget {
   final int selectedIndex;
   final ValueChanged<int> onChanged;
   final bool enabled;
+
+  /// Optional decorator applied to each cell, given its index and built widget.
+  /// Lets a caller wrap individual cells (e.g. with a feature-showcase target)
+  /// without coupling this widget to that feature. Identity when null.
+  final Widget Function(int index, Widget child)? cellBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -42,17 +48,24 @@ class ModeToggle extends StatelessWidget {
         children: [
           for (var i = 0; i < options.length; i++)
             Expanded(
-              child: _ModeCell(
-                option: options[i],
-                selected: i == selectedIndex,
-                enabled: enabled,
-                onTap: () => onChanged(i),
+              child: _decorate(
+                i,
+                _ModeCell(
+                  option: options[i],
+                  selected: i == selectedIndex,
+                  enabled: enabled,
+                  onTap: () => onChanged(i),
+                ),
               ),
             ),
         ],
       ),
     );
   }
+
+  /// Applies [cellBuilder] to a cell when provided; otherwise returns it as-is.
+  Widget _decorate(int index, Widget cell) =>
+      cellBuilder?.call(index, cell) ?? cell;
 }
 
 class _ModeCell extends StatefulWidget {
