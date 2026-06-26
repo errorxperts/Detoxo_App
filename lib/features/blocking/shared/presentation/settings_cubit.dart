@@ -55,6 +55,12 @@ class SettingsCubit extends Cubit<AppSettings> {
   Future<void> setOnboarded({required bool value}) =>
       _commit(state.copyWith(onboarded: value));
 
+  /// Marks the one-time feature showcase as seen (true) or queues a replay
+  /// (false). The Dashboard's coordinator starts the tour on the true→false edge
+  /// and writes `true` back once the tour finishes or is dismissed.
+  Future<void> setShowcaseSeen({required bool value}) =>
+      _commit(state.copyWith(hasSeenFeatureShowcase: value));
+
   Future<void> togglePlatform(String platformId, {required bool enabled}) {
     final next = Set<String>.from(state.enabledPlatformIds);
     if (enabled) {

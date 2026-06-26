@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/features/additional_feature/showcase_view/showcase_view.dart';
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
 import 'package:detoxo/features/blocking/plans/presentation/conscious_cubit.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/session_dialogs.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/blocker_capsule.dart';
@@ -35,7 +37,7 @@ const _modeOptions = [
   ModeOption(icon: AppIcon.pause, label: 'Pause'),
 ];
 
-class DashboardTab extends StatelessWidget {
+class DashboardTab extends StatefulWidget {
   const DashboardTab({this.scrollController, this.onMenu, super.key});
 
   final ScrollController? scrollController;
@@ -44,52 +46,118 @@ class DashboardTab extends StatelessWidget {
   final VoidCallback? onMenu;
 
   @override
+  State<DashboardTab> createState() => _DashboardTabState();
+}
+
+class _DashboardTabState extends State<DashboardTab> {
+  /// The one-time feature tour runs as soon as the dashboard is front-most and
+  /// `hasSeenFeatureShowcase` is false. We keep it "pending" and poll for the
+  /// dashboard becoming current, so a replay requested from Settings reliably
+  /// starts once we navigate back here — without depending on this widget
+  /// rebuilding (go_router may reuse the existing element).
+  bool _tourPending = false;
+  bool _tourRunning = false;
+  int _startAttempts = 0;
+
+  /// Frame budget to wait for the dashboard to become front-most (~2s at 60fps)
+  /// before giving up; a fresh dashboard mount retries from scratch.
+  static const _maxStartAttempts = 120;
+
+  @override
+  void initState() {
+    super.initState();
+    _queueTour();
+  }
+
+  /// (Re)arms the tour and kicks off the first start attempt.
+  void _queueTour() {
+    _tourPending = true;
+    _tourRunning = false;
+    _startAttempts = 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _tryStartTour());
+  }
+
+  void _tryStartTour() {
+    if (!mounted || !_tourPending || _tourRunning) return;
+    if (context.read<SettingsCubit>().state.hasSeenFeatureShowcase) {
+      _tourPending = false;
+      return;
+    }
+    // Defer until the dashboard is the front-most route (e.g. after returning
+    // from Settings for a replay), retrying each frame within the budget.
+    if (!(ModalRoute.of(context)?.isCurrent ?? false)) {
+      if (_startAttempts++ < _maxStartAttempts) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _tryStartTour());
+      } else {
+        _tourPending = false; // give up; a fresh mount will retry next time
+      }
+      return;
+    }
+    _tourPending = false;
+    _tourRunning = true;
+    startFeatureTour();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () => context.read<ServiceCubit>().refresh(),
-      child: ListView(
-        controller: scrollController,
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          AppSpacing.md,
-          AppSpacing.md,
-          AppSpacing.floatingNavClearance +
-              MediaQuery.viewPaddingOf(context).bottom,
-        ),
-        children: [
-          DashboardTopBar(onMenu: onMenu),
-          const SizedBox(height: AppSpacing.lg),
-          const _Hero()
-              .animate()
-              .fadeIn(duration: AppDurations.normal)
-              .slideY(begin: 0.08, end: 0),
-          const SizedBox(height: AppSpacing.md),
-          const _SessionBanners(),
-          const ProtectionStatusCard(),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: BlockerCapsule(
-                  icon: AppIcon.appBlocker,
-                  title: 'App Blocker',
-                  caption: 'Restricted',
-                  onTap: () => context.push(Routes.appBlock),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: BlockerCapsule(
-                  icon: AppIcon.websiteBlocker,
-                  title: 'Web Blocker',
-                  caption: 'Active',
-                  accent: Theme.of(context).colorScheme.secondary,
-                  onTap: () => context.push(Routes.webBlock),
-                ),
-              ),
-            ],
+    return BlocListener<SettingsCubit, AppSettings>(
+      // Replay edge: Settings flips the flag true→false to request a fresh run.
+      listenWhen: (p, c) => p.hasSeenFeatureShowcase && !c.hasSeenFeatureShowcase,
+      listener: (_, _) => _queueTour(),
+      child: RefreshIndicator(
+        onRefresh: () => context.read<ServiceCubit>().refresh(),
+        child: ListView(
+          controller: widget.scrollController,
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.floatingNavClearance +
+                MediaQuery.viewPaddingOf(context).bottom,
           ),
-        ],
+          children: [
+            DashboardTopBar(onMenu: widget.onMenu),
+            const SizedBox(height: AppSpacing.lg),
+            const _Hero()
+                .animate()
+                .fadeIn(duration: AppDurations.normal)
+                .slideY(begin: 0.08, end: 0),
+            const SizedBox(height: AppSpacing.md),
+            const _SessionBanners(),
+            const ProtectionStatusCard(),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: showcaseTarget(
+                    step: featureShowcaseSteps[3],
+                    index: 3,
+                    child: BlockerCapsule(
+                      icon: AppIcon.appBlocker,
+                      title: 'App Blocker',
+                      caption: 'Restricted',
+                      onTap: () => context.push(Routes.appBlock),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: showcaseTarget(
+                    step: featureShowcaseSteps[4],
+                    index: 4,
+                    child: BlockerCapsule(
+                      icon: AppIcon.websiteBlocker,
+                      title: 'Web Blocker',
+                      caption: 'Active',
+                      accent: Theme.of(context).colorScheme.secondary,
+                      onTap: () => context.push(Routes.webBlock),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -168,6 +236,10 @@ class _HeroState extends State<_Hero> {
       modeOptions: _modeOptions,
       selectedMode: _selectedMode(settings.activePlan, pauseLive: pauseLive),
       onModeChanged: (i) => unawaited(_onModeChanged(context, i)),
+      // Spotlight each mode cell (Block All / Conscious / Pause) during the
+      // feature tour; identity when the tour isn't running.
+      modeCellBuilder: (i, cell) =>
+          showcaseTarget(step: featureShowcaseSteps[i], index: i, child: cell),
       countdown: countdown,
     );
   }

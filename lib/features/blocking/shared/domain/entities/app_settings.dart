@@ -23,6 +23,7 @@ class AppSettings extends Equatable {
     this.masterEnabled = true,
     this.pauseSession,
     this.onboarded = false,
+    this.hasSeenFeatureShowcase = false,
     this.themeMode = AppThemeMode.dark,
     this.backgroundId = AppBackground.aurora,
     this.blockAdultWebsites = false,
@@ -50,6 +51,7 @@ class AppSettings extends Equatable {
           ? null
           : PauseSession.fromJson(json['pauseSession'] as Map<String, dynamic>),
       onboarded: json['onboarded'] as bool? ?? false,
+      hasSeenFeatureShowcase: json['hasSeenFeatureShowcase'] as bool? ?? false,
       themeMode: AppThemeMode.fromWire(json['themeMode'] as String?),
       backgroundId: AppBackground.fromWire(json['backgroundId'] as String?),
       blockAdultWebsites: json['blockAdultWebsites'] as bool? ?? false,
@@ -67,6 +69,10 @@ class AppSettings extends Equatable {
   /// Live pause contract (an allowed window). Null = none.
   final PauseSession? pauseSession;
   final bool onboarded;
+
+  /// Whether the one-time feature showcase / walkthrough has been seen. Drives
+  /// the auto-start on first Dashboard visit; reset to `false` to replay the tour.
+  final bool hasSeenFeatureShowcase;
 
   /// Appearance preference (drives the Flutter `ThemeMode` in the UI layer).
   final AppThemeMode themeMode;
@@ -124,6 +130,7 @@ class AppSettings extends Equatable {
     PauseSession? pauseSession,
     bool clearPauseSession = false,
     bool? onboarded,
+    bool? hasSeenFeatureShowcase,
     AppThemeMode? themeMode,
     AppBackground? backgroundId,
     bool? blockAdultWebsites,
@@ -139,6 +146,8 @@ class AppSettings extends Equatable {
           ? null
           : (pauseSession ?? this.pauseSession),
       onboarded: onboarded ?? this.onboarded,
+      hasSeenFeatureShowcase:
+          hasSeenFeatureShowcase ?? this.hasSeenFeatureShowcase,
       themeMode: themeMode ?? this.themeMode,
       backgroundId: backgroundId ?? this.backgroundId,
       blockAdultWebsites: blockAdultWebsites ?? this.blockAdultWebsites,
@@ -155,6 +164,7 @@ class AppSettings extends Equatable {
     'masterEnabled': masterEnabled,
     'pauseSession': pauseSession?.toJson(),
     'onboarded': onboarded,
+    'hasSeenFeatureShowcase': hasSeenFeatureShowcase,
     'themeMode': themeMode.wire,
     'backgroundId': backgroundId.wire,
     'blockAdultWebsites': blockAdultWebsites,
@@ -170,6 +180,7 @@ class AppSettings extends Equatable {
     masterEnabled,
     pauseSession,
     onboarded,
+    hasSeenFeatureShowcase,
     themeMode,
     backgroundId,
     blockAdultWebsites,
