@@ -1,0 +1,34 @@
+import 'package:equatable/equatable.dart';
+
+/// Aggregate website-blocking analytics rendered as the dashboard stat cards.
+class WebBlockStats extends Equatable {
+  const WebBlockStats({
+    this.totalBlocked = 0,
+    this.blockedToday = 0,
+    this.mostBlockedHost,
+  });
+
+  final int totalBlocked;
+  final int blockedToday;
+  final String? mostBlockedHost;
+
+  /// Estimated focus time reclaimed, using the app-wide 30s-per-block heuristic
+  /// (mirrors `dashboard_tab.dart`'s `_secondsSavedPerBlock`).
+  static const int secondsSavedPerBlock = 30;
+
+  int get focusMinutesSaved =>
+      (totalBlocked * secondsSavedPerBlock / 60).round();
+
+  WebBlockStats copyWith({
+    int? totalBlocked,
+    int? blockedToday,
+    String? mostBlockedHost,
+  }) => WebBlockStats(
+    totalBlocked: totalBlocked ?? this.totalBlocked,
+    blockedToday: blockedToday ?? this.blockedToday,
+    mostBlockedHost: mostBlockedHost ?? this.mostBlockedHost,
+  );
+
+  @override
+  List<Object?> get props => [totalBlocked, blockedToday, mostBlockedHost];
+}
