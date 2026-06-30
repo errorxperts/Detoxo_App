@@ -5,6 +5,9 @@ import 'package:detoxo/features/analytics/domain/repositories/analytics_reposito
 import 'package:detoxo/features/analytics/presentation/analytics_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/domain/repositories/content_counter_repository.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/presentation/widgets/reel_counter_card.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/menu_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,10 +16,18 @@ import 'package:intl/intl.dart';
 /// Live feed of block events. Reachable two ways that share one cubit + list and
 /// differ only in chrome: the second HomeShell tab ([AnalyticsTab]) and the
 /// pushed drawer route ([AnalyticsScreen]).
-BlocProvider<AnalyticsCubit> _withCubit({required Widget child}) {
-  return BlocProvider(
-    create: (_) =>
-        AnalyticsCubit(sl<AnalyticsRepository>(), sl<EngineRepository>())..load(),
+Widget _withCubit({required Widget child}) {
+  return MultiBlocProvider(
+    providers: [
+      BlocProvider(
+        create: (_) =>
+            AnalyticsCubit(sl<AnalyticsRepository>(), sl<EngineRepository>())
+              ..load(),
+      ),
+      BlocProvider(
+        create: (_) => ContentCounterCubit(sl<ContentCounterRepository>()),
+      ),
+    ],
     child: child,
   );
 }
@@ -70,9 +81,8 @@ class _ActivityBody extends StatelessWidget {
     final fmt = DateFormat('MMM d, HH:mm');
     return BlocBuilder<AnalyticsCubit, List<BlockEvent>>(
       builder: (context, events) {
-        // Routed screen with no events → a centered empty state fills the body.
-        if (events.isEmpty && !asTab) return const _Empty();
-
+        // The reel counter card is always shown (even with no block events),
+        // so the body is always the scrollable list.
         return ListView(
           controller: scrollController,
           padding: EdgeInsets.fromLTRB(
@@ -100,6 +110,8 @@ class _ActivityBody extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.md),
             ],
+            const ReelCounterCard(),
+            const SizedBox(height: AppSpacing.lg),
             if (events.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(top: AppSpacing.xl),

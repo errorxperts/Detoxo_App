@@ -88,6 +88,11 @@ class AppDrawer extends StatelessWidget {
                         onTap: () => _go(context, Routes.analytics),
                       ),
                       _DrawerItem(
+                        icon: Icons.movie_filter_outlined,
+                        label: 'Reel counter',
+                        onTap: () => _go(context, Routes.contentCounter),
+                      ),
+                      _DrawerItem(
                         icon: Icons.lock,
                         label: 'PIN lock',
                         onTap: () => _go(context, Routes.pinSetup),

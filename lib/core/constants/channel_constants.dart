@@ -52,6 +52,13 @@ abstract final class ChannelMethods {
 
   // Conscious (earn-as-you-abstain) bank snapshot.
   static const String consciousState = 'consciousState';
+
+  // Short-video / reel counter.
+  static const String contentCounterSnapshot = 'contentCounterSnapshot';
+  static const String setContentCounterEnabled = 'setContentCounterEnabled';
+  static const String setContentBubbleEnabled = 'setContentBubbleEnabled';
+  static const String pinContentWidget = 'pinContentWidget';
+  static const String refreshContentWidget = 'refreshContentWidget';
 }
 
 /// Event `type` values streamed over [Channels.events].
@@ -67,4 +74,8 @@ abstract final class ChannelEvents {
 
   /// Live Conscious bank update (bankMs / maxBankMs / watching / blocked).
   static const String consciousState = 'consciousState';
+
+  /// A short video was counted. Payload: `{package, today, total, perAppToday,
+  /// perAppTotal}`.
+  static const String contentCounted = 'contentCounted';
 }

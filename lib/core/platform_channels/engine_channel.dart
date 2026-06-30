@@ -112,6 +112,31 @@ class EngineChannel {
   Future<Map<String, dynamic>> consciousState() =>
       invokeMap(ChannelMethods.consciousState);
 
+  // ── Short-video / reel counter ────────────────────────────────────────────
+
+  /// One-shot pull of the counter snapshot (`{enabled, today, total, date,
+  /// perAppToday, perAppTotal}`). Empty off-Android.
+  Future<Map<String, dynamic>> contentCounterSnapshot() =>
+      invokeMap(ChannelMethods.contentCounterSnapshot);
+
+  Future<void> setContentCounterEnabled({required bool enabled}) => invokeVoid(
+        ChannelMethods.setContentCounterEnabled,
+        {'enabled': enabled},
+      );
+
+  Future<void> setContentBubbleEnabled({required bool enabled}) => invokeVoid(
+        ChannelMethods.setContentBubbleEnabled,
+        {'enabled': enabled},
+      );
+
+  /// Requests the launcher pin the reel counter widget. Returns false if the
+  /// launcher doesn't support pinning (or off-Android).
+  Future<bool> pinContentWidget() =>
+      invokeBool(ChannelMethods.pinContentWidget);
+
+  Future<void> refreshContentWidget() =>
+      invokeVoid(ChannelMethods.refreshContentWidget);
+
   /// Package names of the device's user-launchable apps. Returns `null` when the
   /// native engine is unavailable (iOS / tests / channel error) — callers treat
   /// `null` as "install state unknown" and show the full blocklist.

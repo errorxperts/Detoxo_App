@@ -10,6 +10,12 @@ import 'package:detoxo/features/blocking/shared/data/repositories/config_reposit
 import 'package:detoxo/features/blocking/shared/data/repositories/engine_repository_impl.dart';
 import 'package:detoxo/features/blocking/shared/data/repositories/settings_repository_impl.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
+import 'package:detoxo/features/content_counter/content_counter_bubble/data/repositories/bubble_repository_impl.dart';
+import 'package:detoxo/features/content_counter/content_counter_bubble/domain/repositories/bubble_repository.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/data/repositories/content_counter_repository_impl.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/domain/repositories/content_counter_repository.dart';
+import 'package:detoxo/features/content_counter/home_content_counter/data/repositories/home_widget_repository_impl.dart';
+import 'package:detoxo/features/content_counter/home_content_counter/domain/repositories/home_widget_repository.dart';
 import 'package:detoxo/features/limits/app_blocker/data/repositories/app_block_repository_impl.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block_repository.dart';
 import 'package:detoxo/features/limits/daily_limit/data/repositories/daily_limit_repository_impl.dart';
@@ -57,5 +63,15 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<AnalyticsRepository>(
       () => AnalyticsRepositoryImpl(sl()),
     )
-    ..registerLazySingleton<ContentRepository>(ContentRepositoryImpl.new);
+    ..registerLazySingleton<ContentRepository>(ContentRepositoryImpl.new)
+    // Short-video / reel counter.
+    ..registerLazySingleton<ContentCounterRepository>(
+      () => ContentCounterRepositoryImpl(sl(), sl()),
+    )
+    ..registerLazySingleton<HomeWidgetRepository>(
+      () => HomeWidgetRepositoryImpl(sl()),
+    )
+    ..registerLazySingleton<BubbleRepository>(
+      () => BubbleRepositoryImpl(sl()),
+    );
 }
