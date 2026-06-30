@@ -23,6 +23,7 @@ import com.errorxperts.detoxo.engine.ContentCounterStore
 import com.errorxperts.detoxo.widget.ContentCounterWidgetProvider
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -174,6 +175,20 @@ class CommandHandler(
                     context,
                     ContentCounterStore(context).snapshot(dateKey()),
                 )
+                result.success(true)
+            }
+            "setCounterStyle" -> {
+                // Persist the changed surface(s), then live-re-render: the visible
+                // bubble via the service, and every pinned widget directly.
+                val store = ContentCounterStore(context)
+                call.argument<Map<String, Any?>>("bubble")?.let {
+                    store.bubbleStyleJson = JSONObject(it).toString()
+                }
+                call.argument<Map<String, Any?>>("widget")?.let {
+                    store.widgetStyleJson = JSONObject(it).toString()
+                }
+                DetoxoAccessibilityService.instance?.contentCounter?.onStyleChanged()
+                ContentCounterWidgetProvider.pushUpdate(context, store.snapshot(dateKey()))
                 result.success(true)
             }
             "pinContentWidget" -> result.success(pinContentWidget())

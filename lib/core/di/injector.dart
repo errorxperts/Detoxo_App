@@ -13,7 +13,9 @@ import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_rep
 import 'package:detoxo/features/content_counter/content_counter_bubble/data/repositories/bubble_repository_impl.dart';
 import 'package:detoxo/features/content_counter/content_counter_bubble/domain/repositories/bubble_repository.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/data/repositories/content_counter_repository_impl.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/data/repositories/counter_appearance_repository_impl.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/domain/repositories/content_counter_repository.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/domain/repositories/counter_appearance_repository.dart';
 import 'package:detoxo/features/content_counter/home_content_counter/data/repositories/home_widget_repository_impl.dart';
 import 'package:detoxo/features/content_counter/home_content_counter/domain/repositories/home_widget_repository.dart';
 import 'package:detoxo/features/limits/app_blocker/data/repositories/app_block_repository_impl.dart';
@@ -73,5 +75,8 @@ Future<void> configureDependencies() async {
     )
     ..registerLazySingleton<BubbleRepository>(
       () => BubbleRepositoryImpl(sl()),
+    )
+    ..registerLazySingleton<CounterAppearanceRepository>(
+      () => CounterAppearanceRepositoryImpl(sl()),
     );
 }

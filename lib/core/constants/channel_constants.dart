@@ -59,6 +59,11 @@ abstract final class ChannelMethods {
   static const String setContentBubbleEnabled = 'setContentBubbleEnabled';
   static const String pinContentWidget = 'pinContentWidget';
   static const String refreshContentWidget = 'refreshContentWidget';
+
+  /// Push bubble and/or home-widget appearance to native. Payload `{bubble?,
+  /// widget?}` (each a style wire map); native persists it, live-re-renders the
+  /// visible bubble, and re-renders every pinned widget.
+  static const String setCounterStyle = 'setCounterStyle';
 }
 
 /// Event `type` values streamed over [Channels.events].

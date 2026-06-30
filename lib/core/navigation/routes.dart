@@ -15,5 +15,7 @@ abstract final class Routes {
   static const String dailyLimit = '/daily-limit';
   static const String analytics = '/analytics';
   static const String contentCounter = '/content-counter';
+  static const String bubbleStyle = '/content-counter/bubble';
+  static const String homeWidget = '/content-counter/widget';
   static const String unsupported = '/unsupported';
 }

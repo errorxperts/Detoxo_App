@@ -272,6 +272,10 @@ class DetoxoAccessibilityService : AccessibilityService() {
                 }
             }
         }
+        // We actively checked a reel app's window and found NO reel surface — the
+        // user is on a non-reel screen (e.g. the feed). Distinct from "no event"
+        // (passive watching), which never reaches here and keeps the bubble up.
+        contentCounter.onNoReelSurface(pkg)
     }
 
     /** A detectable reel/short surface (excludes feed / stories / status surfaces). */

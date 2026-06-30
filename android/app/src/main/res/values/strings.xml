@@ -5,4 +5,5 @@
     <string name="accessibility_service_summary">Detect and block reels, shorts and infinite feeds.</string>
     <string name="device_admin_label">Detoxo Uninstall Protection</string>
     <string name="device_admin_description">Prevents the app from being removed while protection is active.</string>
+    <string name="cc_widget_description">Reel counter</string>
 </resources>

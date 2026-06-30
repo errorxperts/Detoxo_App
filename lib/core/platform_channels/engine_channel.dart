@@ -137,6 +137,17 @@ class EngineChannel {
   Future<void> refreshContentWidget() =>
       invokeVoid(ChannelMethods.refreshContentWidget);
 
+  /// Pushes bubble and/or home-widget appearance to native. Each arg is a style
+  /// wire map (see `BubbleStyle.toWire` / `WidgetStyle.toWire`); only the keys
+  /// present are updated. No-op off-Android.
+  Future<void> setCounterStyle({
+    Map<String, dynamic>? bubble,
+    Map<String, dynamic>? widget,
+  }) => invokeVoid(ChannelMethods.setCounterStyle, {
+    'bubble': ?bubble,
+    'widget': ?widget,
+  });
+
   /// Package names of the device's user-launchable apps. Returns `null` when the
   /// native engine is unavailable (iOS / tests / channel error) — callers treat
   /// `null` as "install state unknown" and show the full blocklist.
