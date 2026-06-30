@@ -3,6 +3,7 @@ import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_lock_screen.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_setup_screen.dart';
 import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_screen.dart';
 import 'package:detoxo/features/dashboard/presentation/home_shell.dart';
 import 'package:detoxo/features/limits/app_blocker/presentation/app_block_screen.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_screen.dart';
@@ -41,5 +42,9 @@ GoRouter buildRouter() => GoRouter(
       builder: (_, _) => const DailyLimitScreen(),
     ),
     GoRoute(path: Routes.analytics, builder: (_, _) => const AnalyticsScreen()),
+    GoRoute(
+      path: Routes.contentCounter,
+      builder: (_, _) => const ContentCounterScreen(),
+    ),
   ],
 );

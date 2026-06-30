@@ -24,8 +24,10 @@ import com.errorxperts.detoxo.R
 import com.errorxperts.detoxo.admin.DetoxoDeviceAdminReceiver
 import com.errorxperts.detoxo.engine.BrowserUrlExtractor
 import com.errorxperts.detoxo.engine.ConfigStore
+import com.errorxperts.detoxo.engine.ContentCounter
 import com.errorxperts.detoxo.engine.DetectionConfig
 import com.errorxperts.detoxo.engine.DetectorRule
+import com.errorxperts.detoxo.engine.PlatformRule
 import com.errorxperts.detoxo.engine.ServiceEventBus
 import com.errorxperts.detoxo.engine.WebBlockEngine
 import java.text.SimpleDateFormat
@@ -48,6 +50,12 @@ class DetoxoAccessibilityService : AccessibilityService() {
     private val lastEventByPackage = ConcurrentHashMap<String, Long>()
     @Volatile private var lastBlockTime = 0L
     @Volatile private var lastBackTime = 0L
+
+    // ── Short-video awareness counter ─────────────────────────────────────────
+    // Counts reels/shorts across supported apps independent of blocking. Public
+    // so CommandHandler can reach it via the service instance.
+    val contentCounter by lazy { ContentCounter(this) }
+    private val lastCountEventByPackage = ConcurrentHashMap<String, Long>()
 
     // ── Website blocking ──────────────────────────────────────────────────────
     private val webEngine by lazy { WebBlockEngine(this) }
@@ -101,9 +109,21 @@ class DetoxoAccessibilityService : AccessibilityService() {
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             foregroundPkg = pkg
             if (config.platformsFor(pkg).isEmpty()) lastReelAtMs = 0L
+            if (contentCounter.isEnabled) {
+                contentCounter.onForegroundChanged(
+                    pkg,
+                    config.platformsFor(pkg).any { isReelPlatform(it) },
+                )
+            }
         }
 
         if (pkg == packageName) return
+
+        // ── Awareness counting: runs independent of blocking (master-off /
+        // paused / platform-disabled) and is strictly side-effect-free w.r.t.
+        // the block path below — it never returns and never mutates block state. ──
+        if (contentCounter.isEnabled) countContent(event, pkg)
+
         if (!store.masterEnabled) return
 
         // Plan gate: a live Pause window suspends ALL blocking (every app is
@@ -211,6 +231,56 @@ class DetoxoAccessibilityService : AccessibilityService() {
             }
         }
         return false
+    }
+
+    // ---- Awareness counting (independent of blocking) ----------------------
+
+    /**
+     * Side-effect-free counting pass. Forwards scrolls and reel-surface
+     * detections to [contentCounter]; never presses back and never reads/writes
+     * block state. Uses its own per-package throttle so the read-only [matches]
+     * tree walk stays cheap even for apps not enabled for blocking.
+     */
+    private fun countContent(event: AccessibilityEvent, pkg: String) {
+        val platforms = config.platformsFor(pkg)
+        if (platforms.isEmpty()) return
+
+        // A scroll is the closest proxy to "advanced to the next reel" (cheap,
+        // no tree walk); the counter debounces these itself.
+        if (event.eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
+            contentCounter.onScroll(pkg)
+        }
+
+        // Throttle the (more expensive) surface detection per package.
+        val now = System.currentTimeMillis()
+        val last = lastCountEventByPackage[pkg] ?: 0L
+        if (now - last < THROTTLE_MS) return
+        lastCountEventByPackage[pkg] = now
+
+        val root = rootInActiveWindow ?: return
+        for (platform in platforms) {
+            if (!isReelPlatform(platform)) continue
+            for (detector in platform.detectors) {
+                if (detector.viewDetector != "FINDBYID" &&
+                    detector.viewDetector != "VIEWID_RES_NAME"
+                ) {
+                    continue
+                }
+                if (matches(root, event, detector, pkg)) {
+                    contentCounter.onReelSurfaceSeen(pkg)
+                    return
+                }
+            }
+        }
+    }
+
+    /** A detectable reel/short surface (excludes feed / stories / status surfaces). */
+    private fun isReelPlatform(p: PlatformRule): Boolean {
+        if (p.detectionType != "LEGACY" && p.detectionType != "OVERLAY") return false
+        if (p.platformId in NON_REEL_PLATFORM_IDS) return false
+        return p.detectors.any {
+            it.viewDetector == "FINDBYID" || it.viewDetector == "VIEWID_RES_NAME"
+        }
     }
 
     // ---- Website blocking --------------------------------------------------
@@ -456,6 +526,7 @@ class DetoxoAccessibilityService : AccessibilityService() {
         instance = null
         consciousRunning = false
         consciousHandler.removeCallbacks(consciousTick)
+        runCatching { contentCounter.dispose() }
         ServiceEventBus.post("serviceStatus", mapOf("running" to false))
         return super.onUnbind(intent)
     }
@@ -473,6 +544,7 @@ class DetoxoAccessibilityService : AccessibilityService() {
         instance = null
         consciousRunning = false
         consciousHandler.removeCallbacks(consciousTick)
+        runCatching { contentCounter.dispose() }
         super.onDestroy()
     }
 
@@ -499,6 +571,16 @@ class DetoxoAccessibilityService : AccessibilityService() {
 
         /** Cap a single drain step so a delayed tick can't dump the whole bank. */
         private const val CONSCIOUS_MAX_STEP_MS = 5000L
+
+        /**
+         * Non-reel surfaces inside supported apps that must NOT be counted as
+         * short videos (feeds, stories, statuses). Everything else detectable in
+         * a supported app is treated as a reel/short.
+         */
+        private val NON_REEL_PLATFORM_IDS = setOf(
+            "ig_feed", "ig_stories", "insta_pro_stories", "insta_pro2_stories",
+            "snap_stories", "wa_status", "wab_status",
+        )
 
         @Volatile
         var instance: DetoxoAccessibilityService? = null

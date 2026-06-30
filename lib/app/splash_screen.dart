@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/domain/repositories/content_counter_repository.dart';
+import 'package:detoxo/features/content_counter/home_content_counter/domain/repositories/home_widget_repository.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +54,10 @@ class _SplashScreenState extends State<SplashScreen> {
       if (defaults.isNotEmpty) await settings.setEnabledPlatforms(defaults);
     }
 
+    // Reel counter runs natively (enabled by default); refresh the home widget
+    // with the latest snapshot. Fire-and-forget so it never blocks routing.
+    unawaited(_refreshReelCounterWidget());
+
     if (!mounted) return;
 
     if (!settings.state.onboarded) {
@@ -64,6 +73,12 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
     context.go(Routes.home);
+  }
+
+  /// Pushes the current counter snapshot to the home-screen widget on launch.
+  Future<void> _refreshReelCounterWidget() async {
+    final count = await sl<ContentCounterRepository>().current();
+    await sl<HomeWidgetRepository>().pushSnapshot(count);
   }
 
   @override

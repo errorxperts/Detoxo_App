@@ -3,6 +3,7 @@ package com.errorxperts.detoxo.channels
 import android.app.Activity
 import android.app.AppOpsManager
 import android.app.admin.DevicePolicyManager
+import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -18,8 +19,12 @@ import android.provider.Settings
 import com.errorxperts.detoxo.accessibility.DetoxoAccessibilityService
 import com.errorxperts.detoxo.admin.DetoxoDeviceAdminReceiver
 import com.errorxperts.detoxo.engine.ConfigStore
+import com.errorxperts.detoxo.engine.ContentCounterStore
+import com.errorxperts.detoxo.widget.ContentCounterWidgetProvider
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.concurrent.Executors
 
 /**
@@ -145,6 +150,33 @@ class CommandHandler(
                 val (today, total, date) = store.blockStats()
                 result.success(mapOf("today" to today, "total" to total, "date" to date))
             }
+            "contentCounterSnapshot" -> {
+                // Prefer the live service (fresh in-memory bubble/widget state),
+                // else read the store directly so it works when the service is dead.
+                val snap = DetoxoAccessibilityService.instance?.contentCounter?.snapshot()
+                    ?: ContentCounterStore(context).snapshot(dateKey())
+                result.success(snap)
+            }
+            "setContentCounterEnabled" -> {
+                val on = call.argument<Boolean>("enabled") ?: true
+                ContentCounterStore(context).enabled = on
+                DetoxoAccessibilityService.instance?.contentCounter?.setEnabled(on)
+                result.success(true)
+            }
+            "setContentBubbleEnabled" -> {
+                val on = call.argument<Boolean>("enabled") ?: true
+                ContentCounterStore(context).bubbleEnabled = on
+                DetoxoAccessibilityService.instance?.contentCounter?.setBubbleEnabled(on)
+                result.success(true)
+            }
+            "refreshContentWidget" -> {
+                ContentCounterWidgetProvider.pushUpdate(
+                    context,
+                    ContentCounterStore(context).snapshot(dateKey()),
+                )
+                result.success(true)
+            }
+            "pinContentWidget" -> result.success(pinContentWidget())
             "deviceInfo" -> result.success(deviceInfo())
             "installedPackages" -> {
                 // Enumerating launchable apps can take 100s of ms on busy
@@ -187,6 +219,22 @@ class CommandHandler(
             null
         }
     }
+
+    /** Requests the launcher pin the reel counter widget. Returns false if unsupported. */
+    private fun pinContentWidget(): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
+            val mgr = context.getSystemService(AppWidgetManager::class.java) ?: return false
+            if (!mgr.isRequestPinAppWidgetSupported) return false
+            val provider = ComponentName(context, ContentCounterWidgetProvider::class.java)
+            mgr.requestPinAppWidget(provider, null, null)
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private fun dateKey(): String =
+        SimpleDateFormat("dd-MM-yyyy", Locale.US).format(System.currentTimeMillis())
 
     private fun isAccessibilityEnabled(): Boolean {
         val expected = ComponentName(

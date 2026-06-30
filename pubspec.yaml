@@ -77,6 +77,9 @@ dependencies:
   sleek_circular_slider: ^2.1.0
   showcaseview: ^5.1.0
 
+  # Home-screen reel counter widget (native widget control surface).
+  home_widget: ^0.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
