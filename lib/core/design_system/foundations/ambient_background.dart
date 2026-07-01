@@ -148,11 +148,18 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
   final Widget? leading;
 
+  /// App-wide trailing actions appended to *every* [GlassAppBar] after the
+  /// screen's own [actions] (e.g. the global feedback button). Registered once
+  /// at startup via a builder so the design system stays decoupled from feature
+  /// code — the design system just invokes it; the feature decides what to show.
+  static List<Widget> Function(BuildContext context)? globalActionsBuilder;
+
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
+    final globals = globalActionsBuilder?.call(context) ?? const <Widget>[];
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: AppBlur.bar, sigmaY: AppBlur.bar),
@@ -164,7 +171,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: title,
-            actions: actions,
+            actions: [...?actions, ...globals],
             leading: leading,
           ),
         ),

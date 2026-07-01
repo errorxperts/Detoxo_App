@@ -20,13 +20,9 @@ Widget _withCubit({required Widget child}) {
   return MultiBlocProvider(
     providers: [
       BlocProvider(
-        create: (_) =>
-            AnalyticsCubit(sl<AnalyticsRepository>(), sl<EngineRepository>())
-              ..load(),
+        create: (_) => AnalyticsCubit(sl<AnalyticsRepository>(), sl<EngineRepository>())..load(),
       ),
-      BlocProvider(
-        create: (_) => ContentCounterCubit(sl<ContentCounterRepository>()),
-      ),
+      BlocProvider(create: (_) => ContentCounterCubit(sl<ContentCounterRepository>())),
     ],
     child: child,
   );
@@ -60,11 +56,7 @@ class AnalyticsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _withCubit(
-      child: _ActivityBody(
-        scrollController: scrollController,
-        onMenu: onMenu,
-        asTab: true,
-      ),
+      child: _ActivityBody(scrollController: scrollController, onMenu: onMenu, asTab: true),
     );
   }
 }
@@ -99,12 +91,12 @@ class _ActivityBody extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Activity',
-                      style: Theme.of(context)
-                          .textTheme
-                          .headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w800),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
                     ),
                   ),
+                  const FeedbackActionButton(),
                   DrawerMenuButton(onTap: onMenu),
                 ],
               ),

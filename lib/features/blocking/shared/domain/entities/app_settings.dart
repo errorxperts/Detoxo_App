@@ -28,6 +28,7 @@ class AppSettings extends Equatable {
     this.backgroundId = AppBackground.aurora,
     this.blockAdultWebsites = false,
     this.blockWebsitesForBlockedApps = false,
+    this.showFeedbackButton = true,
   });
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -57,6 +58,7 @@ class AppSettings extends Equatable {
       blockAdultWebsites: json['blockAdultWebsites'] as bool? ?? false,
       blockWebsitesForBlockedApps:
           json['blockWebsitesForBlockedApps'] as bool? ?? false,
+      showFeedbackButton: json['showFeedbackButton'] as bool? ?? true,
     );
   }
 
@@ -86,6 +88,10 @@ class AppSettings extends Equatable {
   /// are the two scalar switches the engine reads each tick.
   final bool blockAdultWebsites;
   final bool blockWebsitesForBlockedApps;
+
+  /// Whether the global feedback button is shown in screen app bars. UI-only
+  /// (the native engine ignores it); persisted through the single settings path.
+  final bool showFeedbackButton;
 
   DateTime _now(DateTime? now) => now ?? DateTime.now();
 
@@ -135,6 +141,7 @@ class AppSettings extends Equatable {
     AppBackground? backgroundId,
     bool? blockAdultWebsites,
     bool? blockWebsitesForBlockedApps,
+    bool? showFeedbackButton,
   }) {
     return AppSettings(
       activePlan: activePlan ?? this.activePlan,
@@ -153,6 +160,7 @@ class AppSettings extends Equatable {
       blockAdultWebsites: blockAdultWebsites ?? this.blockAdultWebsites,
       blockWebsitesForBlockedApps:
           blockWebsitesForBlockedApps ?? this.blockWebsitesForBlockedApps,
+      showFeedbackButton: showFeedbackButton ?? this.showFeedbackButton,
     );
   }
 
@@ -169,6 +177,7 @@ class AppSettings extends Equatable {
     'backgroundId': backgroundId.wire,
     'blockAdultWebsites': blockAdultWebsites,
     'blockWebsitesForBlockedApps': blockWebsitesForBlockedApps,
+    'showFeedbackButton': showFeedbackButton,
   };
 
   @override
@@ -185,5 +194,6 @@ class AppSettings extends Equatable {
     backgroundId,
     blockAdultWebsites,
     blockWebsitesForBlockedApps,
+    showFeedbackButton,
   ];
 }

@@ -47,6 +47,11 @@ class SettingsCubit extends Cubit<AppSettings> {
   Future<void> setVibration({required bool enabled}) =>
       _commit(state.copyWith(vibrationEnabled: enabled));
 
+  /// Show/hide the global feedback button in screen app bars. UI-only (like
+  /// [setThemeMode]); persisted through the single [_commit] path.
+  Future<void> setShowFeedbackButton({required bool enabled}) =>
+      _commit(state.copyWith(showFeedbackButton: enabled));
+
   /// Appearance preference. UI-only; pushing to native is harmless (the engine
   /// ignores the field) and keeps a single persistence path.
   Future<void> setThemeMode(AppThemeMode mode) =>
