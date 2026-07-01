@@ -9,6 +9,7 @@ import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_gate.dart';
+import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
@@ -180,6 +181,22 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                 title: 'Appearance',
                 subtitle: '${_themeLabel(settings.themeMode)} • ${_bgLabel(settings.backgroundId)}',
                 onTap: _openTheme,
+              ),
+              _Spaced(
+                AdaptiveSwitchTile(
+                  leading: const Icon(Icons.feedback_outlined, color: AppColors.accent),
+                  title: 'Feedback button',
+                  subtitle: 'Show a feedback button in every top bar',
+                  value: settings.showFeedbackButton,
+                  onChanged: (v) =>
+                      context.read<SettingsCubit>().setShowFeedbackButton(enabled: v),
+                ),
+              ),
+              FeatureTile(
+                icon: Icons.rate_review_outlined,
+                title: 'Send feedback',
+                subtitle: 'Report a bug or share an idea',
+                onTap: () => FeedbackLauncher.show(context),
               ),
               _Spaced(
                 GlassListTile(

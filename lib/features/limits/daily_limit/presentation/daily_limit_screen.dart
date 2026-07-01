@@ -1,6 +1,7 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
@@ -32,7 +33,10 @@ class _DailyLimitViewState extends State<_DailyLimitView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Daily limit')),
+      appBar: AppBar(
+        title: const Text('Daily limit'),
+        actions: const [FeedbackActionButton()],
+      ),
       body: SafeArea(
         child: BlocBuilder<DailyLimitCubit, DailyLimit>(
         builder: (context, limit) {

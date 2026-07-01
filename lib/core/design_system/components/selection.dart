@@ -36,7 +36,7 @@ class AppChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[Icon(icon, size: 16), const SizedBox(width: AppSpacing.xs)],
+            if (icon != null) ...[Icon(icon, size: 16), const SizedBox(width: AppSpacing.xxs)],
             Text(
               label,
               style: text.labelLarge?.copyWith(

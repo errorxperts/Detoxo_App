@@ -24,6 +24,20 @@ abstract final class AppConstants {
   static const String dailyLimitEmojiBands = 'assets/content/daily_limit_emoji_bands.json';
 }
 
+/// Support & feedback contact points. The single source of truth for where user
+/// feedback and support requests are routed.
+abstract final class AppSupport {
+  /// Inbox that receives in-app feedback (see the `app_feedback` feature).
+  static const String supportEmail = 'errorxperts@gmail.com';
+
+  /// Support phone number (digits only, no country code / formatting).
+  static const String supportPhone = '9528293795';
+
+  /// Prefix for the feedback email subject line; the category & rating are
+  /// appended by the sender.
+  static const String feedbackSubjectPrefix = 'Detoxo Feedback';
+}
+
 /// Timing constants for the detection / block engine.
 ///
 /// Values are mirrored on the native side (the hot path runs in Kotlin); these

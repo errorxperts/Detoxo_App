@@ -80,6 +80,8 @@ dependencies:
 
   # Home-screen reel counter widget (native widget control surface).
   home_widget: ^0.7.0
+  feedback: ^3.2.0
+  flutter_email_sender: ^10.0.1
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,8 @@ import 'package:detoxo/core/platform_channels/engine_channel.dart';
 import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/features/access_protection/data/repositories/pin_repository_impl.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
+import 'package:detoxo/features/additional_feature/app_feedback/data/repositories/email_feedback_repository_impl.dart';
+import 'package:detoxo/features/additional_feature/app_feedback/domain/repositories/feedback_repository.dart';
 import 'package:detoxo/features/analytics/data/repositories/analytics_repository_impl.dart';
 import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
 import 'package:detoxo/features/blocking/plans/data/repositories/content_repository_impl.dart';
@@ -78,5 +80,7 @@ Future<void> configureDependencies() async {
     )
     ..registerLazySingleton<CounterAppearanceRepository>(
       () => CounterAppearanceRepositoryImpl(sl()),
-    );
+    )
+    // In-app feedback (emails the annotated screenshot to support).
+    ..registerLazySingleton<FeedbackRepository>(EmailFeedbackRepositoryImpl.new);
 }

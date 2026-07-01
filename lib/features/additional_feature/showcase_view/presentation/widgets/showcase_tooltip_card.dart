@@ -108,7 +108,11 @@ class ShowcaseTooltipCard extends StatelessWidget {
 /// "N of M" progress: a widening accent dot for the active step, muted pills for
 /// the rest.
 class _StepDots extends StatelessWidget {
-  const _StepDots({required this.index, required this.total, required this.color});
+  const _StepDots({
+    required this.index,
+    required this.total,
+    required this.color,
+  });
 
   final int index;
   final int total;
