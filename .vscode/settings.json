@@ -1,3 +1,4 @@
 {
-    "claudeCode.environmentVariables": []
+    "claudeCode.environmentVariables": [],
+    "java.configuration.updateBuildConfiguration": "automatic"
 }

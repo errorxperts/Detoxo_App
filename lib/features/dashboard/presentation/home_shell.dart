@@ -46,9 +46,9 @@ class _HomeShellState extends State<HomeShell> {
   Widget build(BuildContext context) {
     // Size the floating bar to its content (one slot per item) so it stays a
     // compact centered capsule instead of stretching to the screen width.
-    const slot = 64.0;
+    const slot = 30.0;
     final screenMax = MediaQuery.sizeOf(context).width - AppSpacing.xl;
-    final contentWidth = _items.length * slot + AppSpacing.sm;
+    final contentWidth = _items.length * slot + AppSpacing.xxl;
     final barWidth = contentWidth > screenMax ? screenMax : contentWidth;
     return GlassScaffold(
       safeArea: false,
