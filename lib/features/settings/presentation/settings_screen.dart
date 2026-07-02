@@ -13,6 +13,7 @@ import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dar
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
+import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_screen.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:flutter/material.dart';
@@ -130,6 +131,19 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
             children: [
               // ── Protection: how Detoxo blocks & limits reels ────────────
               const SectionHeader('Protection'),
+                 FeatureTile(
+                icon: Icons.hourglass_bottom,
+                animatedIcon: AppIcon.dailyLimit,
+                title: 'Daily limit',
+                subtitle: 'Cap your reel time per day',
+                onTap: () => context.push(Routes.dailyLimit),
+              ),
+                FeatureTile(
+                icon: Icons.touch_app_outlined,
+                title: 'When a reel is detected',
+                subtitle: _blockModeTitle(settings.defaultBlockMode),
+                onTap: _openBlockMode,
+              ),
               _Spaced(
                 AdaptiveSwitchTile(
                   leading: const Icon(Icons.shield_outlined, color: AppColors.accent),
@@ -139,12 +153,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                   onChanged: (v) => unawaited(_setMasterEnabled(context, enabled: v)),
                 ),
               ),
-              FeatureTile(
-                icon: Icons.touch_app_outlined,
-                title: 'When a reel is detected',
-                subtitle: _blockModeTitle(settings.defaultBlockMode),
-                onTap: _openBlockMode,
-              ),
+            
               _Spaced(
                 AdaptiveSwitchTile(
                   leading: const Icon(Icons.vibration, color: AppColors.accent),
@@ -154,13 +163,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                   onChanged: (v) => context.read<SettingsCubit>().setVibration(enabled: v),
                 ),
               ),
-              FeatureTile(
-                icon: Icons.hourglass_bottom,
-                animatedIcon: AppIcon.dailyLimit,
-                title: 'Daily limit',
-                subtitle: 'Cap your reel time per day',
-                onTap: () => context.push(Routes.dailyLimit),
-              ),
+           
 
               // ── Security: who can change things & system access ─────────
               const SectionHeader('Security'),
@@ -192,25 +195,11 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                       context.read<SettingsCubit>().setShowFeedbackButton(enabled: v),
                 ),
               ),
-              FeatureTile(
-                icon: Icons.rate_review_outlined,
-                title: 'Send feedback',
-                subtitle: 'Report a bug or share an idea',
-                onTap: () => FeedbackLauncher.show(context),
+            const InfoBanner(
+              title: '${AppConstants.appName} v${AppConstants.appVersion}',
+              text: 'Take back control of your time and focus',
               ),
-              _Spaced(
-                GlassListTile(
-                  leading: const Icon(Icons.info_outline, color: AppColors.accent),
-                  title: AppConstants.appName,
-                  subtitle: 'Reclaim your attention from short-form video',
-                  trailing: Text(
-                    'v${AppConstants.appVersion}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: context.glass.onGlassMuted),
-                  ),
-                ),
-              ),
+      
 
               // ── Reset ───────────────────────────────────────────────────
               const SizedBox(height: AppSpacing.lg),

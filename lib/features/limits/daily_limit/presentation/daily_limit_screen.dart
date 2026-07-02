@@ -100,7 +100,8 @@ class _DailyLimitViewState extends State<_DailyLimitView> {
                 ),
               ),
               const SizedBox(height: 12),
-              const _InfoBanner(
+              const InfoBanner(
+              
                 text:
                     'Usage counting is enforced by the native service on a real '
                     'device with usage access granted.',
@@ -114,9 +115,16 @@ class _DailyLimitViewState extends State<_DailyLimitView> {
   }
 }
 
-class _InfoBanner extends StatelessWidget {
-  const _InfoBanner({required this.text});
+class InfoBanner extends StatelessWidget {
+  const InfoBanner({
+    required this.text,
+    this.title,
+    this.subtitle,
+    super.key,
+  });
   final String text;
+  final String? title;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +144,30 @@ class _InfoBanner extends StatelessWidget {
             playOnAppear: true,
           ),
           const SizedBox(width: 10),
-          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodySmall)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (title != null)
+                  Text(
+                    title!,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                if (title != null) const SizedBox(height: 4),
+                Text(
+                  text,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                if (subtitle != null) const SizedBox(height: 4),
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -10,9 +10,6 @@ val newBuildDir: Directory =
         .dir("../../build")
         .get()
 rootProject.layout.buildDirectory.value(newBuildDir)
-dependencies {
-    implementation("org.jetbrains:annotations:15.0")
-}
 
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
