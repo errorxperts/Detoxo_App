@@ -1,6 +1,7 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dart';
 import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
 import 'package:detoxo/features/analytics/presentation/analytics_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
@@ -96,8 +97,11 @@ class _ActivityBody extends StatelessWidget {
                       ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
                     ),
                   ),
-                  const FeedbackActionButton(),
-                  DrawerMenuButton(onTap: onMenu),
+                  Column(
+                    children: [  const FeedbackActionButton(),
+                  DrawerMenuButton(onTap: onMenu),],
+                  )
+                
                 ],
               ),
               const SizedBox(height: AppSpacing.md),

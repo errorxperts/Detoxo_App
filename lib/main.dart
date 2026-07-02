@@ -23,7 +23,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Light status/nav icons over the dark ambient gradient.
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -33,8 +32,6 @@ Future<void> main() async {
     ),
   );
   await configureDependencies();
-  // Inject the global feedback button into every GlassAppBar. The button gates
-  // itself on the settings toggle, so this is a one-time, decoupled hook.
   GlassAppBar.globalActionsBuilder = (_) => const [FeedbackActionButton()];
   runApp(const DetoxoApp());
 }
@@ -44,34 +41,20 @@ class DetoxoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Cross-platform: the UI runs everywhere. Native blocking is Android-only
-    // (engine / permission channels degrade to safe defaults off-Android), so
-    // iOS is UI-complete preview only.
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => ServiceCubit(sl<EngineRepository>())),
         BlocProvider(create: (_) => ConsciousCubit(sl<EngineRepository>())),
         BlocProvider(
-          create: (_) =>
-              SettingsCubit(sl<SettingsRepository>(), sl<EngineRepository>()),
+          create: (_) => SettingsCubit(sl<SettingsRepository>(), sl<EngineRepository>()),
         ),
-        BlocProvider(
-          create: (_) =>
-              TargetsCubit(sl<ConfigRepository>(), sl<EngineRepository>()),
-        ),
-        BlocProvider(
-          create: (_) => PermissionsCubit(sl<PermissionRepository>()),
-        ),
+        BlocProvider(create: (_) => TargetsCubit(sl<ConfigRepository>(), sl<EngineRepository>())),
+        BlocProvider(create: (_) => PermissionsCubit(sl<PermissionRepository>())),
         BlocProvider(create: (_) => PinCubit(sl<PinRepository>())),
       ],
-      // Mirror the user's vibration preference into the haptics gate so press
-      // micro-interactions respect it.
       child: BlocListener<SettingsCubit, AppSettings>(
         listenWhen: (a, b) => a.vibrationEnabled != b.vibrationEnabled,
         listener: (_, state) => AppHaptics.enabled = state.vibrationEnabled,
-        // Rebuild MaterialApp when the appearance preference changes, and feed
-        // the selected background down via an inherited scope (kept separate so
-        // the design system never imports the domain enum).
         child: BlocSelector<SettingsCubit, AppSettings, (AppThemeMode, AppBackground)>(
           selector: (s) => (s.themeMode, s.backgroundId),
           builder: (_, sel) => BackgroundScope(
@@ -114,18 +97,12 @@ class _RouterState extends State<_Router> {
 
   @override
   Widget build(BuildContext context) {
-    // BetterFeedback wraps MaterialApp so it can overlay the annotated
-    // screenshot + custom glass form above every route. It sits below the
-    // SettingsCubit provider, so the form and the feedback button both resolve
-    // their dependencies from the screen context.
     return BetterFeedback(
       themeMode: widget.themeMode,
       theme: glassFeedbackTheme(Brightness.light),
       darkTheme: glassFeedbackTheme(Brightness.dark),
-      feedbackBuilder: (context, onSubmit, scrollController) => GlassFeedbackForm(
-        onSubmit: onSubmit,
-        scrollController: scrollController,
-      ),
+      feedbackBuilder: (context, onSubmit, scrollController) =>
+          GlassFeedbackForm(onSubmit: onSubmit, scrollController: scrollController),
       child: MaterialApp.router(
         title: 'Detoxo',
         theme: AppTheme.light(),

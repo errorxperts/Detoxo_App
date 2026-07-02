@@ -63,21 +63,20 @@ class _HomeShellState extends State<HomeShell> {
         fit: StackFit.expand,
         borderRadius: AppRadius.brPill,
         barColor: Colors.transparent,
-        width: barWidth,
+        width: barWidth, 
         offset: AppSpacing.sm,
         duration: AppDurations.normal,
         curve: AppCurves.standard,
         showIcon: false,
         body: (context, controller) => buildFeatureShowcaseScope(
           // Persist on finish AND dismiss so a skipped tour is remembered too.
-          onSeen: () =>
-              context.read<SettingsCubit>().setShowcaseSeen(value: true),
+          onSeen: () => context.read<SettingsCubit>().setShowcaseSeen(value: true),
           child: SafeArea(bottom: false, child: _tab(controller)),
         ),
         child: GlassContainer(
           borderRadius: AppRadius.pill,
           blurSigma: AppBlur.bar,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs, vertical: AppSpacing.xxs),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -165,8 +164,8 @@ class _NavPillItemState extends State<_NavPillItem> {
         child: AnimatedContainer(
           duration: AppDurations.fast,
           curve: AppCurves.standard,
-          width: widget.selected ? 44 : 32,
-          height: widget.selected ? 44 : 32,
+          width: widget.selected ? 40 : 32,
+          height: widget.selected ? 40 : 32,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
