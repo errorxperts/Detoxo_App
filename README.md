@@ -5,7 +5,10 @@ native **Android AccessibilityService** engine. It detects Reels / Shorts / infi
 apps and pulls you out (Back / close / lock), plus blocking plans, pause, PIN lock, app/website
 blockers, daily limit, premium gating and analytics.
 
-This project was generated from the reverse-engineered blueprint in `../docs/` (16 documents).
+Full documentation lives in [`docs/`](docs/): [`docs/code_docs/`](docs/code_docs/00-index.md)
+(engineering reference, written from this source) and
+[`docs/info_docs/`](docs/info_docs/00-index.md) (end-user & marketing). When you change a
+feature, update its mapped doc — see [`CLAUDE.md`](CLAUDE.md) and run `/docs-sync`.
 
 ---
 
@@ -113,4 +116,4 @@ This build is **offline-first**: it runs fully standalone with no backend.
 ## Compliance notes
 Shipping an AccessibilityService on Google Play requires a qualifying use + a prominent in-app
 disclosure. Device-admin uninstall protection and overlays have their own policy/OEM constraints.
-See `../docs/16-implementation-roadmap.md`.
+See [`docs/code_docs/16-implementation-roadmap.md`](docs/code_docs/16-implementation-roadmap.md).

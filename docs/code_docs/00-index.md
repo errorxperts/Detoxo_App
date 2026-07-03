@@ -1,0 +1,55 @@
+# Detoxo — Engineering Documentation
+
+The technical reference for **Detoxo**, written **from the shipped source**. Detoxo is an
+Android-first short-form-content blocker + on-device reel counter:
+**Flutter (flutter_bloc Cubit + get_it + go_router, feature-first Clean Architecture)** driving a
+native **Kotlin AccessibilityService** engine (`com.errorxperts.detoxo`). The hot detection/block
+path is native; Dart owns config, settings and UI, bridged by **one** MethodChannel
+`com.errorxperts.detoxo/commands` + **one** EventChannel `com.errorxperts.detoxo/events`.
+
+> End-user & marketing docs live in [`../info_docs/`](../info_docs/00-index.md).
+
+## Suggested reading order
+1. **Orient** → [01 Overview & Architecture](01-overview-architecture.md)
+2. **The data** → [02 Detection Config Schema](02-detection-config-schema.md)
+3. **The engine** → [03 Detection & Block Engine](03-detection-engine.md) + [04 Native Android Layer](04-native-android-layer.md)
+4. **The contract** → [18 Platform Channel Contracts](18-platform-channel-contracts.md)
+5. **Features** → 05–13, [17 Content Counter](17-content-counter.md)
+6. **Status** → [16 Status & Roadmap](16-implementation-roadmap.md)
+
+## Document map
+| # | Doc | Covers |
+|---|-----|--------|
+| 00 | this file | Index + glossary |
+| 01 | [Overview & Architecture](01-overview-architecture.md) | Feature inventory, Clean Architecture, Cubit/get_it/go_router, native boundary, directory map |
+| 02 | [Detection Config Schema](02-detection-config-schema.md) | `platforms_config.json` / `initial_config.json` as consumed; freezed models; native parse |
+| 03 | [Detection & Block Engine](03-detection-engine.md) | The native event loop, 3-stage view-id detection, timings, block modes, Conscious/Pause gating |
+| 04 | [Native Android Layer](04-native-android-layer.md) | Service (main process, FGS), receivers, device admin, overlay, manifest, `res/xml` |
+| 05 | [Plans, Pause & Conscious](05-plans-pause-conscious.md) | Block-All / Conscious / One-Reel / Pause, the Conscious time-bank, countdown & content engine |
+| 06 | [App Blocker & Web Blocklist](06-app-and-web-blocker.md) | Full-app blocking + website blocklist (`WebBlockEngine`) |
+| 07 | [Daily Limit & Scheduler](07-daily-limit-scheduler.md) | Daily time quota + reset |
+| 08 | [PIN Lock, Biometrics & Recovery](08-pin-lock-recovery.md) | PIN gate, lockout ladder, biometrics, recovery |
+| 09 | [Persistence & Data Model](09-persistence-data-model.md) | `local_store` + `detoxo_engine_prefs` + secure storage + widget keys |
+| 10 | [Config Sync (offline-first)](10-networking-config-sync.md) | Bundled config load; remote as swap-in |
+| 11 | [Monetization](11-monetization.md) | Premium entitlement model + dev-unlock; test AdMob; billing = swap-in |
+| 12 | [Analytics, Notifications & Resilience](12-analytics-notifications-resilience.md) | Local analytics; FGS notification; boot; device-admin |
+| 13 | [Onboarding & Permission Funnel](13-onboarding-permissions.md) | First-run + permission funnel + splash gating |
+| 14 | [Flutter Package Map](14-flutter-package-map.md) | Real `pubspec.yaml` deps → purpose |
+| 15 | [iOS / Cross-Platform Reality](15-ios-cross-platform.md) | Why iOS is unsupported; capability gating |
+| 16 | [Status & Roadmap](16-implementation-roadmap.md) | What works vs swap-in follow-ups; testing; compliance |
+| 17 | [Content Counter](17-content-counter.md) | The decoupled reel/short counter: native pass, bubble, home widget |
+| 18 | [Platform Channel Contracts](18-platform-channel-contracts.md) | Every command method + event payload |
+
+## Glossary
+| Term | Meaning |
+|---|---|
+| **Detection** | Reading the foreground app's accessibility node tree to decide "this is a reel/short". |
+| **Block mode** | What happens on detection: `PRESS_BACK`, `KILL_APP`, `LOCK_SCREEN`, `NONE`. |
+| **Plan** | The active blocking strategy: Block-All, **Conscious** (`curious`/`"CURIOUS"`), One-Reel, Paused. |
+| **Conscious** | The UI label for the `curious`/`"CURIOUS"` plan — an earn-as-you-abstain time-bank; reels play while the bank has allowance, then Back is pressed. |
+| **Content counter** | A separate, side-effect-free counting pass (independent of blocking) that tallies reels/shorts and drives the bubble + home-screen widget. |
+| **Commands / Events channel** | `com.errorxperts.detoxo/commands` (Dart→native) and `/events` (native→Dart, multiplexed by `type`). |
+| **`detoxo_engine_prefs`** | The native `SharedPreferences` file the engine persists settings/plan/stats/counts to (readable even when the UI process is gone). |
+
+> Every doc ends with a **`## Source files`** section — the anchor the `/docs-sync` skill uses
+> to keep it truthful when the code changes.
