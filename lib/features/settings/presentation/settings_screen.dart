@@ -9,7 +9,6 @@ import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_gate.dart';
-import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
@@ -80,15 +79,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
     );
   }
 
-  /// Replays the one-time feature tour. The walkthrough lives on the dashboard
-  /// (where its highlighted targets are), so we clear the "seen" flag and return
-  /// home; the dashboard's coordinator restarts the showcase on the flag's
-  /// true→false edge once it's front-most.
-  void _replayShowcase() {
-    unawaited(context.read<SettingsCubit>().setShowcaseSeen(value: false));
-    context.go(Routes.home);
-  }
-
   /// Disabling protection is a sensitive change, so it asks for the PIN (when
   /// the `settings` scope guards it); enabling proceeds directly. The switch is
   /// bound to `settings.masterEnabled`, so a cancelled PIN snaps it back.
@@ -131,14 +121,14 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
             children: [
               // ── Protection: how Detoxo blocks & limits reels ────────────
               const SectionHeader('Protection'),
-                 FeatureTile(
+              FeatureTile(
                 icon: Icons.hourglass_bottom,
                 animatedIcon: AppIcon.dailyLimit,
                 title: 'Daily limit',
                 subtitle: 'Cap your reel time per day',
                 onTap: () => context.push(Routes.dailyLimit),
               ),
-                FeatureTile(
+              FeatureTile(
                 icon: Icons.touch_app_outlined,
                 title: 'When a reel is detected',
                 subtitle: _blockModeTitle(settings.defaultBlockMode),
@@ -153,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                   onChanged: (v) => unawaited(_setMasterEnabled(context, enabled: v)),
                 ),
               ),
-            
+
               _Spaced(
                 AdaptiveSwitchTile(
                   leading: const Icon(Icons.vibration, color: AppColors.accent),
@@ -163,7 +153,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                   onChanged: (v) => context.read<SettingsCubit>().setVibration(enabled: v),
                 ),
               ),
-           
 
               // ── Security: who can change things & system access ─────────
               const SectionHeader('Security'),
@@ -172,13 +161,6 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
 
               // ── General: appearance & app info ──────────────────────────
               const SectionHeader('General'),
-              FeatureTile(
-                icon: Icons.tips_and_updates_outlined,
-                animatedIcon: AppIcon.info,
-                title: 'Feature tour',
-                subtitle: "Replay the walkthrough of Detoxo's features",
-                onTap: _replayShowcase,
-              ),
               FeatureTile(
                 icon: _themeIcon(settings.themeMode),
                 title: 'Appearance',
@@ -191,15 +173,13 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                   title: 'Feedback button',
                   subtitle: 'Show a feedback button in every top bar',
                   value: settings.showFeedbackButton,
-                  onChanged: (v) =>
-                      context.read<SettingsCubit>().setShowFeedbackButton(enabled: v),
+                  onChanged: (v) => context.read<SettingsCubit>().setShowFeedbackButton(enabled: v),
                 ),
               ),
-            const InfoBanner(
-              title: '${AppConstants.appName} v${AppConstants.appVersion}',
-              text: 'Take back control of your time and focus',
+              const InfoBanner(
+                title: '${AppConstants.appName} v${AppConstants.appVersion}',
+                text: 'Take back control of your time and focus',
               ),
-      
 
               // ── Reset ───────────────────────────────────────────────────
               const SizedBox(height: AppSpacing.lg),
@@ -335,8 +315,7 @@ class _PinTile extends StatelessWidget {
     final ok = await AppDialog.confirm(
       context: context,
       title: 'Turn off PIN lock?',
-      message:
-          'Detoxo and its protected sections will no longer ask for a PIN.',
+      message: 'Detoxo and its protected sections will no longer ask for a PIN.',
       confirmLabel: 'Turn off',
       cancelLabel: 'Keep it on',
       destructive: true,
@@ -370,9 +349,7 @@ class _PinTile extends StatelessWidget {
               AdaptiveSwitchTile(
                 leading: const Icon(Icons.lock_outline, color: AppColors.accent),
                 title: 'PIN lock',
-                subtitle: on
-                    ? 'On • $typeLabel PIN'
-                    : 'Off — protect Detoxo with a PIN',
+                subtitle: on ? 'On • $typeLabel PIN' : 'Off — protect Detoxo with a PIN',
                 value: on,
                 onChanged: (v) => unawaited(_toggle(context, enable: v)),
               ),

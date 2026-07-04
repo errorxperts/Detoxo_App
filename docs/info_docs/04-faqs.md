@@ -12,13 +12,14 @@ Detoxo uses that permission for exactly one purpose: to recognise a short-video 
 
 ## Does Detoxo read, collect, or upload my data?
 
-No. Detoxo runs **entirely on your device and offline**.
+Your **content** stays private — what you watch, browse, and type never leaves your phone. Detoxo does send a small amount of **anonymous, aggregated** usage and crash data (via Google Firebase) so we can fix bugs and improve the app.
 
-- It does **not** send your browsing, your messages, your app activity, or your reel counts to any server. There is no cloud account, no login, no analytics upload, no crash reporting, and no ad tracking wired into the app.
-- The Accessibility permission lets Detoxo *recognise* a reel screen in the moment (it looks for the on-screen elements that make up a video feed). It does **not** read your DMs, capture what you watch, or keep a copy of anything you see.
-- Everything Detoxo remembers — your plan, your reel count, your settings, your blocked-events history — is stored **locally on your phone**. Your PIN is kept in your device's secure storage.
+- **Never leaves your phone:** the sites and apps you open, the reels you watch, your messages, your blocked-events history, your installed-app list, your PIN, and your recovery email. The Accessibility permission only *recognises* a reel feed in the moment to block it — it doesn't capture or upload what's on your screen, and your PIN lives in your device's secure storage.
+- **Anonymous diagnostics we do collect:** which screens you open, when you change plan or toggle protection, how often blocking fires (by app *category* — e.g. "YouTube" — never the specific video or URL), rough reel-count totals, crash reports, and performance timings. This is linked to a **random ID** generated on your device — not to your name, email, or an account (there is no account or login).
+- **Blocked websites stay private:** when Detoxo bounces you off a site, it records only *that a block happened* — never which site.
+- **No ads, no ad tracking, and we don't sell your data.**
 
-In short: Detoxo watches for "is this a reel feed?" so it can block it, and nothing about that ever leaves your phone.
+In short: Detoxo keeps what you *see and do* private, and shares only anonymous "how the app is used / did it crash" signals to make it better. (A switch to turn diagnostics off is planned.)
 
 ## How does Detoxo actually stop me from scrolling?
 
@@ -85,6 +86,10 @@ Device Admin is an opt-in feature that stops Detoxo from being uninstalled on im
 ## Which apps and sites does Detoxo cover?
 
 Detoxo targets the short-video feeds inside popular apps (think Reels, Shorts, and similar infinite-scroll video), plus it can bounce you off blocked websites — including an optional built-in adult-site list — when you browse. It focuses on the *feed*, so the rest of an app (messages, search, posting) keeps working normally.
+
+## How do I get help, report a bug, or suggest a feature?
+
+Open the menu (top-right) and tap **Help & support**. You'll find four things: **Report an issue** (explains and turns on the feedback button, or lets you file a bug with a screenshot right away), a searchable **FAQ**, **Feature tutorials** (replay the dashboard walkthrough or a quick tour of the feedback button), and **Share an idea** (a simple box that opens your email pre-filled to us). Everything routes to **errorxperts@gmail.com**, so use whichever is easiest.
 
 ---
 

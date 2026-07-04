@@ -97,11 +97,12 @@ class _ActivityBody extends StatelessWidget {
                       ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
                     ),
                   ),
-                  Column(
-                    children: [  const FeedbackActionButton(),
-                  DrawerMenuButton(onTap: onMenu),],
-                  )
-                
+                  Row(
+                    children: [
+                      const FeedbackActionButton(),
+                      DrawerMenuButton(onTap: onMenu),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: AppSpacing.md),

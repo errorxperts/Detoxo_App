@@ -15,7 +15,8 @@ path is native; Dart owns config, settings and UI, bridged by **one** MethodChan
 3. **The engine** → [03 Detection & Block Engine](03-detection-engine.md) + [04 Native Android Layer](04-native-android-layer.md)
 4. **The contract** → [18 Platform Channel Contracts](18-platform-channel-contracts.md)
 5. **Features** → 05–13, [17 Content Counter](17-content-counter.md)
-6. **Status** → [16 Status & Roadmap](16-implementation-roadmap.md)
+6. **Telemetry** → [19 Firebase Telemetry](19-firebase-telemetry.md) (the one off-device data path)
+7. **Status** → [16 Status & Roadmap](16-implementation-roadmap.md)
 
 ## Document map
 | # | Doc | Covers |
@@ -39,6 +40,8 @@ path is native; Dart owns config, settings and UI, bridged by **one** MethodChan
 | 16 | [Status & Roadmap](16-implementation-roadmap.md) | What works vs swap-in follow-ups; testing; compliance |
 | 17 | [Content Counter](17-content-counter.md) | The decoupled reel/short counter: native pass, bubble, home widget |
 | 18 | [Platform Channel Contracts](18-platform-channel-contracts.md) | Every command method + event payload |
+| 19 | [Firebase Telemetry](19-firebase-telemetry.md) | Analytics / Crashlytics / Performance service layer — the one off-device data path |
+| 20 | [Help & Support](20-help-support.md) | In-app help hub: report an issue, FAQ, feature tutorials (scoped tours), share an idea |
 
 ## Glossary
 | Term | Meaning |

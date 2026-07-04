@@ -17,5 +17,9 @@ abstract final class Routes {
   static const String contentCounter = '/content-counter';
   static const String bubbleStyle = '/content-counter/bubble';
   static const String homeWidget = '/content-counter/widget';
+  static const String help = '/help';
+  static const String helpFaq = '/help/faq';
+  static const String featureTutorial = '/help/tutorial';
+  static const String shareIdeas = '/help/share-ideas';
   static const String unsupported = '/unsupported';
 }

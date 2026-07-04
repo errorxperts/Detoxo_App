@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1084608786702",
+    "project_id": "detoxo",
+    "storage_bucket": "detoxo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1084608786702:android:75e7dab8c4a95a2526275f",
+        "android_client_info": {
+          "package_name": "com.errorxperts.detoxo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAoFC16_fNBFaeU8lrQ5yOsGY0Rw8z35GE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

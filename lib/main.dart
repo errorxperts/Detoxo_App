@@ -3,6 +3,7 @@ import 'package:detoxo/core/design_system/foundations/background_scope.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/app_router.dart';
+import 'package:detoxo/core/services/firebase/firebase.dart';
 import 'package:detoxo/core/theme/app_theme.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
@@ -16,13 +17,21 @@ import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_rep
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
+import 'package:detoxo/firebase_options.dart';
 import 'package:feedback/feedback.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  // Route uncaught framework and async errors to Crashlytics as early as
+  // possible (before DI), so init-time crashes are captured.
+  FirebaseCrashReportingService.installGlobalHandlers();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -32,6 +41,13 @@ Future<void> main() async {
     ),
   );
   await configureDependencies();
+  // Telemetry: capture cubit events/errors globally, then switch on collection,
+  // the anonymous install id and the native-event reporter.
+  Bloc.observer = FirebaseBlocObserver(
+    sl<AnalyticsService>(),
+    sl<CrashReportingService>(),
+  );
+  await FirebaseServices.start(sl);
   GlassAppBar.globalActionsBuilder = (_) => const [FeedbackActionButton()];
   runApp(const DetoxoApp());
 }
@@ -48,7 +64,13 @@ class DetoxoApp extends StatelessWidget {
         BlocProvider(
           create: (_) => SettingsCubit(sl<SettingsRepository>(), sl<EngineRepository>()),
         ),
-        BlocProvider(create: (_) => TargetsCubit(sl<ConfigRepository>(), sl<EngineRepository>())),
+        BlocProvider(
+          create: (_) => TargetsCubit(
+            sl<ConfigRepository>(),
+            sl<EngineRepository>(),
+            performance: sl<PerformanceService>(),
+          ),
+        ),
         BlocProvider(create: (_) => PermissionsCubit(sl<PermissionRepository>())),
         BlocProvider(create: (_) => PinCubit(sl<PinRepository>())),
       ],

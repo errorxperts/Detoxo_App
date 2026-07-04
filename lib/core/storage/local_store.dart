@@ -48,4 +48,8 @@ abstract final class StoreKeys {
   static const String premiumDevUnlock = 'premium_dev_unlock';
   static const String analyticsEvents = 'analytics_events';
   static const String dismissedNotices = 'dismissed_notices';
+
+  /// Anonymous, random per-install id (UUID). Set as the Firebase Analytics /
+  /// Crashlytics user id for per-install grouping; carries no PII.
+  static const String installId = 'install_id';
 }

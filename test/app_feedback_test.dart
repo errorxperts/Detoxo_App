@@ -61,8 +61,8 @@ void main() {
   });
 
   group('AppSettings.showFeedbackButton', () {
-    test('defaults to true', () {
-      expect(const AppSettings().showFeedbackButton, isTrue);
+    test('defaults to false (opt-in; enabled via Help or Settings)', () {
+      expect(const AppSettings().showFeedbackButton, isFalse);
     });
 
     test('copyWith + toJson serialize the flag', () {
@@ -71,10 +71,10 @@ void main() {
       expect(settings.toJson()['showFeedbackButton'], false);
     });
 
-    test('fromJson defaults to true when the key is missing (back-compat)', () {
+    test('fromJson defaults to false when the key is missing (back-compat)', () {
       expect(
         AppSettings.fromJson(const <String, dynamic>{}).showFeedbackButton,
-        isTrue,
+        isFalse,
       );
     });
 

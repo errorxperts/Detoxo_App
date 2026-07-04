@@ -16,7 +16,9 @@ boundary:
 > `ContentProvider`, and any multi-process `SharedPreferences`
 > (`MODE_MULTI_PROCESS`). The engine runs in the **main process**, so ordinary
 > private `SharedPreferences` are sufficient; there is no `:as_process` to
-> synchronise with. No cloud/remote sync of any kind is bundled.
+> synchronise with. No cloud/remote sync of the local **stores** is bundled — the separate
+> Firebase telemetry layer ([19-firebase-telemetry.md](19-firebase-telemetry.md)) sends anonymised
+> usage/crash data but is not a data store and does not sync these files.
 
 The Dart and native stores are **independent files** with **independent
 lifecycles**. They are not mirrors of each other; Dart _pushes_ a curated
@@ -310,7 +312,7 @@ counted reel (throttled) so the widget refreshes without any Dart round-trip.
 | Room / SQLite / drift | No relational DB anywhere. All Dart state is JSON-in-Hive; all native state is `SharedPreferences`. |
 | `ContentProvider` | No content provider is exported or used to share state across processes. |
 | Multi-process prefs | `detoxo_engine_prefs` is opened `MODE_PRIVATE`; the service runs in the main process, so no `MODE_MULTI_PROCESS` and no `:as_process`. |
-| Remote / cloud sync | No backend. Analytics is a local 500-event buffer; a Firebase sink is a documented swap-in, not bundled. |
+| Remote / cloud sync of local data | No backend syncs the local stores; the block-event buffer stays on-device (no cloud sink). A separate Firebase **telemetry** layer sends anonymised usage/crash/perf data — see [19-firebase-telemetry.md](19-firebase-telemetry.md). |
 | Live premium storage | `premium_dev_unlock` is a reserved `StoreKeys` constant with no live consumer; premium is modeled/planned. |
 
 ---

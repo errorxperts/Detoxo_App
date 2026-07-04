@@ -1,4 +1,6 @@
 import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/core/di/injector.dart';
+import 'package:detoxo/core/services/firebase/firebase.dart';
 import 'package:detoxo/features/additional_feature/showcase_view/showcase_view.dart';
 import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
@@ -88,6 +90,8 @@ class _HomeShellState extends State<HomeShell> {
                   onTap: () {
                     AppHaptics.selection();
                     setState(() => _index = i);
+                    // Tabs don't change the route, so log the view manually.
+                    sl<AnalyticsService>().logScreenView(_items[i].label);
                   },
                 ),
             ],

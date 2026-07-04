@@ -12,11 +12,17 @@ import 'package:showcaseview/showcaseview.dart';
 /// It drives the tour through the `ShowcaseView` singleton, NOT
 /// `ShowCaseWidget.of(context)` — this card is rendered in the root overlay, so
 /// it has no `ShowCaseWidget` ancestor and an `.of` lookup would throw.
+///
+/// [scope] selects which controller the Skip / Next controls drive: `null`
+/// resolves the current default scope (`ShowcaseView.get()`, the dashboard
+/// tour), while a named scope drives an independent tour (`getNamed`) that
+/// coexists with the always-mounted dashboard host without cross-wiring.
 class ShowcaseTooltipCard extends StatelessWidget {
   const ShowcaseTooltipCard({
     required this.step,
     required this.index,
     required this.total,
+    this.scope,
     super.key,
   });
 
@@ -24,7 +30,14 @@ class ShowcaseTooltipCard extends StatelessWidget {
   final int index;
   final int total;
 
+  /// Optional named scope. When set, Skip / Next drive `getNamed(scope)`
+  /// instead of the ambient `ShowcaseView.get()`.
+  final String? scope;
+
   bool get _isLast => index == total - 1;
+
+  ShowcaseView get _view =>
+      scope != null ? ShowcaseView.getNamed(scope!) : ShowcaseView.get();
 
   @override
   Widget build(BuildContext context) {
@@ -96,12 +109,12 @@ class ShowcaseTooltipCard extends StatelessWidget {
 
   void _next() {
     AppHaptics.selection();
-    ShowcaseView.get().next();
+    _view.next();
   }
 
   void _dismiss() {
     AppHaptics.light();
-    ShowcaseView.get().dismiss();
+    _view.dismiss();
   }
 }
 
