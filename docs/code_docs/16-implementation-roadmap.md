@@ -3,10 +3,12 @@
 The honest "what actually runs in this build vs. what needs your accounts / a follow-up" for
 **Detoxo** (`com.errorxperts.detoxo`). Authored from the shipped source, not aspirations.
 
-Bottom line: this is an **offline-first, Android-only** build. It runs fully standalone with **no
-backend, no Firebase, and no live billing/ads**. The native detection/block engine is real and works
-on a physical device; the network-, account-, and store-dependent layers are deliberately left as
-clearly-marked swap-in points. iOS is unsupported (see
+Bottom line: this is an **Android-only** build whose config is **offline-first** (bundled assets, no
+custom backend) with **no live billing/ads**. It does bundle a **Firebase telemetry layer**
+(Analytics / Crashlytics / Performance) — the one path that sends data off-device; see
+[19-firebase-telemetry.md](19-firebase-telemetry.md). The native detection/block engine is real and
+works on a physical device; the network-, account-, and store-dependent layers are deliberately left
+as clearly-marked swap-in points. iOS is unsupported (see
 [15-ios-cross-platform.md](15-ios-cross-platform.md)).
 
 ---
@@ -24,7 +26,8 @@ required.
 | Content counter (decoupled from blocking) + bubble + home-screen widget | **Works** — side-effect-free counting pass runs even when blocking is off; drives overlay bubble + `home_widget` | [17-content-counter.md](17-content-counter.md) |
 | Blocklist (data-driven) | **Works** — parsed from bundled `assets/config/platforms_config.json`; per-platform enable/disable persisted natively | [02-detection-config-schema.md](02-detection-config-schema.md) |
 | PIN lock + biometric + retry-lockout ladder | **Works** — `local_auth` + `flutter_secure_storage`; PIN recovery uses a **dev OTP** (see §3) | [08-pin-lock-recovery.md](08-pin-lock-recovery.md) |
-| Analytics | **Works, local only** — capped in-memory/JSON block-event buffer (recent ~100); no cloud sink | [12-analytics-notifications-resilience.md](12-analytics-notifications-resilience.md) |
+| Analytics (block-event history) | **Works, local only** — capped in-memory/JSON block-event buffer (recent ~100); no cloud sink | [12-analytics-notifications-resilience.md](12-analytics-notifications-resilience.md) |
+| Firebase telemetry | **Wired** — Analytics (screen views + usage events), Crashlytics, Performance; anonymised, collection on in every build | [19-firebase-telemetry.md](19-firebase-telemetry.md) |
 | Persistence | **Works, on-device only** — Dart `local_store` + native `detoxo_engine_prefs` + secure storage + widget keys `cc_today`/`cc_total` | [09-persistence-data-model.md](09-persistence-data-model.md) |
 | Config load | **Works, offline** — bundled JSON assets via `ConfigRepositoryImpl`; no live fetch | [10-networking-config-sync.md](10-networking-config-sync.md) |
 
@@ -70,9 +73,13 @@ replaced without touching feature code.
   OTP endpoint behind these two methods. **This is a dev-only backdoor — do not ship as-is.**
 
 ### Firebase / FCM
-- **Not bundled.** No `android/app/google-services.json`, no Firebase plugins, no FCM. `AnalyticsRepository`
-  is a local buffer (`analytics_repository_impl.dart` notes a cloud sink as the swap-in). Add the
-  `google-services.json` + Firebase plugins, then back `AnalyticsRepository` / push notifications with it.
+- **Telemetry is now bundled.** `android/app/google-services.json`, `lib/firebase_options.dart`, and
+  the google-services + Crashlytics Gradle plugins are wired; Analytics, Crashlytics and Performance
+  are live (see [19-firebase-telemetry.md](19-firebase-telemetry.md)). Performance runs with **manual
+  traces only** — the auto-trace Gradle plugin is omitted (its 1.4.2 release is incompatible with
+  AGP 9). Collection is unconditional — a **consent / opt-out gate is the main follow-up** (see §6).
+- **Still swap-ins:** FCM push is not bundled, and the local `AnalyticsRepository` block-event buffer
+  has no cloud sink (it stays on-device).
 
 ### Play Billing / Premium (see honest state below)
 - `in_app_purchase: ^3.3.0` is declared in `pubspec.yaml` and its plugin is registered, but **there
@@ -115,7 +122,7 @@ than a swap of existing wiring. See [11-monetization.md](11-monetization.md).
 ## 5. Testing strategy
 
 ### Dart (runs today: `flutter test`)
-Nine domain/logic unit tests under `test/` — pure Dart, no device needed. They cover the exact
+Twelve domain/logic unit tests under `test/` — pure Dart, no device needed. They cover the exact
 places business rules live:
 
 | Test | Covers |
@@ -129,6 +136,9 @@ places business rules live:
 | `test/blocklist_install_filter_test.dart` | Installed-app filtering of the blocklist |
 | `test/counter_style_test.dart` | Content-counter appearance/style |
 | `test/app_feedback_test.dart` | Feedback report building |
+| `test/core/services/firebase/firebase_bloc_observer_test.dart` | Cubit-state → analytics events + Crashlytics keys |
+| `test/core/services/firebase/native_event_reporter_test.dart` | Native events → analytics + reel batching + host omission |
+| `test/core/services/firebase/analytics_service_test.dart` | Semantic analytics API → Firebase event mapping |
 
 `flutter analyze` is clean.
 
@@ -170,6 +180,12 @@ release.
   `TYPE_APPLICATION_OVERLAY` → `TYPE_PHONE` fallback — its own policy/OEM constraints apply.
 - **`QUERY_ALL_PACKAGES`.** Declared to enumerate installed apps for the blocklist; Play requires a
   declared justification for this sensitive permission.
+- **Data collection disclosure (Play Data safety / GDPR).** The app now sends anonymised usage
+  analytics, crash reports, and performance traces to Firebase
+  ([19-firebase-telemetry.md](19-firebase-telemetry.md)). This must be declared in the Play **Data
+  safety** form and the privacy policy, and — depending on region/consent rules — may require an
+  in-app consent or opt-out control, which is **not yet built** (collection is currently
+  unconditional). No PII is sent; the user id is a random install UUID.
 
 ---
 
@@ -183,7 +199,8 @@ release.
   URLs.
 - **Boundary check package prefix** (see §5) — `noscroll` → `detoxo`.
 - **Release signing** (see §3) — replace debug signing.
-- **Backend + OTP + Firebase + Billing + real ads** — all §3 swap-ins.
+- **Backend + OTP + FCM + Billing + real ads** — remaining §3 swap-ins (Firebase telemetry is wired;
+  a telemetry consent/opt-out gate is the follow-up).
 
 ---
 
@@ -200,7 +217,9 @@ release.
 - `lib/features/limits/app_blocker/`, `lib/features/limits/daily_limit/`, `lib/features/limits/web_blocker/`
 - `lib/features/settings/presentation/settings_screen.dart`
 - `lib/main.dart`
+- `lib/core/services/firebase/` (Firebase telemetry layer — see [19-firebase-telemetry.md](19-firebase-telemetry.md))
 - `android/app/build.gradle.kts`
+- `android/settings.gradle.kts`
 - `android/app/src/main/AndroidManifest.xml`
 - `android/app/src/main/res/values/strings.xml`
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/accessibility/DetoxoAccessibilityService.kt`

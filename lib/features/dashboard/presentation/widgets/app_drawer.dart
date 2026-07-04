@@ -102,6 +102,11 @@ class AppDrawer extends StatelessWidget {
                         label: 'Settings',
                         onTap: () => _go(context, Routes.settings),
                       ),
+                      _DrawerItem(
+                        icon: Icons.help_outline,
+                        label: 'Help & support',
+                        onTap: () => _go(context, Routes.help),
+                      ),
                     ],
                   ),
                 ),

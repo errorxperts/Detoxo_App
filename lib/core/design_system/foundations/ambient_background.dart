@@ -142,11 +142,23 @@ class GlassScaffold extends StatelessWidget {
 
 /// A frosted top app bar that blurs the ambient gradient behind it.
 class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const GlassAppBar({this.title, this.actions, this.leading, super.key});
+  const GlassAppBar({
+    this.title,
+    this.actions,
+    this.leading,
+    this.globalActions = true,
+    super.key,
+  });
 
   final Widget? title;
   final List<Widget>? actions;
   final Widget? leading;
+
+  /// Whether to append the app-wide [globalActionsBuilder] actions (the global
+  /// feedback button). Set `false` on screens that provide their own copy of a
+  /// global action — e.g. the feature tutorial, which supplies a *keyed*
+  /// feedback button so its coach-mark can spotlight it without a duplicate.
+  final bool globalActions;
 
   /// App-wide trailing actions appended to *every* [GlassAppBar] after the
   /// screen's own [actions] (e.g. the global feedback button). Registered once
@@ -159,7 +171,9 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final globals = globalActionsBuilder?.call(context) ?? const <Widget>[];
+    final globals = globalActions
+        ? (globalActionsBuilder?.call(context) ?? const <Widget>[])
+        : const <Widget>[];
     return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: AppBlur.bar, sigmaY: AppBlur.bar),

@@ -51,7 +51,7 @@ Codegen for these runs through `build_runner` + `freezed` + `json_serializable`
 | Package | Version | Status | Role in Detoxo |
 | --- | --- | --- | --- |
 | `hive` | `^2.2.3` | **Wired (backing)** | Key-value box engine. |
-| `hive_flutter` | `^1.1.0` | **Wired (backing)** | Flutter init for Hive. Together they back `LocalStore` (`lib/core/storage/local_store.dart`), which opens a single `Box<String>` named `detoxo` and exposes a deliberately **simple key→JSON-string** seam (`read`/`write`/`delete`). The rest of the app never touches Hive types directly. Keys are centralised in `StoreKeys` (`app_settings`, `web_blocklist`, `app_blocklist`, `daily_limit`, `premium_dev_unlock`, `analytics_events`, `dismissed_notices`, …). |
+| `hive_flutter` | `^1.1.0` | **Wired (backing)** | Flutter init for Hive. Together they back `LocalStore` (`lib/core/storage/local_store.dart`), which opens a single `Box<String>` named `detoxo` and exposes a deliberately **simple key→JSON-string** seam (`read`/`write`/`delete`). The rest of the app never touches Hive types directly. Keys are centralised in `StoreKeys` (`app_settings`, `web_blocklist`, `app_blocklist`, `daily_limit`, `premium_dev_unlock`, `analytics_events`, `dismissed_notices`, `install_id`, …). |
 | `flutter_secure_storage` | `^10.3.1` | **Wired** | Secret partition of `LocalStore` (`readSecret`/`writeSecret`). Holds the PIN config (`StoreKeys.pinConfig`). `clearAll()` wipes both the Hive box and every secret for "Reset app data". |
 | `local_auth` | `^3.0.1` | **Wired** | Biometric / device-credential unlock for the app-lock (PIN) flow (`lib/features/access_protection/`). |
 | `crypto` | `^3.0.6` | **Wired** | Hashing the app-lock PIN before storage — `lib/features/access_protection/domain/pin_hasher.dart` (PINs are never stored in plaintext). |
@@ -103,6 +103,25 @@ Codegen for these runs through `build_runner` + `freezed` + `json_serializable`
 
 ---
 
+## 6a. Firebase telemetry (Analytics · Crashlytics · Performance)
+
+Wired in this build — the app's one **off-device** data path, isolated under
+`lib/core/services/firebase/` behind interfaces. See
+[19-firebase-telemetry.md](19-firebase-telemetry.md).
+
+| Package | Version | Status | Role in Detoxo |
+| --- | --- | --- | --- |
+| `firebase_core` | `^4.11.0` | **Wired** | `Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)` in `main.dart` (config in `lib/firebase_options.dart`). |
+| `firebase_analytics` | `^12.4.3` | **Wired** | Screen views (`FirebaseAnalyticsObserver` on the router) + semantic usage events, behind `AnalyticsService`. |
+| `firebase_crashlytics` | `^5.2.4` | **Wired** | Fatal handlers, cubit-error capture, `AppLogger.e` non-fatals, context keys — behind `CrashReportingService`. |
+| `firebase_performance` | `^0.11.4+3` | **Wired** | Manual `traceAsync` custom traces (e.g. `load_block_targets`) behind `PerformanceService`. The auto-trace Gradle plugin is **not** applied — incompatible with AGP 9 (see doc 19). |
+| `uuid` | `^4.5.3` | **Wired** | Generates the anonymous per-install id (`StoreKeys.installId`) set as the Analytics/Crashlytics user id. |
+
+> Collection is **on in every build** (no debug gate); data is anonymised (privacy rules in doc 19).
+> A consent / opt-out surface is a follow-up.
+
+---
+
 ## 7. Declared but NOT wired (scaffolds / swap-ins / native-owned)
 
 These packages are in `pubspec.yaml` but have **zero import sites in `lib/`**. They
@@ -121,7 +140,6 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 | `app_settings` | `^7.0.0` | The package (`package:app_settings`) is never imported; grep hits are the unrelated `AppSettings` domain entity. Settings screens are opened via the native MethodChannel (`openAccessibilitySettings`, `openUsageAccessSettings`, …) and `permission_handler`. | Redundant / follow-up cleanup candidate. |
 | `liquid_swipe` | `^3.1.0` | Onboarding uses `PageView`-style flow with `lottie_tgs` + `go_router`; `LiquidSwipe` is imported nowhere. | Declared for onboarding swipe transitions; not currently used. Planned / follow-up. |
 | `ms_undraw` | `^4.1.1` | No `UnDraw` usage; illustrations come from bundled assets + `flutter_svg`/`lottie_tgs`. | Unused illustration source. Follow-up cleanup candidate. |
-| `uuid` | `^4.5.3` | No `Uuid` usage in `lib/`. | Declared for future id generation; not used. |
 | `collection` | `^1.19.1` | No direct import found; available transitively. | Utility dep; not directly consumed. |
 
 > When any of these graduates from "declared" to "wired", update this table **and**
@@ -174,6 +192,8 @@ generated but the app is **not supported on iOS** — see
 - `pubspec.yaml`
 - `lib/core/storage/local_store.dart`
 - `lib/core/di/injector.dart`
+- `lib/core/services/firebase/firebase.dart`
+- `lib/core/services/firebase/firebase_services.dart`
 - `lib/features/permissions/data/repositories/permission_repository_impl.dart`
 - `lib/features/access_protection/domain/pin_hasher.dart`
 - `lib/features/blocking/shared/data/models/initial_config_model.freezed.dart`

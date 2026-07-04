@@ -1,4 +1,5 @@
 import 'package:detoxo/core/platform_channels/engine_channel.dart';
+import 'package:detoxo/core/services/firebase/firebase.dart';
 import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/features/access_protection/data/repositories/pin_repository_impl.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
@@ -42,6 +43,15 @@ Future<void> configureDependencies() async {
   sl
     ..registerSingleton<LocalStore>(store)
     ..registerLazySingleton<EngineChannel>(EngineChannel.new)
+    // Firebase telemetry (analytics / crashlytics / performance).
+    ..registerLazySingleton<CrashReportingService>(
+      FirebaseCrashReportingService.new,
+    )
+    ..registerLazySingleton<AnalyticsService>(FirebaseAnalyticsService.new)
+    ..registerLazySingleton<PerformanceService>(FirebasePerformanceService.new)
+    ..registerLazySingleton<FirebaseNativeEventReporter>(
+      () => FirebaseNativeEventReporter(sl(), sl(), sl()),
+    )
     // Repositories (interface -> implementation).
     ..registerLazySingleton<ConfigRepository>(ConfigRepositoryImpl.new)
     ..registerLazySingleton<SettingsRepository>(

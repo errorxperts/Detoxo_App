@@ -28,7 +28,7 @@ class AppSettings extends Equatable {
     this.backgroundId = AppBackground.aurora,
     this.blockAdultWebsites = false,
     this.blockWebsitesForBlockedApps = false,
-    this.showFeedbackButton = true,
+    this.showFeedbackButton = false,
   });
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -58,7 +58,7 @@ class AppSettings extends Equatable {
       blockAdultWebsites: json['blockAdultWebsites'] as bool? ?? false,
       blockWebsitesForBlockedApps:
           json['blockWebsitesForBlockedApps'] as bool? ?? false,
-      showFeedbackButton: json['showFeedbackButton'] as bool? ?? true,
+      showFeedbackButton: json['showFeedbackButton'] as bool? ?? false,
     );
   }
 

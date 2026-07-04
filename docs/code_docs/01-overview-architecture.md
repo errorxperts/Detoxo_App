@@ -35,7 +35,8 @@ by the `../info_docs/` set.
 | Permissions funnel | Accessibility, overlay, usage access, battery exemption, device admin | ✅ (Android-only) |
 | Premium / entitlement | Modeled; unlocked via a **local dev-unlock** (Settings → Developer) | ⚠️ No live Play Billing (swap-in) |
 | Ads | Wired with Google **test** ad-unit ids; no live init in Dart | ⚠️ Test only |
-| Analytics | Local block-event history (recent ~100) | ⚠️ Local only, no Firebase/FCM |
+| Analytics (block-event history) | Local block-event history (recent ~100) | ⚠️ Local buffer only (no cloud sink) |
+| Firebase telemetry | Analytics + Crashlytics + Performance, anonymised | ✅ Wired ([19](19-firebase-telemetry.md)); collection on in all builds |
 | Onboarding / feedback | Showcase tips (`showcaseview`); in-app feedback emails to support | ✅ |
 
 Support contact: `errorxperts@gmail.com`.

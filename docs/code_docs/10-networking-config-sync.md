@@ -253,8 +253,10 @@ Everything above is offline-first by design. To add a live backend:
 - `dio: ^5.9.2` is declared in `pubspec.yaml` but **is not imported or used
   anywhere in `lib/`** (`grep 'package:dio'` over `lib/` is empty). It is a
   staged dependency for the future remote repository, currently dead weight.
-- There is **no** `lib/core/network/` directory, no `http`/`HttpClient` usage,
-  no Firebase/FCM, and no other `ConfigRepository` implementation.
+- There is **no** `lib/core/network/` directory, no `http`/`HttpClient` usage, no FCM, and no
+  networking-based `ConfigRepository` implementation. (The app does bundle a Firebase **telemetry**
+  layer — analytics/crash/perf — but that is not a config or networking path; see
+  [19-firebase-telemetry.md](19-firebase-telemetry.md).)
 
 ---
 

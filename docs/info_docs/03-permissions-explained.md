@@ -4,8 +4,8 @@ Detoxo asks for a handful of Android permissions during setup. That can feel lik
 
 The short version, up front:
 
-- Everything Detoxo does to detect and count Reels & Shorts happens **on your phone**. Nothing you scroll, watch, or type is uploaded anywhere.
-- This build is **offline-first**: it ships with everything it needs built in and does not send your activity to any server.
+- Everything Detoxo does to detect and count Reels & Shorts happens **on your phone**. What you scroll, watch, browse, or type is never uploaded.
+- Its blocking is **offline-first** (no custom server). The only thing Detoxo sends is **anonymous, aggregated diagnostics** to Google Firebase — crashes, performance, and which features get used — never your browsing or content. See *Your privacy, plainly* below.
 - Only **two** permissions are actually required to block. The rest are optional and make Detoxo more reliable — you can skip them and add them later.
 
 ---
@@ -101,8 +101,9 @@ This is the one permission granted with a simple in-app "Allow?" pop-up rather t
 ## Your privacy, plainly
 
 - **On-device by design.** Detection and the Reel Counter run locally on your phone. The "what's on screen" check happens in the moment and isn't stored or transmitted.
-- **Offline-first.** This build ships with its full configuration built in and doesn't rely on a server. It isn't uploading your scrolling, your app list, or your counts.
-- **No accounts, no tracking pipeline.** There's no login, and there's no analytics service collecting your behavior in the background. Your block history and counts live on your device.
+- **Offline-first blocking.** Detoxo's blocking configuration is built in and doesn't rely on a custom server. It doesn't upload your scrolling, your messages, your app list, or the specific sites and videos you see. Your block history stays on your device.
+- **Anonymous diagnostics.** To fix crashes and improve Detoxo, the app sends **anonymous, aggregated** usage and diagnostic data to Google Firebase: which screens you open, when you change plan or toggle protection, how often blocking fires (by app *category*, e.g. "YouTube" — never the exact video or URL), rough reel-count totals, crash reports, and performance timings. It's tied to a **random ID** created on your device — not your name, email, or an account (there's no login). A setting to turn this off is planned.
+- **No ads, no ad tracking, no selling your data.**
 - **You're in control.** Only two permissions are required; the rest are optional and reversible. You can review and change every one of them anytime under **Settings → Permissions**, without redoing onboarding.
 
 If a permission ever gets switched off (say, after a system update), Detoxo notices when you reopen it and simply invites you to turn it back on — no lock-in, no dark patterns.

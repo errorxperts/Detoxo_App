@@ -2,8 +2,11 @@
 
 How Detoxo records what it blocked, keeps its engine alive as an Android
 foreground service, survives reboots/updates, and (optionally) protects itself
-from being uninstalled. Everything here is **local and on-device** — there is no
-Firebase, FCM, Crashlytics, or remote analytics sink bundled in the app.
+from being uninstalled. The `analytics` **feature** documented here is **local and
+on-device** — its block-event buffer never uploads. It is distinct from the app's
+separate **Firebase telemetry layer** (usage analytics, Crashlytics, Performance),
+which *does* send anonymised data off-device — see
+[19-firebase-telemetry.md](19-firebase-telemetry.md). FCM push is still not bundled.
 
 Related docs: [03-detection-engine.md](03-detection-engine.md) (where `blocked`
 events originate), [17-content-counter.md](17-content-counter.md) (the parallel,
@@ -145,13 +148,16 @@ happen.") or one `_EventTile` per event. A tile renders a red "ban" `IconBadge`,
 The cubit itself is not a singleton — it is created per-view by the
 `BlocProvider` in `_withCubit`.
 
-### 1.7 No cloud analytics / messaging
+### 1.7 This buffer vs. the Firebase telemetry layer
 
-A repo-wide search for `firebase`, `fcm`, `messaging`, `crashlytics`, and
-`google-services` across `pubspec.yaml` and the Gradle files returns nothing.
-There is **no Firebase, no FCM push, no remote crash/analytics reporting**.
-All "analytics" is the local buffer above. (For monetization/ads posture see
-the monetization doc; AdMob uses Google **test** IDs only.)
+The block-event buffer above is **local-only and never uploads**. It is *not* the
+app's product analytics: Detoxo now also ships a **Firebase telemetry layer**
+(Analytics, Crashlytics, Performance) that sends anonymised usage/crash/performance
+data off-device — see [19-firebase-telemetry.md](19-firebase-telemetry.md). The two
+are independent: this `AnalyticsRepository` records *what was blocked* for the
+on-device Activity feed; Firebase records app-usage events and crashes. **FCM push
+is still not bundled**; AdMob uses Google **test** IDs only (see the monetization
+doc).
 
 ---
 
@@ -338,7 +344,9 @@ resolution.
 | Foreground-service notification (`detoxo_protection_channel`, id `1125`, special-use FGS) | Shipped |
 | BootReceiver (log-only; OS auto-rebinds the accessibility service) | Shipped |
 | Device Admin uninstall protection + `lockNow()` for `LOCK_SCREEN` | Shipped, optional/opt-in |
-| Firebase / FCM push / remote crash+analytics upload | **Not bundled** (cloud sink is a planned swap-in behind `AnalyticsRepository`) |
+| Firebase Analytics / Crashlytics / Performance (off-device telemetry) | **Shipped** — see [19-firebase-telemetry.md](19-firebase-telemetry.md) |
+| FCM push | **Not bundled** |
+| Cloud sink for the local `AnalyticsRepository` buffer | **Not wired** — the buffer stays on-device |
 | `LOCK_SCREEN` block mode UI | Retained on the wire, removed from the picker |
 
 ---

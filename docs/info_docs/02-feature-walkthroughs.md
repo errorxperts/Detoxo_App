@@ -24,7 +24,8 @@ block, taking a mindful **Pause**, and building the habit.
 Nothing is turned on or asked for during the tour — it's just an introduction.
 When you finish, Detoxo takes you straight to permission setup (next section).
 
-> You can replay this tour later from **Settings → Feature tour**.
+> You can replay this tour later from **Help & support → Feature tutorials →
+> Dashboard tour**.
 
 ---
 
@@ -354,10 +355,12 @@ Open **Settings** from the top bar or menu. It's grouped into:
 
 **General**
 
-- **Feature tour** — replay the welcome walkthrough.
 - **Appearance** — choose a **Theme** (System / Light / Dark) and a **Background**
   (Aurora, Sunset, Ocean, Prism). Both preview live behind the picker.
 - **Feedback button** — show a quick feedback button in every top bar.
+
+> Replaying the walkthrough now lives in **Help & support → Feature tutorials**
+> (see §11), not in Settings.
 
 **Reset**
 
@@ -385,6 +388,32 @@ up, Detoxo shows the support address so you can reach out manually.
 
 ---
 
+## 11. Help & support
+
+Open the menu (top-right) and tap **Help & support** to reach a small hub with
+four options:
+
+- **Report an issue** — opens a short dialog that explains how the feedback
+  button works and lets you switch it on (so it appears in every top bar). Tap
+  **Report a bug now** to capture the current screen right away, draw on it,
+  pick **Bug** or **Suggestion**, and send it to us.
+- **FAQ** — a searchable list of common questions grouped by topic (setup,
+  blocking & plans, the reel counter, privacy, and more). Type in the search box
+  to filter; tap a question to expand its answer.
+- **Feature tutorials** — replay the guided tours:
+  - **Dashboard tour** — the same welcome walkthrough of the home screen
+    (this is where it lives now, having moved out of Settings).
+  - **Feedback button** — a quick, one-step highlight that turns the top-bar
+    feedback button on (if it's off) and points out where it is and what it does.
+- **Share an idea** — a simple box to tell us what would make Detoxo better.
+  Type your idea and tap **Send idea**; Detoxo opens your email app pre-filled
+  and addressed to **errorxperts@gmail.com** — you just hit send.
+
+Everything here routes to the same support inbox as the feedback button (§10),
+so use whichever is handiest.
+
+---
+
 ## Related
 
 - Engineering deep-dives (for the curious): [../code_docs/05-plans-pause-conscious.md](../code_docs/05-plans-pause-conscious.md),
@@ -392,6 +421,7 @@ up, Detoxo shows the support address so you can reach out manually.
   [../code_docs/07-daily-limit-scheduler.md](../code_docs/07-daily-limit-scheduler.md),
   [../code_docs/08-pin-lock-recovery.md](../code_docs/08-pin-lock-recovery.md),
   [../code_docs/13-onboarding-permissions.md](../code_docs/13-onboarding-permissions.md),
-  [../code_docs/17-content-counter.md](../code_docs/17-content-counter.md).
+  [../code_docs/17-content-counter.md](../code_docs/17-content-counter.md),
+  [../code_docs/20-help-support.md](../code_docs/20-help-support.md).
 - Other user guides: [Product Overview](01-product-overview.md) ·
   [Permissions Explained](03-permissions-explained.md) · [FAQs](04-faqs.md).
