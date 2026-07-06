@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Runtime widget layout: a single ImageView filled with a Canvas-rendered
+  bitmap (see WidgetBitmapRenderer) so the widget can honour any glass
+  background / theme / density and match the in-app preview pixel-for-pixel.
+  The picker uses content_counter_widget_preview.xml instead.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cc_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/cc_widget_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:contentDescription="@string/cc_widget_description"/>
+
+</FrameLayout>

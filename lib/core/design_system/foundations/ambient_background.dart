@@ -1,28 +1,71 @@
 import 'dart:ui';
 
+import 'package:detoxo/core/design_system/foundations/background_scope.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_blur.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
+import 'package:detoxo/core/design_system/tokens/app_gradients.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
-/// Full-screen ambient gradient + soft brand "mesh" blobs. ONE cheap paint
+/// Full-screen ambient background behind each screen's glass. ONE cheap paint
 /// layer (no per-card blur) so glass surfaces above it have something real to
-/// blur. Place a single instance behind each screen via [GlassScaffold].
+/// blur. The active background comes from [BackgroundScope]; it resolves to
+/// either the theme-aware "Aurora" (a gradient + soft brand "mesh" blobs) or an
+/// SVG gradient background chosen for the current brightness. Place a single
+/// instance behind each screen via [GlassScaffold].
 class AmbientBackground extends StatelessWidget {
-  const AmbientBackground({required this.child, this.animated = true, super.key});
+  const AmbientBackground({
+    required this.child,
+    this.animated = true,
+    super.key,
+  });
 
   final Widget child;
 
-  /// Subtle drift on the blobs. Disabled automatically under reduced-motion.
+  /// Subtle motion (blob drift / shader animation). Disabled automatically
+  /// under reduced-motion.
   final bool animated;
 
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final drift = animated && !reduceMotion;
+    final brightness = Theme.of(context).brightness;
+    final assetKey = svgAssetFor(BackgroundScope.of(context), brightness);
+    final gradient = _auroraGradient(brightness);
 
-    Widget blob({required Alignment align, required Color color, required double size}) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (assetKey == null)
+          _aurora(brightness: brightness, gradient: gradient, drift: drift)
+        else
+          // The base gradient fills before the SVG paints (no flash);
+          // BoxFit.cover keeps the gradient angle and covers tall screens.
+          DecoratedBox(
+            decoration: BoxDecoration(gradient: gradient),
+            child: SvgPicture.asset(assetKey, fit: BoxFit.cover),
+          ),
+        child,
+      ],
+    );
+  }
+
+  /// Theme-aware base gradient + drifting brand blobs (the default background).
+  Widget _aurora({
+    required Brightness brightness,
+    required Gradient gradient,
+    required bool drift,
+  }) {
+    final isDark = brightness == Brightness.dark;
+
+    Widget blob({
+      required Alignment align,
+      required Color color,
+      required double size,
+    }) {
       Widget b = Container(
         width: size,
         height: size,
@@ -44,39 +87,38 @@ class AmbientBackground extends StatelessWidget {
       return Align(alignment: align, child: b);
     }
 
+    // Light blobs are far fainter so the pale base stays clean and text-safe;
+    // dark keeps the richer, more saturated glow.
+    final c1 = AppColors.seed.withValues(alpha: isDark ? 0.40 : 0.16);
+    final c2 = AppColors.accent.withValues(alpha: isDark ? 0.32 : 0.14);
+    final c3 = AppColors.seed.withValues(alpha: isDark ? 0.30 : 0.12);
+
     return DecoratedBox(
-      decoration: const BoxDecoration(color: AppColors.surfaceDark),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          RepaintBoundary(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                blob(
-                  align: const Alignment(-0.9, -1.1),
-                  color: AppColors.seed.withValues(alpha: 0.40),
-                  size: 460,
-                ),
-                blob(
-                  align: const Alignment(1.2, -0.2),
-                  color: AppColors.accent.withValues(alpha: 0.32),
-                  size: 380,
-                ),
-                blob(
-                  align: const Alignment(-0.3, 1.3),
-                  color: AppColors.seed.withValues(alpha: 0.30),
-                  size: 420,
-                ),
-              ],
-            ),
-          ),
-          child,
-        ],
+      decoration: BoxDecoration(gradient: gradient),
+      child: RepaintBoundary(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            blob(align: const Alignment(-0.9, -1.1), color: c1, size: 460),
+            blob(align: const Alignment(1.2, -0.2), color: c2, size: 380),
+            blob(align: const Alignment(-0.3, 1.3), color: c3, size: 420),
+          ],
+        ),
       ),
     );
   }
 }
+
+/// Base gradient behind the Aurora blobs (and the shader load/fallback fill):
+/// deep navy in dark, a soft near-white wash in light.
+Gradient _auroraGradient(Brightness brightness) => brightness == Brightness.dark
+    ? AppGradients.ambient
+    : const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFF8FAFF), Color(0xFFEEF1FB), Color(0xFFE8ECF7)],
+        stops: [0.0, 0.5, 1.0],
+      );
 
 /// Standard screen chrome: a transparent [Scaffold] layered over an
 /// [AmbientBackground]. Flagship screens return this instead of a raw Scaffold.
@@ -198,7 +240,11 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
 /// backdrop for the whole bar — never one per item. Pass `enableBlur: false`
 /// when the child is itself a native blurred surface (iOS CNTabBar).
 class GlassBottomBar extends StatelessWidget {
-  const GlassBottomBar({required this.child, this.enableBlur = true, super.key});
+  const GlassBottomBar({
+    required this.child,
+    this.enableBlur = true,
+    super.key,
+  });
 
   final Widget child;
   final bool enableBlur;

@@ -54,7 +54,7 @@ class Skeleton extends StatelessWidget {
       ),
     ).animate(onPlay: (c) => c.repeat()).shimmer(
           duration: 1200.ms,
-          color: AppColors.onGlassMutedDark.withValues(alpha: 0.12),
+          color: context.glass.onGlassMuted.withValues(alpha: 0.12),
         );
   }
 }

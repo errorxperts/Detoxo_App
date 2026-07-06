@@ -1,0 +1,308 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/domain/entities/app_content_count.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/domain/entities/content_count.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+/// Hero card for the Activity screen: an animated count-up of short videos seen,
+/// a today / all-time toggle, and an animated per-app breakdown. Reads the live
+/// [ContentCounterCubit]; reduce-motion safe.
+class ReelCounterCard extends StatefulWidget {
+  const ReelCounterCard({super.key});
+
+  @override
+  State<ReelCounterCard> createState() => _ReelCounterCardState();
+}
+
+class _ReelCounterCardState extends State<ReelCounterCard> {
+  bool _showAllTime = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ContentCounterCubit, ContentCount>(
+      builder: (context, count) {
+        final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+        final value = _showAllTime ? count.total : count.today;
+        final apps = _showAllTime ? count.perAppTotal : count.perAppToday;
+
+        return GlassCard(
+          accent: AppColors.accent,
+          padding: AppInsets.cardLg,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _header(context),
+              const SizedBox(height: AppSpacing.lg),
+              _heroCount(context, value: value, reduce: reduce),
+              const SizedBox(height: AppSpacing.lg),
+              _breakdown(context, apps: apps, reduce: reduce),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _header(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Row(
+      children: [
+        const IconBadge(
+          size: 44,
+          shape: BoxShape.rectangle,
+          radius: AppRadius.md,
+          gradient: AppGradients.brand,
+          child: Icon(Icons.movie_filter_rounded, color: Colors.white, size: 22),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Reels seen',
+                style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+              Text(
+                'Short videos you scrolled',
+                style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+              ),
+            ],
+          ),
+        ),
+        _PeriodToggle(
+          showAllTime: _showAllTime,
+          onChanged: (v) => setState(() => _showAllTime = v),
+        ),
+      ],
+    );
+  }
+
+  Widget _heroCount(
+    BuildContext context, {
+    required int value,
+    required bool reduce,
+  }) {
+    final text = Theme.of(context).textTheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        TweenAnimationBuilder<int>(
+          // Re-key on toggle so the figure counts up from 0 when switching
+          // period; within a period, value changes animate incrementally.
+          key: ValueKey(_showAllTime),
+          tween: IntTween(begin: 0, end: value),
+          duration: reduce ? Duration.zero : AppDurations.slow,
+          curve: AppCurves.standard,
+          builder: (context, v, _) => Text(
+            '$v',
+            style: text.displaySmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              height: 1,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.xs),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Text(
+            _showAllTime ? 'all time' : 'today',
+            style: text.titleSmall?.copyWith(color: AppColors.accent),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _breakdown(
+    BuildContext context, {
+    required List<AppContentCount> apps,
+    required bool reduce,
+  }) {
+    if (apps.isEmpty) {
+      return Text(
+        'No reels counted yet — open Reels or Shorts and they’ll appear here.',
+        style: Theme.of(context)
+            .textTheme
+            .bodySmall
+            ?.copyWith(color: context.glass.onGlassMuted),
+      );
+    }
+    final max = apps.first.count.clamp(1, 1 << 30);
+    return EntranceList(
+      children: [
+        for (final app in apps)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: _AppRow(app: app, fraction: app.count / max, reduce: reduce),
+          ),
+      ],
+    );
+  }
+}
+
+/// Two-chip today / all-time selector with tactile press feedback.
+class _PeriodToggle extends StatelessWidget {
+  const _PeriodToggle({required this.showAllTime, required this.onChanged});
+
+  final bool showAllTime;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: context.glass.fillBottom,
+        borderRadius: AppRadius.brPill,
+        border: Border.all(color: context.glass.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _chip(context, label: 'Today', selected: !showAllTime, onTap: () => onChanged(false)),
+          _chip(context, label: 'All', selected: showAllTime, onTap: () => onChanged(true)),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(
+    BuildContext context, {
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final text = Theme.of(context).textTheme;
+    return AppPressable(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: AppDurations.fast,
+        curve: AppCurves.standard,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.accent.withValues(alpha: 0.22) : Colors.transparent,
+          borderRadius: AppRadius.brPill,
+        ),
+        child: Text(
+          label,
+          style: text.labelMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: selected ? AppColors.accent : context.glass.onGlassMuted,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A single app's tally: avatar, name + count, and an animated fill bar.
+class _AppRow extends StatelessWidget {
+  const _AppRow({required this.app, required this.fraction, required this.reduce});
+
+  final AppContentCount app;
+  final double fraction;
+  final bool reduce;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Row(
+      children: [
+        _AppAvatar(iconUrl: app.iconUrl),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      app.displayName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  Text(
+                    '${app.count}',
+                    style: text.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              _Bar(fraction: fraction, reduce: reduce),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Bar extends StatelessWidget {
+  const _Bar({required this.fraction, required this.reduce});
+
+  final double fraction;
+  final bool reduce;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: AppRadius.brPill,
+      child: Container(
+        height: 6,
+        color: context.glass.fillBottom,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: fraction.clamp(0.0, 1.0)),
+            duration: reduce ? Duration.zero : AppDurations.slow,
+            curve: AppCurves.decelerate,
+            builder: (context, v, _) => FractionallySizedBox(
+              widthFactor: v == 0 ? 0.001 : v,
+              child: Container(
+                decoration: const BoxDecoration(gradient: AppGradients.brand),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AppAvatar extends StatelessWidget {
+  const _AppAvatar({required this.iconUrl});
+
+  final String iconUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    const size = 34.0;
+    const fallback = IconBadge(
+      size: size,
+      icon: Icons.smartphone_rounded,
+    );
+    if (iconUrl.isEmpty) return fallback;
+    return ClipRRect(
+      borderRadius: AppRadius.brSm,
+      child: CachedNetworkImage(
+        imageUrl: iconUrl,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        placeholder: (_, _) => fallback,
+        errorWidget: (_, _, _) => fallback,
+      ),
+    );
+  }
+}
