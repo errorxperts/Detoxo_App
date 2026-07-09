@@ -1,4 +1,5 @@
 import 'package:detoxo/app/splash_screen.dart';
+import 'package:detoxo/core/constants/app_constants.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/services/firebase/firebase.dart';
@@ -11,6 +12,7 @@ import 'package:detoxo/features/content_counter/content_counter_core/presentatio
 import 'package:detoxo/features/dashboard/presentation/home_shell.dart';
 import 'package:detoxo/features/help/faq/presentation/faq_screen.dart';
 import 'package:detoxo/features/help/feature_tutorial/presentation/feature_tutorial_screen.dart';
+import 'package:detoxo/features/help/legal/presentation/legal_web_view_screen.dart';
 import 'package:detoxo/features/help/presentation/help_screen.dart';
 import 'package:detoxo/features/help/share_ideas/presentation/share_ideas_screen.dart';
 import 'package:detoxo/features/limits/app_blocker/presentation/app_block_screen.dart';
@@ -73,6 +75,20 @@ GoRouter buildRouter() => GoRouter(
     GoRoute(
       path: Routes.shareIdeas,
       builder: (_, _) => const ShareIdeasScreen(),
+    ),
+    GoRoute(
+      path: Routes.privacyPolicy,
+      builder: (_, _) => const LegalWebViewScreen(
+        title: 'Privacy Policy',
+        url: AppLegal.privacyPolicyUrl,
+      ),
+    ),
+    GoRoute(
+      path: Routes.termsConditions,
+      builder: (_, _) => const LegalWebViewScreen(
+        title: 'Terms & Conditions',
+        url: AppLegal.termsUrl,
+      ),
     ),
   ],
 );

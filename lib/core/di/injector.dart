@@ -5,6 +5,8 @@ import 'package:detoxo/features/access_protection/data/repositories/pin_reposito
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
 import 'package:detoxo/features/additional_feature/app_feedback/data/repositories/email_feedback_repository_impl.dart';
 import 'package:detoxo/features/additional_feature/app_feedback/domain/repositories/feedback_repository.dart';
+import 'package:detoxo/features/additional_feature/app_upgrader/data/repositories/upgrader_app_upgrade_service.dart';
+import 'package:detoxo/features/additional_feature/app_upgrader/domain/repositories/app_upgrade_service.dart';
 import 'package:detoxo/features/analytics/data/repositories/analytics_repository_impl.dart';
 import 'package:detoxo/features/analytics/domain/repositories/analytics_repository.dart';
 import 'package:detoxo/features/blocking/plans/data/repositories/content_repository_impl.dart';
@@ -85,12 +87,12 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<HomeWidgetRepository>(
       () => HomeWidgetRepositoryImpl(sl()),
     )
-    ..registerLazySingleton<BubbleRepository>(
-      () => BubbleRepositoryImpl(sl()),
-    )
+    ..registerLazySingleton<BubbleRepository>(() => BubbleRepositoryImpl(sl()))
     ..registerLazySingleton<CounterAppearanceRepository>(
       () => CounterAppearanceRepositoryImpl(sl()),
     )
     // In-app feedback (emails the annotated screenshot to support).
-    ..registerLazySingleton<FeedbackRepository>(EmailFeedbackRepositoryImpl.new);
+    ..registerLazySingleton<FeedbackRepository>(EmailFeedbackRepositoryImpl.new)
+    // App upgrader (Play Store update prompt; Android-only, fails closed).
+    ..registerLazySingleton<AppUpgradeService>(UpgraderAppUpgradeService.new);
 }

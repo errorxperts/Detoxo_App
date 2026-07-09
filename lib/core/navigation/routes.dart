@@ -21,5 +21,7 @@ abstract final class Routes {
   static const String helpFaq = '/help/faq';
   static const String featureTutorial = '/help/tutorial';
   static const String shareIdeas = '/help/share-ideas';
+  static const String privacyPolicy = '/help/legal/privacy';
+  static const String termsConditions = '/help/legal/terms';
   static const String unsupported = '/unsupported';
 }

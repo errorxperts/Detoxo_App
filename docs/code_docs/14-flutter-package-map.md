@@ -100,6 +100,8 @@ Codegen for these runs through `build_runner` + `freezed` + `json_serializable`
 | --- | --- | --- | --- |
 | `feedback` | `^3.2.0` | **Wired** (5 files) | In-app feedback capture (annotate-a-screenshot flow) in `lib/features/additional_feature/app_feedback`. |
 | `flutter_email_sender` | `^10.0.1` | **Wired** | Sends the captured feedback via the device email client to **errorxperts@gmail.com**. |
+| `webview_flutter` | `^4.13.0` | **Wired** | In-app browser for the hosted **Privacy Policy** / **Terms & Conditions** pages, rendered in the app's `GlassScaffold` via the reusable `LegalWebViewScreen` (`lib/features/help/legal`). JavaScript is enabled (the pages route by URL fragment). Android-only in practice (iOS shows the unsupported screen). See [20-help-support.md](20-help-support.md). |
+| `upgrader` | `^13.5.0` | **Wired** | Play Store version-check engine behind the in-app "update available" prompt (`lib/features/additional_feature/app_upgrader`). Used **only** as the engine — scrape latest version, compare, persist Later/Skip, launch store — the UI is the app's own glass dialog. Android-only, fails closed. Pulls `shared_preferences` / `url_launcher` / `http` transitively for its own use. See [21-app-upgrader.md](21-app-upgrader.md). |
 
 ---
 

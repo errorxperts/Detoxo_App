@@ -50,6 +50,19 @@ class HelpScreen extends StatelessWidget {
             subtitle: 'Suggest a feature or improvement',
             onTap: () => context.push(Routes.shareIdeas),
           ),
+          const SectionHeader('Legal'),
+          FeatureTile(
+            icon: Icons.privacy_tip_outlined,
+            title: 'Privacy Policy',
+            subtitle: 'How we handle your data',
+            onTap: () => context.push(Routes.privacyPolicy),
+          ),
+          FeatureTile(
+            icon: Icons.description_outlined,
+            title: 'Terms & Conditions',
+            subtitle: 'The terms for using Detoxo',
+            onTap: () => context.push(Routes.termsConditions),
+          ),
         ],
       ),
     );

@@ -89,7 +89,11 @@ Detoxo targets the short-video feeds inside popular apps (think Reels, Shorts, a
 
 ## How do I get help, report a bug, or suggest a feature?
 
-Open the menu (top-right) and tap **Help & support**. You'll find four things: **Report an issue** (explains and turns on the feedback button, or lets you file a bug with a screenshot right away), a searchable **FAQ**, **Feature tutorials** (replay the dashboard walkthrough or a quick tour of the feedback button), and **Share an idea** (a simple box that opens your email pre-filled to us). Everything routes to **errorxperts@gmail.com**, so use whichever is easiest.
+Open the menu (top-right) and tap **Help & support**. You'll find: **Report an issue** (explains and turns on the feedback button, or lets you file a bug with a screenshot right away), a searchable **FAQ**, **Feature tutorials** (replay the dashboard walkthrough or a quick tour of the feedback button), and **Share an idea** (a simple box that opens your email pre-filled to us) — all routing to **errorxperts@gmail.com**. Under **Legal**, you can also open the **Privacy Policy** and **Terms & Conditions** right inside the app.
+
+## How do I update Detoxo?
+
+Detoxo checks the Play Store for a newer version when you open the app; if one is available it shows an **Update available** card with **Update now** (opens the Play Store) or **Later**, and you can **Skip this version** to stop being reminded about that one. To check on demand, open **Settings** and tap the **app-version card** at the bottom — if an update is ready it shows a compact **Update** button there, and if you're already current it just says so. Once in a while an update is **required** (an important fix); that card can't be dismissed until you update. Update checks run on Android only; on iPhone the app is a preview and doesn't check.
 
 ---
 

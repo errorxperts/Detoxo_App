@@ -33,7 +33,9 @@ class AppDialog extends StatelessWidget {
   final Color? accent;
 
   /// Shows an [AppDialog] over the frosted [GlassDialog]. Returns whatever the
-  /// dialog is popped with.
+  /// dialog is popped with. Set [barrierDismissible] to `false` and [blocking]
+  /// to `true` for a mandatory dialog the user cannot dismiss (e.g. a forced
+  /// app update) — the caller must then supply an action that pops it.
   static Future<T?> show<T>({
     required BuildContext context,
     required String title,
@@ -42,9 +44,13 @@ class AppDialog extends StatelessWidget {
     List<Widget>? actions,
     IconData? icon,
     Color? accent,
+    bool barrierDismissible = true,
+    bool blocking = false,
   }) {
     return GlassDialog.show<T>(
       context: context,
+      barrierDismissible: barrierDismissible,
+      blocking: blocking,
       child: AppDialog(
         title: title,
         message: message,
@@ -100,10 +106,16 @@ class AppDialog extends StatelessWidget {
           IconBadge(icon: icon, color: accent ?? AppColors.accent),
           const SizedBox(height: AppSpacing.md),
         ],
-        Text(title, style: text.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+        Text(
+          title,
+          style: text.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+        ),
         if (message != null) ...[
           const SizedBox(height: AppSpacing.sm),
-          Text(message!, style: text.bodyMedium?.copyWith(color: context.glass.onGlassMuted)),
+          Text(
+            message!,
+            style: text.bodyMedium?.copyWith(color: context.glass.onGlassMuted),
+          ),
         ],
         if (content != null) ...[
           const SizedBox(height: AppSpacing.md),

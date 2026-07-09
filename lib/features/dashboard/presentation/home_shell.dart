@@ -1,6 +1,7 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/services/firebase/firebase.dart';
+import 'package:detoxo/features/additional_feature/app_upgrader/app_upgrader.dart';
 import 'package:detoxo/features/additional_feature/showcase_view/showcase_view.dart';
 import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
@@ -56,45 +57,51 @@ class _HomeShellState extends State<HomeShell> {
     // and is blurred into it, so a heavy black scrim would make the frosted
     // panel read murky/dark instead of as light glass.
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return GlassScaffold(
-      safeArea: false,
-      scaffoldKey: _scaffoldKey,
-      endDrawer: const AppDrawer(),
-      drawerScrimColor: Colors.black.withValues(alpha: dark ? 0.5 : 0.22),
-      body: BottomBar(
-        fit: StackFit.expand,
-        borderRadius: AppRadius.brPill,
-        barColor: Colors.transparent,
-        width: barWidth, 
-        offset: AppSpacing.sm,
-        duration: AppDurations.normal,
-        curve: AppCurves.standard,
-        showIcon: false,
-        body: (context, controller) => buildFeatureShowcaseScope(
-          // Persist on finish AND dismiss so a skipped tour is remembered too.
-          onSeen: () => context.read<SettingsCubit>().setShowcaseSeen(value: true),
-          child: SafeArea(bottom: false, child: _tab(controller)),
-        ),
-        child: GlassContainer(
-          borderRadius: AppRadius.pill,
-          blurSigma: AppBlur.bar,
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              for (var i = 0; i < _items.length; i++)
-                _NavPillItem(
-                  icon: _items[i].icon,
-                  label: _items[i].label,
-                  selected: _index == i,
-                  onTap: () {
-                    AppHaptics.selection();
-                    setState(() => _index = i);
-                    // Tabs don't change the route, so log the view manually.
-                    sl<AnalyticsService>().logScreenView(_items[i].label);
-                  },
-                ),
-            ],
+    // Provides the UpgradeCubit + runs the automatic update check, and shows the
+    // glass update dialog. Wrapping the scaffold puts the drawer in cubit scope
+    // for the manual "Check for updates" entry.
+    return UpgradeGate(
+      child: GlassScaffold(
+        safeArea: false,
+        scaffoldKey: _scaffoldKey,
+        endDrawer: const AppDrawer(),
+        drawerScrimColor: Colors.black.withValues(alpha: dark ? 0.5 : 0.22),
+        body: BottomBar(
+          fit: StackFit.expand,
+          borderRadius: AppRadius.brPill,
+          barColor: Colors.transparent,
+          width: barWidth,
+          offset: AppSpacing.sm,
+          duration: AppDurations.normal,
+          curve: AppCurves.standard,
+          showIcon: false,
+          body: (context, controller) => buildFeatureShowcaseScope(
+            // Persist on finish AND dismiss so a skipped tour is remembered too.
+            onSeen: () =>
+                context.read<SettingsCubit>().setShowcaseSeen(value: true),
+            child: SafeArea(bottom: false, child: _tab(controller)),
+          ),
+          child: GlassContainer(
+            borderRadius: AppRadius.pill,
+            blurSigma: AppBlur.bar,
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                for (var i = 0; i < _items.length; i++)
+                  _NavPillItem(
+                    icon: _items[i].icon,
+                    label: _items[i].label,
+                    selected: _index == i,
+                    onTap: () {
+                      AppHaptics.selection();
+                      setState(() => _index = i);
+                      // Tabs don't change the route, so log the view manually.
+                      sl<AnalyticsService>().logScreenView(_items[i].label);
+                    },
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -126,7 +133,8 @@ class _NavPillItem extends StatefulWidget {
 class _NavPillItemState extends State<_NavPillItem> {
   final AnimatedIconController _controller = AnimatedIconController();
 
-  bool get _reduceMotion => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+  bool get _reduceMotion =>
+      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
   @override
   void initState() {
@@ -157,7 +165,9 @@ class _NavPillItemState extends State<_NavPillItem> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final iconColor = widget.selected ? scheme.onPrimary : scheme.onSurfaceVariant;
+    final iconColor = widget.selected
+        ? scheme.onPrimary
+        : scheme.onSurfaceVariant;
     return Semantics(
       button: true,
       selected: widget.selected,

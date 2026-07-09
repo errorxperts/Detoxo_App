@@ -3,17 +3,19 @@
 The **Help & support** feature is the in-app support surface, reached from the right-side
 [`AppDrawer`](../../lib/features/dashboard/presentation/widgets/app_drawer.dart) via a single
 **Help & support** tile (`Routes.help`). It is a pure Dart/UI feature — no native code, no new
-persistence, no new dependencies — that composes existing machinery (the `app_feedback` feature
-and the `showcase_view` tour) behind a small hub.
+persistence — that composes existing machinery (the `app_feedback` feature and the
+`showcase_view` tour) behind a small hub. The only added dependency is `webview_flutter`, used by
+the Legal submodule to render the hosted Privacy Policy / Terms pages in-app.
 
-It follows the app's feature-first Clean Architecture: `lib/features/help/` groups four
+It follows the app's feature-first Clean Architecture: `lib/features/help/` groups five
 submodules, each reached only through the feature barrel
 [`help.dart`](../../lib/features/help/help.dart).
 
 ## Hub
 
 [`HelpScreen`](../../lib/features/help/presentation/help_screen.dart) (`Routes.help`) is a
-`GlassScaffold` + `GlassAppBar` listing four `FeatureTile`s:
+`GlassScaffold` + `GlassAppBar` listing `FeatureTile`s grouped under **Get help**, **Learn &
+share**, and **Legal** section headers:
 
 | Tile | Action |
 |---|---|
@@ -21,6 +23,8 @@ submodules, each reached only through the feature barrel
 | FAQ | Pushes `Routes.helpFaq` |
 | Feature tutorials | Pushes `Routes.featureTutorial` |
 | Share an idea | Pushes `Routes.shareIdeas` |
+| Privacy Policy | Pushes `Routes.privacyPolicy` |
+| Terms & Conditions | Pushes `Routes.termsConditions` |
 
 ## 1. Report an issue (`report_issue/`)
 
@@ -94,11 +98,30 @@ empty screenshot is tolerated by `EmailFeedbackRepositoryImpl` (no attachment).
 disables Send until the message is non-blank, toasts success/failure via `GlassToast`, and pops
 on success. There is **no new repository** — it is registered nowhere new in the injector.
 
+## 5. Legal (`legal/`)
+
+The Privacy Policy and Terms & Conditions, shown **in-app** rather than in an external browser.
+Both tiles push the same reusable
+[`LegalWebViewScreen`](../../lib/features/help/legal/presentation/legal_web_view_screen.dart)
+(`StatefulWidget`, `const` ctor), which differs only by its `title` and `url`:
+
+- The screen owns a `webview_flutter` `WebViewController` built in `initState` with
+  `JavaScriptMode.unrestricted` — **required**, because the hosted pages are a single-page site
+  that routes by URL fragment (`#privacy` / `#terms`); without JS the correct section won't
+  render. A `NavigationDelegate` clears a first-load spinner on `onPageFinished` and shows an
+  inline **Retry** error state on a main-frame `onWebResourceError`.
+- Chrome is the standard `GlassScaffold` + `GlassAppBar(title: …)`; the app bar's default back
+  button pops.
+- The canonical URLs are the single source of truth in
+  [`AppLegal`](../../lib/core/constants/app_constants.dart) (`privacyPolicyUrl`, `termsUrl`).
+  There is **no new DI** and no persistence.
+
 ## Wiring
 
-- Routes `help`, `helpFaq`, `featureTutorial`, `shareIdeas` in
-  [`routes.dart`](../../lib/core/navigation/routes.dart), registered flat in
-  [`app_router.dart`](../../lib/core/navigation/app_router.dart).
+- Routes `help`, `helpFaq`, `featureTutorial`, `shareIdeas`, `privacyPolicy`, `termsConditions`
+  in [`routes.dart`](../../lib/core/navigation/routes.dart), registered flat in
+  [`app_router.dart`](../../lib/core/navigation/app_router.dart) (the two legal routes build
+  `LegalWebViewScreen` with the `AppLegal` URLs).
 - The **Help & support** drawer tile in
   [`app_drawer.dart`](../../lib/features/dashboard/presentation/widgets/app_drawer.dart).
 - The **Dashboard tour** tile + `_replayShowcase` were **removed** from
@@ -123,6 +146,10 @@ on success. There is **no new repository** — it is registered nowhere new in t
 - `lib/features/help/share_ideas/share_ideas.dart`
 - `lib/features/help/share_ideas/presentation/share_ideas_cubit.dart`
 - `lib/features/help/share_ideas/presentation/share_ideas_screen.dart`
+- `lib/features/help/legal/legal.dart`
+- `lib/features/help/legal/presentation/legal_web_view_screen.dart`
+- `lib/core/constants/app_constants.dart` (`AppLegal` URLs)
+- `pubspec.yaml` (`webview_flutter` dependency)
 - `lib/features/additional_feature/showcase_view/presentation/feature_showcase.dart` (scoped-tour helpers)
 - `lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart` (optional `scope`)
 - `lib/features/additional_feature/showcase_view/showcase_view.dart` (barrel doc)
