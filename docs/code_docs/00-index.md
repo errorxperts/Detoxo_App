@@ -42,6 +42,7 @@ path is native; Dart owns config, settings and UI, bridged by **one** MethodChan
 | 18 | [Platform Channel Contracts](18-platform-channel-contracts.md) | Every command method + event payload |
 | 19 | [Firebase Telemetry](19-firebase-telemetry.md) | Analytics / Crashlytics / Performance service layer — the one off-device data path |
 | 20 | [Help & Support](20-help-support.md) | In-app help hub: report an issue, FAQ, feature tutorials (scoped tours), share an idea |
+| 21 | [App Upgrader](21-app-upgrader.md) | In-app "update available" prompt (`upgrader` engine + custom glass dialog, force-update, auto + manual check) |
 
 ## Glossary
 | Term | Meaning |

@@ -9,6 +9,7 @@ import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_gate.dart';
+import 'package:detoxo/features/additional_feature/app_upgrader/app_upgrader.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
@@ -30,7 +31,8 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObserver {
+class _SettingsScreenState extends State<SettingsScreen>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -82,7 +84,10 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   /// Disabling protection is a sensitive change, so it asks for the PIN (when
   /// the `settings` scope guards it); enabling proceeds directly. The switch is
   /// bound to `settings.masterEnabled`, so a cancelled PIN snaps it back.
-  Future<void> _setMasterEnabled(BuildContext context, {required bool enabled}) async {
+  Future<void> _setMasterEnabled(
+    BuildContext context, {
+    required bool enabled,
+  }) async {
     if (!enabled) {
       final ok = await requirePin(context, PinScope.settings);
       if (!ok || !context.mounted) return;
@@ -112,83 +117,109 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
-    return GlassScaffold(
-      appBar: const GlassAppBar(title: Text('Settings')),
-      body: BlocBuilder<SettingsCubit, AppSettings>(
-        builder: (context, settings) {
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.xxl),
-            children: [
-              // ── Protection: how Detoxo blocks & limits reels ────────────
-              const SectionHeader('Protection'),
-              FeatureTile(
-                icon: Icons.hourglass_bottom,
-                animatedIcon: AppIcon.dailyLimit,
-                title: 'Daily limit',
-                subtitle: 'Cap your reel time per day',
-                onTap: () => context.push(Routes.dailyLimit),
+    // The Settings screen is a separate route (not under HomeShell's
+    // UpgradeGate), so it hosts its own UpgradeCubit. It auto-checks on open so
+    // the app-version banner can reveal a compact "Update" button when a newer
+    // build is available.
+    return BlocProvider(
+      create: (_) => UpgradeCubit(sl<AppUpgradeService>())..check(),
+      child: GlassScaffold(
+        appBar: const GlassAppBar(title: Text('Settings')),
+        body: BlocBuilder<SettingsCubit, AppSettings>(
+          builder: (context, settings) {
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                0,
+                AppSpacing.md,
+                AppSpacing.xxl,
               ),
-              FeatureTile(
-                icon: Icons.touch_app_outlined,
-                title: 'When a reel is detected',
-                subtitle: _blockModeTitle(settings.defaultBlockMode),
-                onTap: _openBlockMode,
-              ),
-              _Spaced(
-                AdaptiveSwitchTile(
-                  leading: const Icon(Icons.shield_outlined, color: AppColors.accent),
-                  title: 'Blocking active',
-                  subtitle: 'Master switch for all detection',
-                  value: settings.masterEnabled,
-                  onChanged: (v) => unawaited(_setMasterEnabled(context, enabled: v)),
+              children: [
+                // ── Protection: how Detoxo blocks & limits reels ────────────
+                const SectionHeader('Protection'),
+                FeatureTile(
+                  icon: Icons.hourglass_bottom,
+                  animatedIcon: AppIcon.dailyLimit,
+                  title: 'Daily limit',
+                  subtitle: 'Cap your reel time per day',
+                  onTap: () => context.push(Routes.dailyLimit),
                 ),
-              ),
-
-              _Spaced(
-                AdaptiveSwitchTile(
-                  leading: const Icon(Icons.vibration, color: AppColors.accent),
-                  title: 'Vibrate on block',
-                  subtitle: 'Haptic buzz each time a reel is blocked',
-                  value: settings.vibrationEnabled,
-                  onChanged: (v) => context.read<SettingsCubit>().setVibration(enabled: v),
+                FeatureTile(
+                  icon: Icons.touch_app_outlined,
+                  title: 'When a reel is detected',
+                  subtitle: _blockModeTitle(settings.defaultBlockMode),
+                  onTap: _openBlockMode,
                 ),
-              ),
-
-              // ── Security: who can change things & system access ─────────
-              const SectionHeader('Security'),
-              _PinTile(),
-              _PermissionsTile(onTap: _openPermissions),
-
-              // ── General: appearance & app info ──────────────────────────
-              const SectionHeader('General'),
-              FeatureTile(
-                icon: _themeIcon(settings.themeMode),
-                title: 'Appearance',
-                subtitle: '${_themeLabel(settings.themeMode)} • ${_bgLabel(settings.backgroundId)}',
-                onTap: _openTheme,
-              ),
-              _Spaced(
-                AdaptiveSwitchTile(
-                  leading: const Icon(Icons.feedback_outlined, color: AppColors.accent),
-                  title: 'Feedback button',
-                  subtitle: 'Show a feedback button in every top bar',
-                  value: settings.showFeedbackButton,
-                  onChanged: (v) => context.read<SettingsCubit>().setShowFeedbackButton(enabled: v),
+                _Spaced(
+                  AdaptiveSwitchTile(
+                    leading: const Icon(
+                      Icons.shield_outlined,
+                      color: AppColors.accent,
+                    ),
+                    title: 'Blocking active',
+                    subtitle: 'Master switch for all detection',
+                    value: settings.masterEnabled,
+                    onChanged: (v) =>
+                        unawaited(_setMasterEnabled(context, enabled: v)),
+                  ),
                 ),
-              ),
-              const InfoBanner(
-                title: '${AppConstants.appName} v${AppConstants.appVersion}',
-                text: 'Take back control of your time and focus',
-              ),
 
-              // ── Reset ───────────────────────────────────────────────────
-              const SizedBox(height: AppSpacing.lg),
-              Center(
-                child: GhostButton(label: 'Reset app data', onPressed: _resetData),
-              ),
-            ],
-          );
-        },
+                _Spaced(
+                  AdaptiveSwitchTile(
+                    leading: const Icon(
+                      Icons.vibration,
+                      color: AppColors.accent,
+                    ),
+                    title: 'Vibrate on block',
+                    subtitle: 'Haptic buzz each time a reel is blocked',
+                    value: settings.vibrationEnabled,
+                    onChanged: (v) =>
+                        context.read<SettingsCubit>().setVibration(enabled: v),
+                  ),
+                ),
+
+                // ── Security: who can change things & system access ─────────
+                const SectionHeader('Security'),
+                _PinTile(),
+                _PermissionsTile(onTap: _openPermissions),
+
+                // ── General: appearance & app info ──────────────────────────
+                const SectionHeader('General'),
+                FeatureTile(
+                  icon: _themeIcon(settings.themeMode),
+                  title: 'Appearance',
+                  subtitle:
+                      '${_themeLabel(settings.themeMode)} • ${_bgLabel(settings.backgroundId)}',
+                  onTap: _openTheme,
+                ),
+                _Spaced(
+                  AdaptiveSwitchTile(
+                    leading: const Icon(
+                      Icons.feedback_outlined,
+                      color: AppColors.accent,
+                    ),
+                    title: 'Feedback button',
+                    subtitle: 'Show a feedback button in every top bar',
+                    value: settings.showFeedbackButton,
+                    onChanged: (v) => context
+                        .read<SettingsCubit>()
+                        .setShowFeedbackButton(enabled: v),
+                  ),
+                ),
+                const _VersionBanner(),
+
+                // ── Reset ───────────────────────────────────────────────────
+                const SizedBox(height: AppSpacing.lg),
+                Center(
+                  child: GhostButton(
+                    label: 'Reset app data',
+                    onPressed: _resetData,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -207,16 +238,101 @@ class _Spaced extends StatelessWidget {
   );
 }
 
+// ── App-version banner + update check ─────────────────────────────────────────
+
+/// The app-version [InfoBanner], which doubles as the "check for updates"
+/// surface. Tapping it runs a manual check (toasting when already current); when
+/// a newer build is available it reveals a compact [_UpdateButton] that opens the
+/// store. Backed by the screen-local `UpgradeCubit` (see `build`).
+class _VersionBanner extends StatelessWidget {
+  const _VersionBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<UpgradeCubit, UpgradeState>(
+      listenWhen: (prev, next) => prev.view != next.view,
+      listener: (context, state) {
+        // Confirm "up to date" only for a user-initiated tap, not the auto-check.
+        if (state.view == UpgradeView.upToDate && state.manual) {
+          GlassToast.show(context, "You're on the latest version");
+        }
+      },
+      builder: (context, state) {
+        final update = state.view == UpgradeView.updateAvailable
+            ? state.status
+            : null;
+        final version = update?.storeVersion;
+        return InfoBanner(
+          title: '${AppConstants.appName} v${AppConstants.appVersion}',
+          text: update == null
+              ? 'Take back control of your time and focus'
+              : version != null
+              ? 'Version $version is available.'
+              : 'A new version is available.',
+          onTap: () => context.read<UpgradeCubit>().check(manual: true),
+          trailing: update == null
+              ? null
+              : _UpdateButton(
+                  onPressed: () => context.read<UpgradeCubit>().openStore(),
+                ),
+        );
+      },
+    );
+  }
+}
+
+/// A compact filled "Update" pill for the version banner.
+class _UpdateButton extends StatelessWidget {
+  const _UpdateButton({required this.onPressed});
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.seed,
+        foregroundColor: Colors.white,
+        minimumSize: Size.zero,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: const StadiumBorder(),
+        textStyle: Theme.of(context).textTheme.labelLarge,
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.system_update, size: 16),
+          SizedBox(width: 6),
+          Text('Update'),
+        ],
+      ),
+    );
+  }
+}
+
 // ── Block-mode + appearance option data ───────────────────────────────────────
 
 const _blockModes = <(BlockingMode, String, String)>[
   (BlockingMode.pressBack, 'Press back', 'Gently exits the reel (recommended)'),
-  (BlockingMode.killApp, 'Close the app', 'Force-closes (exit app) the offending app'),
-  (BlockingMode.lockApp, 'Lock app', 'Locks the app behind your PIN, like an app locker'),
+  (
+    BlockingMode.killApp,
+    'Close the app',
+    'Force-closes (exit app) the offending app',
+  ),
+  (
+    BlockingMode.lockApp,
+    'Lock app',
+    'Locks the app behind your PIN, like an app locker',
+  ),
 ];
 
-String _blockModeTitle(BlockingMode m) =>
-    _blockModes.firstWhere((e) => e.$1 == m, orElse: () => _blockModes.first).$2;
+String _blockModeTitle(BlockingMode m) => _blockModes
+    .firstWhere((e) => e.$1 == m, orElse: () => _blockModes.first)
+    .$2;
 
 String _themeLabel(AppThemeMode m) => switch (m) {
   AppThemeMode.system => 'System',
@@ -245,8 +361,9 @@ const _backgrounds = <(AppBackground, String, String)>[
   (AppBackground.bg3, 'Prism', 'Multi-colour gradient'),
 ];
 
-String _bgLabel(AppBackground b) =>
-    _backgrounds.firstWhere((e) => e.$1 == b, orElse: () => _backgrounds.first).$2;
+String _bgLabel(AppBackground b) => _backgrounds
+    .firstWhere((e) => e.$1 == b, orElse: () => _backgrounds.first)
+    .$2;
 
 /// SVG asset for a background's theme variant, or null for Aurora (which has no
 /// asset). Mirrors `svgAssetFor` in the design system — the presentation layer
@@ -254,9 +371,12 @@ String _bgLabel(AppBackground b) =>
 /// the picker self-contained.
 String? _bgSvgAsset(AppBackground style, bool dark) => switch (style) {
   AppBackground.aurora => null,
-  AppBackground.bg1 => dark ? 'assets/images/bg/dark_bg1.svg' : 'assets/images/bg/light_bg1.svg',
-  AppBackground.bg2 => dark ? 'assets/images/bg/dark_bg2.svg' : 'assets/images/bg/light_bg2.svg',
-  AppBackground.bg3 => dark ? 'assets/images/bg/dark_bg3.svg' : 'assets/images/bg/light_bg3.svg',
+  AppBackground.bg1 =>
+    dark ? 'assets/images/bg/dark_bg1.svg' : 'assets/images/bg/light_bg1.svg',
+  AppBackground.bg2 =>
+    dark ? 'assets/images/bg/dark_bg2.svg' : 'assets/images/bg/light_bg2.svg',
+  AppBackground.bg3 =>
+    dark ? 'assets/images/bg/dark_bg3.svg' : 'assets/images/bg/light_bg3.svg',
 };
 
 /// A small gradient standing in for the (asset-less) Aurora background in its
@@ -315,7 +435,8 @@ class _PinTile extends StatelessWidget {
     final ok = await AppDialog.confirm(
       context: context,
       title: 'Turn off PIN lock?',
-      message: 'Detoxo and its protected sections will no longer ask for a PIN.',
+      message:
+          'Detoxo and its protected sections will no longer ask for a PIN.',
       confirmLabel: 'Turn off',
       cancelLabel: 'Keep it on',
       destructive: true,
@@ -347,9 +468,14 @@ class _PinTile extends StatelessWidget {
           children: [
             _Spaced(
               AdaptiveSwitchTile(
-                leading: const Icon(Icons.lock_outline, color: AppColors.accent),
+                leading: const Icon(
+                  Icons.lock_outline,
+                  color: AppColors.accent,
+                ),
                 title: 'PIN lock',
-                subtitle: on ? 'On • $typeLabel PIN' : 'Off — protect Detoxo with a PIN',
+                subtitle: on
+                    ? 'On • $typeLabel PIN'
+                    : 'Off — protect Detoxo with a PIN',
                 value: on,
                 onChanged: (v) => unawaited(_toggle(context, enable: v)),
               ),
@@ -440,13 +566,22 @@ class _PermissionSheet extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                   child: GlassListTile(
-                    leading: Icon(_permissionIcon(s.kind), color: AppColors.accent),
+                    leading: Icon(
+                      _permissionIcon(s.kind),
+                      color: AppColors.accent,
+                    ),
                     title: s.kind.label,
                     subtitle: _permissionWhy(s.kind),
                     trailing: s.granted
-                        ? const Pill(label: 'Granted', tone: AppTone.success, icon: Icons.check)
+                        ? const Pill(
+                            label: 'Granted',
+                            tone: AppTone.success,
+                            icon: Icons.check,
+                          )
                         : TextButton(
-                            onPressed: () => context.read<PermissionsCubit>().request(s.kind),
+                            onPressed: () => context
+                                .read<PermissionsCubit>()
+                                .request(s.kind),
                             child: Text(s.kind.required ? 'Grant' : 'Enable'),
                           ),
                   ),
@@ -468,7 +603,9 @@ class _BlockModeSheet extends StatelessWidget {
   /// user's PIN, so picking it without a PIN configured can't enforce anything —
   /// we send the user to PIN setup instead of silently selecting a dead mode.
   Future<void> _select(BuildContext context, BlockingMode mode) async {
-    final needsPin = mode == BlockingMode.lockApp && !context.read<PinCubit>().state.isConfigured;
+    final needsPin =
+        mode == BlockingMode.lockApp &&
+        !context.read<PinCubit>().state.isConfigured;
     if (needsPin) {
       final router = GoRouter.of(context);
       final navigator = Navigator.of(context);
@@ -600,7 +737,10 @@ class _BackgroundCarousel extends StatelessWidget {
             color: context.glass.onGlass,
           ),
         ),
-        Text(current.$3, style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted)),
+        Text(
+          current.$3,
+          style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+        ),
       ],
     );
   }
@@ -627,7 +767,9 @@ class _BgCard extends StatelessWidget {
     final asset = _bgSvgAsset(style, dark);
     final borderWidth = selected ? 2.0 : 1.0;
     final preview = asset == null
-        ? DecoratedBox(decoration: BoxDecoration(gradient: _auroraSwatchGradient(dark)))
+        ? DecoratedBox(
+            decoration: BoxDecoration(gradient: _auroraSwatchGradient(dark)),
+          )
         : SvgPicture.asset(asset, fit: BoxFit.cover);
     return GestureDetector(
       onTap: onTap,
@@ -642,7 +784,12 @@ class _BgCard extends StatelessWidget {
             width: borderWidth,
           ),
           boxShadow: selected
-              ? [BoxShadow(color: AppColors.accent.withValues(alpha: 0.35), blurRadius: 12)]
+              ? [
+                  BoxShadow(
+                    color: AppColors.accent.withValues(alpha: 0.35),
+                    blurRadius: 12,
+                  ),
+                ]
               : null,
         ),
         // Clip the preview to a radius concentric with the border so the
@@ -663,7 +810,11 @@ class _BgCard extends StatelessWidget {
                       color: AppColors.accent,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.check, size: 14, color: AppColors.surfaceDark),
+                    child: const Icon(
+                      Icons.check,
+                      size: 14,
+                      color: AppColors.surfaceDark,
+                    ),
                   ),
                 ),
             ],

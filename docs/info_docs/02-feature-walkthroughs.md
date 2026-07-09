@@ -390,8 +390,8 @@ up, Detoxo shows the support address so you can reach out manually.
 
 ## 11. Help & support
 
-Open the menu (top-right) and tap **Help & support** to reach a small hub with
-four options:
+Open the menu (top-right) and tap **Help & support** to reach a small hub,
+grouped into **Get help**, **Learn & share**, and **Legal**:
 
 - **Report an issue** — opens a short dialog that explains how the feedback
   button works and lets you switch it on (so it appears in every top bar). Tap
@@ -408,9 +408,31 @@ four options:
 - **Share an idea** — a simple box to tell us what would make Detoxo better.
   Type your idea and tap **Send idea**; Detoxo opens your email app pre-filled
   and addressed to **errorxperts@gmail.com** — you just hit send.
+- **Privacy Policy** and **Terms & Conditions** — open our Privacy Policy and
+  Terms right inside the app, so you can read them without leaving Detoxo.
 
-Everything here routes to the same support inbox as the feedback button (§10),
+The first four route to the same support inbox as the feedback button (§10),
 so use whichever is handiest.
+
+---
+
+## 12. Keeping the app up to date
+
+Detoxo checks for a newer version on the Play Store when you open the app, and if
+one is available it shows a tidy **Update available** card: the new version number,
+what's new (when the store provides it), and two choices — **Update now** (opens
+the Play Store listing) or **Later**. You can also tap **Skip this version** to stop
+being reminded about that particular update.
+
+You can check any time yourself: open **Settings** and tap the **app-version card**
+at the bottom (the one showing "Detoxo v…"). If a newer version is available it
+shows a compact **Update** button right there; if you're already on the newest
+version, Detoxo just tells you you're up to date.
+
+Occasionally an update is **required** (for example, an important fix). In that case
+the card can't be dismissed — the only option is **Update now** — so everyone stays
+on a safe, working version. This only happens on Android; on iPhone the app is a
+preview and doesn't check for updates.
 
 ---
 

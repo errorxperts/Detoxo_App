@@ -38,6 +38,13 @@ abstract final class AppSupport {
   static const String feedbackSubjectPrefix = 'Detoxo Feedback';
 }
 
+/// Hosted legal documents, surfaced in-app via the Help → Legal section
+/// (`features/help/legal`). Single source of truth for these URLs.
+abstract final class AppLegal {
+  static const String privacyPolicyUrl = 'https://detoxo.web.app/#privacy';
+  static const String termsUrl = 'https://detoxo.web.app/#terms';
+}
+
 /// Timing constants for the detection / block engine.
 ///
 /// Values are mirrored on the native side (the hot path runs in Kotlin); these

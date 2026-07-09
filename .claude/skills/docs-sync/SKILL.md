@@ -45,6 +45,7 @@ Skip it for pure test/formatting changes with no behavioral or structural effect
 | `lib/core/constants/channel_constants.dart`, native `channels/**` | 18 |
 | `lib/core/services/firebase/**`, `lib/firebase_options.dart`, Firebase Gradle plugins (`android/settings.gradle.kts`, `android/app/build.gradle.kts`) | 19 (+ 12, 14, 16; **privacy** → `info_docs/03` + `04`) |
 | `lib/features/help/**`, `lib/features/additional_feature/showcase_view/**` | 20 (+ user-facing → `info_docs/02` + `04`) |
+| `lib/features/additional_feature/app_upgrader/**`, `lib/core/design_system/components/{dialog,overlays}.dart` (blocking-dialog params), the update entry points in `settings_screen.dart` (`_VersionBanner`) / `daily_limit_screen.dart` (`InfoBanner`) | 21 (+ user-facing → `info_docs/02` + `04`) |
 | **any user-facing behavior change** | the matching `info_docs/02-feature-walkthroughs.md` section **and** `info_docs/04-faqs.md` |
 
 New feature area with no mapping? Add a row here, and either extend the closest doc or add a
