@@ -310,7 +310,9 @@ Four sub-modules, registered in `lib/core/di/injector.dart` and routed at
 - **UI**: `ContentCounterScreen` (titled "Reel counter" — the hub with the
   Counting + Bubble toggles and links to the appearance editors) and
   `ReelCounterCard` (hero count-up card with today / all-time toggle and an
-  animated per-app breakdown; reduce-motion safe).
+  animated per-app breakdown; reduce-motion safe). Per-app icons render via the
+  shared `AppIconAvatar` (bundled `social_icon_pack` asset, with a letter-tile
+  fallback) — the same widget the blocklist uses.
 - **Appearance carrier**: `CounterAppearance` (bubble + widget styles) with
   `CounterAppearanceCubit` — each setter emits immediately (so the preview tracks
   the slider with no lag) but **debounces the native push by 120ms** so dragging a

@@ -191,12 +191,12 @@ release.
 
 ## 7. Known infra follow-ups (grab-bag)
 
-- **Stale vendor URLs in bundled config.** `assets/config/platforms_config.json` and
-  `assets/config/initial_config.json` still reference the **old** vendor host
-  (`https://curizic.com/NoScroll/...` icon URLs, an `.../NoScroll/...` CTA PDF, a `NoScroll_Official`
-  subreddit, and a `com.curizic.annote` deep link). These are pre-rebrand leftovers — repoint them
-  to Detoxo/errorxperts infrastructure. Noted here as an infra follow-up; do not invent replacement
-  URLs.
+- **Stale vendor URLs in bundled config.** `platforms_config.json` `iconUrl`s are **done** —
+  repointed to bundled local assets (`assets/images/social_icon_pack/`), so `curizic.com` no longer
+  appears there. Remaining pre-rebrand leftovers live in `assets/config/initial_config.json` (an
+  `.../NoScroll/...` CTA PDF, a `NoScroll_Official` subreddit, and a `com.curizic.annote` deep link) —
+  repoint them to Detoxo/errorxperts infrastructure. Noted here as an infra follow-up; do not invent
+  replacement URLs.
 - **Boundary check package prefix** (see §5) — `noscroll` → `detoxo`.
 - **Release signing** (see §3) — replace debug signing.
 - **Backend + OTP + FCM + Billing + real ads** — remaining §3 swap-ins (Firebase telemetry is wired;

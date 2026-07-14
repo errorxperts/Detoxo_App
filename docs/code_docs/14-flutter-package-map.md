@@ -88,7 +88,7 @@ Codegen for these runs through `build_runner` + `freezed` + `json_serializable`
 | `sleek_circular_slider` | `^2.1.0` | **Wired** (2 files) | Circular sliders (e.g. Conscious time-bank / daily-limit dials). |
 | `showcaseview` | `^5.1.0` | **Wired** | Onboarding coach-marks / feature tour (`lib/features/additional_feature/showcase_view/`). |
 | `flutter_svg` | `^2.3.0` | **Wired** (2 files) | Renders bundled SVG art. |
-| `cached_network_image` | `^3.4.1` | **Wired** | Loads/caches remote app icons in blocklist tiles (`block_app_tile.dart`) and the reel-counter card. |
+| `cached_network_image` | `^3.4.1` | **Wired** | Remote-icon fallback in `AppIconAvatar` (`app_icon_avatar.dart`, used by blocklist tiles + the reel-counter card). App icons now ship **locally** in `assets/images/social_icon_pack/`; this only handles `http…` `iconUrl`s from remote config. |
 | `lottie_tgs` | (no version pin) | **Wired** | Lottie/TGS animation rendering — showcase step icons (`showcase_lottie_icon.dart`) and onboarding illustrations. Chosen over stock `lottie` for TGS support. |
 | `intl` | `^0.20.2` | **Wired** (2 files) | Number/date formatting and localisation-safe strings. |
 
@@ -177,6 +177,9 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 - `assets/content/` — content-string bundles (mindful-timer quotes, pause / countdown
   emojis, curious/Conscious emojis, daily-limit emoji bands, …).
 - `assets/images/`, `assets/images/bg/` — raster art + backgrounds.
+- `assets/images/social_icon_pack/` — bundled app icons: one icon per app
+  (`<base>.png`, a white glyph on the app's brand-colored tile) plus `a.png`–`z.png`
+  letter-tile fallbacks. Rendered by `AppIconAvatar` (`app_icon_avatar.dart`).
 - `assets/lottie/` — Lottie/TGS animations (rendered via `lottie_tgs`).
 
 `uses-material-design: true` bundles the Material Icons font.

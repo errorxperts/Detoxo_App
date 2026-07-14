@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
 import 'package:flutter/material.dart';
@@ -68,7 +67,11 @@ class _BlockAppTileState extends State<BlockAppTile> {
       final t = group.surfaces.first;
       return _padded(
         AdaptiveSwitchTile(
-          leading: _AppAvatar(group: group, dimmed: !installed),
+          leading: AppIconAvatar(
+            iconUrl: group.iconUrl,
+            appName: group.appName,
+            dimmed: !installed,
+          ),
           title: t.displayName,
           subtitle: installed ? t.appName : 'Not installed',
           enabled: installed,
@@ -120,7 +123,11 @@ class _BlockAppTileState extends State<BlockAppTile> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
-          _AppAvatar(group: widget.group, dimmed: !installed),
+          AppIconAvatar(
+            iconUrl: widget.group.iconUrl,
+            appName: widget.group.appName,
+            dimmed: !installed,
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
@@ -187,41 +194,5 @@ class _BlockAppTileState extends State<BlockAppTile> {
         const SizedBox(height: 6),
       ],
     );
-  }
-}
-
-/// Rounded app icon with an initial-letter fallback; dimmed when the app isn't
-/// installed.
-class _AppAvatar extends StatelessWidget {
-  const _AppAvatar({required this.group, this.dimmed = false});
-
-  final BlockAppGroup group;
-  final bool dimmed;
-
-  @override
-  Widget build(BuildContext context) {
-    final fallback = IconBadge(
-      size: 34,
-      shape: BoxShape.rectangle,
-      fillAlpha: 0.16,
-      child: Text(
-        group.appName.isNotEmpty ? group.appName.characters.first.toUpperCase() : '?',
-        style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.accent),
-      ),
-    );
-    final avatar = group.iconUrl.isEmpty
-        ? fallback
-        : ClipRRect(
-            borderRadius: AppRadius.brMd,
-            child: CachedNetworkImage(
-              imageUrl: group.iconUrl,
-              width: 34,
-              height: 34,
-              fit: BoxFit.cover,
-              placeholder: (_, _) => fallback,
-              errorWidget: (_, _, _) => fallback,
-            ),
-          );
-    return dimmed ? Opacity(opacity: 0.4, child: avatar) : avatar;
   }
 }

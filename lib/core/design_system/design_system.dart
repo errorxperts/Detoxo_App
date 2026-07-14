@@ -9,6 +9,7 @@ export 'package:flutter_animate/flutter_animate.dart';
 export 'adaptive/adaptive_controls.dart';
 export 'adaptive/platform_adaptive.dart';
 // Components
+export 'components/app_icon_avatar.dart';
 export 'components/badges.dart';
 export 'components/buttons.dart';
 export 'components/cards.dart';

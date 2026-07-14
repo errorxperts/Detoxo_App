@@ -8,7 +8,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 0,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_vanced.png",
+      "iconUrl": "assets/images/social_icon_pack/youtube_vanced_google.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -18,7 +18,7 @@
           "platformId": "yt_shorts_vanced",
           "packageName": "com.biomes.vanced",
           "platformName": "YouTube Vanced Shorts",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_vanced.png",
+          "iconUrl": "assets/images/social_icon_pack/youtube_vanced_google.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -61,7 +61,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 0,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_shorts.png",
+      "iconUrl": "assets/images/social_icon_pack/youtube_google.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -71,7 +71,7 @@
           "platformId": "yt_shorts",
           "packageName": "com.google.android.youtube",
           "platformName": "YouTube Shorts",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_shorts.png",
+          "iconUrl": "assets/images/social_icon_pack/youtube_google.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -123,7 +123,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 0,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_revanced.png",
+      "iconUrl": "assets/images/social_icon_pack/youtube_google.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -133,7 +133,7 @@
           "platformId": "yt_shorts_revanced",
           "packageName": "app.revanced.android.youtube",
           "platformName": "YouTube Revanced Shorts",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_revanced.png",
+          "iconUrl": "assets/images/social_icon_pack/youtube_google.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -176,7 +176,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 0,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_shorts.png",
+      "iconUrl": "assets/images/social_icon_pack/youtube_google.png",
       "premiumExclusive": true,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -186,7 +186,7 @@
           "platformId": "yt_inapp_shorts",
           "packageName": "com_google_android_youtube",
           "platformName": "In-App YouTubeShorts",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_shorts.png",
+          "iconUrl": "assets/images/social_icon_pack/youtube_google.png",
           "detectors": {},
           "manualConfig": {},
           "showAlwaysInBlockList": false,
@@ -209,7 +209,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 1,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_lite.png",
+      "iconUrl": "assets/images/social_icon_pack/instagram_lite.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -219,7 +219,7 @@
           "platformId": "insta_lite",
           "packageName": "com.instagram.lite",
           "platformName": "Insta Lite Reels",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_lite.png",
+          "iconUrl": "assets/images/social_icon_pack/instagram_lite.png",
           "detectors": {},
           "manualConfig": {},
           "showAlwaysInBlockList": false,
@@ -242,7 +242,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 1,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro.png",
+      "iconUrl": "assets/images/social_icon_pack/instagram.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -252,7 +252,7 @@
           "platformId": "insta_pro",
           "packageName": "com.instapro.android",
           "platformName": "Insta pro Reels",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro.png",
+          "iconUrl": "assets/images/social_icon_pack/instagram.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -286,7 +286,7 @@
           "platformId": "insta_pro_stories",
           "packageName": "com.instapro.android",
           "platformName": "Insta pro Stories",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro.png",
+          "iconUrl": "assets/images/social_icon_pack/instagram.png",
           "detectors": {},
           "manualConfig": {},
           "showAlwaysInBlockList": false,
@@ -309,7 +309,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 1,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_reels.png",
+      "iconUrl": "assets/images/social_icon_pack/instagram.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -319,7 +319,7 @@
           "platformId": "ig_feed",
           "packageName": "com.instagram.android",
           "platformName": "Instagram Feed",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_reels.png",
+          "iconUrl": "assets/images/social_icon_pack/instagram.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -353,7 +353,7 @@
           "platformId": "ig_reel",
           "packageName": "com.instagram.android",
           "platformName": "Instagram Reels",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_reels.png",
+          "iconUrl": "assets/images/social_icon_pack/instagram.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -387,7 +387,7 @@
           "platformId": "ig_reel_by_friend",
           "packageName": "com.instagram.android",
           "platformName": "Allow Reels By Friends",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_reels.png",
+          "iconUrl": "assets/images/social_icon_pack/instagram.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -420,7 +420,7 @@
           "platformId": "ig_stories",
           "packageName": "com.instagram.android",
           "platformName": "Instagram Stories",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_reels.png",
+          "iconUrl": "assets/images/social_icon_pack/instagram.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -463,7 +463,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 1,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro2.png",
+      "iconUrl": "assets/images/social_icon_pack/instagram.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -473,7 +473,7 @@
           "platformId": "insta_pro2",
           "packageName": "com.instapro2.android",
           "platformName": "Insta pro2 Reels",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro2.png",
+          "iconUrl": "assets/images/social_icon_pack/instagram.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -507,7 +507,7 @@
           "platformId": "insta_pro2_stories",
           "packageName": "com.instapro2.android",
           "platformName": "Insta pro2 Stories",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_insta_pro2.png",
+          "iconUrl": "assets/images/social_icon_pack/instagram.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -550,7 +550,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 2,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb_lite.png",
+      "iconUrl": "assets/images/social_icon_pack/facebook_lite.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -560,7 +560,7 @@
           "platformId": "facebook_lite",
           "packageName": "com.facebook.lite",
           "platformName": "FB Lite",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb_lite.png",
+          "iconUrl": "assets/images/social_icon_pack/facebook_lite.png",
           "detectors": {},
           "manualConfig": {},
           "showAlwaysInBlockList": false,
@@ -574,7 +574,7 @@
           "platformId": "facebook_lite_video",
           "packageName": "com.facebook.lite",
           "platformName": "FB Lite Video",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb_lite.png",
+          "iconUrl": "assets/images/social_icon_pack/facebook_lite.png",
           "detectors": {},
           "manualConfig": {},
           "showAlwaysInBlockList": false,
@@ -597,7 +597,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 2,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb.png",
+      "iconUrl": "assets/images/social_icon_pack/facebook.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -607,7 +607,7 @@
           "platformId": "facebook_video",
           "packageName": "com.facebook.katana",
           "platformName": "FB Reels/Video",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb.png",
+          "iconUrl": "assets/images/social_icon_pack/facebook.png",
           "detectors": {},
           "manualConfig": {},
           "showAlwaysInBlockList": false,
@@ -621,7 +621,7 @@
           "platformId": "fb_reel",
           "packageName": "com.facebook.katana",
           "platformName": "Facebook Reels (Legacy)",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_fb.png",
+          "iconUrl": "assets/images/social_icon_pack/facebook.png",
           "detectors": {
             "CONT_DESC": {
               "supportedBlockModes": [
@@ -680,7 +680,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 3,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_sc_sl.png",
+      "iconUrl": "assets/images/social_icon_pack/snapchat.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -690,7 +690,7 @@
           "platformId": "snap_discover",
           "packageName": "com.snapchat.android",
           "platformName": "Snapchat Discover Page",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_sc_sl.png",
+          "iconUrl": "assets/images/social_icon_pack/snapchat.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -724,7 +724,7 @@
           "platformId": "snap_spotlights",
           "packageName": "com.snapchat.android",
           "platformName": "Snapchat Spotlights",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_sc_sl.png",
+          "iconUrl": "assets/images/social_icon_pack/snapchat.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -759,7 +759,7 @@
           "platformId": "snap_stories",
           "packageName": "com.snapchat.android",
           "platformName": "Snapchat Stories",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_sc_st.png",
+          "iconUrl": "assets/images/social_icon_pack/snapchat.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -822,7 +822,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 4,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_whatsapp.png",
+      "iconUrl": "assets/images/social_icon_pack/whatsapp.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -832,7 +832,7 @@
           "platformId": "wa_status",
           "packageName": "com.whatsapp",
           "platformName": "WhatsApp Status",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_whatsapp.png",
+          "iconUrl": "assets/images/social_icon_pack/whatsapp.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -875,7 +875,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 5,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_wab.png",
+      "iconUrl": "assets/images/social_icon_pack/whatsapp_business.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -885,7 +885,7 @@
           "platformId": "wab_status",
           "packageName": "com.whatsapp.w4b",
           "platformName": "WhatsApp Business Status",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_wab.png",
+          "iconUrl": "assets/images/social_icon_pack/whatsapp_business.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -928,7 +928,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 5,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_tiktok.png",
+      "iconUrl": "assets/images/social_icon_pack/tiktok.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -938,7 +938,7 @@
           "platformId": "tiktok_clips",
           "packageName": "com.ss.android.ugc.trill",
           "platformName": "TikTok Videos",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_tiktok.png",
+          "iconUrl": "assets/images/social_icon_pack/tiktok.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -981,7 +981,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 5,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_tiktok.png",
+      "iconUrl": "assets/images/social_icon_pack/tiktok.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -991,7 +991,7 @@
           "platformId": "tiktok_clips_legacy",
           "packageName": "com.zhiliaoapp.musically",
           "platformName": "TikTok Videos",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_tiktok.png",
+          "iconUrl": "assets/images/social_icon_pack/tiktok.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -1034,7 +1034,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 6,
-      "iconUrl": "https://curizic.com/NoScroll/icons/x_icon.png",
+      "iconUrl": "assets/images/social_icon_pack/twitter_x.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1044,7 +1044,7 @@
           "platformId": "x_twitter",
           "packageName": "com.twitter.android",
           "platformName": "X Reels",
-          "iconUrl": "https://curizic.com/NoScroll/icons/x_icon.png",
+          "iconUrl": "assets/images/social_icon_pack/twitter_x.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -1087,7 +1087,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 7,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_linkedin.png",
+      "iconUrl": "assets/images/social_icon_pack/linkedin.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1097,7 +1097,7 @@
           "platformId": "linkedin_video",
           "packageName": "com.linkedin.android",
           "platformName": "LinkedIn Watch",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_linkedin.png",
+          "iconUrl": "assets/images/social_icon_pack/linkedin.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -1140,7 +1140,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 8,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_reddit.png",
+      "iconUrl": "assets/images/social_icon_pack/reddit.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1150,7 +1150,7 @@
           "platformId": "reddit_watch",
           "packageName": "com.reddit.frontpage",
           "platformName": "Reddit Watch",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_reddit.png",
+          "iconUrl": "assets/images/social_icon_pack/reddit.png",
           "detectors": {
             "VIEWID_RES_NAME": {
               "supportedBlockModes": [
@@ -1193,7 +1193,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 9,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_opera.png",
+      "iconUrl": "assets/images/social_icon_pack/opera_mini_beta.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1203,7 +1203,7 @@
           "platformId": "opera_yt_reels",
           "packageName": "com.opera.mini.native",
           "platformName": "Opera YT",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_opera.png",
+          "iconUrl": "assets/images/social_icon_pack/opera_mini_beta.png",
           "detectors": {},
           "manualConfig": {},
           "showAlwaysInBlockList": false,
@@ -1226,7 +1226,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 10,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_vk.png",
+      "iconUrl": "assets/images/social_icon_pack/vkvideo.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1236,7 +1236,7 @@
           "platformId": "vk_app_clips",
           "packageName": "com.vk.clips",
           "platformName": "VK Clips app",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_vk.png",
+          "iconUrl": "assets/images/social_icon_pack/vkvideo.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -1279,7 +1279,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 10,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_vk_clips.png",
+      "iconUrl": "assets/images/social_icon_pack/vk.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1289,7 +1289,7 @@
           "platformId": "vk_clips",
           "packageName": "com.vkontakte.android",
           "platformName": "VK Clips",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_vk_clips.png",
+          "iconUrl": "assets/images/social_icon_pack/vk.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -1333,7 +1333,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 10,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_music.png",
+      "iconUrl": "assets/images/social_icon_pack/youtube_music_google.png",
       "premiumExclusive": true,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1343,7 +1343,7 @@
           "platformId": "ytm_shorts",
           "packageName": "com.google.android.apps.youtube.music",
           "platformName": "YT Music Samples",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_yt_music.png",
+          "iconUrl": "assets/images/social_icon_pack/youtube_music_google.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -1386,7 +1386,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 11,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_snaptube.png",
+      "iconUrl": "assets/images/social_icon_pack/snaptube.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1396,7 +1396,7 @@
           "platformId": "snaptube_premium",
           "packageName": "com.snaptube.premium",
           "platformName": "SnapTube Shorts",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_snaptube.png",
+          "iconUrl": "assets/images/social_icon_pack/snaptube.png",
           "detectors": {
             "FINDBYID": {
               "supportedBlockModes": [
@@ -1440,7 +1440,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 12,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_cleantube.png",
+      "iconUrl": "assets/images/social_icon_pack/youtube_google.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1450,7 +1450,7 @@
           "platformId": "cleantube_yt_reels",
           "packageName": "com.sgebrelibanos.aderaser",
           "platformName": "CleanTube Shorts",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_cleantube.png",
+          "iconUrl": "assets/images/social_icon_pack/youtube_google.png",
           "detectors": {},
           "manualConfig": {},
           "showAlwaysInBlockList": false,
@@ -1473,7 +1473,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 13,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_bluesky.png",
+      "iconUrl": "",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1491,7 +1491,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 51,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_jiosphere.png",
+      "iconUrl": "assets/images/social_icon_pack/jio_browser.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1501,7 +1501,7 @@
           "platformId": "jio_sphere_yt_reels",
           "packageName": "com.jio.web",
           "platformName": "JioSphere YT",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_jiosphere.png",
+          "iconUrl": "assets/images/social_icon_pack/jio_browser.png",
           "detectors": {},
           "manualConfig": {},
           "showAlwaysInBlockList": false,
@@ -1524,7 +1524,7 @@
       "paramsClass": -1,
       "params": "{}",
       "priority": 52,
-      "iconUrl": "https://curizic.com/NoScroll/icons/ic_pw.png",
+      "iconUrl": "assets/images/social_icon_pack/physics_wallah.png",
       "premiumExclusive": false,
       "minAppVersion": -1,
       "maxAppVersion": -1,
@@ -1534,7 +1534,7 @@
           "platformId": "pw_yt_reels",
           "packageName": "xyz.penpencil.physicswala",
           "platformName": "PW Shorts",
-          "iconUrl": "https://curizic.com/NoScroll/icons/ic_pw.png",
+          "iconUrl": "assets/images/social_icon_pack/physics_wallah.png",
           "detectors": {},
           "manualConfig": {},
           "showAlwaysInBlockList": false,

@@ -17,9 +17,10 @@ vestigial server-envelope fields, harmless when parsed from an asset.
 > Naming note: the `detectionType` enum value `curious` / wire token `CURIOUS` (the
 > earn-as-you-abstain plan) is **internal**; its user-facing label is **"Conscious"**.
 > That token does not appear in these config files but shows up in the OVERLAY
-> `params` as `curious_support`. Also note the bundled JSON still carries legacy
-> `curizic.com/NoScroll/...` `iconUrl`s and `notificationId`/`ctaUrl` strings
-> referencing the old app — those are **infra follow-ups**, not new facts to invent.
+> `params` as `curious_support`. `iconUrl`s now point at **bundled local assets**
+> (`assets/images/social_icon_pack/<base>.png`); the JSON still carries legacy
+> `notificationId`/`ctaUrl` strings referencing the old app — those are **infra
+> follow-ups**, not new facts to invent.
 
 ---
 
@@ -59,7 +60,7 @@ Dart model: `lib/features/blocking/shared/data/models/platform_config_model.dart
 | --- | --- | --- |
 | `packageName` | `String` (required) | Android package. The **only** app field the native parser reads. |
 | `appName` | `String` `''` | Display name (e.g. `"Instagram"`). |
-| `iconUrl` | `String` `''` | Icon (legacy `curizic.com` URL in the bundle — infra follow-up). |
+| `iconUrl` | `String` `''` | Icon: a bundled asset path (`assets/images/social_icon_pack/<base>.png`, one brand-colored icon per app), rendered by `AppIconAvatar`. Empty ⇒ letter-tile fallback. An `http…` value still loads remotely (for remote config). |
 | `priority` | `int` `0` | UI ordering in the block list / dashboard. |
 | `premiumExclusive` | `bool` `false` | Whole app is premium-gated in the UI. |
 | `supportInAppYtShorts` | `bool` `false` | Marks in-app-browser YouTube-Shorts hosts (browsers, PW, Jio). |

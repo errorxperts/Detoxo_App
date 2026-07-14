@@ -263,15 +263,16 @@ Everything above is offline-first by design. To add a live backend:
 ## 7. Infra follow-ups (bundled data)
 
 The bundled JSON assets were carried over from an earlier product iteration and
-still contain **legacy branding strings and legacy icon URLs**. Specifically,
-`iconUrl` values in `platforms_config.json` still point at the old vendor host
-`curizic.com` (e.g. `https://curizic.com/NoScroll/icons/...`), and
-`initial_config.json` still carries legacy notice copy and `expiry` timestamps.
+still contain some **legacy branding strings**. `iconUrl` values in
+`platforms_config.json` have been **repointed to bundled local assets**
+(`assets/images/social_icon_pack/<base>.png`, one brand-colored icon per app) —
+the old `curizic.com` host is gone — but `initial_config.json` still carries
+legacy notice copy and `expiry` timestamps.
 
 These are **infra follow-ups**, not code bugs: the offline flow works because
 the icons/notices are just data fields projected into `BlockTarget`/`AppNotice`.
-When the icon host is decommissioned or rebranded, refresh the bundled assets
-(and/or serve them from the future remote config). Do not hard-code a
+If remote config later serves `iconUrl`s, an `http…` value still loads remotely
+via `AppIconAvatar`; a local asset path renders directly. Do not hard-code a
 replacement URL in code — it belongs in the config payload.
 
 ---

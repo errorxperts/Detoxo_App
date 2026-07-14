@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/domain/entities/app_content_count.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/domain/entities/content_count.dart';
@@ -213,7 +212,11 @@ class _AppRow extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return Row(
       children: [
-        _AppAvatar(iconUrl: app.iconUrl),
+        AppIconAvatar(
+          iconUrl: app.iconUrl,
+          appName: app.appName,
+          borderRadius: AppRadius.brSm,
+        ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
@@ -275,33 +278,6 @@ class _Bar extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _AppAvatar extends StatelessWidget {
-  const _AppAvatar({required this.iconUrl});
-
-  final String iconUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    const size = 34.0;
-    const fallback = IconBadge(
-      size: size,
-      icon: Icons.smartphone_rounded,
-    );
-    if (iconUrl.isEmpty) return fallback;
-    return ClipRRect(
-      borderRadius: AppRadius.brSm,
-      child: CachedNetworkImage(
-        imageUrl: iconUrl,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        placeholder: (_, _) => fallback,
-        errorWidget: (_, _, _) => fallback,
       ),
     );
   }

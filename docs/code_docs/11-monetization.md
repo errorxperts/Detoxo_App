@@ -253,8 +253,9 @@ fields. Because nothing consumes these fields today it is harmless at runtime, b
   test ids in the manifest. Replace with Detoxo's own ad units (or test ids) before
   enabling ads.
 
-Treat both as **infra / config follow-ups**, analogous to the leftover vendor icon
-URLs noted elsewhere. Do not go live on this bundled data.
+Treat both as **infra / config follow-ups**, analogous to the leftover legacy
+config strings noted elsewhere (the app-icon URLs are already fixed — icons now
+ship locally in `assets/images/social_icon_pack/`). Do not go live on this bundled data.
 
 ---
 
