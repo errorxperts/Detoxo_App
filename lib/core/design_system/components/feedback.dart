@@ -23,7 +23,10 @@ class LoadingState extends StatelessWidget {
           const SizedBox(
             width: 28,
             height: 28,
-            child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.accent),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: AppColors.accent,
+            ),
           ),
           if (message != null) ...[
             const SizedBox(height: AppSpacing.md),
@@ -37,7 +40,12 @@ class LoadingState extends StatelessWidget {
 
 /// A shimmering placeholder block for skeleton screens.
 class Skeleton extends StatelessWidget {
-  const Skeleton({this.width, this.height = 16, this.radius = AppRadius.sm, super.key});
+  const Skeleton({
+    this.width,
+    this.height = 16,
+    this.radius = AppRadius.sm,
+    super.key,
+  });
 
   final double? width;
   final double height;
@@ -46,13 +54,15 @@ class Skeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: context.glass.fillTop,
-        borderRadius: BorderRadius.circular(radius),
-      ),
-    ).animate(onPlay: (c) => c.repeat()).shimmer(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: context.glass.fillTop,
+            borderRadius: BorderRadius.circular(radius),
+          ),
+        )
+        .animate(onPlay: (c) => c.repeat())
+        .shimmer(
           duration: 1200.ms,
           color: context.glass.onGlassMuted.withValues(alpha: 0.12),
         );
@@ -64,7 +74,7 @@ class ProgressRing extends StatelessWidget {
   const ProgressRing({
     required this.progress,
     this.size = 220,
-    this.strokeWidth = 10,
+    this.strokeWidth = 24,
     this.color = AppColors.accent,
     this.child,
     super.key,
@@ -85,11 +95,29 @@ class ProgressRing extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          GlassContainer(
-            blurSigma: AppBlur.hero,
-            borderRadius: size,
-            padding: EdgeInsets.zero,
-            child: const SizedBox.shrink(),
+          // Raised glass disc nested inside the arc. Sized to ~72% so a clear
+          // gap sits between the arc and the disc (the depth cue), with a soft
+          // elevation shadow so it reads as floating above the card.
+          Container(
+            width: size * 0.72,
+            height: size * 0.72,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 30,
+                  spreadRadius: -6,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: GlassContainer(
+              blurSigma: AppBlur.hero,
+              borderRadius: size * 0.36,
+              padding: EdgeInsets.zero,
+              child: const SizedBox.expand(),
+            ),
           ),
           CustomPaint(
             size: Size.square(size),
@@ -107,7 +135,11 @@ class ProgressRing extends StatelessWidget {
 }
 
 class _RingPainter extends CustomPainter {
-  _RingPainter({required this.progress, required this.strokeWidth, required this.trackColor});
+  _RingPainter({
+    required this.progress,
+    required this.strokeWidth,
+    required this.trackColor,
+  });
 
   final double progress;
   final double strokeWidth;
@@ -117,27 +149,68 @@ class _RingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final radius = (size.width - strokeWidth) / 2;
-    final track = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round
-      ..color = trackColor;
-    final arc = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round
-      ..shader = const SweepGradient(
-        colors: [AppColors.accent, AppColors.seed, AppColors.accent],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    const start = -math.pi / 2;
+    final sweep = math.pi * 2 * progress;
+
+    // Faint full-circle track.
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round
+        ..color = trackColor,
+    );
+
+    if (progress <= 0) return;
+
+    // Glowing bead at the leading edge of the arc.
+    final angle = start + sweep;
+    final tip = center + Offset(math.cos(angle), math.sin(angle)) * radius;
+
     canvas
-      ..drawCircle(center, radius, track)
+      // Ambient bloom: a wider, blurred copy of the arc glowing behind it.
       ..drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        -math.pi / 2,
-        math.pi * 2 * progress,
+        rect,
+        start,
+        sweep,
         false,
-        arc,
-      );
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth + 6
+          ..strokeCap = StrokeCap.round
+          ..color = AppColors.accent.withValues(alpha: 0.35)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
+      )
+      // Crisp gradient arc (mint → bright violet → mint).
+      ..drawArc(
+        rect,
+        start,
+        sweep,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.round
+          ..shader = const SweepGradient(
+            colors: [
+              AppColors.accent,
+              AppColors.indigoBright,
+              AppColors.accent,
+            ],
+          ).createShader(rect),
+      )
+      // Bead glow, then bright core.
+      ..drawCircle(
+        tip,
+        strokeWidth * 0.9,
+        Paint()
+          ..color = AppColors.accent.withValues(alpha: 0.5)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      )
+      ..drawCircle(tip, strokeWidth * 0.42, Paint()..color = Colors.white);
   }
 
   @override
@@ -163,7 +236,9 @@ class ProgressBar extends StatelessWidget {
             child: Container(
               height: height,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [AppColors.accent, AppColors.seed]),
+                gradient: const LinearGradient(
+                  colors: [AppColors.accent, AppColors.seed],
+                ),
                 borderRadius: BorderRadius.circular(height),
               ),
             ),

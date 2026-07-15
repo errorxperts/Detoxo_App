@@ -74,57 +74,60 @@ class CommandCenterCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
 
-    return GlassContainer(
-      borderRadius: 36,
-      blurSigma: AppBlur.hero,
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      child: Stack(
-        children: [
-          SizedBox(
-            width: double.infinity,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: AppSpacing.lg),
-                SizedBox(
-                  width: 240,
-                  height: 240,
-                  child: countdown == null
-                      ? _timeSavedRing(context, text, scheme)
-                      : _countdownRing(context, text, countdown!),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    StatPill(icon: Icons.smart_display, value: blockedValue, label: 'Blocked'),
-                    const SizedBox(width: AppSpacing.sm),
-                    StatPill(
-                      icon: Icons.bolt,
-                      value: streakValue,
-                      label: 'Streak',
-                      iconColor: scheme.secondary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                ModeToggle(
-                  options: modeOptions,
-                  selectedIndex: selectedMode,
-                  onChanged: onModeChanged,
-                  enabled: modeEnabled,
-                  cellBuilder: modeCellBuilder,
-                ),
-              ],
-            ),
+    return Stack(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: AppSpacing.lg),
+              SizedBox(
+                width: 240,
+                height: 240,
+                child: countdown == null
+                    ? _timeSavedRing(context, text, scheme)
+                    : _countdownRing(context, text, countdown!),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  StatPill(
+                    icon: Icons.smart_display,
+                    value: blockedValue,
+                    label: 'Blocked',
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  StatPill(
+                    icon: Icons.bolt,
+                    value: streakValue,
+                    label: 'Streak',
+                    iconColor: scheme.secondary,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              ModeToggle(
+                options: modeOptions,
+                selectedIndex: selectedMode,
+                onChanged: onModeChanged,
+                enabled: modeEnabled,
+                cellBuilder: modeCellBuilder,
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   /// The idle hero: a gradient ring around the TIME-SAVED metric.
-  Widget _timeSavedRing(BuildContext context, TextTheme text, ColorScheme scheme) {
+  Widget _timeSavedRing(
+    BuildContext context,
+    TextTheme text,
+    ColorScheme scheme,
+  ) {
     return ProgressRing(
       progress: progress,
       size: 240,
@@ -144,9 +147,19 @@ class CommandCenterCard extends StatelessWidget {
             width: 170,
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text(
-                timeSaved,
-                style: text.displaySmall?.copyWith(fontWeight: FontWeight.w700, height: 1),
+              child: ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [AppColors.tealBright, AppColors.indigoBright],
+                ).createShader(bounds),
+                blendMode: BlendMode.srcIn,
+                child: Text(
+                  timeSaved,
+                  style: text.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ),
@@ -159,7 +172,11 @@ class CommandCenterCard extends StatelessWidget {
 
   /// The live hero: the read-only countdown gauge with ticking digits, an
   /// animated emoji and a state pill.
-  Widget _countdownRing(BuildContext context, TextTheme text, SessionCountdown cd) {
+  Widget _countdownRing(
+    BuildContext context,
+    TextTheme text,
+    SessionCountdown cd,
+  ) {
     final icon = cd.icon;
     return CountdownRing(
       progress: cd.progress,
@@ -175,7 +192,10 @@ class CommandCenterCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xs),
           ],
-          AnimatedDigitTimer(remaining: cd.remaining, style: text.headlineSmall),
+          AnimatedDigitTimer(
+            remaining: cd.remaining,
+            style: text.headlineSmall,
+          ),
           const SizedBox(height: AppSpacing.xs),
           Pill(label: cd.caption, tone: cd.tone),
         ],
@@ -194,7 +214,10 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs + 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xxs + 2,
+      ),
       decoration: BoxDecoration(
         color: scheme.secondary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadius.pill),
