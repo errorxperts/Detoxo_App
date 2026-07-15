@@ -29,12 +29,22 @@ abstract final class AppHaptics {
 
 /// Scale-on-press micro-interaction with optional haptic feedback. Wrap any
 /// tappable surface (GlassCard, CTAs, tiles).
+///
+/// Exposes a proper `button` semantics node (role + [semanticLabel] + [enabled]
+/// state) and is keyboard/switch-access activatable — so every custom tappable
+/// routed through it announces correctly to TalkBack/VoiceOver, not just the
+/// Material buttons. Set [minTapTarget] on small controls so the hit area meets
+/// the 48dp minimum without changing the visual size.
 class AppPressable extends StatefulWidget {
   const AppPressable({
     required this.child,
     required this.onTap,
     this.pressedScale = 0.96,
     this.haptic = true,
+    this.enabled = true,
+    this.semanticLabel,
+    this.selected,
+    this.minTapTarget,
     super.key,
   });
 
@@ -43,11 +53,27 @@ class AppPressable extends StatefulWidget {
   final double pressedScale;
   final bool haptic;
 
+  /// When false, the control is inert (no tap, no press animation) and is
+  /// announced as a disabled button.
+  final bool enabled;
+
+  /// Accessibility label read by screen readers. Omit when the [child] already
+  /// exposes descriptive text.
+  final String? semanticLabel;
+
+  /// Exposes a selected state to screen readers (for toggle-like chips/cells).
+  final bool? selected;
+
+  /// When set, expands the hit area to at least this size (the visual stays
+  /// centered at its natural size) so small controls clear the 48dp floor.
+  final Size? minTapTarget;
+
   @override
   State<AppPressable> createState() => _AppPressableState();
 }
 
-class _AppPressableState extends State<AppPressable> with SingleTickerProviderStateMixin {
+class _AppPressableState extends State<AppPressable>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: AppDurations.instant,
@@ -62,25 +88,67 @@ class _AppPressableState extends State<AppPressable> with SingleTickerProviderSt
   void _down(_) => _c.forward();
   void _up([_]) => _c.reverse();
 
+  void _handleTap() {
+    if (!widget.enabled) return;
+    if (widget.haptic) AppHaptics.light();
+    widget.onTap();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTapDown: _down,
-      onTapUp: _up,
-      onTapCancel: _up,
-      onTap: () {
-        if (widget.haptic) AppHaptics.light();
-        widget.onTap();
-      },
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (_, child) => Transform.scale(
-          scale: 1 - (_c.value * (1 - widget.pressedScale)),
-          child: child,
-        ),
-        child: widget.child,
+    Widget visual = AnimatedBuilder(
+      animation: _c,
+      builder: (_, child) => Transform.scale(
+        scale: 1 - (_c.value * (1 - widget.pressedScale)),
+        child: child,
       ),
+      child: widget.child,
+    );
+
+    if (widget.minTapTarget != null) {
+      visual = ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: widget.minTapTarget!.width,
+          minHeight: widget.minTapTarget!.height,
+        ),
+        child: Center(widthFactor: 1, heightFactor: 1, child: visual),
+      );
+    }
+
+    final enabled = widget.enabled;
+    Widget result = GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: enabled ? _down : null,
+      onTapUp: enabled ? _up : null,
+      onTapCancel: enabled ? _up : null,
+      onTap: enabled ? _handleTap : null,
+      child: visual,
+    );
+
+    // Keyboard / switch-access focus + Enter/Space activation.
+    // ponytail: no painted focus ring yet — deferred with the GlassTokens
+    //           focus/pressed state tokens (light-mode work). TalkBack reads
+    //           the focused node via semantics regardless.
+    result = FocusableActionDetector(
+      enabled: enabled,
+      mouseCursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
+      actions: <Type, Action<Intent>>{
+        ActivateIntent: CallbackAction<ActivateIntent>(
+          onInvoke: (_) {
+            _handleTap();
+            return null;
+          },
+        ),
+      },
+      child: result,
+    );
+
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      selected: widget.selected,
+      label: widget.semanticLabel,
+      child: result,
     );
   }
 }
@@ -100,7 +168,8 @@ class PressScale extends StatefulWidget {
   State<PressScale> createState() => _PressScaleState();
 }
 
-class _PressScaleState extends State<PressScale> with SingleTickerProviderStateMixin {
+class _PressScaleState extends State<PressScale>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: AppDurations.instant,
@@ -132,10 +201,21 @@ class _PressScaleState extends State<PressScale> with SingleTickerProviderStateM
 
 /// Entrance animation helpers (flutter_animate) for a consistent fade + slide-up.
 extension EntranceX on Widget {
-  /// Single-item entrance: fade + slide-up.
-  Widget entrance({Duration delay = Duration.zero}) => animate(delay: delay)
-      .fadeIn(duration: AppDurations.normal, curve: AppCurves.decelerate)
-      .slideY(begin: 0.12, end: 0, duration: AppDurations.normal, curve: AppCurves.standard);
+  /// Single-item entrance: fade + slide-up. Skips the motion when the user has
+  /// "remove animations" enabled.
+  Widget entrance({Duration delay = Duration.zero}) => Builder(
+    builder: (context) {
+      if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return this;
+      return animate(delay: delay)
+          .fadeIn(duration: AppDurations.normal, curve: AppCurves.decelerate)
+          .slideY(
+            begin: 0.12,
+            end: 0,
+            duration: AppDurations.normal,
+            curve: AppCurves.standard,
+          );
+    },
+  );
 }
 
 /// Staggered entrance for a list of children (stat tiles, permission cards, rows).
@@ -153,12 +233,20 @@ class EntranceList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      return Column(crossAxisAlignment: crossAxisAlignment, children: children);
+    }
     return Column(
       crossAxisAlignment: crossAxisAlignment,
       children: children
           .animate(interval: interval)
           .fadeIn(duration: AppDurations.normal, curve: AppCurves.decelerate)
-          .slideY(begin: 0.15, end: 0, duration: AppDurations.normal, curve: AppCurves.standard),
+          .slideY(
+            begin: 0.15,
+            end: 0,
+            duration: AppDurations.normal,
+            curve: AppCurves.standard,
+          ),
     );
   }
 }
@@ -186,12 +274,19 @@ class StatusDot extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.6), blurRadius: 8)],
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.6), blurRadius: 8),
+        ],
       ),
     );
     if (!pulsing || reduceMotion) return dot;
     return dot
         .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(begin: 1, end: 1.25, duration: AppDurations.pulse, curve: AppCurves.gentle);
+        .scaleXY(
+          begin: 1,
+          end: 1.25,
+          duration: AppDurations.pulse,
+          curve: AppCurves.gentle,
+        );
   }
 }

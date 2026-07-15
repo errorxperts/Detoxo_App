@@ -24,6 +24,17 @@ abstract final class AppSpacing {
   static const SizedBox gapXl = SizedBox(height: xl, width: xl);
 }
 
+/// Interactive-control sizing. [controlHeight] is the visual pill height (matches
+/// Material's default button height); [minTapTarget] is the 48dp accessibility
+/// floor. Material buttons pad their hit area to 48 automatically — use
+/// [minTapTargetSquare] via `AppPressable.minTapTarget` on custom (non-Material)
+/// controls that don't get that padding.
+abstract final class AppSizes {
+  static const double controlHeight = 44;
+  static const double minTapTarget = 48;
+  static const Size minTapTargetSquare = Size(minTapTarget, minTapTarget);
+}
+
 /// Corner radii. `lg`=20 matches the legacy Card radius; `md`=14 the input
 /// radius; `pill` for chips and CTAs.
 abstract final class AppRadius {

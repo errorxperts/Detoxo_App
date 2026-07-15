@@ -53,6 +53,13 @@ class ContentCounter(private val context: Context) {
     private var hidePending = false
     private var lastWidgetPushMs = 0L
 
+    // Whole-app foreground usage-time accumulation (drives the dashboard
+    // screen-time ring + the bubble tap-to-reveal). Advances only between events
+    // that are close together, so screen-off / idle gaps (no events) start a
+    // fresh window and aren't counted.
+    private var usageActivePkg: String? = null
+    private var usageLastTickMs = 0L
+
     val isEnabled: Boolean get() = store.enabled
 
     /**
@@ -108,6 +115,28 @@ class ContentCounter(private val context: Context) {
     fun onScroll(pkg: String) {
         if (!store.enabled || currentReelPkg == null) return
         if (reelActive) endReel()
+    }
+
+    /**
+     * The service saw an accessibility event from a monitored social app [pkg].
+     * Accrues foreground time between consecutive events on the same app, but
+     * only within [USAGE_ACTIVE_GAP_MS] — a longer gap means the screen was off
+     * or the user was away (no events), so it starts a fresh window instead of
+     * counting the idle time. A different [pkg] also restarts the window.
+     *
+     * ponytail: active-event heuristic — undercounts truly passive, event-quiet
+     * playback. Upgrade path = a 1 Hz foreground ticker while a monitored app is
+     * front-most (mirroring the service's Conscious accountant).
+     */
+    fun onAppActivity(pkg: String) {
+        if (!store.enabled) return
+        val now = now()
+        if (pkg == usageActivePkg) {
+            val delta = now - usageLastTickMs
+            if (delta in 1L until USAGE_ACTIVE_GAP_MS) store.recordUsage(delta, dateKey())
+        }
+        usageActivePkg = pkg
+        usageLastTickMs = now
     }
 
     fun setEnabled(on: Boolean) {
@@ -205,6 +234,7 @@ class ContentCounter(private val context: Context) {
                 "total" to (snap["total"] as? Int ?: 0),
                 "perAppToday" to snap["perAppToday"],
                 "perAppTotal" to snap["perAppTotal"],
+                "timeTodayMs" to (snap["timeTodayMs"] as? Long ?: 0L),
             ),
         )
         pushWidget(snap)
@@ -242,6 +272,13 @@ class ContentCounter(private val context: Context) {
 
         /** Throttle native widget pushes so a count can't hammer the launcher. */
         const val WIDGET_MIN_INTERVAL_MS = 1000L
+
+        /**
+         * Consecutive events from one monitored app within this gap accrue as
+         * continuous foreground usage; a longer silence is treated as idle/away
+         * and not counted (see [onAppActivity]).
+         */
+        const val USAGE_ACTIVE_GAP_MS = 12000L
 
         /**
          * Windows that must NOT be treated as a foreground-app change — our own

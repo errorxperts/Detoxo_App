@@ -30,4 +30,16 @@ abstract final class AppGradients {
   static const LinearGradient brand = LinearGradient(
     colors: [AppColors.seed, AppColors.accent],
   );
+
+  /// Bright hero-metric gradient (mint → active violet) — large "active"
+  /// numbers like the dashboard screen-time value.
+  static const LinearGradient metric = LinearGradient(
+    colors: [AppColors.tealBright, AppColors.indigoBright],
+  );
+
+  /// Over-limit hero-metric gradient (amber → red) — the screen-time value once
+  /// usage passes the daily limit. Pairs with [AppColors.limitTone].
+  static const LinearGradient overLimit = LinearGradient(
+    colors: [AppColors.warning, AppColors.danger],
+  );
 }

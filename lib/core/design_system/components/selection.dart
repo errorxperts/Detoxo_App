@@ -26,6 +26,8 @@ class AppChip extends StatelessWidget {
     return AppPressable(
       onTap: onSelected,
       pressedScale: 0.94,
+      selected: selected,
+      minTapTarget: const Size(0, AppSizes.minTapTarget),
       child: GlassContainer(
         enableBlur: false,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),

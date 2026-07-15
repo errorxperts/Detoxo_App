@@ -16,6 +16,7 @@ class BubbleStyle extends Equatable {
     this.spacing = spacingDefault,
     this.opacity = opacityDefault,
     this.showLabel = false,
+    this.showTime = true,
   });
 
   const BubbleStyle.defaults() : this();
@@ -34,6 +35,7 @@ class BubbleStyle extends Equatable {
       spacing: _clamp(m['spacing'], spacingMin, spacingMax, spacingDefault),
       opacity: _clamp(m['opacity'], opacityMin, opacityMax, opacityDefault),
       showLabel: m['showLabel'] as bool? ?? false,
+      showTime: m['showTime'] as bool? ?? true,
     );
   }
 
@@ -54,6 +56,10 @@ class BubbleStyle extends Equatable {
 
   /// Whether to show a tiny "reels" caption under the count.
   final bool showLabel;
+
+  /// Whether a single tap briefly reveals today's watch time on the bubble
+  /// (double tap always opens the app). When off, a single tap opens the app.
+  final bool showTime;
 
   // Field ranges (also drive the sliders).
   static const double sizeMin = 40;
@@ -76,6 +82,7 @@ class BubbleStyle extends Equatable {
     double? spacing,
     double? opacity,
     bool? showLabel,
+    bool? showTime,
   }) {
     return BubbleStyle(
       variant: variant ?? this.variant,
@@ -84,6 +91,7 @@ class BubbleStyle extends Equatable {
       spacing: spacing ?? this.spacing,
       opacity: opacity ?? this.opacity,
       showLabel: showLabel ?? this.showLabel,
+      showTime: showTime ?? this.showTime,
     );
   }
 
@@ -94,6 +102,7 @@ class BubbleStyle extends Equatable {
     'spacing': spacing,
     'opacity': opacity,
     'showLabel': showLabel,
+    'showTime': showTime,
   };
 
   @override
@@ -104,6 +113,7 @@ class BubbleStyle extends Equatable {
     spacing,
     opacity,
     showLabel,
+    showTime,
   ];
 }
 

@@ -30,14 +30,26 @@ class PermissionRepositoryImpl implements PermissionRepository {
     if (!PlatformCapabilities.usesAndroidPermissionFunnel) {
       return PermissionStatus(kind: permission, state: PermissionState.denied);
     }
+    // Notifications is the one true runtime permission: it can be
+    // permanently denied (don't-ask-again), which the settings-based ones can't.
+    if (permission == AppPermission.notifications) {
+      final s = await ph.Permission.notification.status;
+      return PermissionStatus(
+        kind: permission,
+        state: s.isGranted
+            ? PermissionState.granted
+            : s.isPermanentlyDenied
+                ? PermissionState.permanentlyDenied
+                : PermissionState.denied,
+      );
+    }
     final granted = switch (permission) {
       AppPermission.accessibility => await _channel.isAccessibilityEnabled(),
       AppPermission.overlay => await _channel.canDrawOverlays(),
       AppPermission.usageAccess => await _channel.hasUsageAccess(),
       AppPermission.batteryOptimization => await _channel.isIgnoringBattery(),
       AppPermission.deviceAdmin => await _channel.isDeviceAdminActive(),
-      AppPermission.notifications =>
-        await ph.Permission.notification.isGranted,
+      AppPermission.notifications => false, // handled above
     };
     return PermissionStatus(
       kind: permission,
@@ -60,7 +72,13 @@ class PermissionRepositoryImpl implements PermissionRepository {
       case AppPermission.deviceAdmin:
         await _channel.requestDeviceAdmin();
       case AppPermission.notifications:
-        await ph.Permission.notification.request();
+        // A plain request() no-ops once permanently denied — send the user to
+        // the app's settings screen instead so they have a recovery path.
+        if (await ph.Permission.notification.isPermanentlyDenied) {
+          await ph.openAppSettings();
+        } else {
+          await ph.Permission.notification.request();
+        }
     }
   }
 }

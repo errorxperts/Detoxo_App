@@ -76,6 +76,7 @@ class ProgressRing extends StatelessWidget {
     this.size = 220,
     this.strokeWidth = 24,
     this.color = AppColors.accent,
+    this.arcColor,
     this.child,
     super.key,
   });
@@ -85,6 +86,10 @@ class ProgressRing extends StatelessWidget {
   final double size;
   final double strokeWidth;
   final Color color;
+
+  /// Optional solid arc tone. When null the arc uses the brand sweep gradient;
+  /// when set (e.g. a usage-vs-limit ladder color) the whole arc + glow adopt it.
+  final Color? arcColor;
   final Widget? child;
 
   @override
@@ -125,6 +130,7 @@ class ProgressRing extends StatelessWidget {
               progress: progress.clamp(0, 1),
               strokeWidth: strokeWidth,
               trackColor: context.glass.border,
+              arcColor: arcColor,
             ),
           ),
           ?child,
@@ -139,11 +145,13 @@ class _RingPainter extends CustomPainter {
     required this.progress,
     required this.strokeWidth,
     required this.trackColor,
+    this.arcColor,
   });
 
   final double progress;
   final double strokeWidth;
   final Color trackColor;
+  final Color? arcColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -170,6 +178,9 @@ class _RingPainter extends CustomPainter {
     final angle = start + sweep;
     final tip = center + Offset(math.cos(angle), math.sin(angle)) * radius;
 
+    // Bloom/bead tone follows the arc color when one is supplied.
+    final glow = arcColor ?? AppColors.accent;
+
     canvas
       // Ambient bloom: a wider, blurred copy of the arc glowing behind it.
       ..drawArc(
@@ -181,10 +192,11 @@ class _RingPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeWidth + 6
           ..strokeCap = StrokeCap.round
-          ..color = AppColors.accent.withValues(alpha: 0.35)
+          ..color = glow.withValues(alpha: 0.35)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
       )
-      // Crisp gradient arc (mint → bright violet → mint).
+      // Crisp arc: a solid laddered tone when [arcColor] is given, else the
+      // brand sweep gradient (mint → bright violet → mint).
       ..drawArc(
         rect,
         start,
@@ -194,27 +206,31 @@ class _RingPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeWidth
           ..strokeCap = StrokeCap.round
-          ..shader = const SweepGradient(
-            colors: [
-              AppColors.accent,
-              AppColors.indigoBright,
-              AppColors.accent,
-            ],
-          ).createShader(rect),
+          ..shader = arcColor == null
+              ? const SweepGradient(
+                  colors: [
+                    AppColors.accent,
+                    AppColors.indigoBright,
+                    AppColors.accent,
+                  ],
+                ).createShader(rect)
+              : null
+          ..color = glow,
       )
       // Bead glow, then bright core.
       ..drawCircle(
         tip,
         strokeWidth * 0.9,
         Paint()
-          ..color = AppColors.accent.withValues(alpha: 0.5)
+          ..color = glow.withValues(alpha: 0.5)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
       )
       ..drawCircle(tip, strokeWidth * 0.42, Paint()..color = Colors.white);
   }
 
   @override
-  bool shouldRepaint(_RingPainter old) => old.progress != progress;
+  bool shouldRepaint(_RingPainter old) =>
+      old.progress != progress || old.arcColor != arcColor;
 }
 
 /// A glass linear progress bar (daily-limit usage, permissions completion).

@@ -137,6 +137,7 @@ class _PermissionsScreenState extends State<PermissionsScreen> with WidgetsBindi
         why: _whyFor(status.kind),
         granted: status.granted,
         isRequired: status.kind.required,
+        permanentlyDenied: status.permanentlyDenied,
         onGrant: () => context.read<PermissionsCubit>().request(status.kind),
       ),
     );

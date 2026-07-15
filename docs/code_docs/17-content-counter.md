@@ -157,6 +157,31 @@ can never self-toggle into a show/hide loop.
    burst of counts can't hammer the launcher.
 4. If the bubble is enabled and visible, `bubble.onCounted(today)` (springy pop).
 
+The emitted `contentCounted` payload also carries `timeTodayMs` (§2.6, §4).
+
+### 2.6 Whole-app usage-time accrual (`onAppActivity`)
+
+Alongside reel counting, the pass tracks **screen time spent in monitored social
+apps** — the signal behind the dashboard's screen-time ring and the bubble's
+tap-to-reveal-time. It needs **no new Android permission**; it rides the existing
+AccessibilityService. `countContent` calls `contentCounter.onAppActivity(pkg)` for
+**every** event from a package that has any configured platform (feed / stories /
+DMs / reels — deliberately broader than the reel-surface set of §2.2), *before* the
+per-package throttle.
+
+`onAppActivity` accrues the gap between consecutive events from the **same**
+monitored app, but only when that gap is under `USAGE_ACTIVE_GAP_MS = 12000ms`; a
+longer silence (screen off / user away → no events) starts a fresh window and is
+not counted, and a switch to a different package restarts the window. Each accrued
+delta is persisted via `store.recordUsage(deltaMs, dateKey())` into `cc_time_today`
+/ `cc_time_total` (§3).
+
+> **Known ceiling (`ponytail:`).** This counts active, event-bearing time and
+> deliberately **undercounts truly passive, event-quiet playback** (a silent long
+> video fires few accessibility events). The documented upgrade path is a 1 Hz
+> foreground ticker while a monitored app is front-most (mirroring the Conscious
+> accountant).
+
 ---
 
 ## 3. Persistence — `ContentCounterStore` (`detoxo_engine_prefs`)
@@ -171,9 +196,11 @@ the widget all read one source of truth. Keys:
 | `cc_enabled` | bool (default **true**) | master on/off for counting |
 | `cc_bubble_enabled` | bool (default **true**) | may the floating bubble show |
 | `cc_bubble_x` / `cc_bubble_y` | int (`-1` = unset) | last bubble position in px |
-| `cc_date` | string `dd-MM-yyyy` | day the "today" buckets belong to |
+| `cc_date` | string `dd-MM-yyyy` | day the "today" buckets belong to (shared by counts **and** usage time) |
 | `cc_today` | int | today's reel count |
 | `cc_total` | int | all-time reel count |
+| `cc_time_today` | long (ms) | today's whole-app foreground time in monitored apps (§2.6) |
+| `cc_time_total` | long (ms) | all-time whole-app foreground time |
 | `cc_per_app_today` | JSON `{pkg:count}` | today per-app breakdown |
 | `cc_per_app_total` | JSON `{pkg:count}` | all-time per-app breakdown |
 | `cc_bubble_style` | JSON string | persisted `BubbleStyle` (see §6) |
@@ -182,19 +209,24 @@ the widget all read one source of truth. Keys:
 > `cc_today` / `cc_total` are also the two keys the Dart `home_widget` fallback
 > writes (§5.2) — the same names, so the two paths agree.
 
-**Day rollover** is handled two ways:
+**Day rollover** is keyed off the **single shared `cc_date` marker** — the reel
+counts and the usage-time buckets roll over together — and is handled two ways:
 
-- `recordCount` performs a **durable** reset: if the stored `cc_date` differs
-  from today, the `today` total and `cc_per_app_today` reset to 0/`{}` before the
-  increment, and `cc_date` is rewritten.
-- `snapshot` and `todayCount` apply a **read-time** rollover: when the stored day
-  is stale they report `today = 0` and an empty per-app-today map **without
-  writing**, so a snapshot pulled just after midnight is correct even before the
-  day's first reel.
+- **Durable** reset, by whichever writer turns the day over. When the stored
+  `cc_date` differs from today, `recordCount` zeroes `cc_today`,
+  `cc_per_app_today` **and `cc_time_today`** before its increment; symmetrically
+  `recordUsage` (the usage-time writer) zeroes `cc_today` and `cc_per_app_today`
+  before adding time. Because `cc_date` gates *both* features, whichever writer
+  rolls the day must zero the other feature's today bucket too, or a same-day read
+  after that write would return yesterday's value.
+- **Read-time** rollover: `snapshot` and `todayCount` (and `timeTodayMs`) report
+  `today = 0` / `timeTodayMs = 0` and an empty per-app-today map **without
+  writing** when the stored day is stale, so a snapshot pulled just after midnight
+  is correct even before the day's first event.
 
 `snapshot(dateKey)` returns the map consumed everywhere:
 `{enabled, bubbleEnabled, today, total, date, perAppToday, perAppTotal,
-bubbleStyle, widgetStyle}`.
+timeTodayMs, timeTotalMs, bubbleStyle, widgetStyle}`.
 
 ---
 
@@ -223,8 +255,11 @@ so a bubble edit doesn't re-push the widget style and vice-versa.
 Emitted on every counted reel:
 
 ```
-{ type: "contentCounted", package, today, total, perAppToday, perAppTotal }
+{ type: "contentCounted", package, today, total, perAppToday, perAppTotal, timeTodayMs }
 ```
+
+`timeTodayMs` is today's whole-app usage time (§2.6). The `contentCounterSnapshot`
+pull reply additionally carries `timeTotalMs`; no new method/event name was added.
 
 `ContentCounterRepositoryImpl.watch()` yields an initial pull, then re-maps each
 `contentCounted` event into a `ContentCount` for the live UI.
@@ -243,8 +278,16 @@ Emitted on every counted reel:
   counting still works, only the overlay is skipped.
 - **Draggable + edge-snapping**: drag past touch-slop moves it; on release it
   springs (`ValueAnimator`, 240ms) to the nearest horizontal edge and persists
-  `cc_bubble_x/y`. A tap (no drag) launches the app. Position is clamped
-  on-screen and restored across shows / restarts.
+  `cc_bubble_x/y`. Position is clamped on-screen and restored across shows /
+  restarts.
+- **Tap gestures (`GestureDetector` alongside the drag handler)** — depend on the
+  `showTime` style flag (default on):
+  - `showTime` **on**: a **single tap** briefly (`REVEAL_MS = 3000ms`) reveals
+    today's watch time (`store.timeTodayMs`) on the bubble as a stopwatch
+    (`45s` / `mm:ss` / `hh:mm:ss` — native `formatMs`), then reverts to the
+    count; a **double tap** opens the app.
+  - `showTime` **off** (legacy): a **single tap** opens the app.
+  Drag past slop suppresses the tap, so drag and tap stay mutually exclusive.
 - Face is a custom `BubbleView` (Canvas, software layer for the mint glow;
   redraws only on count change). Four variants, parsed from the persisted style
   JSON into a re-clamped `BubbleStyleSpec`:
@@ -298,15 +341,22 @@ Four sub-modules, registered in `lib/core/di/injector.dart` and routed at
 ### 6.1 `content_counter_core` — live count + hub
 
 - **Entities**: `ContentCount` (`today`, `total`, `enabled`, `bubbleEnabled`,
-  `perAppToday`, `perAppTotal`, each list sorted desc) with a safe
+  `perAppToday`, `perAppTotal` — each list sorted desc — plus `timeToday`, a
+  `Duration` of today's whole-app usage parsed from `timeTodayMs`) with a safe
   `ContentCount.empty()` for off-Android; `AppContentCount` (per-app tally
-  enriched with catalog `appName` / `displayName` / `iconUrl`).
+  enriched with catalog `appName` / `displayName` / `iconUrl`). `timeToday` is
+  what the dashboard's screen-time ring reads (with the `DailyLimit` as the ring's
+  max — see [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md)).
 - **Repository**: `ContentCounterRepositoryImpl` bridges the native snapshot to
   the domain and enriches each per-app entry with catalog metadata from
   `ConfigRepository.loadBlockTargets()` (built once, cached). `watch()` yields an
   initial pull then streams `contentCounted` events.
 - **Cubit**: `ContentCounterCubit` streams the live `ContentCount` into the UI
-  and exposes `setEnabled`.
+  and exposes `setEnabled` and `refresh()` — a `refresh()` re-pulls the snapshot
+  so `timeToday` is fresh on demand (usage time advances between counted reels,
+  which the `contentCounted` stream doesn't emit; the dashboard hero calls it on
+  mount and on pull-to-refresh). It is provided globally in `lib/main.dart` so the
+  dashboard ring can watch it.
 - **UI**: `ContentCounterScreen` (titled "Reel counter" — the hub with the
   Counting + Bubble toggles and links to the appearance editors) and
   `ReelCounterCard` (hero count-up card with today / all-time toggle and an
@@ -327,9 +377,12 @@ Four sub-modules, registered in `lib/core/di/injector.dart` and routed at
 ### 6.2 `content_counter_bubble` — bubble control + style
 
 - `BubbleStyle` entity (`variant`, `size` 40–72dp, `textScale` 0.8–1.4,
-  `spacing`, `opacity` 0.5–1, `showLabel`), with `toWire` / `fromWire`
-  re-clamping (the native `BubbleStyleSpec` re-clamps again so a malformed
-  payload can never produce an unusable bubble).
+  `spacing`, `opacity` 0.5–1, `showLabel`, and `showTime` — default `true`,
+  gating the tap-to-reveal-time gesture of §5.1), with `toWire` / `fromWire`
+  re-clamping (the native `BubbleStyleSpec` re-clamps again — and defaults
+  `showTime` to `true` — so a malformed payload can never produce an unusable
+  bubble). `showTime` rides the existing `setCounterStyle` → `bubbleStyleJson`
+  pipe; no new channel method.
 - `BubbleRepositoryImpl` gates the bubble on/off (`setContentBubbleEnabled`) and
   reuses the existing overlay-permission channel methods (`canDrawOverlays` /
   `requestOverlayPermission`) — no new permission plumbing. The bubble's actual
@@ -349,8 +402,13 @@ Four sub-modules, registered in `lib/core/di/injector.dart` and routed at
 ### 6.4 `content_counter_appearance` — editor screens
 
 - `BubbleStyleScreen` — variant carousel + live preview + size/text/spacing/
-  opacity sliders + caption toggle; a "Preview count" slider (0–500) scrubs the
-  usage range so the color/emoji variants read even before anything is watched.
+  opacity sliders + a "Show caption" toggle and a **"Show time on tap"**
+  `AdaptiveSwitchTile` (drives `showTime`); when that toggle is on, an **"On
+  single tap"** demo card renders the tap-reveal at the real today-watch-time
+  via `BubblePreview(time: …)` (the preview mirror gained a `time` param +
+  `formatBubbleClock`, matching native `formatMs`). A "Preview count" slider
+  (0–500) scrubs the usage range so the color/emoji variants read even before
+  anything is watched.
 - `HomeWidgetScreen` — background carousel, theme/density segmented controls,
   line toggles, `accentByUsage`, and an "Add to home screen" button
   (`pin` → `refresh`, with a launcher-unsupported fallback message).

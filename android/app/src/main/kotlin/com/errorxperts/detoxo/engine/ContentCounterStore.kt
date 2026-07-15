@@ -71,13 +71,40 @@ class ContentCounterStore(context: Context) {
         perAppToday.put(pkg, perAppToday.optInt(pkg, 0) + 1)
         perAppTotal.put(pkg, perAppTotal.optInt(pkg, 0) + 1)
 
-        prefs.edit()
+        val editor = prefs.edit()
             .putString(KEY_DATE, dateKey)
             .putInt(KEY_TODAY, todayTotal + 1)
             .putInt(KEY_TOTAL, prefs.getInt(KEY_TOTAL, 0) + 1)
             .putString(KEY_PER_APP_TODAY, perAppToday.toString())
             .putString(KEY_PER_APP_TOTAL, perAppTotal.toString())
-            .apply()
+        // Shared-rollover invariant: cc_date gates BOTH counts and usage-time,
+        // so whichever writer turns the day over must also zero the OTHER
+        // feature's today bucket — else a same-day read after this write returns
+        // yesterday's value. Mirrored in [recordUsage].
+        if (rollover) editor.putLong(KEY_TIME_TODAY, 0L)
+        editor.apply()
+    }
+
+    /**
+     * Adds [deltaMs] of foreground time spent in a monitored social app to
+     * today's + all-time usage totals. Shares the [KEY_DATE] rollover with
+     * [recordCount] (see the invariant there): on a new day this zeroes the
+     * count today buckets too.
+     */
+    fun recordUsage(deltaMs: Long, dateKey: String) {
+        if (deltaMs <= 0L) return
+        val storedDate = prefs.getString(KEY_DATE, "")
+        val rollover = storedDate != dateKey
+        val timeToday = if (rollover) 0L else prefs.getLong(KEY_TIME_TODAY, 0L)
+
+        val editor = prefs.edit()
+            .putString(KEY_DATE, dateKey)
+            .putLong(KEY_TIME_TODAY, timeToday + deltaMs)
+            .putLong(KEY_TIME_TOTAL, prefs.getLong(KEY_TIME_TOTAL, 0L) + deltaMs)
+        if (rollover) {
+            editor.putInt(KEY_TODAY, 0).putString(KEY_PER_APP_TODAY, "{}")
+        }
+        editor.apply()
     }
 
     /**
@@ -97,6 +124,11 @@ class ContentCounterStore(context: Context) {
             "date" to dateKey,
             "perAppToday" to if (fresh) readMap(KEY_PER_APP_TODAY).toIntMap() else emptyMap(),
             "perAppTotal" to readMap(KEY_PER_APP_TOTAL).toIntMap(),
+            // Whole-app foreground time (ms) in monitored social apps, today +
+            // all-time. Drives the dashboard screen-time ring and the bubble
+            // tap-to-reveal. Shares the same fresh/rollover gate as the counts.
+            "timeTodayMs" to if (fresh) prefs.getLong(KEY_TIME_TODAY, 0L) else 0L,
+            "timeTotalMs" to prefs.getLong(KEY_TIME_TOTAL, 0L),
             // Persisted appearance (JSON strings); the Dart cubit hydrates from these.
             "bubbleStyle" to bubbleStyleJson,
             "widgetStyle" to widgetStyleJson,
@@ -106,6 +138,10 @@ class ContentCounterStore(context: Context) {
     /** Today's running total for [dateKey] (0 after a rollover). Cheap path for the bubble. */
     fun todayCount(dateKey: String): Int =
         if (prefs.getString(KEY_DATE, "") == dateKey) prefs.getInt(KEY_TODAY, 0) else 0
+
+    /** Today's accumulated foreground time in ms for [dateKey] (0 after a rollover). */
+    fun timeTodayMs(dateKey: String): Long =
+        if (prefs.getString(KEY_DATE, "") == dateKey) prefs.getLong(KEY_TIME_TODAY, 0L) else 0L
 
     private fun readMap(key: String): JSONObject =
         try {
@@ -133,6 +169,8 @@ class ContentCounterStore(context: Context) {
         private const val KEY_DATE = "cc_date"
         private const val KEY_TODAY = "cc_today"
         private const val KEY_TOTAL = "cc_total"
+        private const val KEY_TIME_TODAY = "cc_time_today"
+        private const val KEY_TIME_TOTAL = "cc_time_total"
         private const val KEY_PER_APP_TODAY = "cc_per_app_today"
         private const val KEY_PER_APP_TOTAL = "cc_per_app_total"
         private const val KEY_BUBBLE_STYLE = "cc_bubble_style"

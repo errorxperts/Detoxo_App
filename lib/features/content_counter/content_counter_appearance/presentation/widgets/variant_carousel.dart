@@ -77,8 +77,9 @@ class _VariantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final borderWidth = selected ? 2.0 : 1.0;
-    return GestureDetector(
+    return AppPressable(
       onTap: onTap,
+      selected: selected,
       child: AnimatedContainer(
         duration: AppDurations.fast,
         curve: AppCurves.standard,

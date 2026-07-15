@@ -245,6 +245,11 @@ class DetoxoAccessibilityService : AccessibilityService() {
         val platforms = config.platformsFor(pkg)
         if (platforms.isEmpty()) return
 
+        // Accrue whole-app foreground time for this monitored social app (feed /
+        // stories / DMs / reels — broader than reel surfaces). Pure timestamp
+        // math on every event; our own package is already excluded upstream.
+        contentCounter.onAppActivity(pkg)
+
         // A scroll is the closest proxy to "advanced to the next reel" (cheap,
         // no tree walk); the counter debounces these itself.
         if (event.eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED) {

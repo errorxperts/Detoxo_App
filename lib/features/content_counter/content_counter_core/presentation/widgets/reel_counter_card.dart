@@ -53,7 +53,11 @@ class _ReelCounterCardState extends State<ReelCounterCard> {
           shape: BoxShape.rectangle,
           radius: AppRadius.md,
           gradient: AppGradients.brand,
-          child: Icon(Icons.movie_filter_rounded, color: Colors.white, size: 22),
+          child: Icon(
+            Icons.movie_filter_rounded,
+            color: Colors.white,
+            size: 22,
+          ),
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
@@ -66,7 +70,9 @@ class _ReelCounterCardState extends State<ReelCounterCard> {
               ),
               Text(
                 'Short videos you scrolled',
-                style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+                style: text.bodySmall?.copyWith(
+                  color: context.glass.onGlassMuted,
+                ),
               ),
             ],
           ),
@@ -85,35 +91,42 @@ class _ReelCounterCardState extends State<ReelCounterCard> {
     required bool reduce,
   }) {
     final text = Theme.of(context).textTheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        TweenAnimationBuilder<int>(
-          // Re-key on toggle so the figure counts up from 0 when switching
-          // period; within a period, value changes animate incrementally.
-          key: ValueKey(_showAllTime),
-          tween: IntTween(begin: 0, end: value),
-          duration: reduce ? Duration.zero : AppDurations.slow,
-          curve: AppCurves.standard,
-          builder: (context, v, _) => Text(
-            '$v',
-            style: text.displaySmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1,
-              fontFeatures: const [FontFeature.tabularFigures()],
+    // One live-region announcement of the settled value + period, excluding the
+    // per-frame tween churn so TalkBack doesn't read every intermediate number.
+    return Semantics(
+      liveRegion: true,
+      excludeSemantics: true,
+      label: '$value reels ${_showAllTime ? 'all time' : 'today'}',
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          TweenAnimationBuilder<int>(
+            // Re-key on toggle so the figure counts up from 0 when switching
+            // period; within a period, value changes animate incrementally.
+            key: ValueKey(_showAllTime),
+            tween: IntTween(begin: 0, end: value),
+            duration: reduce ? Duration.zero : AppDurations.slow,
+            curve: AppCurves.standard,
+            builder: (context, v, _) => Text(
+              '$v',
+              style: text.displaySmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                height: 1,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Text(
-            _showAllTime ? 'all time' : 'today',
-            style: text.titleSmall?.copyWith(color: AppColors.accent),
+          const SizedBox(width: AppSpacing.xs),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              _showAllTime ? 'all time' : 'today',
+              style: text.titleSmall?.copyWith(color: AppColors.accent),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -125,10 +138,9 @@ class _ReelCounterCardState extends State<ReelCounterCard> {
     if (apps.isEmpty) {
       return Text(
         'No reels counted yet — open Reels or Shorts and they’ll appear here.',
-        style: Theme.of(context)
-            .textTheme
-            .bodySmall
-            ?.copyWith(color: context.glass.onGlassMuted),
+        style: Theme.of(
+          context,
+        ).textTheme.bodySmall?.copyWith(color: context.glass.onGlassMuted),
       );
     }
     final max = apps.first.count.clamp(1, 1 << 30);
@@ -163,8 +175,18 @@ class _PeriodToggle extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _chip(context, label: 'Today', selected: !showAllTime, onTap: () => onChanged(false)),
-          _chip(context, label: 'All', selected: showAllTime, onTap: () => onChanged(true)),
+          _chip(
+            context,
+            label: 'Today',
+            selected: !showAllTime,
+            onTap: () => onChanged(false),
+          ),
+          _chip(
+            context,
+            label: 'All',
+            selected: showAllTime,
+            onTap: () => onChanged(true),
+          ),
         ],
       ),
     );
@@ -179,12 +201,17 @@ class _PeriodToggle extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return AppPressable(
       onTap: onTap,
+      selected: selected,
       child: AnimatedContainer(
         duration: AppDurations.fast,
         curve: AppCurves.standard,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        alignment: Alignment.center,
+        constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         decoration: BoxDecoration(
-          color: selected ? AppColors.accent.withValues(alpha: 0.22) : Colors.transparent,
+          color: selected
+              ? AppColors.accent.withValues(alpha: 0.22)
+              : Colors.transparent,
           borderRadius: AppRadius.brPill,
         ),
         child: Text(
@@ -201,7 +228,11 @@ class _PeriodToggle extends StatelessWidget {
 
 /// A single app's tally: avatar, name + count, and an animated fill bar.
 class _AppRow extends StatelessWidget {
-  const _AppRow({required this.app, required this.fraction, required this.reduce});
+  const _AppRow({
+    required this.app,
+    required this.fraction,
+    required this.reduce,
+  });
 
   final AppContentCount app;
   final double fraction;
@@ -229,7 +260,9 @@ class _AppRow extends StatelessWidget {
                       app.displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                      style: text.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   Text(

@@ -128,7 +128,7 @@ Direct engine actions, routed to the live `DetoxoAccessibilityService.instance`
 |---|---|---|---|
 | `blockStats` | — | `{today: Int, total: Int, date: String}` | `blockStats() → Map` |
 | `consciousState` | — | `{bankMs: Long, maxBankMs: Long, watching: Bool, blocked: Bool, active: Bool}` | `consciousState() → Map` |
-| `contentCounterSnapshot` | — | `{enabled: Bool, today: Int, total: Int, date: String, perAppToday: Map<String,Int>, perAppTotal: Map<String,Int>}` | `contentCounterSnapshot() → Map` |
+| `contentCounterSnapshot` | — | `{enabled: Bool, bubbleEnabled: Bool, today: Int, total: Int, date: String, perAppToday: Map<String,Int>, perAppTotal: Map<String,Int>, timeTodayMs: Long, timeTotalMs: Long, bubbleStyle: String, widgetStyle: String}` | `contentCounterSnapshot() → Map` |
 | `deviceInfo` | — | `{brand, manufacturer, model, sdkInt}` | *(no Dart wrapper)* |
 | `installedPackages` | — | `List<String>` of launchable packages, or `null` on failure | `installedPackages() → Set<String>?` |
 
@@ -162,7 +162,8 @@ as JSON and re-renders.
 
 - `bubble` (from `BubbleStyle.toWire`,
   `lib/features/content_counter/content_counter_bubble/domain/entities/bubble_style.dart`):
-  `{variant: String, size: num, textScale: num, spacing: num, opacity: num, showLabel: bool}`
+  `{variant: String, size: num, textScale: num, spacing: num, opacity: num, showLabel: bool, showTime: bool}`
+  (`showTime` gates the bubble's tap-to-reveal-watch-time gesture; default `true`)
 - `widget` (from `WidgetStyle.toWire`,
   `lib/features/content_counter/home_content_counter/domain/entities/widget_style.dart`):
   `{background: String, theme: String, density: String, showToday: bool, showLabel: bool, showTotal: bool, accentByUsage: bool}`
@@ -205,7 +206,7 @@ Every payload carries `type` plus the fields below.
 | `blocked` | `DetoxoAccessibilityService.onDetected` | `{package: String, platformId: String, mode: String, today: Int, total: Int}` | `engine_repository_impl.dart` (status + block history) |
 | `webBlocked` | `DetoxoAccessibilityService.handleBrowser` | `{host: String, mode: "PRESS_BACK", today: Int, total: Int}` | `web_block_stats_repository_impl.dart` |
 | `consciousState` | `DetoxoAccessibilityService` (1 Hz accountant) | `{bankMs: Long, maxBankMs: Long, watching: Bool, blocked: Bool, active: Bool}` | `engine_repository_impl.dart` |
-| `contentCounted` | `ContentCounter.count` | `{package: String, today: Int, total: Int, perAppToday: Map<String,Int>, perAppTotal: Map<String,Int>}` | `content_counter_repository_impl.dart` |
+| `contentCounted` | `ContentCounter.count` | `{package: String, today: Int, total: Int, perAppToday: Map<String,Int>, perAppTotal: Map<String,Int>, timeTodayMs: Long}` | `content_counter_repository_impl.dart` |
 
 `mode` on `blocked` is the resolved block mode: `PRESS_BACK` \| `KILL_APP` \|
 `LOCK_SCREEN` \| `NONE`. `consciousState.watching`/`blocked` are AND-ed with "plan

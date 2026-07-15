@@ -16,6 +16,10 @@ class ContentCounterCubit extends Cubit<ContentCount> {
   Future<void> setEnabled({required bool enabled}) =>
       _repo.setEnabled(enabled: enabled);
 
+  /// Re-pulls the native snapshot so today's usage time is fresh on demand
+  /// (it advances between counted reels, which the event stream doesn't emit).
+  Future<void> refresh() async => emit(await _repo.current());
+
   @override
   Future<void> close() async {
     await _sub.cancel();

@@ -10,6 +10,9 @@ class PermissionStatus extends Equatable {
 
   bool get granted => state == PermissionState.granted;
 
+  /// OS won't prompt again — the only recovery is the app's system settings.
+  bool get permanentlyDenied => state == PermissionState.permanentlyDenied;
+
   PermissionStatus copyWith({PermissionState? state}) =>
       PermissionStatus(kind: kind, state: state ?? this.state);
 

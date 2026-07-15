@@ -11,23 +11,16 @@ import 'package:detoxo/features/blocking/plans/presentation/widgets/session_dial
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/blocker_capsule.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/command_center_card.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/dashboard_top_bar.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/mode_toggle.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/protection_status_card.dart';
+import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-// Placeholder constants for metrics the app doesn't track yet. Time Saved is
-// derived from real block counts at a rough per-block estimate; Streak and the
-// ring's daily goal are stand-ins until proper tracking lands.
-// TODO(metrics): replace with measured time-saved + a real streak + a
-// user-configurable daily goal.
-const int _secondsSavedPerBlock = 30;
-const int _dailyBlockGoal = 50;
-const int _placeholderStreak = 12;
 
 /// The three hero modes. "Conscious" relabels the existing `curious` plan;
 /// "Pause" routes into the dedicated mindful-pause flow.
@@ -105,7 +98,10 @@ class _DashboardTabState extends State<DashboardTab> {
       listenWhen: (p, c) => p.hasSeenFeatureShowcase && !c.hasSeenFeatureShowcase,
       listener: (_, _) => _queueTour(),
       child: RefreshIndicator(
-        onRefresh: () => context.read<ServiceCubit>().refresh(),
+        onRefresh: () => Future.wait([
+          context.read<ServiceCubit>().refresh(),
+          context.read<ContentCounterCubit>().refresh(),
+        ]),
         child: ListView(
           controller: widget.scrollController,
           padding: EdgeInsets.fromLTRB(
@@ -177,6 +173,16 @@ class _Hero extends StatefulWidget {
 class _HeroState extends State<_Hero> {
   Timer? _ticker;
 
+  @override
+  void initState() {
+    super.initState();
+    // Usage time advances between counted reels (the event stream only fires on
+    // a count), so pull a fresh counter snapshot when the hero first mounts.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(context.read<ContentCounterCubit>().refresh());
+    });
+  }
+
   void _syncTicker({required bool pauseLive}) {
     if (pauseLive && _ticker == null) {
       _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -198,9 +204,26 @@ class _HeroState extends State<_Hero> {
   Widget build(BuildContext context) {
     final snapshot = context.watch<ServiceCubit>().state;
     final settings = context.watch<SettingsCubit>().state;
+    final counter = context.watch<ContentCounterCubit>().state;
+    final daily = context.watch<DailyLimitCubit>().state;
     final now = DateTime.now();
     final pauseLive = settings.isPauseContractLive(now);
     _syncTicker(pauseLive: pauseLive);
+
+    // Screen-time ring: today's usage in monitored social apps vs the user's
+    // daily limit (set during onboarding). No limit → an unfilled gauge.
+    final spent = counter.timeToday;
+    final limit = daily.limit;
+    final hasLimit = limit > Duration.zero;
+    final progress = hasLimit
+        ? (spent.inSeconds / limit.inSeconds).clamp(0.0, 1.0)
+        : 0.0;
+    final overLimit = hasLimit && spent >= limit;
+    final limitLabel = !hasLimit
+        ? 'No daily limit set'
+        : overLimit
+        ? '${_formatHm(spent - limit)} over your ${_formatHm(limit)} limit'
+        : 'of ${_formatHm(limit)}';
 
     SessionCountdown? countdown;
     if (pauseLive) {
@@ -228,11 +251,13 @@ class _HeroState extends State<_Hero> {
     }
 
     return CommandCenterCard(
-      timeSaved: _formatTimeSaved(snapshot.blocksTotal),
-      progress: (snapshot.blocksToday / _dailyBlockGoal).clamp(0.0, 1.0),
+      timeToday: _formatHm(spent),
+      progress: progress,
+      limitLabel: limitLabel,
+      overLimit: overLimit,
       statusLabel: _statusLabel(settings.activePlan, pauseLive: pauseLive),
       blockedValue: '${snapshot.blocksToday}',
-      streakValue: '$_placeholderStreak',
+      reelsValue: '${counter.today}',
       modeOptions: _modeOptions,
       selectedMode: _selectedMode(settings.activePlan, pauseLive: pauseLive),
       onModeChanged: (i) => unawaited(_onModeChanged(context, i)),
@@ -278,10 +303,11 @@ String _statusLabel(BlockingPlan plan, {required bool pauseLive}) {
   };
 }
 
-String _formatTimeSaved(int blocks) {
-  final totalMinutes = (blocks * _secondsSavedPerBlock / 60).round();
-  final h = totalMinutes ~/ 60;
-  final m = totalMinutes % 60;
+/// "Xh Ym" (or "Ym" under an hour) for the screen-time value + limit sub-line.
+String _formatHm(Duration d) {
+  final total = d.inMinutes;
+  final h = total ~/ 60;
+  final m = total % 60;
   return h == 0 ? '${m}m' : '${h}h ${m}m';
 }
 

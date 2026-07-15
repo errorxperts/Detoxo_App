@@ -53,6 +53,7 @@ class ContentCounterRepositoryImpl implements ContentCounterRepository {
       bubbleEnabled: map['bubbleEnabled'] as bool? ?? true,
       perAppToday: _toList(map['perAppToday'], index),
       perAppTotal: _toList(map['perAppTotal'], index),
+      timeToday: Duration(milliseconds: (map['timeTodayMs'] as num?)?.toInt() ?? 0),
     );
   }
 

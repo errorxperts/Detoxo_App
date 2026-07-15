@@ -350,15 +350,30 @@ also backs the `consciousState` pull command.
 **side-effect-free** with respect to blocking: it never presses back and never
 reads/writes block state. It:
 
-1. On `TYPE_VIEW_SCROLLED`, forwards `contentCounter.onScroll(pkg)` (cheap proxy
+1. Accrues **whole-app usage time** for monitored apps via
+   `contentCounter.onAppActivity(pkg)` (see below), before the throttle.
+2. On `TYPE_VIEW_SCROLLED`, forwards `contentCounter.onScroll(pkg)` (cheap proxy
    for "advanced to next reel"; the counter debounces internally).
-2. Applies its **own** 150 ms per-package throttle (`lastCountEventByPackage`).
-3. Reuses the read-only `matches()` walk against **reel** platforms only
+3. Applies its **own** 150 ms per-package throttle (`lastCountEventByPackage`).
+4. Reuses the read-only `matches()` walk against **reel** platforms only
    (`isReelPlatform`, which excludes `NON_REEL_PLATFORM_IDS`: `ig_feed`,
    `ig_stories`, `insta_pro_stories`, `insta_pro2_stories`, `snap_stories`,
    `wa_status`, `wab_status`). A hit → `onReelSurfaceSeen(pkg)`; actively
    checking a reel app and finding no reel surface → `onNoReelSurface(pkg)`
    (distinct from "no event", which never reaches here).
+
+**Usage-time accrual (`onAppActivity`) — no new permission.** For every event
+from a package that has *any* configured platform (feed / stories / DMs / reels —
+broader than the reel-surface set), `countContent` calls `onAppActivity(pkg)`,
+which sums the gap between consecutive events from the **same** monitored app but
+only when that gap is under `USAGE_ACTIVE_GAP_MS = 12000ms`. A longer silence
+(screen off / user away → no events) starts a fresh window and isn't counted, so
+this measures active foreground time and (a documented `ponytail:` ceiling)
+undercounts truly passive, event-quiet playback. Each delta is persisted via
+`ContentCounterStore.recordUsage` into `cc_time_today` / `cc_time_total`. This
+reuses the existing AccessibilityService — **no extra Android permission** — and
+feeds the dashboard's screen-time ring and the bubble's tap-to-reveal-time. Full
+detail in [17-content-counter.md](17-content-counter.md) §2.6.
 
 Because it precedes the `masterEnabled` and `pauseUntil` returns, counting keeps
 working while blocking is off, paused, or the platform is disabled. Full detail in

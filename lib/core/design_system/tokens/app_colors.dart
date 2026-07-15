@@ -19,6 +19,16 @@ abstract final class AppColors {
   static const Color warning = Color(0xFFF5A623);
   static const Color success = Color(0xFF30A46C);
 
+  /// Usage-vs-limit tone ramp: maps a 0..1 fraction (time used ÷ daily limit)
+  /// to a status tone — calm [success] → cautionary [warning] → at/over the
+  /// limit [danger]. Single source for the dashboard screen-time ring and any
+  /// future usage gauge, so the thresholds live here, not in a widget.
+  static Color limitTone(double fraction, {bool over = false}) {
+    if (over || fraction >= 0.9) return danger;
+    if (fraction >= 0.6) return warning;
+    return success;
+  }
+
   // ── Dark surfaces (existing names preserved) ────────────────────────────
   static const Color surfaceDark = Color(0xFF0B1326); // scaffold base / mesh end
   static const Color cardDark = Color(0xFF171F33); // opaque card fallback

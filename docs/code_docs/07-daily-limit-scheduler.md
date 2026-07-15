@@ -9,10 +9,14 @@ a lazy date-reset only**. There is no live consumption path and no gating; those
 are follow-ups.
 
 > **Status at a glance.** The quota can be set, saved, displayed, and reset at
-> midnight. But nothing in the shipped app — neither Dart nor the native
-> AccessibilityService — ever increments `consumed`, and nothing reads
-> `isExceeded` / `remaining` to actually block anything. The in-app banner that
-> claims native enforcement is **aspirational** (see
+> midnight. The `limit` value is now **seeded during onboarding** (the daily-scroll
+> quick-pick — see [13-onboarding-permissions.md](13-onboarding-permissions.md))
+> and **read by the dashboard's screen-time ring** as that ring's max. But nothing
+> in the shipped app — neither Dart nor the native AccessibilityService — ever
+> increments `consumed`, and nothing reads `isExceeded` / `remaining` to actually
+> block anything. The dashboard ring fills from **native usage time**
+> (`ContentCount.timeToday`), **not** from `DailyLimit.consumed`. The in-app banner
+> that claims native enforcement is **aspirational** (see
 > [Enforcement status](#enforcement-status-read-this)).
 
 ---
@@ -140,9 +144,17 @@ engine has no knowledge of the daily limit (grep of `android/` for
 )
 ```
 
-The **cubit is not in the locator** — it is constructed inline by the screen
-(§5). So daily-limit state lives only while the screen is mounted; there is no
-long-lived cubit observing usage in the background.
+The **cubit is not in the locator** (get_it), but it now has **two** live
+instances built from the repository:
+
+1. A **global** `DailyLimitCubit(sl<DailyLimitRepository>())..load()` registered as
+   a `BlocProvider` in `lib/main.dart`, which the dashboard hero
+   (`dashboard_tab.dart`) watches to read the `limit` for its screen-time ring.
+2. The **screen-scoped** one built inline by `DailyLimitScreen` (§5) for editing.
+
+Both just wrap the same persisted record; there is still **no background usage
+observer** — neither instance accrues `consumed`, and the global one exists only
+to surface the `limit` on the dashboard.
 
 ---
 
@@ -248,9 +260,16 @@ writing:
   [06-app-and-web-blocker.md](06-app-and-web-blocker.md)), which is independent of
   this quota.
 
-**Net effect:** a user can set and see a daily limit, and it will visually reset
-each day, but the limit **does not currently gate or block anything**, and the
-`consumed` bar will always read `0` in production.
+**What *is* now wired (display only):** the `limit` field is seeded during
+onboarding and read by the dashboard's screen-time ring as its max. That is a
+*read of `limit` for display*, not a gate — the ring fills from native usage time
+(`ContentCount.timeToday`, [17-content-counter.md](17-content-counter.md)), and it
+does not call `isExceeded` / `remaining` or ask the engine to block. So the limit
+is now visible and meaningful on the dashboard, but still purely informational.
+
+**Net effect:** a user can set and see a daily limit (and it visually reflects on
+the dashboard ring and resets each day), but the limit **does not currently gate
+or block anything**, and the `consumed` bar will always read `0` in production.
 
 ### Planned / swap-in / follow-up
 
@@ -275,7 +294,8 @@ not enforced.**
 
 - Native reference check: `grep -rn "dailyLimit\|consumedMs\|dateSignature\|daily_limit" android/` → **no matches**.
 - Consumption writers: only `DailyLimitCubit.addConsumed` (`@visibleForTesting`); no external caller (`grep addConsumed lib/ android/` → only the definition).
-- Gate readers: no reader of `isExceeded` / `remaining` outside the entity and its test.
+- Gate readers: no reader of `isExceeded` / `remaining` outside the entity and its test. (The dashboard ring reads the raw `limit` field for display, not these gate getters.)
+- Seeding / display: `limit` is seeded by `onboarding_screen.dart` (`DailyLimitRepository.save`) and read by `dashboard_tab.dart` via the global `DailyLimitCubit` in `main.dart`.
 - Test coverage: `test/domain_test.dart` exercises `refreshed()` (day rollover clears `consumed`, preserves `limit`). No test drives an end-to-end enforcement path (there is none).
 
 > **Naming caution:** do not confuse this feature's `DailyLimit` with
@@ -300,4 +320,7 @@ not enforced.**
 - `lib/core/di/injector.dart` (`DailyLimitRepository` registration)
 - `lib/core/navigation/routes.dart` / `lib/core/navigation/app_router.dart` (`Routes.dailyLimit = '/daily-limit'`)
 - `lib/features/settings/presentation/settings_screen.dart` / `lib/features/dashboard/presentation/widgets/app_drawer.dart` (entry points)
+- `lib/features/onboarding/presentation/onboarding_screen.dart` (seeds `limit` on finish)
+- `lib/main.dart` (global `DailyLimitCubit` provider for the dashboard ring)
+- `lib/features/dashboard/presentation/dashboard_tab.dart` (reads `limit` for the screen-time ring)
 - `test/domain_test.dart` (`DailyLimit reset` group)

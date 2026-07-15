@@ -49,7 +49,7 @@ class StatPill extends StatelessWidget {
                 label.toUpperCase(),
                 style: text.labelSmall?.copyWith(
                   color: scheme.onSurfaceVariant,
-                  fontSize: 9,
+                  fontSize: 11,
                   letterSpacing: 0.5,
                   height: 1,
                 ),

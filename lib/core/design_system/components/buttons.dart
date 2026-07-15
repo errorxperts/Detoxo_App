@@ -120,7 +120,7 @@ class _AnimatedIconButtonState extends State<AnimatedIconButton> {
   Widget build(BuildContext context) {
     final disabled = widget.onPressed == null;
     final pill = Container(
-      height: 44,
+      height: AppSizes.controlHeight,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       decoration: BoxDecoration(
         color: disabled ? widget.tint.withValues(alpha: 0.4) : widget.tint,
@@ -149,6 +149,10 @@ class _AnimatedIconButtonState extends State<AnimatedIconButton> {
     );
     final content = widget.expand ? SizedBox(width: double.infinity, child: pill) : pill;
     if (disabled) return Opacity(opacity: 0.6, child: content);
-    return AppPressable(onTap: _onTap, child: content);
+    return AppPressable(
+      onTap: _onTap,
+      minTapTarget: AppSizes.minTapTargetSquare,
+      child: content,
+    );
   }
 }

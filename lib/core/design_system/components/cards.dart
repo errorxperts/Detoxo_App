@@ -128,12 +128,17 @@ class IconBadge extends StatelessWidget {
     this.fillAlpha = 0.14,
     this.bordered = false,
     this.borderWidth = 1,
+    this.semanticLabel,
     super.key,
   }) : assert(icon != null || child != null, 'Provide an icon or a child');
 
   final IconData? icon;
   final Widget? child;
   final double size;
+
+  /// Accessibility label for the default [icon]. Leave null when the badge is
+  /// decorative or paired with adjacent descriptive text.
+  final String? semanticLabel;
 
   /// Tints the fill (at [fillAlpha]), the border, and the default icon.
   final Color color;
@@ -170,6 +175,7 @@ class IconBadge extends StatelessWidget {
             icon,
             size: size * 0.5,
             color: gradient != null ? Colors.white : color,
+            semanticLabel: semanticLabel,
           ),
     );
   }

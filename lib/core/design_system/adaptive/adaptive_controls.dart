@@ -2,6 +2,7 @@ import 'package:cupertino_native/cupertino_native.dart';
 import 'package:detoxo/core/design_system/adaptive/platform_adaptive.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
+import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:flutter/material.dart';
 
 /// This is the ONLY file that imports `cupertino_native`. Every adaptive
@@ -169,7 +170,7 @@ class AdaptiveButton extends StatelessWidget {
       button = CNButton(
         label: label,
         tint: tint,
-        height: 44,
+        height: AppSizes.controlHeight,
         shrinkWrap: !expand,
         style: switch (variant) {
           AdaptiveButtonVariant.filled => CNButtonStyle.glass,
@@ -184,7 +185,7 @@ class AdaptiveButton extends StatelessWidget {
       // min width (64). NB: `Size.fromHeight(44)` is `Size(infinity, 44)` —
       // its infinite min width crashes in any unbounded-width parent (e.g. a
       // dialog actions Row). Full-width is expressed via `expand` below, not here.
-      const minSize = Size(64, 44);
+      const minSize = Size(64, AppSizes.controlHeight);
       button = switch (variant) {
         AdaptiveButtonVariant.filled => icon == null
             ? FilledButton(

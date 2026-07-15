@@ -94,7 +94,7 @@ This is the heart of Detoxo, which is why it's the one permission you can't skip
 
 **Why it's useful.** Detoxo keeps a quiet, always-on notification so you can see at a glance that it's active — and so it can alert you if protection ever stops. On newer Android versions, apps need your permission to post notifications, which is why it's on the list.
 
-This is the one permission granted with a simple in-app "Allow?" pop-up rather than a trip to system settings.
+This is the one permission granted with a simple in-app "Allow?" pop-up rather than a trip to system settings. If you once dismissed that pop-up with "Don't ask again", Android stops showing it — so the button then reads **Open settings** and takes you straight to Detoxo's system settings to switch notifications back on.
 
 ---
 

@@ -68,8 +68,8 @@ class BlockerCapsule extends StatelessWidget {
           Text(
             caption.toUpperCase(),
             style: text.labelSmall?.copyWith(
-              color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
-              fontSize: 9,
+              color: scheme.onSurfaceVariant,
+              fontSize: 11,
               letterSpacing: 0.8,
             ),
           ),

@@ -16,6 +16,7 @@ class PermissionCard extends StatelessWidget {
     required this.granted,
     required this.onGrant,
     this.isRequired = false,
+    this.permanentlyDenied = false,
     super.key,
   });
 
@@ -24,6 +25,10 @@ class PermissionCard extends StatelessWidget {
   final String why;
   final bool granted;
   final bool isRequired;
+
+  /// When true the OS won't prompt again, so the action label becomes
+  /// "Open settings" (its callback should route to the app's system settings).
+  final bool permanentlyDenied;
   final VoidCallback onGrant;
 
   @override
@@ -74,7 +79,10 @@ class PermissionCard extends StatelessWidget {
                     ],
                   )
                 else
-                  SecondaryButton(label: 'Grant', onPressed: onGrant),
+                  SecondaryButton(
+                    label: permanentlyDenied ? 'Open settings' : 'Grant',
+                    onPressed: onGrant,
+                  ),
               ],
             ),
           ),

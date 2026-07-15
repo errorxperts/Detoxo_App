@@ -35,27 +35,39 @@ class SessionCountdown {
 /// glows.
 class CommandCenterCard extends StatelessWidget {
   const CommandCenterCard({
-    required this.timeSaved,
+    required this.timeToday,
     required this.progress,
+    required this.limitLabel,
     required this.statusLabel,
     required this.blockedValue,
-    required this.streakValue,
+    required this.reelsValue,
     required this.modeOptions,
     required this.selectedMode,
     required this.onModeChanged,
+    this.overLimit = false,
     this.modeEnabled = true,
     this.modeCellBuilder,
     this.countdown,
     super.key,
   });
 
-  final String timeSaved;
+  /// Formatted screen time spent in monitored social apps today (e.g. "1h 12m").
+  final String timeToday;
 
-  /// 0..1 ring fill.
+  /// 0..1 ring fill — today's usage over the user's daily limit.
   final double progress;
+
+  /// Sub-line under the time, e.g. "of 2h 0m" or "20m over your limit".
+  final String limitLabel;
+
+  /// True once today's usage reaches/exceeds the limit (red ring + sub-line).
+  final bool overLimit;
+
   final String statusLabel;
   final String blockedValue;
-  final String streakValue;
+
+  /// Reels counted today (real data; replaces the old placeholder streak).
+  final String reelsValue;
   final List<ModeOption> modeOptions;
   final int selectedMode;
   final ValueChanged<int> onModeChanged;
@@ -86,7 +98,7 @@ class CommandCenterCard extends StatelessWidget {
                 width: 240,
                 height: 240,
                 child: countdown == null
-                    ? _timeSavedRing(context, text, scheme)
+                    ? _screenTimeRing(context, text, scheme)
                     : _countdownRing(context, text, countdown!),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -94,15 +106,15 @@ class CommandCenterCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   StatPill(
-                    icon: Icons.smart_display,
+                    icon: Icons.smart_display_outlined,
                     value: blockedValue,
                     label: 'Blocked',
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   StatPill(
-                    icon: Icons.bolt,
-                    value: streakValue,
-                    label: 'Streak',
+                    icon: Icons.play_circle_outline,
+                    value: reelsValue,
+                    label: 'Reels',
                     iconColor: scheme.secondary,
                   ),
                 ],
@@ -122,50 +134,67 @@ class CommandCenterCard extends StatelessWidget {
     );
   }
 
-  /// The idle hero: a gradient ring around the TIME-SAVED metric.
-  Widget _timeSavedRing(
+  /// The idle hero: a gradient ring around today's SCREEN-TIME metric, filling
+  /// toward the user's daily limit. The arc animates on change and shifts
+  /// green → amber → red as usage approaches (then crosses) the limit.
+  Widget _screenTimeRing(
     BuildContext context,
     TextTheme text,
     ColorScheme scheme,
   ) {
-    return ProgressRing(
-      progress: progress,
-      size: 240,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'TIME SAVED',
-            style: text.labelSmall?.copyWith(
-              color: scheme.secondary,
-              letterSpacing: 2,
-              fontSize: 11,
+    final ringColor = AppColors.limitTone(progress, over: overLimit);
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: progress),
+      duration: AppDurations.slow,
+      curve: AppCurves.standard,
+      builder: (context, value, _) => ProgressRing(
+        progress: value,
+        size: 240,
+        arcColor: ringColor,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'SCREEN TIME',
+              style: text.labelSmall?.copyWith(
+                color: scheme.secondary,
+                letterSpacing: 2,
+                fontSize: 11,
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          SizedBox(
-            width: 170,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [AppColors.tealBright, AppColors.indigoBright],
-                ).createShader(bounds),
-                blendMode: BlendMode.srcIn,
-                child: Text(
-                  timeSaved,
-                  style: text.displaySmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    height: 1,
-                    color: Colors.white,
+            const SizedBox(height: AppSpacing.xs),
+            SizedBox(
+              width: 170,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: ShaderMask(
+                  shaderCallback: (bounds) =>
+                      (overLimit ? AppGradients.overLimit : AppGradients.metric)
+                          .createShader(bounds),
+                  blendMode: BlendMode.srcIn,
+                  child: Text(
+                    timeToday,
+                    style: text.displaySmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      height: 1,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _StatusBadge(label: statusLabel),
-        ],
+            const SizedBox(height: AppSpacing.xxs),
+            Text(
+              limitLabel,
+              style: text.labelSmall?.copyWith(
+                color: overLimit ? AppColors.danger : scheme.onSurfaceVariant,
+                fontWeight: overLimit ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            _StatusBadge(label: statusLabel),
+          ],
+        ),
       ),
     );
   }

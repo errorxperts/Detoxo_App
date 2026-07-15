@@ -50,15 +50,38 @@ Yes, the reel counter is **completely separate from blocking**. It runs on its o
 
 You can see the number three ways: inside the app, on an optional **floating bubble** that hovers over your screen while you watch, and on an optional **home-screen widget**. The bubble and widget both keep working even if you close the Detoxo app.
 
+## How does Detoxo measure my daily "screen time"?
+
+The ring on your home screen shows how much time you've spent today in the social apps Detoxo watches, filling toward your daily limit. That time is measured **entirely on your device**, using the **same Accessibility permission** the blocker already uses — there's **no extra permission** and nothing is sent anywhere. Detoxo simply notices while one of those apps is active in the foreground and adds up the time.
+
+Because it works from those on-screen signals, it counts your *active* time well but can **undercount long, silent playback** — for example a video left playing untouched, which produces very little on-screen activity. So treat the number as a close, honest estimate rather than a stopwatch. It resets at the start of each new day, together with your reel count.
+
+## How do I set or change my daily limit?
+
+You first set a daily limit during the welcome tour by dragging a dial (the "How much do you scroll daily?" question). To change it any time, open **Settings → Daily limit**, drag the slider, and tap **Save limit** (0 means "no limit"). Your home-screen ring fills toward whatever you set. Today the limit is a self-awareness target — it colors the ring green → amber → red and tells you when you go over, but it doesn't hard-stop you; for a firm stop use **Block All** or **Conscious**.
+
 ## The floating bubble needs "Display over apps" — why?
 
 The little counter bubble floats on top of whatever app you're in, so Android asks for the **Display over apps** permission (sometimes shown as "Draw over other apps") before it can appear. It's optional — if you skip it, counting still works everywhere; you just won't see the bubble. Blocking does not need this permission.
+
+## What happens when I tap the counter bubble?
+
+It depends on the **Show time on tap** option (on by default, in the bubble's appearance settings):
+
+- **On** — a **single tap** briefly flips the bubble to show today's watch time as a running clock (e.g. `1:23:45`), then back to the count; a **double tap** opens Detoxo.
+- **Off** — a **single tap** opens Detoxo.
+
+Either way, you can **drag** the bubble to any edge and it stays where you put it.
 
 ## Will Detoxo drain my battery?
 
 No, the impact is small. Detoxo is built to be light: it only reacts briefly when a screen changes, limits how often it checks each app, and caps how much work it does per check. There's no constant polling and nothing running in the cloud.
 
 You will see a permanent, silent notification ("Detoxo is active") in your tray. That notification is required by Android to keep the blocker alive in the background — it's a status marker, not an alert, and it makes no sound.
+
+## I tapped "Don't ask again" on notifications — how do I turn them back on?
+
+Once you permanently dismiss the notification pop-up, Android won't show it again. Open **Settings → Permissions** (or the setup funnel) and the Notifications card's button now reads **Open settings** — tap it to jump straight to Detoxo's system settings and switch notifications on.
 
 ## Does Detoxo work on iPhone / iOS?
 

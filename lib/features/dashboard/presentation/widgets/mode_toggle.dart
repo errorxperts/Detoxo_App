@@ -117,9 +117,11 @@ class _ModeCellState extends State<_ModeCell> {
         ? scheme.onPrimary
         : scheme.onSurfaceVariant.withValues(alpha: widget.enabled ? 0.7 : 0.35);
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: widget.enabled ? _onTap : null,
+    return AppPressable(
+      onTap: _onTap,
+      enabled: widget.enabled,
+      selected: widget.selected,
+      haptic: false, // _onTap already fires a selection click
       child: AnimatedContainer(
         duration: AppDurations.fast,
         curve: AppCurves.standard,

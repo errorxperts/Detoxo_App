@@ -14,6 +14,7 @@ class BubblePreview extends StatelessWidget {
     required this.style,
     required this.count,
     this.area = 132,
+    this.time,
     super.key,
   });
 
@@ -23,23 +24,43 @@ class BubblePreview extends StatelessWidget {
   /// Side of the square preview area the bubble floats in.
   final double area;
 
+  /// When set, the preview renders this tap-revealed watch time (stopwatch
+  /// format) in place of the count — mirroring the native single-tap reveal.
+  final Duration? time;
+
   @override
   Widget build(BuildContext context) {
     return Center(
       child: SizedBox(
         width: area,
         height: area,
-        child: CustomPaint(painter: _BubblePainter(style: style, count: count)),
+        child: CustomPaint(
+          painter: _BubblePainter(style: style, count: count, time: time),
+        ),
       ),
     );
   }
 }
 
+/// Stopwatch label for the bubble's tap-revealed time — `45s` / `3:05` /
+/// `1:23:45` — mirroring native `ContentCounterBubble.formatMs`.
+String formatBubbleClock(Duration d) {
+  final totalSec = d.inSeconds;
+  final h = totalSec ~/ 3600;
+  final m = (totalSec % 3600) ~/ 60;
+  final s = totalSec % 60;
+  final ss = s.toString().padLeft(2, '0');
+  if (h > 0) return '$h:${m.toString().padLeft(2, '0')}:$ss';
+  if (m > 0) return '$m:$ss';
+  return '${s}s';
+}
+
 class _BubblePainter extends CustomPainter {
-  _BubblePainter({required this.style, required this.count});
+  _BubblePainter({required this.style, required this.count, this.time});
 
   final BubbleStyle style;
   final int count;
+  final Duration? time;
 
   static const int _fillTop = 0xF21C2544;
   static const int _fillBottom = 0xF20B1326;
@@ -111,6 +132,10 @@ class _BubblePainter extends CustomPainter {
     _glowCircle(canvas, c, r);
     _fillCircle(canvas, c, r);
     _brandRing(canvas, c, r);
+    if (time != null) {
+      _drawCount(canvas, c, r); // tap reveal shows the time, not the mood
+      return;
+    }
     _text(
       canvas,
       emojiFor(count),
@@ -130,6 +155,7 @@ class _BubblePainter extends CustomPainter {
   }
 
   void _drawPill(Canvas canvas, Offset c, double diameter) {
+    final label = time != null ? formatBubbleClock(time!) : '$count';
     final h = diameter * 0.66;
     final dotR = h * 0.15;
     final padH = h * 0.32 * style.spacing;
@@ -139,7 +165,7 @@ class _BubblePainter extends CustomPainter {
       fontSize: h * 0.42 * style.textScale,
       fontWeight: FontWeight.w700,
     );
-    final tp = _layout('$count', textStyle);
+    final tp = _layout(label, textStyle);
     final width = padH + dotR * 2 + gap + tp.width + padH;
 
     final rect = Rect.fromCenter(center: c, width: width, height: h);
@@ -160,8 +186,11 @@ class _BubblePainter extends CustomPainter {
   // ── Shared bits ──────────────────────────────────────────────────────────────
 
   void _drawCount(Canvas canvas, Offset c, double r) {
-    final label = '$count';
-    final factor = label.length >= 4
+    final t = time;
+    final label = t != null ? formatBubbleClock(t) : '$count';
+    final factor = label.length >= 6
+        ? 0.40
+        : label.length >= 4
         ? 0.52
         : label.length == 3
         ? 0.62
@@ -171,11 +200,12 @@ class _BubblePainter extends CustomPainter {
       fontWeight: FontWeight.w700,
       fontSize: r * factor * style.textScale,
     );
-    if (style.showLabel) {
+    // Two-line layout for the "reels" caption or the tap-revealed time.
+    if (style.showLabel || t != null) {
       _text(canvas, label, c.translate(0, -r * 0.16), countStyle);
       _text(
         canvas,
-        'reels',
+        t != null ? 'today' : 'reels',
         c.translate(0, r * 0.44),
         TextStyle(color: Colors.white70, fontSize: r * 0.26),
       );
@@ -235,5 +265,5 @@ class _BubblePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_BubblePainter old) =>
-      old.style != style || old.count != count;
+      old.style != style || old.count != count || old.time != time;
 }

@@ -187,7 +187,9 @@ enum DeviceFormFactor {
 }
 
 /// Status of a single runtime permission in the onboarding funnel.
-enum PermissionState { granted, denied, unknown }
+/// [permanentlyDenied] = the OS won't show the prompt again (don't-ask-again);
+/// recovery is only via the app's system settings screen.
+enum PermissionState { granted, denied, permanentlyDenied, unknown }
 
 /// Live status of the native accessibility service.
 enum ServiceStatus { running, stopped, unknown }

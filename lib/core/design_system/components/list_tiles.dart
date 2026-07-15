@@ -46,7 +46,11 @@ class GlassListTile extends StatelessWidget {
       ),
     );
     if (onTap == null) return row;
-    return AppPressable(onTap: onTap!, child: row);
+    return AppPressable(
+      onTap: onTap!,
+      minTapTarget: const Size(0, AppSizes.minTapTarget),
+      child: row,
+    );
   }
 }
 

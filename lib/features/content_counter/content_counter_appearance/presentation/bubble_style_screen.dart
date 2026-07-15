@@ -44,6 +44,10 @@ class _BodyState extends State<_Body> {
   // legible even before the user has watched anything today.
   double _previewCount = 137;
 
+  // Representative today-watch-time for the tap-reveal demo (replaced with the
+  // real value once loaded), so the stopwatch format is visible immediately.
+  Duration _previewTime = const Duration(hours: 1, minutes: 23, seconds: 45);
+
   @override
   void initState() {
     super.initState();
@@ -52,8 +56,11 @@ class _BodyState extends State<_Body> {
 
   Future<void> _loadToday() async {
     final count = await sl<ContentCounterRepository>().current();
-    if (!mounted || count.today <= 0) return;
-    setState(() => _previewCount = count.today.toDouble());
+    if (!mounted) return;
+    setState(() {
+      if (count.today > 0) _previewCount = count.today.toDouble();
+      if (count.timeToday > Duration.zero) _previewTime = count.timeToday;
+    });
   }
 
   void _setStyle(BubbleStyle style) =>
@@ -148,6 +155,18 @@ class _BodyState extends State<_Body> {
               value: style.showLabel,
               onChanged: (v) => _setStyle(style.copyWith(showLabel: v)),
             ),
+            AdaptiveSwitchTile(
+              leading: const IconBadge(icon: Icons.schedule_rounded),
+              title: 'Show time on tap',
+              subtitle: 'Tap the bubble to reveal today’s watch time '
+                  '(double-tap opens the app)',
+              value: style.showTime,
+              onChanged: (v) => _setStyle(style.copyWith(showTime: v)),
+            ),
+            if (style.showTime) ...[
+              const SizedBox(height: AppSpacing.sm),
+              _TapRevealDemo(style: style, time: _previewTime),
+            ],
           ],
         );
       },
@@ -178,6 +197,54 @@ class _PreviewStage extends StatelessWidget {
         border: Border.all(color: context.glass.border),
       ),
       child: BubblePreview(style: style, count: count),
+    );
+  }
+}
+
+/// Shows what a single tap reveals: the bubble flipped to today's watch time in
+/// the stopwatch format (`45s` / `mm:ss` / `hh:mm:ss`), mirroring the overlay.
+class _TapRevealDemo extends StatelessWidget {
+  const _TapRevealDemo({required this.style, required this.time});
+
+  final BubbleStyle style;
+  final Duration time;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        color: context.glass.fillTop,
+        border: Border.all(color: context.glass.border),
+      ),
+      child: Row(
+        children: [
+          BubblePreview(style: style, count: 0, time: time, area: 64),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'On single tap',
+                  style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'The bubble briefly shows today’s time '
+                  '(${formatBubbleClock(time)}), then reverts to the count.',
+                  style: text.bodySmall?.copyWith(
+                    color: context.glass.onGlassMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

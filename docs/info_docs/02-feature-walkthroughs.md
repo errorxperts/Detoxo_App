@@ -13,7 +13,7 @@ For the "why does it need that?" behind each permission, see
 
 ## 1. First run: the welcome tour
 
-The first time you open Detoxo you'll see a short 4-page intro that explains what
+The first time you open Detoxo you'll see a short intro that explains what
 the app does — spotting Reels, Shorts and infinite feeds, choosing which apps to
 block, taking a mindful **Pause**, and building the habit.
 
@@ -21,8 +21,13 @@ block, taking a mindful **Pause**, and building the habit.
 2. Tap **Skip** (top-right) any time to jump to the end.
 3. On the last page, tap **Get started**.
 
-Nothing is turned on or asked for during the tour — it's just an introduction.
-When you finish, Detoxo takes you straight to permission setup (next section).
+One page asks a single quick question — **"How much do you scroll daily?"** — with
+a **drag dial**: spin it around to set your daily social-media time, and the
+number animates in the centre. Your choice sets a **daily limit** that your
+home-screen ring fills toward (you can change it any time in **Settings → Daily
+limit**; if you skip the question, Detoxo uses a sensible default). Nothing else
+is turned on or asked for during the tour. When you finish, Detoxo takes you
+straight to permission setup (next section).
 
 > You can replay this tour later from **Help & support → Feature tutorials →
 > Dashboard tour**.
@@ -77,6 +82,14 @@ Your plan decides what happens when Detoxo spots a reel. You pick it from the bi
 **Command Center** card on the home screen. The card offers three tap targets —
 **Block All**, **Conscious**, and **Pause** — plus a live countdown/ring while a
 timed mode is running.
+
+> **The screen-time ring.** When no timed mode is running, the big ring shows
+> **today's screen time** in the social apps Detoxo watches, filling toward your
+> **daily limit** (the one you set during onboarding — §6). It shifts **green →
+> amber → red** as you approach the limit, and reads "*X over your Y limit*" once
+> you pass it. Below the ring, two pills show today's **Blocked** count and your
+> **Reels** watched today. (Start a **Pause** or **Conscious** session and the ring
+> switches to that session's live countdown.)
 
 | Plan | What it does |
 |---|---|
@@ -208,15 +221,18 @@ When you're on a blocked site, Detoxo simply presses back to take you off it.
 
 ## 6. App blocker & daily limit
 
-Open **Daily limit** from **Settings → Daily limit** (or the menu) to set a cap on
-how much reel time you want per day.
+You first set a daily limit during onboarding (the "How much do you scroll daily?"
+question — §1). To change it later, open **Daily limit** from **Settings → Daily
+limit** (or the menu) to adjust the cap on how much time you want per day.
 
 1. Drag the slider to your target — **0 to 180 minutes**, in 5-minute steps.
    (0 means "no limit set.")
 2. Tap **Save limit**.
 
-The **Today** card shows how much you've used against your cap, with a progress
-bar, and it resets automatically at the start of each new day.
+Your **home-screen ring** (§3) fills toward this limit as you use social apps, so
+the number you set here is what the dashboard measures you against. The **Today**
+card shows how much you've used against your cap, with a progress bar, and it
+resets automatically at the start of each new day.
 
 > **Honest note:** today the Daily limit lets you *set, see, and reset* a personal
 > daily target — it's a self-awareness tool. Automatic cut-off when you reach the
@@ -299,7 +315,11 @@ another reel.
 - It appears while you're on a reel and tucks away when you leave.
 - **Drag** it anywhere — it snaps to the nearest side of the screen and remembers
   where you put it.
-- **Tap** it to jump into Detoxo.
+- **Tap** behavior depends on the **Show time on tap** setting (on by default):
+  - **On** — a **single tap** briefly flips the bubble to today's **watch time**
+    shown as a running clock (`45s`, `3:05`, or `1:23:45`), then back to the
+    count; a **double tap** opens Detoxo.
+  - **Off** — a **single tap** opens Detoxo (the classic behavior).
 - The bubble needs the **Display over apps** permission (from §2); without it,
   counting still works, only the bubble is hidden.
 
@@ -320,9 +340,10 @@ current.
 Both surfaces are customizable:
 
 - **Bubble style** — pick a look (**Glass orb**, **Usage ring**, **Emoji mood**,
-  **Minimal pill**), and adjust size, text size, spacing, transparency, and
-  whether it shows a caption. A live preview and a **Preview count** slider let you
-  see how it looks as the number climbs.
+  **Minimal pill**), and adjust size, text size, spacing, transparency, whether it
+  shows a caption, and **Show time on tap** (tap the bubble to peek at today's
+  watch time). A live preview and a **Preview count** slider let you see how it
+  looks as the number climbs.
 - **Home widget** — pick a background, light/dark/system **theme**, a **density**,
   which lines to show (today / caption / all-time), and whether the color shifts as
   your count grows.

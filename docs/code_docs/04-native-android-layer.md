@@ -166,6 +166,8 @@ Admin is opt-in and reversible: `CommandHandler.requestDeviceAdmin()` fires `ACT
 
 `overlay/ContentCounterBubble.kt` is the floating "reels seen today" badge. It runs **inside the existing accessibility FGS** — no new service — and all view operations run on the main `Looper` (`runOnMain`). Counting and blocking are decoupled: the bubble is driven by `ContentCounter`, not the block path.
 
+Beyond counting reels, the counter also accrues **whole-app foreground time** in monitored apps: `countContent` calls `contentCounter.onAppActivity(pkg)`, which sums the gap between consecutive events from the same monitored app (only when under `USAGE_ACTIVE_GAP_MS = 12000ms`) into `cc_time_today` / `cc_time_total`. This adds **no new permission** (it reuses the AccessibilityService) and feeds the dashboard screen-time ring and the bubble's tap-to-reveal-time. Algorithm detail: [03-detection-engine.md](03-detection-engine.md) §6 and [17-content-counter.md](17-content-counter.md) §2.6.
+
 ### Window
 
 - `WindowManager` overlay. Type is `TYPE_APPLICATION_OVERLAY` on API 26+, falling back to the deprecated `TYPE_PHONE` below that (`overlayType()`).
@@ -174,7 +176,10 @@ Admin is opt-in and reversible: `CommandHandler.requestDeviceAdmin()` fires `ACT
 
 ### Interaction
 
-- **Tap** → launches the app (`getLaunchIntentForPackage` with `NEW_TASK|SINGLE_TOP`).
+- **Tap** (resolved by a `GestureDetector` alongside the drag handler, gated on the `showTime` style flag, default on):
+  - `showTime` **on** → **single tap** briefly (`REVEAL_MS = 3000ms`) reveals today's watch time (`store.timeTodayMs`) on the bubble, then reverts to the count; **double tap** launches the app.
+  - `showTime` **off** → **single tap** launches the app (legacy behavior).
+  - Launch uses `getLaunchIntentForPackage` with `NEW_TASK|SINGLE_TOP`; a drag past slop suppresses the tap.
 - **Drag** → moves the window; on release it **springs to the nearest horizontal edge** (`snapToEdge`, `ValueAnimator` + `DecelerateInterpolator`) and persists the position.
 - Press feedback (scale down on touch), a spring-in on show (`OvershootInterpolator`), and a pop on each new count (`onCounted`).
 - Position is **clamped on-screen** (`clampY`, `restorePosition`) and persisted across shows/restarts via `ContentCounterStore.bubbleX/bubbleY` (px; `-1` = unset → default edge).

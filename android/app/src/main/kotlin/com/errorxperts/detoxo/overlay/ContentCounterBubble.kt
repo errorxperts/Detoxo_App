@@ -17,6 +17,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import android.view.GestureDetector
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -26,6 +27,8 @@ import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import com.errorxperts.detoxo.engine.ContentCounterStore
 import com.errorxperts.detoxo.engine.UsageLadder
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import org.json.JSONObject
@@ -57,6 +60,9 @@ class ContentCounterBubble(private val context: Context) {
     /** Last count shown — replayed when the view is rebuilt on a style change. */
     private var lastCount = 0
 
+    /** Ends a tap-revealed time, redrawing the (possibly updated) live count. */
+    private val revertRunnable = Runnable { view?.clearTime() }
+
     // ── Public API (called by ContentCounter on the main thread) ───────────────
 
     fun show(count: Int) = runOnMain {
@@ -68,6 +74,7 @@ class ContentCounterBubble(private val context: Context) {
             return@runOnMain
         }
         val spec = BubbleStyleSpec.fromJson(store.bubbleStyleJson)
+        val bubbleShowTime = spec.showTime
         val v = BubbleView(context, spec).apply { setCount(count) }
         val lp = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -83,7 +90,7 @@ class ContentCounterBubble(private val context: Context) {
             x = px
             y = py
         }
-        attachTouch(v, lp)
+        attachTouch(v, lp, bubbleShowTime)
         try {
             wm.addView(v, lp)
             view = v
@@ -107,6 +114,7 @@ class ContentCounterBubble(private val context: Context) {
         lastCount = count
         val v = view ?: return@runOnMain
         v.setCount(count)
+        if (v.isRevealing) return@runOnMain // keep the time steady; skip the pop
         v.animate().scaleX(1.22f).scaleY(1.22f).setDuration(120).withEndAction {
             v.animate().scaleX(1f).scaleY(1f)
                 .setInterpolator(OvershootInterpolator())
@@ -116,6 +124,7 @@ class ContentCounterBubble(private val context: Context) {
 
     fun hide() = runOnMain {
         snapAnimator?.cancel()
+        mainHandler.removeCallbacks(revertRunnable)
         val v = view ?: return@runOnMain
         try {
             wm.removeView(v)
@@ -138,7 +147,7 @@ class ContentCounterBubble(private val context: Context) {
         val spec = BubbleStyleSpec.fromJson(store.bubbleStyleJson)
         val old = view
         val v = BubbleView(context, spec).apply { setCount(lastCount) }
-        attachTouch(v, lp)
+        attachTouch(v, lp, spec.showTime)
         try {
             if (old != null) wm.removeView(old)
             wm.addView(v, lp)
@@ -150,7 +159,7 @@ class ContentCounterBubble(private val context: Context) {
 
     // ── Drag + press + edge snap ───────────────────────────────────────────────
 
-    private fun attachTouch(v: View, lp: WindowManager.LayoutParams) {
+    private fun attachTouch(v: View, lp: WindowManager.LayoutParams, showTime: Boolean) {
         val slop = ViewConfiguration.get(context).scaledTouchSlop
         var startX = 0
         var startY = 0
@@ -158,7 +167,27 @@ class ContentCounterBubble(private val context: Context) {
         var downRawY = 0f
         var dragging = false
 
+        // Tap discrimination: single tap reveals today's watch time (or opens the
+        // app when the readout is off); double tap always opens the app. Dragging
+        // is handled manually below — the detector suppresses taps once it sees a
+        // move past slop, so drag and tap stay mutually exclusive.
+        val detector = GestureDetector(
+            context,
+            object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    launchApp()
+                    return true
+                }
+
+                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                    if (showTime) revealTime() else launchApp()
+                    return true
+                }
+            },
+        )
+
         v.setOnTouchListener { _, e ->
+            detector.onTouchEvent(e)
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     snapAnimator?.cancel()
@@ -186,7 +215,9 @@ class ContentCounterBubble(private val context: Context) {
                 }
                 MotionEvent.ACTION_UP -> {
                     v.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
-                    if (dragging) snapToEdge(v, lp) else launchApp()
+                    // Taps are resolved by the GestureDetector above; only handle
+                    // the drag release here.
+                    if (dragging) snapToEdge(v, lp)
                     true
                 }
                 MotionEvent.ACTION_CANCEL -> {
@@ -232,6 +263,17 @@ class ContentCounterBubble(private val context: Context) {
             Log.w(TAG, "launchApp failed: ${t.message}")
         }
     }
+
+    /** Briefly reveal today's watch time on the bubble, then revert to the count. */
+    private fun revealTime() = runOnMain {
+        val v = view ?: return@runOnMain
+        v.showTime(store.timeTodayMs(dateKey()))
+        mainHandler.removeCallbacks(revertRunnable)
+        mainHandler.postDelayed(revertRunnable, REVEAL_MS)
+    }
+
+    private fun dateKey(): String =
+        SimpleDateFormat("dd-MM-yyyy", Locale.US).format(System.currentTimeMillis())
 
     // ── Geometry helpers ───────────────────────────────────────────────────────
 
@@ -291,6 +333,9 @@ class ContentCounterBubble(private val context: Context) {
         /** Full view size incl. the transparent glow margin (see [BubbleView]). */
         const val BUBBLE_DP = 64f
         const val MARGIN_DP = 4f
+
+        /** How long a tap-revealed time stays up before reverting to the count. */
+        const val REVEAL_MS = 3000L
     }
 }
 
@@ -306,6 +351,7 @@ data class BubbleStyleSpec(
     val spacing: Float = 1f,
     val opacity: Float = 0.95f,
     val showLabel: Boolean = false,
+    val showTime: Boolean = true,
 ) {
     companion object {
         const val GLASS_ORB = "GLASS_ORB"
@@ -324,6 +370,7 @@ data class BubbleStyleSpec(
                     spacing = o.optDouble("spacing", 1.0).toFloat().coerceIn(0.8f, 1.3f),
                     opacity = o.optDouble("opacity", 0.95).toFloat().coerceIn(0.5f, 1f),
                     showLabel = o.optBoolean("showLabel", false),
+                    showTime = o.optBoolean("showTime", true),
                 )
             } catch (_: Throwable) {
                 BubbleStyleSpec()
@@ -385,6 +432,9 @@ private class BubbleView(
 
     private var count = 0
 
+    /** Transient tap-revealed time; when non-null it replaces the count. */
+    private var timeText: String? = null
+
     init {
         // Software layer so the mint glow (shadow layer) renders; the view only
         // redraws on count change, so there's no per-frame cost.
@@ -395,11 +445,36 @@ private class BubbleView(
     }
 
     fun setCount(value: Int) {
+        // Don't clobber an active time reveal: the frequent reel-surface
+        // refreshes call this every ~150ms, so keep the time on screen for its
+        // full duration and just remember the latest count for the revert.
+        if (timeText != null) {
+            count = value
+            return
+        }
         if (value == count) return
         count = value
         if (isPill) requestLayout() // pill width depends on the number of digits
         invalidate()
     }
+
+    /** Temporarily render today's watch time in place of the count. */
+    fun showTime(ms: Long) {
+        timeText = formatMs(ms)
+        if (isPill) requestLayout() // width depends on the text
+        invalidate()
+    }
+
+    /** Ends a time reveal, redrawing the latest count. No-op if not revealing. */
+    fun clearTime() {
+        if (timeText == null) return
+        timeText = null
+        if (isPill) requestLayout()
+        invalidate()
+    }
+
+    /** True while a tap-revealed time is on screen. */
+    val isRevealing: Boolean get() = timeText != null
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         if (isPill) {
@@ -466,6 +541,7 @@ private class BubbleView(
         val cy = height / 2f
         canvas.drawCircle(cx, cy, contentRadius, fillPaint)
         canvas.drawCircle(cx, cy, contentRadius - borderStroke / 2f, borderPaint)
+        if (timeText != null) { drawCount(canvas, cx, cy); return } // time reveal
         emojiPaint.textSize = contentRadius * 0.78f
         val efm = emojiPaint.fontMetrics
         canvas.drawText(
@@ -501,17 +577,19 @@ private class BubbleView(
         textPaint.textAlign = Paint.Align.LEFT
         textPaint.textSize = pillTextSize()
         val tfm = textPaint.fontMetrics
-        canvas.drawText(count.toString(), dotCx + dotR + pillGap(), cy - (tfm.ascent + tfm.descent) / 2f, textPaint)
+        canvas.drawText(timeText ?: count.toString(), dotCx + dotR + pillGap(), cy - (tfm.ascent + tfm.descent) / 2f, textPaint)
     }
 
     // ── Shared count drawing (orb / ring), with optional caption ─────────────────
 
     private fun drawCount(canvas: Canvas, cx: Float, cy: Float) {
-        val label = count.toString()
+        val time = timeText
+        val label = time ?: count.toString()
         textPaint.color = 0xFFFFFFFF.toInt()
         textPaint.textAlign = Paint.Align.CENTER
         textPaint.textSize = baseTextSize(label) * spec.textScale
-        if (spec.showLabel) {
+        // Two-line layout for the "reels" caption or the tap-revealed time.
+        if (spec.showLabel || time != null) {
             val fm = textPaint.fontMetrics
             canvas.drawText(
                 label,
@@ -520,7 +598,12 @@ private class BubbleView(
                 textPaint,
             )
             labelPaint.textSize = contentRadius * 0.26f
-            canvas.drawText("reels", cx, cy + contentRadius * 0.52f, labelPaint)
+            canvas.drawText(
+                if (time != null) "today" else "reels",
+                cx,
+                cy + contentRadius * 0.52f,
+                labelPaint,
+            )
         } else {
             val fm = textPaint.fontMetrics
             canvas.drawText(label, cx, cy - (fm.ascent + fm.descent) / 2f, textPaint)
@@ -544,8 +627,21 @@ private class BubbleView(
 
     private fun pillContentWidth(): Float {
         textPaint.textSize = pillTextSize()
-        val tw = textPaint.measureText(count.toString())
+        val tw = textPaint.measureText(timeText ?: count.toString())
         return pillPadH() + pillDotRadius() * 2f + pillGap() + tw + pillPadH()
+    }
+
+    /** Stopwatch label for the tap-revealed time: `45s` / `3:05` / `1:23:45`. */
+    private fun formatMs(ms: Long): String {
+        val totalSec = ms / 1000L
+        val h = totalSec / 3600L
+        val m = (totalSec % 3600L) / 60L
+        val s = totalSec % 60L
+        return when {
+            h > 0L -> "%d:%02d:%02d".format(h, m, s)
+            m > 0L -> "%d:%02d".format(m, s)
+            else -> "%ds".format(s)
+        }
     }
 
     /** Scales a color's alpha by the style opacity (fills only; borders stay solid). */

@@ -237,27 +237,41 @@ by the bubble overlay and the widget provider.
 | `cc_bubble_enabled` | Boolean | true | Whether the floating bubble may be shown |
 | `cc_bubble_x` | Int | −1 | Last bubble X px (−1 = unset → snaps to default edge) |
 | `cc_bubble_y` | Int | −1 | Last bubble Y px (−1 = unset → default top offset) |
-| `cc_date` | String | "" | Day key of the current `today` bucket (`dd-MM-yyyy`) |
+| `cc_date` | String | "" | Day key of the current `today` bucket (`dd-MM-yyyy`); the **single** rollover marker shared by the reel counts **and** the usage-time buckets below |
 | `cc_today` | Int | 0 | Reels counted today |
 | `cc_total` | Int | 0 | All-time reel count |
+| `cc_time_today` | Long | 0 | Whole-app foreground time (ms) in monitored social apps today — drives the dashboard screen-time ring + bubble tap-to-reveal |
+| `cc_time_total` | Long | 0 | All-time whole-app foreground time (ms) |
 | `cc_per_app_today` | String (JSON) | `{}` | `{pkg: count}` for today |
 | `cc_per_app_total` | String (JSON) | `{}` | `{pkg: count}` all-time |
 | `cc_bubble_style` | String (JSON) | "" | Bubble appearance (Dart `BubbleStyle.toWire`) |
 | `cc_widget_style` | String (JSON) | "" | Widget appearance (Dart `WidgetStyle.toWire`) |
 
 **Counting** (`recordCount(pkg, dateKey)`): on a stored-date mismatch it resets
-the today total and `cc_per_app_today` to 0/`{}` (**durable** midnight
-rollover), then increments the today + total scalars and both per-app maps in a
-single `edit()`.
+the today total and `cc_per_app_today` to 0/`{}` **and zeroes `cc_time_today`**
+(**durable** midnight rollover), then increments the today + total scalars and
+both per-app maps in a single `edit()`.
+
+**Usage time** (`recordUsage(deltaMs, dateKey)`): adds `deltaMs` of monitored-app
+foreground time to `cc_time_today` + `cc_time_total`. It shares the same `cc_date`
+marker, so on a stored-date mismatch it symmetrically zeroes `cc_today` and
+`cc_per_app_today` before adding. **Shared-rollover invariant:** because one
+`cc_date` gates both features, whichever writer turns the day over must zero the
+*other* feature's today bucket too — otherwise a same-day read after that write
+would return yesterday's value. `timeTodayMs(dateKey)` is a cheap bubble-side read
+that returns 0 on a stale date. (Where the deltas come from — the event-gap
+heuristic in `ContentCounter.onAppActivity` — is in
+[17-content-counter.md](17-content-counter.md) §2.6.)
 
 **Snapshot rollover nuance** (`snapshot(dateKey)`): the snapshot applies a
-**read-time** rollover — when the stored day is stale, `today` and
-`perAppToday` read as **0 without writing**; the next `recordCount` performs the
-durable reset. So a snapshot pulled just after midnight is correct even before
-the day's first reel. The snapshot map is what feeds the `contentCounterSnapshot`
-command, the widget render, and the Dart Cubit's hydration (it also carries
-`bubbleStyle` / `widgetStyle`). `todayCount(dateKey)` is a cheap path for the
-bubble that likewise returns 0 on a stale date.
+**read-time** rollover — when the stored day is stale, `today`, `perAppToday` and
+`timeTodayMs` read as **0 without writing**; the next `recordCount`/`recordUsage`
+performs the durable reset. So a snapshot pulled just after midnight is correct
+even before the day's first event. The snapshot map is what feeds the
+`contentCounterSnapshot` command, the widget render, and the Dart Cubit's
+hydration; it also carries `timeTotalMs` and `bubbleStyle` / `widgetStyle`.
+`todayCount(dateKey)` is a cheap path for the bubble that likewise returns 0 on a
+stale date.
 
 See [content counter docs] for the Dart side
 (`lib/features/content_counter/...`) and the bubble/widget renderers in

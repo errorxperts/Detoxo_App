@@ -2,9 +2,13 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
+import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
+import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
+import 'package:detoxo/features/onboarding/presentation/widgets/screen_time_dial.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie_tgs/lottie.dart';
 
 class _Page {
@@ -15,6 +19,7 @@ class _Page {
     this.illustration,
     this.fallbackIcon,
     this.isWelcome = false,
+    this.isLimitStep = false,
   });
 
   final Color accent;
@@ -23,6 +28,9 @@ class _Page {
   final String? illustration;
   final IconData? fallbackIcon;
   final bool isWelcome;
+
+  /// A quick-pick daily-limit question rather than a value-prop slide.
+  final bool isLimitStep;
 }
 
 /// A short value-prop intro funnel over the ambient gradient. Ends by marking
@@ -37,6 +45,13 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _index = 0;
+
+  /// The user's picked daily limit (null until they drag → default is used).
+  Duration? _draftLimit;
+
+  /// Seeds the ring's daily max; the user drags the dial from here. Tunable
+  /// later in the Daily-limit screen.
+  static const _defaultLimit = Duration(minutes: 90);
 
   static final List<_Page> _pages = [
     const _Page(
@@ -62,6 +77,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       illustration: Assets.lottie.nightyNight,
       fallbackIcon: Icons.tune,
     ),
+    const _Page(
+      isLimitStep: true,
+      accent: AppColors.onbTeal,
+      title: 'How much do you scroll daily?',
+      body:
+          'Set a daily limit for short-form video — your dashboard ring fills toward it as you watch. You can change it anytime.',
+    ),
     _Page(
       accent: AppColors.onbViolet,
       title: 'Build the habit',
@@ -81,6 +103,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Future<void> _finish() async {
     final settings = sl<SettingsRepository>();
     await settings.save((await settings.load()).copyWith(onboarded: true));
+    // Seed the dashboard ring's daily limit from the quick-pick (or the default
+    // if the step was skipped). Domain-only reach into daily_limit.
+    await sl<DailyLimitRepository>().save(
+      DailyLimit(
+        limit: _draftLimit ?? _defaultLimit,
+        dateSignature: DateFormat('dd-MM-yyyy').format(DateTime.now()),
+      ),
+    );
     if (mounted) context.go(Routes.permissions);
   }
 
@@ -90,6 +120,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } else {
       _controller.nextPage(duration: AppDurations.medium, curve: AppCurves.standard);
     }
+  }
+
+  void _back() {
+    if (_index == 0) return;
+    _controller.previousPage(duration: AppDurations.medium, curve: AppCurves.standard);
   }
 
   @override
@@ -102,9 +137,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           PageView.builder(
             controller: _controller,
             itemCount: _pages.length,
+            // The limit step owns its drag gestures (the dial), so suspend the
+            // horizontal page swipe there — Back/Next still navigate.
+            physics: _pages[_index].isLimitStep
+                ? const NeverScrollableScrollPhysics()
+                : null,
             onPageChanged: (i) => setState(() => _index = i),
-            itemBuilder: (context, i) =>
-                _PageView(page: _pages[i], controller: _controller, index: i),
+            itemBuilder: (context, i) {
+              final page = _pages[i];
+              if (page.isLimitStep) {
+                return _LimitStep(
+                  page: page,
+                  value: _draftLimit ?? _defaultLimit,
+                  onChanged: (d) => setState(() => _draftLimit = d),
+                );
+              }
+              return _PageView(page: page, controller: _controller, index: i);
+            },
           ),
           // Skip — fades out on the last page.
           SafeArea(
@@ -117,6 +166,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
+          // Back — appears from the second page onward (screen readers can't use
+          // the PageView swipe to go back).
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: AnimatedOpacity(
+                duration: AppDurations.fast,
+                opacity: _index == 0 ? 0 : 1,
+                child: GhostButton(
+                  label: 'Back',
+                  onPressed: _index == 0 ? null : _back,
+                ),
+              ),
+            ),
+          ),
           // Page indicator + primary CTA, overlaid at the bottom.
           SafeArea(
             child: Align(
@@ -126,18 +190,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        _pages.length,
-                        (i) => AnimatedContainer(
-                          duration: AppDurations.fast,
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: i == _index ? 22 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: i == _index ? _pages[_index].accent : context.glass.border,
-                            borderRadius: BorderRadius.circular(4),
+                    Semantics(
+                      container: true,
+                      label: 'Page ${_index + 1} of ${_pages.length}',
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          _pages.length,
+                          (i) => AnimatedContainer(
+                            duration: AppDurations.fast,
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: i == _index ? 22 : 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: i == _index ? _pages[_index].accent : context.glass.border,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
                         ),
                       ),
@@ -195,7 +263,7 @@ class _PageView extends StatelessWidget {
           Text(
             page.body,
             textAlign: TextAlign.center,
-            style: text.bodyLarge?.copyWith(color: context.glass.onGlassMuted),
+            style: text.bodyLarge?.copyWith(color: context.glass.onGlass),
           ).animate(key: ValueKey('b$index')).fadeIn(delay: 160.ms).slideY(begin: 0.15, end: 0),
         ],
       ),
@@ -243,6 +311,51 @@ class _Illustration extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         child: Icon(page.fallbackIcon, size: 64, color: page.accent),
+      ),
+    );
+  }
+}
+
+/// The one interactive onboarding step: drag the [ScreenTimeDial] to set a
+/// daily short-form limit. The value seeds the dashboard ring's max in
+/// [_OnboardingScreenState._finish].
+class _LimitStep extends StatelessWidget {
+  const _LimitStep({
+    required this.page,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final _Page page;
+  final Duration value;
+  final ValueChanged<Duration> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 80, AppSpacing.lg, 150),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            page.title,
+            textAlign: TextAlign.center,
+            style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            page.body,
+            textAlign: TextAlign.center,
+            style: text.bodyMedium?.copyWith(color: context.glass.onGlass),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          ScreenTimeDial(
+            value: value,
+            onChanged: onChanged,
+            accent: page.accent,
+          ),
+        ],
       ),
     );
   }

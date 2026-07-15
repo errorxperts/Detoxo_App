@@ -47,12 +47,15 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    // Size the floating bar to its content (one slot per item) so it stays a
-    // compact centered capsule instead of stretching to the screen width.
-    const slot = 30.0;
+    // Size the floating bar to its content (one 48dp tap slot per item) so it
+    // stays a compact centered capsule instead of stretching to the screen width.
+    const slot = AppSizes.minTapTarget;
     final screenMax = MediaQuery.sizeOf(context).width - AppSpacing.xl;
     final contentWidth = _items.length * slot + AppSpacing.xxl;
     final barWidth = contentWidth > screenMax ? screenMax : contentWidth;
+    // The scaffold opts out of safe area, so lift the floating bar above the
+    // gesture home indicator ourselves.
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     // Lighter drawer dim in light theme: the scrim sits behind the glass drawer
     // and is blurred into it, so a heavy black scrim would make the frosted
     // panel read murky/dark instead of as light glass.
@@ -71,7 +74,7 @@ class _HomeShellState extends State<HomeShell> {
           borderRadius: AppRadius.brPill,
           barColor: Colors.transparent,
           width: barWidth,
-          offset: AppSpacing.sm,
+          offset: AppSpacing.sm + bottomInset,
           duration: AppDurations.normal,
           curve: AppCurves.standard,
           showIcon: false,
@@ -175,36 +178,46 @@ class _NavPillItemState extends State<_NavPillItem> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: AppDurations.fast,
-          curve: AppCurves.standard,
-          width: widget.selected ? 40 : 32,
-          height: widget.selected ? 40 : 32,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: widget.selected
-                ? LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [scheme.primary, scheme.secondary],
-                  )
-                : null,
-            boxShadow: widget.selected
-                ? [
-                    BoxShadow(
-                      color: scheme.secondary.withValues(alpha: 0.40),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
-          ),
-          child: AppAnimatedIcon(
-            icon: widget.icon,
-            size: 24,
-            color: iconColor,
-            controller: _controller,
+        // 48dp tap slot around the compact 32/40 visual, plus a press-squish so
+        // re-tapping the active tab still feels responsive.
+        child: SizedBox(
+          width: AppSizes.minTapTarget,
+          height: AppSizes.minTapTarget,
+          child: Center(
+            child: PressScale(
+              child: AnimatedContainer(
+                duration: AppDurations.fast,
+                curve: AppCurves.standard,
+                width: widget.selected ? 40 : 32,
+                height: widget.selected ? 40 : 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: widget.selected
+                      ? LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [scheme.primary, scheme.secondary],
+                        )
+                      : null,
+                  boxShadow: widget.selected
+                      ? [
+                          BoxShadow(
+                            color: scheme.secondary.withValues(alpha: 0.40),
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: AppAnimatedIcon(
+                  icon: widget.icon,
+                  size: 24,
+                  color: iconColor,
+                  controller: _controller,
+                ),
+              ),
+            ),
           ),
         ),
       ),

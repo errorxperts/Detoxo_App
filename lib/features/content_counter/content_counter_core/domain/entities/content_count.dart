@@ -11,6 +11,7 @@ class ContentCount extends Equatable {
     this.bubbleEnabled = true,
     this.perAppToday = const [],
     this.perAppTotal = const [],
+    this.timeToday = Duration.zero,
   });
 
   /// A safe zero-state used before the first pull and off-Android.
@@ -20,7 +21,8 @@ class ContentCount extends Equatable {
         enabled = true,
         bubbleEnabled = true,
         perAppToday = const [],
-        perAppTotal = const [];
+        perAppTotal = const [],
+        timeToday = Duration.zero;
 
   final int today;
   final int total;
@@ -29,9 +31,13 @@ class ContentCount extends Equatable {
   final List<AppContentCount> perAppToday;
   final List<AppContentCount> perAppTotal;
 
+  /// Whole-app foreground time spent in monitored social apps today (native
+  /// usage accrual). Drives the dashboard screen-time ring + the bubble tap.
+  final Duration timeToday;
+
   bool get isEmpty => today == 0 && total == 0;
 
   @override
   List<Object?> get props =>
-      [today, total, enabled, bubbleEnabled, perAppToday, perAppTotal];
+      [today, total, enabled, bubbleEnabled, perAppToday, perAppTotal, timeToday];
 }

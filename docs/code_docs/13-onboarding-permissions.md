@@ -44,35 +44,45 @@ The `build()` method renders a branded splash (Detoxo logo, "Reclaim your attent
 
 `lib/features/onboarding/` is a **presentation-only feature** — its public barrel (`onboarding.dart`) exports just `OnboardingScreen`; there is no data/ or domain/ layer.
 
-`presentation/onboarding_screen.dart` is a 4-page horizontal `PageView` over the ambient gradient (`GlassScaffold`):
+`presentation/onboarding_screen.dart` is a 5-page horizontal `PageView` over the ambient gradient (`GlassScaffold`):
 
-| Page | Accent | Title | Illustration | Fallback icon |
+| Page | Accent | Title | Illustration / kind | Fallback icon |
 |------|--------|-------|--------------|---------------|
 | 0 (welcome) | `AppColors.seed` | "Welcome to Detoxo" | app logo image (`assets/images/detox_logo_no_bg.png`) | — |
 | 1 | `AppColors.seed` | "Stop the doom-scroll" | Lottie `bow` | `motion_photos_off` |
 | 2 | `AppColors.onbTeal` | "You stay in control" | Lottie `nightyNight` | `tune` |
-| 3 | `AppColors.onbViolet` | "Build the habit" | Lottie `glasses` | `lock_clock` |
+| 3 (limit step) | `AppColors.onbTeal` | "How much do you scroll daily?" | **interactive drag dial** (`ScreenTimeDial`) | — |
+| 4 | `AppColors.onbViolet` | "Build the habit" | Lottie `glasses` | `lock_clock` |
 
-Copy is value-prop only (detecting Reels/Shorts/infinite feeds, choosing which apps to block, pausing with a mindful cooldown, daily limits + schedules + PIN lock). Nothing is requested or persisted per-page.
+Copy is value-prop only (detecting Reels/Shorts/infinite feeds, choosing which apps to block, pausing with a mindful cooldown, daily limits + schedules + PIN lock) — **except page 3**, the one interactive step. Nothing else is requested or persisted per-page.
+
+**The daily-limit dial (page 3, `_LimitStep`).** Instead of a Lottie slide, page 3 asks "How much do you scroll daily?" and presents an interactive **`ScreenTimeDial`** (`presentation/widgets/screen_time_dial.dart`) — a draggable 270° radial gauge (range **15 min – 5 h**, **15-minute** steps, default **90 min**) that visually mirrors the dashboard screen-time ring. Dragging (or tapping) the arc updates the value, which animates in the centre; it's a Semantics slider (increase/decrease step) for accessibility. The selection is held in local `_draftLimit` state (nothing is saved until finish) and seeds the dashboard's screen-time ring max. Because the dial owns its drag gestures, the `PageView` horizontal swipe is **suspended on this page** (`NeverScrollableScrollPhysics`) — Back/Next still navigate. If the user skips the step, `_finish()` falls back to the **90-minute** default.
 
 UI mechanics:
 - **Parallax:** each `_Illustration` drifts at 60px × page-delta relative to the swipe (`Transform.translate` driven by the `PageController`).
 - **Lottie with graceful fallback:** illustrations render via `lottie_tgs`; on any load error `_Illustration._fallback()` draws the page's accent-tinted `fallbackIcon` instead, so a missing/broken asset never blanks the page.
-- **Skip** (top-right `GhostButton`) — visible on pages 0–2, fades out (opacity 0, disabled) on the last page.
-- **Bottom bar** — animated dot indicator (active dot widens to 22px in the page accent) plus a full-width `PrimaryButton` labelled **"Next"** on pages 0–2 and **"Get started"** on the last page, tinted with the current page's accent.
+- **Skip** (top-right `GhostButton`) — visible on pages 0–3, fades out (opacity 0, disabled) on the last page (index 4).
+- **Back** (top-left `GhostButton`) — hidden (opacity 0, disabled) on page 0, visible from page 1 onward; steps back one page via `PageController.previousPage`. Gives a discoverable way back for screen-reader users, since TalkBack intercepts the `PageView` swipe.
+- **Bottom bar** — animated dot indicator (active dot widens to 22px in the page accent; the dot row is wrapped in `Semantics(label: 'Page N of M')` so progress is announced) plus a full-width `PrimaryButton` labelled **"Next"** on pages 0–3 and **"Get started"** on the last page, tinted with the current page's accent.
 
 **Finishing** (`_finish()`, reached by *Skip*, or by *Get started* on the last page via `_next()`):
 
 ```dart
 final settings = sl<SettingsRepository>();
 await settings.save((await settings.load()).copyWith(onboarded: true));
+// Seed the dashboard ring's daily limit from the quick-pick (or 90 min default).
+await sl<DailyLimitRepository>().save(
+  DailyLimit(limit: _draftLimit ?? _defaultLimit,
+             dateSignature: DateFormat('dd-MM-yyyy').format(DateTime.now())),
+);
 if (mounted) context.go(Routes.permissions);
 ```
 
-Two things to note:
+Three things to note:
 
 1. It persists `onboarded: true` **directly through `SettingsRepository`** (resolved from `sl`), not through `SettingsCubit`. The flag is durable for the next launch's splash gate; the in-memory `SettingsCubit.state` is not updated here, which is harmless because…
 2. …it navigates **straight to `/permissions`**, bypassing the splash re-check (and therefore the PIN gate — which is a no-op on first run anyway, since no PIN exists yet). On subsequent launches the splash gate takes over normally.
+3. It **seeds the daily limit** by saving a fresh `DailyLimit` (the quick-pick choice, or the 90-minute default) via `DailyLimitRepository` — a domain-only reach into the `daily_limit` feature. This is the value the dashboard's screen-time ring reads as its max (the ring's fill comes from native usage time, not `DailyLimit.consumed`). See [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).
 
 ---
 
@@ -97,8 +107,8 @@ Two things to note:
 
   Only **accessibility** and **overlay** are required — they are the minimum for the blocker to detect and to draw the block/PIN screen. Everything else is "recommended".
 
-- **`PermissionStatus`** (`Equatable`) — `{ kind, state }` with a `granted` getter (`state == PermissionState.granted`) and `copyWith`.
-- **`PermissionState`** (defined in `lib/features/blocking/shared/domain/entities/enums.dart`) — `{ granted, denied, unknown }`. New statuses default to `unknown`.
+- **`PermissionStatus`** (`Equatable`) — `{ kind, state }` with `granted` (`state == PermissionState.granted`) and `permanentlyDenied` (`state == PermissionState.permanentlyDenied`) getters and `copyWith`.
+- **`PermissionState`** (defined in `lib/features/blocking/shared/domain/entities/enums.dart`) — `{ granted, denied, permanentlyDenied, unknown }`. New statuses default to `unknown`. `permanentlyDenied` only arises for **notifications** — the one runtime permission the OS can mark "don't ask again"; the five settings-based permissions never reach it.
 
 `domain/repositories/permission_repository.dart` — the contract:
 
@@ -127,7 +137,7 @@ Everything is gated on `PlatformCapabilities.usesAndroidPermissionFunnel` (Andro
   | `usageAccess` | `hasUsageAccess()` |
   | `batteryOptimization` | `isIgnoringBattery()` |
   | `deviceAdmin` | `isDeviceAdminActive()` |
-  | `notifications` | `permission_handler` `Permission.notification.isGranted` |
+  | `notifications` | `permission_handler` `Permission.notification.status` → `granted`, else `permanentlyDenied` when `isPermanentlyDenied` (don't-ask-again), else `denied` |
 
   `statuses()` iterates `AppPermission.values` in order and collects each `status(...)`.
 
@@ -140,7 +150,9 @@ Everything is gated on `PlatformCapabilities.usesAndroidPermissionFunnel` (Andro
   | `usageAccess` | `openUsageAccess()` — Usage-access settings |
   | `batteryOptimization` | `requestIgnoreBattery()` — battery-exemption prompt |
   | `deviceAdmin` | `requestDeviceAdmin()` — device-admin activation prompt |
-  | `notifications` | `permission_handler` `Permission.notification.request()` — in-app runtime dialog |
+  | `notifications` | if `Permission.notification.isPermanentlyDenied` → `openAppSettings()`; else `Permission.notification.request()` — in-app runtime dialog |
+
+  A plain `request()` no-ops once notifications is permanently denied (don't-ask-again), so the branch sends the user to the app's system settings screen instead, giving a real recovery path; on resume the funnel re-checks and the card flips to granted.
 
   Important consequence: **only `notifications` resolves with an inline dialog**. The other five hand off to a full-screen system settings activity that returns no synchronous grant result. That is why the funnel re-checks on resume and after a short delay (below) rather than trusting a return value from `request()`.
 
@@ -161,7 +173,7 @@ DI: registered as a global `BlocProvider` in `lib/main.dart` (`PermissionsCubit(
 - A `WidgetsBindingObserver` that calls `PermissionsCubit.refresh()` on `initState` **and** on every `AppLifecycleState.resumed`. This is the key UX move: the user leaves to a system settings screen, flips a toggle, and returns — the list updates live to reflect what they just granted.
 - Splits statuses into **"Required to block"** and **"Recommended"** sections (by `kind.required`), each an animated `EntranceList` of `PermissionCard`s.
 - A progress row: a `ProgressBar` plus "*grantedReq* of *totalRequired*" (fraction of required permissions granted).
-- Each card shows an icon, the permission `label`, a plain-language *why*, a granted/needed indicator, and a **Grant** action wired to `cubit.request(status.kind)`.
+- Each card shows an icon, the permission `label`, a plain-language *why*, a granted/needed indicator, and an action wired to `cubit.request(status.kind)`. The action reads **Grant** normally, or **Open settings** when the status is `permanentlyDenied` (`PermissionCard(permanentlyDenied: ...)`) — so a don't-ask-again notification permission points at the app's system settings instead of a dead button.
 - Bottom `PrimaryButton`: while `allRequiredGranted` is false it reads **"Grant required permissions"** and is **disabled**; once both required permissions are granted it becomes **"Continue"** and `context.go(Routes.home)`.
 
 Per-permission icons and "why" copy (from the screen):
@@ -190,7 +202,7 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 ## 5. End-to-end sequence (first run, Android)
 
 1. Cold launch → `/` splash → `_bootstrap()` loads settings/targets/permissions/pin, seeds the enabled set from installed defaults, refreshes the counter widget.
-2. `onboarded == false` → `/onboarding`. User swipes/skips the 4-page intro; finishing persists `onboarded: true` and goes to `/permissions`.
+2. `onboarded == false` → `/onboarding`. User swipes/skips the 5-page intro (incl. the daily-scroll dial on page 3); finishing persists `onboarded: true`, seeds the daily limit (dialled value or 90 min default), and goes to `/permissions`.
 3. `/permissions` funnel. User grants **Accessibility** and **Display over apps** (required) via system screens; returning each time re-checks on resume. Optional permissions (notifications, usage, battery, device-admin) offered but not blocking.
 4. Once both required are granted, **Continue** → `/home`.
 5. Next launch: splash finds `onboarded == true`, no app-scope PIN (unless the user set one), required permissions granted → routes straight to `/home`. If an app-scope PIN was later configured, step 2 of the gate diverts to `/pin/lock` first.
@@ -201,7 +213,10 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 
 - `lib/app/splash_screen.dart`
 - `lib/features/onboarding/onboarding.dart`
-- `lib/features/onboarding/presentation/onboarding_screen.dart`
+- `lib/features/onboarding/presentation/onboarding_screen.dart` (5-page intro + `_LimitStep`; seeds `DailyLimit`)
+- `lib/features/onboarding/presentation/widgets/screen_time_dial.dart` (`ScreenTimeDial` — the draggable daily-limit gauge)
+- `lib/features/limits/daily_limit/domain/entities/daily_limit.dart` (`DailyLimit` — seeded on finish)
+- `lib/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart` (`DailyLimitRepository.save`)
 - `lib/features/permissions/permissions.dart`
 - `lib/features/permissions/domain/entities/permission_status.dart`
 - `lib/features/permissions/domain/repositories/permission_repository.dart`

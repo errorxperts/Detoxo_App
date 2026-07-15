@@ -15,6 +15,10 @@ import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dar
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/domain/repositories/content_counter_repository.dart';
+import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
+import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
+import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:detoxo/firebase_options.dart';
@@ -73,6 +77,14 @@ class DetoxoApp extends StatelessWidget {
         ),
         BlocProvider(create: (_) => PermissionsCubit(sl<PermissionRepository>())),
         BlocProvider(create: (_) => PinCubit(sl<PinRepository>())),
+        // Live reel-counter stream (today count + today usage time) and the
+        // daily limit — both feed the dashboard screen-time ring.
+        BlocProvider(
+          create: (_) => ContentCounterCubit(sl<ContentCounterRepository>()),
+        ),
+        BlocProvider(
+          create: (_) => DailyLimitCubit(sl<DailyLimitRepository>())..load(),
+        ),
       ],
       child: BlocListener<SettingsCubit, AppSettings>(
         listenWhen: (a, b) => a.vibrationEnabled != b.vibrationEnabled,

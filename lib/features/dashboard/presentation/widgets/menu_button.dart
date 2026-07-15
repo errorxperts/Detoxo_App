@@ -24,6 +24,7 @@ class DrawerMenuButton extends StatelessWidget {
                 onTap!();
               },
         child: IconBadge(
+          size: AppSizes.minTapTarget,
           color: scheme.primary,
           fillAlpha: 0.12,
           bordered: true,
