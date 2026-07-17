@@ -53,6 +53,19 @@ abstract final class ChannelMethods {
   // Conscious (earn-as-you-abstain) bank snapshot.
   static const String consciousState = 'consciousState';
 
+  /// Reset the Conscious bank to empty (fresh start). Fired only on a genuine
+  /// user entry to Conscious — an auto-revert into Conscious keeps the bank.
+  static const String resetConsciousBank = 'resetConsciousBank';
+
+  /// One Reel / Unblock: (re)arm the reel session with a fresh allowance,
+  /// resetting the native consumed-count. Payload `{count}` (1..20). Imperative
+  /// so an unrelated settings push never re-arms mid-session.
+  static const String armReelSession = 'armReelSession';
+
+  /// One-shot pull of the reel-session state (`{consumed, allowance, blocked,
+  /// active}`).
+  static const String reelSessionState = 'reelSessionState';
+
   // Short-video / reel counter.
   static const String contentCounterSnapshot = 'contentCounterSnapshot';
   static const String setContentCounterEnabled = 'setContentCounterEnabled';
@@ -79,6 +92,10 @@ abstract final class ChannelEvents {
 
   /// Live Conscious bank update (bankMs / maxBankMs / watching / blocked).
   static const String consciousState = 'consciousState';
+
+  /// Live One Reel / Unblock session update. Payload: `{consumed, allowance,
+  /// blocked, active}`.
+  static const String reelSessionState = 'reelSessionState';
 
   /// A short video was counted. Payload: `{package, today, total, perAppToday,
   /// perAppTotal}`.

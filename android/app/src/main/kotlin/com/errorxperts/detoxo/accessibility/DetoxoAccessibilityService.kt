@@ -70,6 +70,22 @@ class DetoxoAccessibilityService : AccessibilityService() {
     private val consciousHandler = Handler(Looper.getMainLooper())
     private var consciousRunning = false
     @Volatile private var lastReelAtMs = 0L
+
+    // ── One Reel / Unblock (allow N reels, then block) ───────────────────────
+    // Runtime-only dwell state (meaningless across a service restart); the
+    // consumed count is persisted in ConfigStore so a restart keeps the user
+    // blocked until an explicit re-tap, and these self-correct from it.
+    //  - `lastScrollAtMs`  : a reel-advance scroll (captured pre-throttle).
+    //  - `reelViewStartMs` : when the current reel view began (0 = none/fresh).
+    //  - `reelViewCounted` : the current reel already cost one count (loop-safe).
+    //  - `lastReelCountMs` : when the last reel was counted (debounces in-reel
+    //    scrolls, e.g. opening comments, from being read as a reel advance).
+    // A reel counts toward the allowance only after MIN_VIEW_MS (2s) of dwell, so
+    // a quick flick-through or a single looping reel costs at most one count.
+    @Volatile private var lastScrollAtMs = 0L
+    @Volatile private var reelViewStartMs = 0L
+    @Volatile private var reelViewCounted = false
+    @Volatile private var lastReelCountMs = 0L
     // Foreground package, tracked for the Conscious accountant: "abstaining"
     // means the foreground app has no reel surfaces, so the bank only accrues
     // when the user is genuinely off a reel-bearing app.
@@ -97,6 +113,22 @@ class DetoxoAccessibilityService : AccessibilityService() {
         webEngine.setBlocklist(store.webBlocklistJson)
         webEngine.setAdultEnabled(store.blockAdultWebsites)
         syncConscious()
+        syncReelBubble()
+    }
+
+    /**
+     * Push the One Reel / Unblock "reels left" count to the bubble (null = normal
+     * today total). Called on every config reload — so it arms on session start,
+     * and clears back to the total when the mode reverts to Block All / Conscious.
+     */
+    private fun syncReelBubble() {
+        contentCounter.setReelSessionRemaining(
+            if (store.activePlan == PLAN_ONE_REEL) {
+                (store.reelAllowance - store.reelsConsumed).coerceAtLeast(0)
+            } else {
+                null
+            },
+        )
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -108,7 +140,10 @@ class DetoxoAccessibilityService : AccessibilityService() {
         // surfaces immediately ends "watching" so the bank can start earning.
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             foregroundPkg = pkg
-            if (config.platformsFor(pkg).isEmpty()) lastReelAtMs = 0L
+            if (config.platformsFor(pkg).isEmpty()) {
+                lastReelAtMs = 0L
+                reelViewStartMs = 0L // left the reel app → next reel is a fresh view
+            }
             if (contentCounter.isEnabled) {
                 contentCounter.onForegroundChanged(
                     pkg,
@@ -130,6 +165,16 @@ class DetoxoAccessibilityService : AccessibilityService() {
         // allowed) until pauseUntil, after which the active plan resumes. Gated
         // purely on the clock so it works regardless of the pushed plan name.
         if (System.currentTimeMillis() < store.pauseUntil) return
+
+        // One Reel / Unblock: capture reel-advance scrolls BEFORE the throttle
+        // below. A scroll swallowed by the 150 ms throttle would leave the next
+        // reel looking like the same one and leak it past the allowance.
+        if (store.activePlan == PLAN_ONE_REEL &&
+            event.eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED &&
+            config.platformsFor(pkg).isNotEmpty()
+        ) {
+            lastScrollAtMs = System.currentTimeMillis()
+        }
 
         // Per-package throttle.
         val now = System.currentTimeMillis()
@@ -174,6 +219,11 @@ class DetoxoAccessibilityService : AccessibilityService() {
                     // abstaining and the bank starts refilling.
                     if (store.activePlan == PLAN_CONSCIOUS && store.consciousBankMs > 0L) {
                         lastReelAtMs = now
+                        return
+                    }
+                    // One Reel / Unblock: allow while within the allowance, else
+                    // fall through to block.
+                    if (store.activePlan == PLAN_ONE_REEL && allowReelOrBlock(now)) {
                         return
                     }
                     onDetected(pkg, platform.platformId, detector)
@@ -450,6 +500,14 @@ class DetoxoAccessibilityService : AccessibilityService() {
             return
         }
 
+        // Inside a Pause window (Conscious is the base mode being paused): every
+        // app is allowed and the reel gate is off, so freeze the bank rather than
+        // silently accrue free allowance while the user scrolls unblocked.
+        if (now < store.pauseUntil) {
+            emitConsciousState()
+            return
+        }
+
         // "Watching": a reel was detected very recently. "In a reel app": the
         // foreground app has reel surfaces but detection has gone quiet (a paused
         // video / a non-feed overlay). We only accrue when genuinely off reels,
@@ -492,6 +550,103 @@ class DetoxoAccessibilityService : AccessibilityService() {
             "maxBankMs" to store.consciousMaxBankMs,
             "watching" to (active && watching),
             "blocked" to (active && bank <= 0L),
+            "active" to active,
+        )
+    }
+
+    // ---- One Reel / Unblock (allow N reels, then block) --------------------
+
+    /**
+     * Gate for One Reel / Unblock: a reel surface is on screen — decide allow vs
+     * block. Returns true to allow (caller returns), false to block (caller falls
+     * through to [onDetected]).
+     *
+     * A reel costs ONE count, and only after it's been watched for [MIN_VIEW_MS]
+     * (2s) — so a quick flick-through and a single looping reel each cost at most
+     * one. Reels are delimited by scrolls (consecutive reels share the same
+     * continuously-visible view-id, so a scroll is the "moved to the next reel"
+     * signal), but a scroll only counts as an advance once ≥ 2s have passed since
+     * the last count — this debounces in-reel scrolls (opening comments/captions)
+     * so they don't burn the allowance or block the reel you're still watching.
+     * The currently-playing reel is NEVER blocked; only a fresh reel that appears
+     * after the allowance is spent is blocked (which drives the Dart auto-revert).
+     *
+     * ponytail: reel identity is heuristic (scroll + 2s dwell, no per-reel id). A
+     * spurious scroll > 2s after a count can still be misread as an advance, and a
+     * fast scroll within 2s of a count is absorbed into the current reel (a small
+     * leniency). Upgrade path = content-based reel identity.
+     */
+    private fun allowReelOrBlock(now: Long): Boolean {
+        // A fresh reel view: session/app start, or a real scroll-advance (≥ 2s
+        // since the last count, so an in-reel scroll isn't read as moving on).
+        val advanced = reelViewStartMs == 0L ||
+            (lastScrollAtMs > reelViewStartMs && now - lastReelCountMs >= MIN_VIEW_MS)
+
+        if (advanced) {
+            // Count the reel we're leaving if it was actually watched (≥ 2s) and
+            // not already counted — covers a passively-watched reel whose surface
+            // stopped emitting events before its 2s same-reel tick fired.
+            if (reelViewStartMs != 0L && !reelViewCounted &&
+                now - reelViewStartMs >= MIN_VIEW_MS
+            ) {
+                countReel(now)
+            }
+            reelViewStartMs = now
+            reelViewCounted = false
+            if (store.reelsConsumed >= store.reelAllowance) {
+                emitReelSessionState(blocked = true) // spent → block + Dart revert
+                return false
+            }
+            emitReelSessionState(blocked = false)
+            syncReelBubble()
+            return true
+        }
+
+        // Same reel continuing: count it once it crosses the 2s dwell; the reel
+        // being watched is never blocked, so always allow.
+        if (!reelViewCounted && now - reelViewStartMs >= MIN_VIEW_MS) {
+            countReel(now)
+        }
+        return true
+    }
+
+    /** Tally one watched reel toward the allowance and refresh the UI + bubble. */
+    private fun countReel(now: Long) {
+        store.reelsConsumed += 1
+        reelViewCounted = true
+        lastReelCountMs = now
+        emitReelSessionState(blocked = false)
+        syncReelBubble()
+    }
+
+    /** Re-arm a fresh reel session: zero the dwell state, reload, emit. */
+    fun armReelSession() {
+        reelViewStartMs = 0L
+        reelViewCounted = false
+        lastReelCountMs = 0L
+        lastScrollAtMs = 0L
+        reload()
+        emitReelSessionState(blocked = false)
+    }
+
+    private fun emitReelSessionState(blocked: Boolean) {
+        ServiceEventBus.post("reelSessionState", reelSessionSnapshot(blocked))
+    }
+
+    /**
+     * Current One Reel / Unblock session state (also used for the pull query).
+     * [blocked] is explicit on the live push paths; the pull query defaults it to
+     * "allowance fully consumed" as a reasonable at-rest approximation.
+     */
+    fun reelSessionSnapshot(
+        blocked: Boolean = store.activePlan == PLAN_ONE_REEL &&
+            store.reelsConsumed >= store.reelAllowance,
+    ): Map<String, Any?> {
+        val active = store.activePlan == PLAN_ONE_REEL
+        return mapOf(
+            "consumed" to store.reelsConsumed,
+            "allowance" to store.reelAllowance,
+            "blocked" to blocked,
             "active" to active,
         )
     }
@@ -569,8 +724,18 @@ class DetoxoAccessibilityService : AccessibilityService() {
         /** Firm single block buzz — longer/stronger than a stray system tap. */
         private const val BLOCK_VIBRATION_MS = 60L
 
+        /**
+         * A reel must be watched this long (2s) to count toward the One Reel /
+         * Unblock allowance — matching the awareness counter's dwell so a quick
+         * flick-through or a single looping reel costs at most one count.
+         */
+        private const val MIN_VIEW_MS = 2000L
+
         /** Active-plan token for Conscious (shares the legacy "CURIOUS" wire). */
         private const val PLAN_CONSCIOUS = "CURIOUS"
+
+        /** Active-plan token for One Reel / Unblock (allow N reels, then block). */
+        private const val PLAN_ONE_REEL = "ONE_REEL"
 
         /** Conscious accountant cadence. */
         private const val CONSCIOUS_TICK_MS = 1000L

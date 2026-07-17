@@ -51,6 +51,9 @@ class CommandHandler(
     private companion object {
         /** Conscious plan token (shares the legacy "CURIOUS" wire). */
         const val PLAN_CONSCIOUS = "CURIOUS"
+
+        /** One Reel / Unblock plan token (allow N reels, then re-block). */
+        const val PLAN_ONE_REEL = "ONE_REEL"
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -61,11 +64,11 @@ class CommandHandler(
                 result.success(true)
             }
             "pushSettings" -> {
+                // The plan is stored verbatim. The Conscious bank is NOT reset on
+                // a plan transition here — it resets only on the explicit
+                // resetConsciousBank command (a genuine user entry), so an
+                // auto-revert *into* Conscious keeps the earned bank.
                 call.argument<String>("activePlan")?.let { plan ->
-                    // Freshly switching into Conscious starts a new, empty bank.
-                    if (plan == PLAN_CONSCIOUS && store.activePlan != PLAN_CONSCIOUS) {
-                        store.resetConsciousBank(System.currentTimeMillis())
-                    }
                     store.activePlan = plan
                 }
                 call.argument<String>("defaultBlockMode")?.let { store.defaultBlockMode = it }
@@ -75,6 +78,12 @@ class CommandHandler(
                 call.argument<Boolean>("vibration")?.let { store.vibrationEnabled = it }
                 call.argument<Boolean>("masterEnabled")?.let { store.masterEnabled = it }
                 call.argument<Number>("pauseUntil")?.let { store.pauseUntil = it.toLong() }
+                // The target allowance persists here (survives restart); the
+                // consumed-count is NOT reset here — only the imperative
+                // armReelSession re-arms, so an unrelated push can't refill it.
+                call.argument<Number>("reelAllowance")?.let {
+                    store.reelAllowance = it.toInt()
+                }
                 call.argument<Number>("consciousEarnDivisor")?.let {
                     store.consciousEarnDivisor = it.toInt()
                 }
@@ -102,6 +111,32 @@ class CommandHandler(
                     "watching" to false,
                     "blocked" to (store.activePlan == PLAN_CONSCIOUS && store.consciousBankMs <= 0L),
                     "active" to (store.activePlan == PLAN_CONSCIOUS),
+                ),
+            )
+            "resetConsciousBank" -> {
+                // Explicit fresh-start reset, fired only on a genuine user entry
+                // to Conscious (auto-reverts keep the earned bank).
+                store.resetConsciousBank(System.currentTimeMillis())
+                DetoxoAccessibilityService.instance?.reload()
+                result.success(true)
+            }
+            "armReelSession" -> {
+                // (Re)arm One Reel / Unblock with a fresh allowance. Imperative
+                // so an unrelated pushSettings never re-arms mid-session.
+                val count = (call.argument<Number>("count")?.toInt() ?: 1).coerceIn(1, 20)
+                store.reelAllowance = count
+                store.activePlan = PLAN_ONE_REEL
+                store.resetReelSession()
+                DetoxoAccessibilityService.instance?.armReelSession()
+                result.success(true)
+            }
+            "reelSessionState" -> result.success(
+                DetoxoAccessibilityService.instance?.reelSessionSnapshot() ?: mapOf(
+                    "consumed" to store.reelsConsumed,
+                    "allowance" to store.reelAllowance,
+                    "blocked" to (store.activePlan == PLAN_ONE_REEL &&
+                        store.reelsConsumed >= store.reelAllowance),
+                    "active" to (store.activePlan == PLAN_ONE_REEL),
                 ),
             )
             "isAccessibilityEnabled" -> result.success(isAccessibilityEnabled())

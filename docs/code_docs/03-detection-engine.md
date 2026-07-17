@@ -23,7 +23,7 @@ is itself the foreground service — see [04-native-android-layer.md](04-native-
 | Hook | Behaviour |
 |------|-----------|
 | `onServiceConnected()` | Sets the `instance` singleton, constructs `ConfigStore`, calls `reload()`, calls `startAsForeground()`, posts `serviceStatus {running:true}`. |
-| `reload()` | Re-parses `DetectionConfig.parse(store.platformsConfigJson)`, refreshes the web blocklist + adult flag, calls `syncConscious()`. Invoked whenever Dart pushes new config/settings. |
+| `reload()` | Re-parses `DetectionConfig.parse(store.platformsConfigJson)`, refreshes the web blocklist + adult flag, calls `syncConscious()` **and `syncReelBubble()`** (pushes the One Reel / Unblock "reels left" count to the counter bubble — §5.3). Invoked whenever Dart pushes new config/settings. |
 | `onInterrupt()` | Posts `serviceStatus {running:false}`. |
 | `onUnbind()` / `onDestroy()` | Clears `instance`, stops the Conscious accountant, disposes the content counter, posts `serviceStatus {running:false}`. |
 | `onTaskRemoved()` | Re-calls `startAsForeground()` so the service survives the app being swiped away. |
@@ -58,6 +58,8 @@ onAccessibilityEvent(event):
   if contentCounter.isEnabled: countContent(event, pkg)   ; side-effect-free
   if !store.masterEnabled: return                          ; master kill-switch
   if now < store.pauseUntil: return                        ; Pause window
+  if plan==ONE_REEL and event==VIEW_SCROLLED and pkg has platforms:
+      lastScrollAtMs = now                                 ; capture reel advance BEFORE throttle
   ── per-package throttle (THROTTLE_MS = 150) ──
   if BrowserUrlExtractor.isBrowser(pkg):                   ; web blocking branch
       handleBrowser(pkg) on window/content change; return
@@ -66,6 +68,7 @@ onAccessibilityEvent(event):
       for each detector (FINDBYID / VIEWID_RES_NAME):
           if matches(root, event, detector, pkg):
               if plan==CURIOUS and bank>0: lastReelAtMs=now; return   ; let it play
+              if plan==ONE_REEL and allowReelOrBlock(now): return     ; within allowance
               onDetected(pkg, platformId, detector)
               if detector.haltOnDetect: return
 ```
@@ -84,14 +87,18 @@ onAccessibilityEvent(event):
 5. **Master switch** — `if (!store.masterEnabled) return`. Default `true`.
 6. **Pause gate** — `if (System.currentTimeMillis() < store.pauseUntil) return`.
    Clock-based; suspends *all* blocking regardless of the pushed plan name (see §5).
-7. **Per-package throttle** — see §3.
+7. **Per-package throttle** — see §3. Immediately *before* this throttle, under the
+   `ONE_REEL` plan a `TYPE_VIEW_SCROLLED` from a monitored app stamps
+   `lastScrollAtMs` — a throttled scroll would hide a reel advance and leak the next
+   reel past the allowance (see §5.3).
 8. **Browser branch** — if the package is a known browser, run web blocking
    (only on `WINDOW_STATE_CHANGED` / `WINDOW_CONTENT_CHANGED`, and only if the
    blocklist has rules) and `return`. Browsers carry no reel surfaces, so the
    reel path is skipped either way. Detailed in
    [06-app-and-web-blocker.md](06-app-and-web-blocker.md).
 9. **Reel detection** — iterate the package's platforms/detectors (§4), apply the
-   Conscious allowance check (§5), then execute the block (§4.4).
+   Conscious allowance check (§5.2) **or the One Reel / Unblock gate (§5.3)**, then
+   execute the block (§4.4).
 
 ---
 
@@ -315,6 +322,7 @@ retroactively credited; the persisted bank carries over).
 if plan != CURIOUS: return
 elapsed = clamp(now - anchor, >=0); anchor = now      // advance first, always
 if !masterEnabled: emit; return                        // freeze (no drain/accrue)
+if now < pauseUntil: emit; return                      // freeze during a live Pause (Conscious base)
 watching = (now - lastReelAtMs) < WATCH_STALE_MS (2500 ms)
 inReelApp = foregroundPkg has any configured platform
 if watching:
@@ -332,6 +340,11 @@ Key nuances:
   app has no configured reel platforms at all.
 - A **paused reel** (reel app foreground, detection gone quiet) neither drains nor
   refills — it holds steady, so pausing a video can't farm allowance.
+- A **live Pause** window (`now < pauseUntil`) **freezes** the bank, mirroring the
+  master-off freeze: when Conscious is the base mode being paused, every app is
+  allowed and the reel gate is off, so the bank must not silently accrue free
+  allowance while the user scrolls unblocked. The anchor is already advanced, so
+  re-blocking after the pause can't dump a huge credit.
 - `CONSCIOUS_MAX_STEP_MS = 5000` caps a single drain step so a delayed/coalesced
   tick can't dump the whole bank at once.
 - `WATCH_STALE_MS = 2500`: a reel seen within 2.5 s still counts as "watching".
@@ -341,6 +354,87 @@ Key nuances:
 `watching = active && (now-lastReelAtMs) < 2500`, `blocked = active && bank <= 0`.
 `emitConsciousState` is fired on every tick and on `syncConscious`. The snapshot
 also backs the `consciousState` pull command.
+
+### 5.3 One Reel / Unblock — allow N reels, then block
+
+`oneReel` (wire `ONE_REEL`, native `PLAN_ONE_REEL = "ONE_REEL"`) is the third
+`activePlan` the hot loop enforces. It grants a fixed `store.reelAllowance` (1..20;
+`= 1` is "One Reel", `2..20` is "Unblock N") and blocks once the allowance is spent.
+State in `ConfigStore`: `reelAllowance` (key `reel_allowance`) and the **persisted**
+`reelsConsumed` (key `reels_consumed`). No 1 Hz accountant — enforcement is purely
+event-driven inside the detector loop.
+
+**A reel counts only after 2s of dwell.** A reel is added to `reelsConsumed` **only
+after it's been watched for `MIN_VIEW_MS = 2000 ms`** (matching the awareness
+counter's dwell), so a quick flick-through (<2s) doesn't count, and a **single
+looping reel costs at most one count** — a `reelViewCounted` latch prevents
+re-counting the same view. Reels are still **scroll-delimited** (consecutive reels
+share the same continuously-visible view-id, so `matches()` fires the whole time a
+reel is up), but a scroll only counts as an **advance to a new reel** once **≥ 2s
+have passed since the last count** (`lastReelCountMs`) — this **debounces in-reel
+scrolls** (opening comments/captions/carousels) so they don't burn the allowance or
+block the reel you're still watching. The reel-advance scroll (`TYPE_VIEW_SCROLLED`
+from a monitored app) is still stamped into the runtime `@Volatile lastScrollAtMs`
+**before** the 150 ms throttle (§2.1 step 7); a scroll swallowed by the throttle
+would hide the advance.
+
+In the detector loop, when a reel matches under `ONE_REEL`:
+
+```kotlin
+if (store.activePlan == PLAN_ONE_REEL && allowReelOrBlock(now)) return  // allow
+onDetected(...)                                                          // spent → block
+```
+
+`allowReelOrBlock(now)`:
+- `advanced = reelViewStartMs == 0L || (lastScrollAtMs > reelViewStartMs && now − lastReelCountMs ≥ MIN_VIEW_MS)`
+  — a fresh view is a session/app start or a real scroll-advance that's ≥ 2s past
+  the last count (so an in-reel scroll isn't read as moving on).
+- On an **advance**: first count the reel being *left* if it was watched ≥ 2s and not
+  already counted (`countReel` — covers a passively-watched reel whose surface stopped
+  emitting events before its 2s tick fired); then start the new view
+  (`reelViewStartMs = now`, `reelViewCounted = false`). If `reelsConsumed ≥
+  reelAllowance` this fresh reel is **blocked** (`emitReelSessionState(blocked = true)`,
+  return false); otherwise allow it.
+- **Same reel continuing**: the currently-playing reel is **never blocked** — it's
+  counted once it crosses the 2s dwell (`!reelViewCounted && now − reelViewStartMs ≥
+  MIN_VIEW_MS → countReel`), then always allowed.
+
+`countReel(now)` does the tally: `reelsConsumed += 1`, sets the `reelViewCounted`
+latch, stamps `lastReelCountMs`, emits state, and calls `syncReelBubble()`. Counting
+thus happens on **either** the 2s same-reel dwell tick **or** when advancing away from
+a reel watched ≥ 2s.
+
+`reelsConsumed` is **persisted**, so an OS-driven service restart keeps the user
+blocked until an explicit re-tap; `reload()` / `onServiceConnected` do **not** reset
+it — only the imperative `armReelSession` (via `store.resetReelSession()`) does. The
+runtime dwell fields — `reelViewStartMs`, `reelViewCounted`, `lastReelCountMs`,
+`lastScrollAtMs` — are all zeroed by `armReelSession()` (which then reloads and emits
+a `reelSessionState` event `{consumed, allowance, blocked, active}`, also backing the
+pull query), and `reelViewStartMs` is reset whenever the user leaves the reel app so
+the next reel starts as a fresh view.
+
+**Reel-counter bubble "reels left".** The gate also drives the content-counter
+bubble's display: `syncReelBubble()` pushes
+`reelAllowance − reelsConsumed` (coerced ≥ 0, or `null` when the plan isn't
+`ONE_REEL`) to `ContentCounter.setReelSessionRemaining`. It runs at the end of
+`reload()` (covers arm and revert-to-base) and again inside `countReel` right after
+the `reelsConsumed` increment, so the bubble's countdown ticks down per watched reel
+(i.e. once a reel clears its 2s dwell). This is display-only — the counter's own tally
+stays blocking-independent. Full detail in [17-content-counter.md](17-content-counter.md) §5.1.
+
+The emitted `reelSessionState` with **`blocked = true`** is also the sole trigger for
+the Dart-side **auto-revert**: `SettingsCubit` listens on `reelSessionStream()` and,
+once the allowance is spent, flips the plan back to the sticky base mode (Block All /
+Conscious). Native still owns the count and still boots the over-allowance reel here;
+the override simply doesn't sit blocked afterwards. Full Dart/UI side in
+[05-plans-pause-conscious.md](05-plans-pause-conscious.md) §7.4.
+
+> `ponytail:` reel identity is heuristic (scroll + 2s dwell, no per-reel id). A
+> spurious scroll **> 2s** after a count can still be misread as an advance, and a
+> fast scroll **within 2s** of a count is absorbed into the current reel (a small
+> leniency — safer than false-blocking the reel you're still watching). Accepted
+> ceiling; the service comment names the upgrade path (content-based reel identity).
+> Full Dart/UI side in [05-plans-pause-conscious.md](05-plans-pause-conscious.md) §7.
 
 ---
 
@@ -462,6 +556,7 @@ Types this file emits:
 | `blocked` | `{package, platformId, mode, today, total}` | A reel block fired in `onDetected`. |
 | `webBlocked` | `{host, mode:"PRESS_BACK", today, total}` | A blocked host bounced (browser branch). |
 | `consciousState` | `{bankMs, maxBankMs, watching, blocked, active}` | Each Conscious tick / sync. |
+| `reelSessionState` | `{consumed, allowance, blocked, active}` | Each One Reel / Unblock allow, block, or arm (§5.3). |
 | `detection`, `foregroundChanged`, `contentCounted` | — | Emitted by sibling modules (counter / foreground tracking), not shown here. |
 
 Block/web counters are date-keyed `dd-MM-yyyy` in `ConfigStore`

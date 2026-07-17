@@ -161,6 +161,18 @@ class ContentCounter(private val context: Context) {
         }
     }
 
+    /**
+     * One Reel / Unblock "reels left" override for the bubble: non-null shows the
+     * remaining unlock count, null reverts to the today total. Gated on the
+     * counter being enabled so a disabled bubble stays hidden (and we don't
+     * instantiate the overlay). The bubble's own show/hide still respects
+     * [ContentCounterStore.bubbleEnabled] and the on-a-reel-surface condition.
+     */
+    fun setReelSessionRemaining(n: Int?) {
+        if (!store.enabled) return
+        bubble.setRemaining(n)
+    }
+
     /** Current counter snapshot (for the pull command). */
     fun snapshot(): Map<String, Any?> = store.snapshot(dateKey())
 

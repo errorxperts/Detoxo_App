@@ -22,6 +22,106 @@ abstract final class SessionDialogs {
 
   static Future<void> showConscious(BuildContext context) =>
       GlassDialog.show<void>(context: context, child: const _ConsciousDialog());
+
+  static Future<void> showUnblock(BuildContext context) =>
+      GlassDialog.show<void>(context: context, child: const _UnblockDialog());
+}
+
+// ── Unblock (allow N reels, then revert to the base mode) ────────────────────
+
+class _UnblockDialog extends StatefulWidget {
+  const _UnblockDialog();
+
+  @override
+  State<_UnblockDialog> createState() => _UnblockDialogState();
+}
+
+class _UnblockDialogState extends State<_UnblockDialog> {
+  int _count = SessionDefaults.unblockDefault;
+
+  void _unlock() {
+    context.read<SettingsCubit>().setOneReel(count: _count);
+    Navigator.of(context).pop();
+  }
+
+  /// The base mode this Unblock will return to when the count is spent.
+  String get _baseLabel =>
+      context.read<SettingsCubit>().state.baseMode == BlockingPlan.curious
+      ? 'Conscious'
+      : 'Block All';
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Unblock',
+          textAlign: TextAlign.center,
+          style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Center(
+          child: SleekCircularSlider(
+            min: SessionDefaults.unblockSliderMin.toDouble(),
+            max: SessionDefaults.unblockSliderMax.toDouble(),
+            initialValue: SessionDefaults.unblockDefault.toDouble(),
+            appearance: pauseSliderAppearance(context, interactive: true),
+            onChange: (value) {
+              final n = SessionDefaults.snapUnblockCount(value);
+              if (n != _count) setState(() => _count = n);
+            },
+            innerWidget: (_) => _sliderCenter(context),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          'Watch a set number of reels',
+          textAlign: TextAlign.center,
+          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'You can watch $_count reels, then blocking returns automatically '
+          'to $_baseLabel.',
+          textAlign: TextAlign.center,
+          style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        PrimaryButton(label: 'Unlock $_count reels', expand: true, onPressed: _unlock),
+      ],
+    );
+  }
+
+  Widget _sliderCenter(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const AppAnimatedIcon(
+          icon: AppIcon.unblock,
+          size: 40,
+          color: AppColors.accent,
+          playOnAppear: true,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          '$_count',
+          style: text.displaySmall?.copyWith(fontWeight: FontWeight.w800, height: 1),
+        ),
+        Text(
+          _count == 1 ? 'reel' : 'reels',
+          style: text.labelSmall?.copyWith(
+            color: context.glass.onGlassMuted,
+            letterSpacing: 2,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 // ── Pause ───────────────────────────────────────────────────────────────────

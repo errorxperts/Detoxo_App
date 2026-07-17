@@ -1,7 +1,6 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/animated_digit_timer.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/countdown_ring.dart';
-import 'package:detoxo/features/dashboard/presentation/widgets/mode_toggle.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/stat_pill.dart';
 import 'package:flutter/material.dart';
 
@@ -41,12 +40,7 @@ class CommandCenterCard extends StatelessWidget {
     required this.statusLabel,
     required this.blockedValue,
     required this.reelsValue,
-    required this.modeOptions,
-    required this.selectedMode,
-    required this.onModeChanged,
     this.overLimit = false,
-    this.modeEnabled = true,
-    this.modeCellBuilder,
     this.countdown,
     super.key,
   });
@@ -68,17 +62,9 @@ class CommandCenterCard extends StatelessWidget {
 
   /// Reels counted today (real data; replaces the old placeholder streak).
   final String reelsValue;
-  final List<ModeOption> modeOptions;
-  final int selectedMode;
-  final ValueChanged<int> onModeChanged;
-  final bool modeEnabled;
 
-  /// Optional per-cell decorator forwarded to [ModeToggle.cellBuilder] — used to
-  /// attach feature-showcase targets to the individual mode cells.
-  final Widget Function(int index, Widget child)? modeCellBuilder;
-
-  /// When a Pause / Conscious session is live, the hero ring becomes this
-  /// countdown gauge instead of the TIME-SAVED ring.
+  /// When a Pause / Conscious / One Reel session is live, the hero ring becomes
+  /// this countdown gauge instead of the TIME-SAVED ring.
   final SessionCountdown? countdown;
 
   @override
@@ -101,31 +87,21 @@ class CommandCenterCard extends StatelessWidget {
                     ? _screenTimeRing(context, text, scheme)
                     : _countdownRing(context, text, countdown!),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  StatPill(
-                    icon: Icons.smart_display_outlined,
-                    value: blockedValue,
-                    label: 'Blocked',
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
+              const SizedBox(height: AppSpacing.md),
+              StatStrip(
+                stats: [
                   StatPill(
                     icon: Icons.play_circle_outline,
                     value: reelsValue,
-                    label: 'Reels',
+                    label: 'reels today',
                     iconColor: scheme.secondary,
                   ),
+                  StatPill(
+                    icon: Icons.smart_display_outlined,
+                    value: blockedValue,
+                    label: 'blocked',
+                  ),
                 ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              ModeToggle(
-                options: modeOptions,
-                selectedIndex: selectedMode,
-                onChanged: onModeChanged,
-                enabled: modeEnabled,
-                cellBuilder: modeCellBuilder,
               ),
             ],
           ),

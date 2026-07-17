@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/plans/data/repositories/content_repository_impl.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/emoji_band.dart';
+import 'package:detoxo/features/blocking/plans/domain/entities/reel_session_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/sessions.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/animated_digit_timer.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/animated_emoji.dart';
@@ -199,7 +202,8 @@ void main() {
     });
 
     tearDown(() async {
-      await cubit.close(); // cancels the pause ticker
+      await cubit.close(); // cancels the pause ticker + reel subscription
+      await engine.reelController.close();
     });
 
     test('startPause sets Block All with a live pause window', () async {
@@ -208,6 +212,49 @@ void main() {
       expect(cubit.state.pauseSession, isNotNull);
       expect(cubit.state.isPaused(), isTrue);
       expect(engine.pushed, isNotEmpty);
+    });
+
+    test('setPlan records the base mode; startPause resumes into it', () async {
+      await cubit.enterConscious(); // base = Conscious
+      expect(cubit.state.baseMode, BlockingPlan.curious);
+      await cubit.startPause(pause: const Duration(minutes: 5));
+      expect(cubit.state.activePlan, BlockingPlan.curious);
+      expect(cubit.state.pauseSession?.planToResume, BlockingPlan.curious);
+    });
+
+    test('One Reel auto-reverts to the base once the allowance is spent', () async {
+      await cubit.setOneReel(count: 1); // base stays Block All
+      expect(cubit.state.activePlan, BlockingPlan.oneReel);
+
+      // An allowed reel (blocked == false) must NOT revert.
+      engine.emitReel(
+        const ReelSessionState(consumed: 1, active: true),
+      );
+      await pumpEventQueue();
+      expect(cubit.state.activePlan, BlockingPlan.oneReel);
+
+      // The block past the allowance reverts to the base.
+      engine.emitReel(
+        const ReelSessionState(
+          consumed: 1, active: true, blocked: true,
+        ),
+      );
+      await pumpEventQueue();
+      expect(cubit.state.activePlan, BlockingPlan.blockAll);
+    });
+
+    test('Unblock auto-reverts to a Conscious base', () async {
+      await cubit.enterConscious(); // base = Conscious
+      await cubit.setOneReel(count: 5); // Unblock 5
+      expect(cubit.state.activePlan, BlockingPlan.oneReel);
+
+      engine.emitReel(
+        const ReelSessionState(
+          consumed: 5, allowance: 5, active: true, blocked: true,
+        ),
+      );
+      await pumpEventQueue();
+      expect(cubit.state.activePlan, BlockingPlan.curious);
     });
 
     test('resumeNow ends the pause and blocks immediately', () async {
@@ -335,6 +382,25 @@ class _FakeEngineRepo implements EngineRepository {
 
   @override
   Future<ConsciousState> consciousCurrent() async => const ConsciousState();
+
+  @override
+  Future<void> resetConsciousBank() async {}
+
+  final StreamController<ReelSessionState> reelController =
+      StreamController<ReelSessionState>.broadcast();
+
+  /// Push a reel-session update to the cubit's subscription (test helper).
+  void emitReel(ReelSessionState state) => reelController.add(state);
+
+  @override
+  Stream<ReelSessionState> reelSessionStream() => reelController.stream;
+
+  @override
+  Future<void> armReelSession(int count) async {}
+
+  @override
+  Future<ReelSessionState> reelSessionCurrent() async =>
+      const ReelSessionState();
 
   @override
   Future<ServiceSnapshot> currentStatus() async => const ServiceSnapshot();

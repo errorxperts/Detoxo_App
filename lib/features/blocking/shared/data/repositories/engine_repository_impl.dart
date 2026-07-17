@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:detoxo/core/constants/channel_constants.dart';
 import 'package:detoxo/core/platform_channels/engine_channel.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
+import 'package:detoxo/features/blocking/plans/domain/entities/reel_session_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
@@ -72,6 +73,28 @@ class EngineRepositoryImpl implements EngineRepository {
   }
 
   @override
+  Stream<ReelSessionState> reelSessionStream() async* {
+    await for (final e in _channel.events()) {
+      if (e['type'] != ChannelEvents.reelSessionState) continue;
+      yield ReelSessionState.fromMap(e);
+    }
+  }
+
+  @override
+  Future<void> resetConsciousBank() => _channel.resetConsciousBank();
+
+  @override
+  Future<void> armReelSession(int count) => _channel.armReelSession(count);
+
+  @override
+  Future<ReelSessionState> reelSessionCurrent() async {
+    final map = await _channel.reelSessionState();
+    return map.isEmpty
+        ? const ReelSessionState()
+        : ReelSessionState.fromMap(map);
+  }
+
+  @override
   Future<ServiceSnapshot> currentStatus() async {
     final enabled = await _channel.isAccessibilityEnabled();
     final stats = await _channel.blockStats();
@@ -101,6 +124,7 @@ class EngineRepositoryImpl implements EngineRepository {
       'vibration': settings.vibrationEnabled,
       'masterEnabled': settings.masterEnabled,
       'pauseUntil': settings.nativePauseUntil(now)?.millisecondsSinceEpoch ?? 0,
+      'reelAllowance': settings.reelAllowance,
       'consciousEarnDivisor': SessionDefaults.consciousEarnDivisor,
       'consciousMaxBankMs': SessionDefaults.consciousMaxBank.inMilliseconds,
       'blockAdultWebsites': settings.blockAdultWebsites,

@@ -114,6 +114,29 @@ class ConfigStore(context: Context) {
             .apply()
     }
 
+    // ── One Reel / Unblock (allow N reels, then re-block) ────────────────────
+    //
+    // In these modes the user is granted a fixed [reelAllowance] of reels; the
+    // engine counts distinct reels ([reelsConsumed], scroll-delimited) and blocks
+    // once the allowance is spent. Re-armed on every mode tap via
+    // [resetReelSession]. `reelsConsumed` is PERSISTED so an OS-driven service
+    // restart can't silently grant a free reel without a fresh re-tap.
+
+    /** Reels allowed before One Reel / Unblock re-blocks (1..20; One Reel = 1). */
+    var reelAllowance: Int
+        get() = prefs.getInt(KEY_REEL_ALLOWANCE, 1).coerceIn(1, 20)
+        set(value) = prefs.edit().putInt(KEY_REEL_ALLOWANCE, value.coerceIn(1, 20)).apply()
+
+    /** Distinct reels consumed this session (0..reelAllowance). */
+    var reelsConsumed: Int
+        get() = prefs.getInt(KEY_REELS_CONSUMED, 0).coerceAtLeast(0)
+        set(value) = prefs.edit().putInt(KEY_REELS_CONSUMED, value.coerceAtLeast(0)).apply()
+
+    /** Begin a fresh One Reel / Unblock session: zero the consumed count. */
+    fun resetReelSession() {
+        prefs.edit().putInt(KEY_REELS_CONSUMED, 0).apply()
+    }
+
     fun recordBlock(dateKey: String) {
         val storedDate = prefs.getString(KEY_BLOCK_DATE, "")
         val todayCount = if (storedDate == dateKey) prefs.getInt(KEY_BLOCK_TODAY, 0) else 0
@@ -143,6 +166,8 @@ class ConfigStore(context: Context) {
         private const val KEY_CONSCIOUS_ANCHOR = "conscious_anchor_ms"
         private const val KEY_CONSCIOUS_DIVISOR = "conscious_earn_divisor"
         private const val KEY_CONSCIOUS_MAX = "conscious_max_bank_ms"
+        private const val KEY_REEL_ALLOWANCE = "reel_allowance"
+        private const val KEY_REELS_CONSUMED = "reels_consumed"
         private const val KEY_BLOCK_DATE = "block_date"
         private const val KEY_BLOCK_TODAY = "block_today"
         private const val KEY_BLOCK_TOTAL = "block_total"

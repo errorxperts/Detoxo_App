@@ -77,7 +77,9 @@ On `onServiceConnected` the service sets its static `instance`, loads config, ca
 
 ### Static handle
 
-`DetoxoAccessibilityService.instance` (volatile, private-set) is the bridge everything else uses: `CommandHandler` reaches the live service through it (`instance?.reload()`, `instance?.contentCounter`, `instance?.consciousSnapshot()`, etc.). `isRunning()` returns whether `instance != null`. Every call site null-checks, so commands degrade gracefully when the service is disabled.
+`DetoxoAccessibilityService.instance` (volatile, private-set) is the bridge everything else uses: `CommandHandler` reaches the live service through it (`instance?.reload()`, `instance?.contentCounter`, `instance?.consciousSnapshot()`, `instance?.armReelSession()`, `instance?.reelSessionSnapshot()`, etc.). `isRunning()` returns whether `instance != null`. Every call site null-checks, so commands degrade gracefully when the service is disabled.
+
+**One Reel / Unblock runtime state.** The `oneReel` plan (allow N reels, then block — algorithm in [03-detection-engine.md](03-detection-engine.md) §5.3) keeps two `@Volatile` wall-clock timestamps on the service (`lastScrollAtMs`, `lastAllowAtMs`) that are meaningless across a restart, so `armReelSession()` zeroes them, `reload()`s, and emits fresh state. The consumed-count itself lives in `ConfigStore` (`reels_consumed`) and is **persisted**, so an OS-driven service restart keeps the user blocked until an explicit re-tap — the volatile timestamps self-correct from the persisted count. `reelSessionSnapshot()` (`{consumed, allowance, blocked, active}`) mirrors `consciousSnapshot()` and backs both the `reelSessionState` event and its pull query.
 
 Note the service is **never** started manually. An enabled AccessibilityService is bound (and re-bound after reboot) by the OS — which is exactly why `BootReceiver` does nothing but log (§5).
 
@@ -92,7 +94,7 @@ Broadly the methods fall into four groups. (Argument/return shapes are in [18-pl
 **Config / settings push** — write to `ConfigStore`, then `DetoxoAccessibilityService.instance?.reload()`:
 `pushConfig`, `pushSettings`, `pushWebBlocklist`.
 
-- `pushSettings` unpacks `activePlan`, `defaultBlockMode`, `enabledPlatforms`, `vibration`, `masterEnabled`, `pauseUntil`, `consciousEarnDivisor`, `consciousMaxBankMs`, `blockAdultWebsites`, `blockWebsitesForBlockedApps`. Switching **into** the Conscious plan (`activePlan == "CURIOUS"` when it wasn't) calls `store.resetConsciousBank(now)` so a fresh Conscious session starts with an empty bank.
+- `pushSettings` unpacks `activePlan`, `defaultBlockMode`, `enabledPlatforms`, `vibration`, `masterEnabled`, `pauseUntil`, `reelAllowance`, `consciousEarnDivisor`, `consciousMaxBankMs`, `blockAdultWebsites`, `blockWebsitesForBlockedApps`. The `activePlan` is stored **verbatim** — the old auto-reset of the Conscious bank on a `*→CURIOUS` transition was **removed**, so an auto-revert *into* Conscious (after an override that ran from a Conscious base) keeps the earned bank; the fresh-start reset now lives in the separate `resetConsciousBank` command below. `reelAllowance` is stored as the target (survives restart) but the One Reel / Unblock **consumed-count is not reset here** — only the imperative `armReelSession` re-arms, so an unrelated push can't refill a spent session.
 
 **Permission queries & launches** — pure platform checks and Settings intents:
 `isAccessibilityEnabled`, `openAccessibilitySettings`, `canDrawOverlays`, `requestOverlayPermission`, `hasUsageAccess`, `openUsageAccessSettings`, `isIgnoringBatteryOptimizations`, `requestIgnoreBatteryOptimizations`, `isDeviceAdminActive`, `requestDeviceAdmin`, `removeDeviceAdmin`.
@@ -103,9 +105,12 @@ Broadly the methods fall into four groups. (Argument/return shapes are in [18-pl
 - `launch(intent)` prefers the held `Activity`; with none it adds `FLAG_ACTIVITY_NEW_TASK` and starts from the app context. All launches are wrapped in try/catch and return a boolean.
 
 **Direct block actions & stats** — forwarded to the live service:
-`performBack`, `killApp` (needs a `package`), `lockScreen`, `consciousState`, `blockStats`.
+`performBack`, `killApp` (needs a `package`), `lockScreen`, `consciousState`, `resetConsciousBank`, `armReelSession`, `reelSessionState`, `blockStats`.
 
 - `consciousState` returns the live `instance?.consciousSnapshot()`, else a store-derived fallback map so the UI still gets a sensible value when the service is dead.
+- `resetConsciousBank` empties the Conscious earn-bank (`store.resetConsciousBank(now)` → bank→0, anchor→now) and `reload()`s. It is the **only** bank-reset path (the old `pushSettings` plan-transition reset is gone), fired only by Dart's `SettingsCubit.enterConscious()` on a genuine user entry — so an auto-revert into Conscious keeps the bank. The service's own `accountConscious` accountant also **freezes** the bank during a live Pause (`now < pauseUntil`), mirroring its master-off freeze, so a paused Conscious base doesn't accrue free allowance ([03](03-detection-engine.md) §5.2).
+- `armReelSession` ((re)arm One Reel / Unblock): reads `count` (clamped 1..20), sets `store.reelAllowance` + `activePlan = "ONE_REEL"`, calls `store.resetReelSession()` (consumed→0), then `instance?.armReelSession()`. Imperative so an unrelated `pushSettings` never re-arms mid-session.
+- `reelSessionState` returns the live `instance?.reelSessionSnapshot()`, else a store-derived fallback (`consumed`/`allowance` from prefs, `blocked = consumed >= allowance` AND-ed with plan `ONE_REEL`).
 
 **Content counter & widget** — see §7/§8:
 `contentCounterSnapshot`, `setContentCounterEnabled`, `setContentBubbleEnabled`, `refreshContentWidget`, `setCounterStyle`, `pinContentWidget`.
@@ -113,7 +118,7 @@ Broadly the methods fall into four groups. (Argument/return shapes are in [18-pl
 **Device / package info**:
 `deviceInfo` (brand/manufacturer/model/sdkInt); `installedPackages` runs `queryLaunchablePackages()` on the `ioExecutor` and posts the result back on the platform thread (Flutter requires the reply on the main thread). It enumerates `MAIN`/`LAUNCHER` activities and de-dups by package, returning **`null` (not empty)** on failure so Dart treats install-state as "unknown" and keeps showing the full blocklist rather than hiding every app.
 
-The Conscious plan token is `PLAN_CONSCIOUS = "CURIOUS"` — the internal/wire value is `CURIOUS`; its user-facing label is **"Conscious"**. Do not rename the token.
+The Conscious plan token is `PLAN_CONSCIOUS = "CURIOUS"` — the internal/wire value is `CURIOUS`; its user-facing label is **"Conscious"**. Do not rename the token. The One Reel / Unblock token is `PLAN_ONE_REEL = "ONE_REEL"`.
 
 Any unrecognized method returns `result.notImplemented()`.
 
@@ -126,7 +131,7 @@ Native → Dart events use two small classes:
 - **`engine/ServiceEventBus.kt`** — a singleton `object` with a `@Volatile var sink: Sink?`. The service calls `ServiceEventBus.post(type, data)`, which merges `data` with `{"type": type}` and delivers it to the sink **on the main thread** (`Handler(Looper.getMainLooper())`). If no sink is registered (UI dead / not listening), the event is silently dropped — the block hot-path never depends on it.
 - **`channels/DetoxoEventStream.kt`** — the `EventChannel.StreamHandler`. `onListen` installs a sink that forwards to `events.success(...)`; `onCancel` clears it. So the bus is "connected" only while Dart is actively listening on `com.errorxperts.detoxo/events`.
 
-Event `type` values emitted by the native layer: `serviceStatus`, `detection`, `blocked`, `webBlocked`, `foregroundChanged`, `consciousState`, `contentCounted`. Payload shapes are in [18](18-platform-channel-contracts.md). The events are multiplexed onto the single channel and demultiplexed on the Dart side by the `type` field.
+Event `type` values emitted by the native layer: `serviceStatus`, `detection`, `blocked`, `webBlocked`, `foregroundChanged`, `consciousState`, `reelSessionState`, `contentCounted`. Payload shapes are in [18](18-platform-channel-contracts.md). The events are multiplexed onto the single channel and demultiplexed on the Dart side by the `type` field.
 
 ---
 
@@ -196,6 +201,8 @@ Beyond counting reels, the counter also accrues **whole-app foreground time** in
 | `MINIMAL_PILL` | compact capsule: count + usage-colored dot, width wraps the digits |
 
 Colors/emoji come from `engine/UsageLadder.kt` (shared with the widget and the Flutter previews). `onStyleChanged()` rebuilds the view in place at the same position when a style is pushed while the bubble is shown.
+
+Above the four variants sits a **"reels left" override**: `setRemaining(Int?)` (fed by `ContentCounter.setReelSessionRemaining`, which the AccessibilityService's `syncReelBubble()` drives on arm/allow/revert) makes `BubbleView` draw a distinct teal unlock badge with the remaining One Reel / Unblock count instead of any styled variant, reverting to the today-total when the session ends. Display-only — counting is unaffected. Detail in [17-content-counter.md](17-content-counter.md) §5.1.
 
 ---
 

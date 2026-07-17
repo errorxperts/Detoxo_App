@@ -112,6 +112,23 @@ class EngineChannel {
   Future<Map<String, dynamic>> consciousState() =>
       invokeMap(ChannelMethods.consciousState);
 
+  /// Resets the Conscious bank to empty. Called only on a genuine user entry to
+  /// Conscious (not on an auto-revert, which keeps the earned bank).
+  Future<void> resetConsciousBank() =>
+      invokeVoid(ChannelMethods.resetConsciousBank);
+
+  // ── One Reel / Unblock ────────────────────────────────────────────────────
+
+  /// (Re)arms a fresh reel allowance of [count] (1..20), resetting the native
+  /// consumed-count. Imperative — called on every mode tap.
+  Future<void> armReelSession(int count) =>
+      invokeVoid(ChannelMethods.armReelSession, {'count': count});
+
+  /// One-shot pull of the reel-session state (`{consumed, allowance, blocked,
+  /// active}`). Empty off-Android.
+  Future<Map<String, dynamic>> reelSessionState() =>
+      invokeMap(ChannelMethods.reelSessionState);
+
   // ── Short-video / reel counter ────────────────────────────────────────────
 
   /// One-shot pull of the counter snapshot (`{enabled, today, total, date,

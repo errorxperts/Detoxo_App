@@ -75,12 +75,13 @@ Method-name constants live in `ChannelMethods` (Dart) and are matched by string 
 
 | Key | Type (wire) | Notes |
 |---|---|---|
-| `activePlan` | `String` | `BlockingPlan.wire`: `BLOCK_ALL` \| `CURIOUS` \| `ONE_REEL` \| `PAUSED`. **`CURIOUS` = the "Conscious" plan** (internal token kept verbatim; UI label is "Conscious"). Switching *into* `CURIOUS` from another plan resets the earn-bank (`store.resetConsciousBank(now)`). |
+| `activePlan` | `String` | `BlockingPlan.wire`: `BLOCK_ALL` \| `CURIOUS` \| `ONE_REEL` \| `PAUSED`. **`CURIOUS` = the "Conscious" plan** (internal token kept verbatim; UI label is "Conscious"). Stored **verbatim** — `pushSettings` no longer resets the earn-bank on a `*→CURIOUS` transition; the fresh-start reset is the separate `resetConsciousBank` command, so an auto-revert into Conscious keeps the bank. |
 | `defaultBlockMode` | `String` | `PRESS_BACK` \| `KILL_APP` \| `LOCK_SCREEN` \| `NONE` |
 | `enabledPlatforms` | `List<String>` | stored as a set |
 | `vibration` | `bool` | |
 | `masterEnabled` | `bool` | engine master switch |
 | `pauseUntil` | `Number` (epoch ms, `0` = not paused) | read as `Long` |
+| `reelAllowance` | `Number` | read as `Int`; the One Reel / Unblock target (coerced 1..20). Stored as the target only — `pushSettings` does **not** reset the consumed-count (that is the imperative `armReelSession`'s job). |
 | `consciousEarnDivisor` | `Number` | read as `Int` |
 | `consciousMaxBankMs` | `Number` | read as `Long` |
 | `blockAdultWebsites` | `bool` | |
@@ -121,6 +122,37 @@ Direct engine actions, routed to the live `DetoxoAccessibilityService.instance`
 | `performBack` | — | `service.performBackPublic()` | `true` | `performBack()` |
 | `killApp` | `{package: String}` | `service.killApp(pkg)` (no-op if pkg null) | `true` | `killApp(String pkg)` |
 | `lockScreen` | — | `service.lockScreen()` (device-admin `lockNow`) | `true` | `lockScreen()` |
+
+### One Reel / Unblock session control
+
+The `oneReel` plan allows N reels, then re-blocks (semantics in
+[05-plans-pause-conscious.md](05-plans-pause-conscious.md) §7). Arming is a **separate
+imperative command** — not a `pushSettings` field — so an unrelated settings push can
+never re-arm a spent session.
+
+| Method | Args | Native effect | Returns | Dart wrapper |
+|---|---|---|---|---|
+| `armReelSession` | `{count: Int}` (clamped 1..20) | `store.reelAllowance = count`; `store.activePlan = "ONE_REEL"`; `store.resetReelSession()` (consumed→0); `service.armReelSession()` (zeroes runtime timestamps, `reload()`, emits state) | `true` | `armReelSession(int count)` |
+| `reelSessionState` | — | pull the reel-session snapshot | `{consumed: Int, allowance: Int, blocked: Bool, active: Bool}` | `reelSessionState() → Map` |
+
+`reelSessionState` prefers the live `service.reelSessionSnapshot()`; if the service is
+dead it synthesizes from `ConfigStore` (`consumed`/`allowance` from stored state). Both
+`active` and `blocked` are AND-ed with "plan is `ONE_REEL`"
+(`blocked = active && consumed >= allowance`).
+
+### Conscious bank control
+
+Resetting the Conscious earn-bank is a **separate imperative command**, not a
+`pushSettings` side effect — so an auto-revert *into* Conscious (after an override that
+ran from a Conscious base) keeps the earned bank; only a genuine user entry empties it
+(semantics in [05-plans-pause-conscious.md](05-plans-pause-conscious.md) §5.4).
+
+| Method | Args | Native effect | Returns | Dart wrapper |
+|---|---|---|---|---|
+| `resetConsciousBank` | — | `store.resetConsciousBank(now)` (bank→0, anchor→now); `service.reload()` | `true` | `resetConsciousBank()` |
+
+Fired only by `SettingsCubit.enterConscious()` (Dart), which `await`s it right after
+setting the plan to `CURIOUS`.
 
 ### Device / stats / snapshots (return maps)
 
@@ -206,11 +238,13 @@ Every payload carries `type` plus the fields below.
 | `blocked` | `DetoxoAccessibilityService.onDetected` | `{package: String, platformId: String, mode: String, today: Int, total: Int}` | `engine_repository_impl.dart` (status + block history) |
 | `webBlocked` | `DetoxoAccessibilityService.handleBrowser` | `{host: String, mode: "PRESS_BACK", today: Int, total: Int}` | `web_block_stats_repository_impl.dart` |
 | `consciousState` | `DetoxoAccessibilityService` (1 Hz accountant) | `{bankMs: Long, maxBankMs: Long, watching: Bool, blocked: Bool, active: Bool}` | `engine_repository_impl.dart` |
+| `reelSessionState` | `DetoxoAccessibilityService` (One Reel / Unblock allow/block/arm) | `{consumed: Int, allowance: Int, blocked: Bool, active: Bool}` | `engine_repository_impl.dart` |
 | `contentCounted` | `ContentCounter.count` | `{package: String, today: Int, total: Int, perAppToday: Map<String,Int>, perAppTotal: Map<String,Int>, timeTodayMs: Long}` | `content_counter_repository_impl.dart` |
 
 `mode` on `blocked` is the resolved block mode: `PRESS_BACK` \| `KILL_APP` \|
 `LOCK_SCREEN` \| `NONE`. `consciousState.watching`/`blocked` are AND-ed with "plan
-is `CURIOUS`" (the Conscious plan).
+is `CURIOUS`" (the Conscious plan); `reelSessionState.blocked`/`active` are AND-ed
+with "plan is `ONE_REEL`" (`blocked = active && consumed >= allowance`).
 
 ### Declared-but-inert event types
 
@@ -252,7 +286,7 @@ source of truth**), so these `home_widget` calls only trigger a refresh/pin — 
   (stats/snapshots/deviceInfo), or a `List`/`null` (installedPackages). Three
   declared methods (`showOverlay`, `hideOverlay`, `foregroundPackage`) are
   unhandled → `notImplemented`.
-- **Events**: 5 live types multiplexed by `type`; 2 declared-but-inert
+- **Events**: 6 live types multiplexed by `type`; 2 declared-but-inert
   (`detection`, `foregroundChanged`).
 - **Widget**: separate `home_widget` bridge, keys `cc_today`/`cc_total`, provider
   `ContentCounterWidgetProvider`, native store is source of truth.

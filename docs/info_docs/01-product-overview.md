@@ -68,7 +68,9 @@ change:
   eases you back out until you've earned more. It turns "just say no" into a gentle
   give-and-take that rewards patience.
 - **One Reel** — feeling the itch? This lets you watch a single clip, then closes the
-  feed so one doesn't become fifty.
+  feed so one doesn't become fifty. Tap it again for one more.
+- **Unblock** — want a handful, not just one? Pick how many reels to release (a dial
+  from 2 to 20), watch them, and your base mode returns until you unlock more.
 - **Pause** — need the feed for a few minutes (finding a specific video, showing a
   friend)? Tap **Pause**, pick a short window (2–10 minutes), and blocking steps
   aside. When the timer runs out, protection switches itself back on automatically —
@@ -84,7 +86,9 @@ even when blocking is turned off or paused, so you always get an honest number.
 
 - A **floating bubble** can hover over your feed while you scroll, showing today's
   count ticking up in real time. Drag it anywhere; it snaps neatly to the edge of the
-  screen and stays out of your way. Tap it to jump into Detoxo.
+  screen and stays out of your way. Tap it to jump into Detoxo. During a **One Reel**
+  or **Unblock** session it doubles as an unlock countdown — showing how many reels
+  you have left before it flips back to the daily total.
 - A **home-screen widget** puts "reels today" and your all-time total right on your
   launcher, so the number greets you every time you unlock your phone.
 - A quick-scroll heuristic keeps the count honest: a video only counts once you've
@@ -153,6 +157,7 @@ takes over.
   minutes of guilt-free scrolling; dip in and it counts down. It rewards patience
   instead of relying on willpower.
 - 1️⃣ **One Reel** — allow a single clip, then close the feed so one doesn't become fifty.
+- 🔓 **Unblock** — release a batch you choose (2–20 reels), then it returns to your base mode on its own.
 - ⏸️ **Pause** — need the feed for a few minutes? Take a short break; blocking turns
   itself back on automatically.
 

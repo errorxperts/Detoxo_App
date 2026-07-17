@@ -192,6 +192,18 @@ returns immediately without a channel round-trip. On those platforms the config
 is still parsed in Dart (for UI) but never handed to a native engine, because
 there isn't one.
 
+### Sibling: the settings & session bridge
+
+The same `EngineChannel` / `EngineRepositoryImpl` also carries the user's **settings**
+(distinct from the detection *config* above). `pushSettings` ships the
+`AppSettings`-derived map — which now includes the One Reel / Unblock target
+`reelAllowance` (`'reelAllowance': settings.reelAllowance`) — and the repository adds
+the imperative `armReelSession(count)` command plus the `reelSessionStream()` /
+`reelSessionCurrent()` reel-session reads (mirroring `consciousStream()` /
+`consciousCurrent()`). These are outside config sync; the full wire contract lives in
+[18-platform-channel-contracts.md](18-platform-channel-contracts.md) and the plan
+semantics in [05-plans-pause-conscious.md](05-plans-pause-conscious.md) §7.
+
 ---
 
 ## 5. How the config drives the UI
@@ -280,12 +292,12 @@ replacement URL in code — it belongs in the config payload.
 ## Source files
 
 - `lib/core/constants/app_constants.dart` — `AppConstants.bundledPlatformsConfig` / `bundledInitialConfig` asset paths.
-- `lib/features/blocking/shared/domain/repositories/blocking_repositories.dart` — `ConfigRepository` interface (+ `EngineRepository.pushConfig`).
+- `lib/features/blocking/shared/domain/repositories/blocking_repositories.dart` — `ConfigRepository` interface (+ `EngineRepository.pushConfig` / `pushSettings` / `armReelSession` / `reelSessionStream` / `reelSessionCurrent`).
 - `lib/features/blocking/shared/data/repositories/config_repository_impl.dart` — offline-first implementation.
 - `lib/features/blocking/shared/data/models/platform_config_model.dart` — `platforms_config.json` DTOs.
 - `lib/features/blocking/shared/data/models/initial_config_model.dart` — `initial_config.json` DTOs (feature flags, version gating, notices, promo CTA).
 - `lib/features/blocking/blocklist/presentation/targets_cubit.dart` — reads config, pushes to engine, builds targets.
-- `lib/features/blocking/shared/data/repositories/engine_repository_impl.dart` — `pushConfig` bridge.
+- `lib/features/blocking/shared/data/repositories/engine_repository_impl.dart` — `pushConfig` bridge (also `pushSettings` incl. `reelAllowance`, and the `armReelSession` / `reelSessionStream` / `reelSessionCurrent` reel-session bridge).
 - `lib/core/platform_channels/engine_channel.dart` — `pushConfig` command wrapper + off-Android no-op.
 - `lib/core/di/injector.dart` — `ConfigRepository` registration.
 - `lib/features/content_counter/content_counter_core/data/repositories/content_counter_repository_impl.dart` — reuses `loadBlockTargets()` for app naming.

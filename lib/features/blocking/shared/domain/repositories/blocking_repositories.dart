@@ -1,4 +1,5 @@
 import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
+import 'package:detoxo/features/blocking/plans/domain/entities/reel_session_state.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_notice.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
@@ -38,6 +39,9 @@ abstract interface class EngineRepository {
   /// Live Conscious bank updates streamed from the native accountant.
   Stream<ConsciousState> consciousStream();
 
+  /// Live One Reel / Unblock session updates streamed from the native engine.
+  Stream<ReelSessionState> reelSessionStream();
+
   Future<void> pushConfig(String configJson);
   Future<void> pushSettings(AppSettings settings);
 
@@ -49,6 +53,17 @@ abstract interface class EngineRepository {
 
   /// One-shot pull of the current Conscious bank (for initial UI render).
   Future<ConsciousState> consciousCurrent();
+
+  /// Resets the native Conscious bank to empty. Called only on a genuine user
+  /// entry to Conscious (an auto-revert into Conscious keeps the earned bank).
+  Future<void> resetConsciousBank();
+
+  /// (Re)arms a fresh reel allowance of [count] (1..20), resetting the native
+  /// consumed-count. Called on every One Reel / Unblock mode tap.
+  Future<void> armReelSession(int count);
+
+  /// One-shot pull of the current One Reel / Unblock session (for initial UI).
+  Future<ReelSessionState> reelSessionCurrent();
 
   Future<void> performBack();
   Future<void> killApp(String packageName);

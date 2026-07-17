@@ -11,6 +11,7 @@ import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dar
 import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/plans/presentation/conscious_cubit.dart';
+import 'package:detoxo/features/blocking/plans/presentation/reel_session_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
@@ -65,6 +66,7 @@ class DetoxoApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => ServiceCubit(sl<EngineRepository>())),
         BlocProvider(create: (_) => ConsciousCubit(sl<EngineRepository>())),
+        BlocProvider(create: (_) => ReelSessionCubit(sl<EngineRepository>())),
         BlocProvider(
           create: (_) => SettingsCubit(sl<SettingsRepository>(), sl<EngineRepository>()),
         ),

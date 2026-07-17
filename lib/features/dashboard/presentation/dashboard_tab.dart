@@ -7,6 +7,7 @@ import 'package:detoxo/features/additional_feature/showcase_view/showcase_view.d
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
 import 'package:detoxo/features/blocking/plans/presentation/conscious_cubit.dart';
+import 'package:detoxo/features/blocking/plans/presentation/reel_session_cubit.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/session_dialogs.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
@@ -15,20 +16,12 @@ import 'package:detoxo/features/content_counter/content_counter_core/presentatio
 import 'package:detoxo/features/dashboard/presentation/widgets/blocker_capsule.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/command_center_card.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/dashboard_top_bar.dart';
-import 'package:detoxo/features/dashboard/presentation/widgets/mode_toggle.dart';
+import 'package:detoxo/features/dashboard/presentation/widgets/mode_selector.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/protection_status_card.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-/// The three hero modes. "Conscious" relabels the existing `curious` plan;
-/// "Pause" routes into the dedicated mindful-pause flow.
-const _modeOptions = [
-  ModeOption(icon: AppIcon.ban, label: 'Block All'),
-  ModeOption(icon: AppIcon.shieldCheck, label: 'Conscious'),
-  ModeOption(icon: AppIcon.pause, label: 'Pause'),
-];
 
 class DashboardTab extends StatefulWidget {
   const DashboardTab({this.scrollController, this.onMenu, super.key});
@@ -118,6 +111,8 @@ class _DashboardTabState extends State<DashboardTab> {
                 .animate()
                 .fadeIn(duration: AppDurations.normal)
                 .slideY(begin: 0.08, end: 0),
+            const SizedBox(height: AppSpacing.lg),
+            const _ModeSection(),
             const SizedBox(height: AppSpacing.md),
             const _SessionBanners(),
             const ProtectionStatusCard(),
@@ -255,50 +250,81 @@ class _HeroState extends State<_Hero> {
       progress: progress,
       limitLabel: limitLabel,
       overLimit: overLimit,
-      statusLabel: _statusLabel(settings.activePlan, pauseLive: pauseLive),
+      statusLabel: _statusLabel(settings, pauseLive: pauseLive),
       blockedValue: '${snapshot.blocksToday}',
       reelsValue: '${counter.today}',
-      modeOptions: _modeOptions,
-      selectedMode: _selectedMode(settings.activePlan, pauseLive: pauseLive),
-      onModeChanged: (i) => unawaited(_onModeChanged(context, i)),
-      // Spotlight each mode cell (Block All / Conscious / Pause) during the
-      // feature tour; identity when the tour isn't running.
-      modeCellBuilder: (i, cell) =>
-          showcaseTarget(step: featureShowcaseSteps[i], index: i, child: cell),
       countdown: countdown,
     );
   }
 }
 
-/// Block All switches the plan directly; Conscious and Pause open their global
-/// glass dialogs (the dedicated screens were retired).
-Future<void> _onModeChanged(BuildContext context, int index) async {
-  switch (index) {
-    case 0:
+/// The vertical mode selector below the hero. Watches settings + the live reel
+/// session; Block All / One Reel arm directly, Conscious / Pause open their glass
+/// dialogs, Unblock confirms a count from its inline slider.
+class _ModeSection extends StatelessWidget {
+  const _ModeSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.watch<SettingsCubit>().state;
+    final reel = context.watch<ReelSessionCubit>().state;
+    final pauseLive = settings.isPauseContractLive(DateTime.now());
+
+    return ModeSelector(
+      selected: _dashMode(settings, pauseLive: pauseLive),
+      reelSession: reel,
+      onSelect: (mode) => unawaited(_onModeSelect(context, mode)),
+      // Spotlight Block All / Conscious / Pause during the feature tour (the two
+      // reel modes aren't toured); identity when the tour isn't running.
+      showcaseBuilder: (mode, child) {
+        final i = switch (mode) {
+          DashboardMode.blockAll => 0,
+          DashboardMode.conscious => 1,
+          DashboardMode.pause => 2,
+          _ => -1,
+        };
+        return i < 0
+            ? child
+            : showcaseTarget(step: featureShowcaseSteps[i], index: i, child: child);
+      },
+    );
+  }
+}
+
+/// Block All / One Reel arm directly; Conscious and Pause open their global glass
+/// dialogs; Unblock is handled by the selector's inline slider (via onUnblock).
+Future<void> _onModeSelect(BuildContext context, DashboardMode mode) async {
+  switch (mode) {
+    case DashboardMode.blockAll:
       await context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll);
-    case 1:
+    case DashboardMode.oneReel:
+      await context.read<SettingsCubit>().setOneReel(count: 1);
+    case DashboardMode.unblock:
+      await SessionDialogs.showUnblock(context);
+    case DashboardMode.conscious:
       await SessionDialogs.showConscious(context);
-    case 2:
+    case DashboardMode.pause:
       await SessionDialogs.showPause(context);
   }
 }
 
-int _selectedMode(BlockingPlan plan, {required bool pauseLive}) {
-  if (pauseLive) return 2;
-  return switch (plan) {
-    BlockingPlan.blockAll => 0,
-    BlockingPlan.curious => 1,
-    BlockingPlan.paused => 2,
-    BlockingPlan.oneReel => -1, // not represented in the hero toggle
+DashboardMode _dashMode(AppSettings s, {required bool pauseLive}) {
+  if (pauseLive) return DashboardMode.pause;
+  return switch (s.activePlan) {
+    BlockingPlan.blockAll => DashboardMode.blockAll,
+    BlockingPlan.curious => DashboardMode.conscious,
+    BlockingPlan.oneReel =>
+      s.reelAllowance <= 1 ? DashboardMode.oneReel : DashboardMode.unblock,
+    BlockingPlan.paused => DashboardMode.pause,
   };
 }
 
-String _statusLabel(BlockingPlan plan, {required bool pauseLive}) {
+String _statusLabel(AppSettings settings, {required bool pauseLive}) {
   if (pauseLive) return 'PAUSED';
-  return switch (plan) {
+  return switch (settings.activePlan) {
     BlockingPlan.blockAll => 'BLOCK ALL',
     BlockingPlan.curious => 'CONSCIOUS',
-    BlockingPlan.oneReel => 'ONE REEL',
+    BlockingPlan.oneReel => settings.reelAllowance <= 1 ? 'ONE REEL' : 'UNBLOCK',
     BlockingPlan.paused => 'PAUSED',
   };
 }

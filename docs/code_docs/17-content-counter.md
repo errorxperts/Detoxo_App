@@ -294,6 +294,23 @@ pull reply additionally carries `timeTotalMs`; no new method/event name was adde
   `GLASS_ORB` (default), `USAGE_RING`, `EMOJI_MOOD`, `MINIMAL_PILL`.
   `USAGE_RING`/`EMOJI_MOOD`/`MINIMAL_PILL` react to today's count via
   `UsageLadder`. Show/count animations: overshoot pop-in, springy count bump.
+- **"Reels left" override (One Reel / Unblock).** `BubbleView` has a
+  `remaining: Int?` render mode. While a One Reel / Unblock session is armed the
+  bubble shows the **remaining unlockable reels** instead of the today-total:
+  when `remaining != null`, `onDraw`/`onMeasure` **override every styled variant**
+  (orb/ring/emoji/pill) with a distinct **teal unlock badge** — a circle drawing
+  the remaining number over a small "left" caption in the teal accent
+  `0xFF3CDDC7`. `ContentCounterBubble.setRemaining(Int?)` stores a `lastRemaining`
+  that is **replayed** on view rebuild/show, and `setCount`/`onCounted` still
+  update the underlying count so it's correct the instant the session ends and
+  `remaining` reverts to `null`. This is a **display-only** coupling — the
+  counting brain never changes; only the bubble's face reflects a reel session
+  (see §7). Driven from `ContentCounter.setReelSessionRemaining(Int?)` (a
+  passthrough gated `if (!store.enabled) return`, so a disabled counter keeps the
+  bubble off), which the AccessibilityService calls via `syncReelBubble()` on
+  arm / each allowed reel / revert-to-base — see
+  [03-detection-engine.md](03-detection-engine.md) §5.3. The bubble's own
+  show/hide still honours `bubbleEnabled` and the on-a-reel-surface condition.
 
 ### 5.2 Home-screen widget — `widget/ContentCounterWidgetProvider.kt`
 
@@ -427,7 +444,11 @@ Four sub-modules, registered in `lib/core/di/injector.dart` and routed at
   and `pauseUntil` gates, so reels are tallied even while blocking is off, paused,
   or the specific platform is disabled for blocking. The counter never consults
   the active `BlockingPlan` (`blockAll` / `curious` (= "Conscious") / `oneReel` /
-  `paused`) and never triggers a back-press.
+  `paused`) and never triggers a back-press. The One Reel / Unblock "reels left"
+  bubble state (§5.1) is the one place the plan touches this feature, and it
+  touches only the **display**: `setReelSessionRemaining` swaps what the bubble
+  *shows* while a reel session runs, but the tally itself — what `count(pkg)`
+  records and pushes to store/widget/event — stays blocking-independent.
 - **Survives UI death.** All state is in `detoxo_engine_prefs`; the bubble and
   widget render from the native store, so they stay live and correct with the
   Flutter engine detached. Snapshot pulls prefer the live service but fall back to
@@ -445,16 +466,19 @@ Four sub-modules, registered in `lib/core/di/injector.dart` and routed at
 Native (Android, `android/app/src/main/kotlin/com/errorxperts/detoxo/…`):
 
 - `engine/ContentCounter.kt` — counting brain: dwell/scroll heuristic, bubble
-  visibility, fan-out to store/bubble/widget/event.
+  visibility, fan-out to store/bubble/widget/event; `setReelSessionRemaining`
+  passthrough for the bubble's "reels left" display (gated on the counter toggle).
 - `engine/ContentCounterStore.kt` — SharedPreferences (`detoxo_engine_prefs`)
   persistence, day rollover, snapshot.
 - `engine/UsageLadder.kt` — shared color-band + emoji ladders (native mirror).
 - `overlay/ContentCounterBubble.kt` — floating overlay + four `BubbleView`
-  variants + drag/edge-snap.
+  variants + drag/edge-snap; `setRemaining`/`lastRemaining` + the teal "reels
+  left" unlock badge that overrides every variant during a reel session.
 - `widget/ContentCounterWidgetProvider.kt` — `AppWidgetProvider`, push/pin.
 - `widget/WidgetBitmapRenderer.kt` — Canvas bitmap render + `WidgetStyleSpec`.
 - `accessibility/DetoxoAccessibilityService.kt` — `countContent()` pass,
-  `isReelPlatform`, `NON_REEL_PLATFORM_IDS`, foreground/scroll forwarding.
+  `isReelPlatform`, `NON_REEL_PLATFORM_IDS`, foreground/scroll forwarding, and
+  `syncReelBubble()` (drives the bubble's "reels left" display on arm/allow/revert).
 - `channels/CommandHandler.kt` — `contentCounterSnapshot`,
   `setContentCounterEnabled`, `setContentBubbleEnabled`, `refreshContentWidget`,
   `setCounterStyle`, `pinContentWidget`.

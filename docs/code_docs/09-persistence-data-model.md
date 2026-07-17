@@ -104,9 +104,16 @@ Each key maps to exactly one repository that owns its JSON shape:
 
 ### 1.2 Per-key value shapes
 
-- **`app_settings`** — the whole `AppSettings` entity as a single JSON object.
-  `SettingsRepositoryImpl` caches it in memory (`_cache`) after first load and
-  re-broadcasts on every `save` through a broadcast `StreamController`, so
+- **`app_settings`** — the whole `AppSettings` entity as a single JSON object
+  (`activePlan`, `baseMode` [the sticky base plan an override reverts to — wire key
+  `baseMode`, only ever `BLOCK_ALL`/`CURIOUS`; `fromJson` collapses anything else,
+  incl. an override plan or legacy `paused`, to Block All], `defaultBlockMode`,
+  `enabledPlatformIds`, `reelAllowance` [the One Reel / Unblock target, 1..20,
+  defaulting to 1 via `(json['reelAllowance'] as num?)?.toInt() ?? 1`], pause session,
+  theme, website toggles, …). This `baseMode` is a **Dart-only** persistence field —
+  it is not pushed on the native wire (native only ever sees the derived `activePlan`).
+  `SettingsRepositoryImpl` caches it in memory (`_cache`) after first
+  load and re-broadcasts on every `save` through a broadcast `StreamController`, so
   Cubits watching settings update live without re-reading Hive.
 - **`pin_config`** (secret) — `PinConfig.toJson()`: PIN `type`, `secretHash`,
   `salt`, `secretLength`. `PinRepositoryImpl.load()` also performs a **one-time
@@ -223,6 +230,20 @@ even when the Flutter UI is dead:
 _into_ the Conscious plan from `pushConfig` triggers a reset. The bank drains
 1:1 while a reel is on screen and refills at `1/divisor` while abstaining, capped
 at `conscious_max_bank_ms`. See [05-plans-pause-conscious.md](05-plans-pause-conscious.md).
+
+**One Reel / Unblock session** — the `oneReel` plan grants a fixed allowance of
+reels, then re-blocks. The engine owns the running count so it keeps enforcing when
+the Flutter UI is dead:
+
+| Key | Type | Default | Meaning |
+|---|---|---|---|
+| `reel_allowance` | Int | 1 | Reels allowed before re-block, coerced to **1..20** (`= 1` One Reel, `2..20` Unblock N). Pushed via `pushSettings` and (re)set by `armReelSession`. |
+| `reels_consumed` | Int | 0 | Distinct reels consumed this session (0..allowance). **Persisted** — an OS-driven service restart keeps the user blocked until an explicit re-tap. |
+
+`resetReelSession()` zeroes `reels_consumed`. It is called **only** by the imperative
+`armReelSession` command (a fresh mode tap); a plain `pushSettings` never resets the
+count, so an unrelated settings change can't refill a spent session. See
+[05-plans-pause-conscious.md](05-plans-pause-conscious.md) §7.
 
 ### 2.2 `ContentCounterStore` keys
 

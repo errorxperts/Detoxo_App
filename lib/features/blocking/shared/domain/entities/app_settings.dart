@@ -22,6 +22,8 @@ class AppSettings extends Equatable {
     this.vibrationEnabled = true,
     this.masterEnabled = true,
     this.pauseSession,
+    this.baseMode = BlockingPlan.blockAll,
+    this.reelAllowance = 1,
     this.onboarded = false,
     this.hasSeenFeatureShowcase = false,
     this.themeMode = AppThemeMode.dark,
@@ -38,8 +40,14 @@ class AppSettings extends Equatable {
     // Block All — otherwise an upgrade killed mid-pause would surface a phantom
     // "Paused" plan forever (no live window to clear it).
     final plan = BlockingPlan.fromWire(json['activePlan'] as String?);
+    // The sticky base mode is only ever Block All or Conscious; anything else
+    // persisted (an override plan, legacy `paused`) collapses to Block All.
+    final base = BlockingPlan.fromWire(json['baseMode'] as String?);
     return AppSettings(
       activePlan: plan == BlockingPlan.paused ? BlockingPlan.blockAll : plan,
+      baseMode: base == BlockingPlan.curious
+          ? BlockingPlan.curious
+          : BlockingPlan.blockAll,
       defaultBlockMode: BlockingMode.fromWire(
         json['defaultBlockMode'] as String?,
       ),
@@ -51,6 +59,7 @@ class AppSettings extends Equatable {
       pauseSession: json['pauseSession'] == null
           ? null
           : PauseSession.fromJson(json['pauseSession'] as Map<String, dynamic>),
+      reelAllowance: (json['reelAllowance'] as num?)?.toInt() ?? 1,
       onboarded: json['onboarded'] as bool? ?? false,
       hasSeenFeatureShowcase: json['hasSeenFeatureShowcase'] as bool? ?? false,
       themeMode: AppThemeMode.fromWire(json['themeMode'] as String?),
@@ -70,6 +79,18 @@ class AppSettings extends Equatable {
 
   /// Live pause contract (an allowed window). Null = none.
   final PauseSession? pauseSession;
+
+  /// The sticky base plan an override mode returns to. Only ever [BlockingPlan.blockAll]
+  /// (default) or [BlockingPlan.curious]: choosing a base mode sets it, and the
+  /// temporary override modes (One Reel / Unblock / Pause) auto-revert here when
+  /// their unit (count / time) completes.
+  final BlockingPlan baseMode;
+
+  /// How many reels the One Reel / Unblock plan allows before it re-blocks
+  /// (1..20). `oneReel` with `reelAllowance == 1` is the "One Reel" mode; a
+  /// value ≥ 2 is the "Unblock N" mode. The native engine owns the running
+  /// consumed-count (re-armed on each mode tap); this is only the target.
+  final int reelAllowance;
   final bool onboarded;
 
   /// Whether the one-time feature showcase / walkthrough has been seen. Drives
@@ -135,6 +156,8 @@ class AppSettings extends Equatable {
     bool? masterEnabled,
     PauseSession? pauseSession,
     bool clearPauseSession = false,
+    BlockingPlan? baseMode,
+    int? reelAllowance,
     bool? onboarded,
     bool? hasSeenFeatureShowcase,
     AppThemeMode? themeMode,
@@ -152,6 +175,8 @@ class AppSettings extends Equatable {
       pauseSession: clearPauseSession
           ? null
           : (pauseSession ?? this.pauseSession),
+      baseMode: baseMode ?? this.baseMode,
+      reelAllowance: reelAllowance ?? this.reelAllowance,
       onboarded: onboarded ?? this.onboarded,
       hasSeenFeatureShowcase:
           hasSeenFeatureShowcase ?? this.hasSeenFeatureShowcase,
@@ -171,6 +196,8 @@ class AppSettings extends Equatable {
     'vibrationEnabled': vibrationEnabled,
     'masterEnabled': masterEnabled,
     'pauseSession': pauseSession?.toJson(),
+    'baseMode': baseMode.wire,
+    'reelAllowance': reelAllowance,
     'onboarded': onboarded,
     'hasSeenFeatureShowcase': hasSeenFeatureShowcase,
     'themeMode': themeMode.wire,
@@ -188,6 +215,8 @@ class AppSettings extends Equatable {
     vibrationEnabled,
     masterEnabled,
     pauseSession,
+    baseMode,
+    reelAllowance,
     onboarded,
     hasSeenFeatureShowcase,
     themeMode,

@@ -60,6 +60,13 @@ class ContentCounterBubble(private val context: Context) {
     /** Last count shown — replayed when the view is rebuilt on a style change. */
     private var lastCount = 0
 
+    /**
+     * One Reel / Unblock "reels left" override. Non-null → the bubble shows this
+     * remaining count as a teal unlock badge instead of the today total; null →
+     * the normal count. Replayed when the view is rebuilt.
+     */
+    private var lastRemaining: Int? = null
+
     /** Ends a tap-revealed time, redrawing the (possibly updated) live count. */
     private val revertRunnable = Runnable { view?.clearTime() }
 
@@ -75,7 +82,10 @@ class ContentCounterBubble(private val context: Context) {
         }
         val spec = BubbleStyleSpec.fromJson(store.bubbleStyleJson)
         val bubbleShowTime = spec.showTime
-        val v = BubbleView(context, spec).apply { setCount(count) }
+        val v = BubbleView(context, spec).apply {
+            setCount(count)
+            setRemaining(lastRemaining)
+        }
         val lp = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -107,6 +117,15 @@ class ContentCounterBubble(private val context: Context) {
         } catch (t: Throwable) {
             Log.w(TAG, "addView failed: ${t.message}")
         }
+    }
+
+    /**
+     * Set the One Reel / Unblock "reels left" override (null → normal count).
+     * Driven by the AccessibilityService as a reel session arms / ticks / reverts.
+     */
+    fun setRemaining(n: Int?) = runOnMain {
+        lastRemaining = n
+        view?.setRemaining(n)
     }
 
     /** A reel was counted: refresh the number with a springy pop. */
@@ -146,7 +165,10 @@ class ContentCounterBubble(private val context: Context) {
         val lp = params ?: return@runOnMain
         val spec = BubbleStyleSpec.fromJson(store.bubbleStyleJson)
         val old = view
-        val v = BubbleView(context, spec).apply { setCount(lastCount) }
+        val v = BubbleView(context, spec).apply {
+            setCount(lastCount)
+            setRemaining(lastRemaining)
+        }
         attachTouch(v, lp, spec.showTime)
         try {
             if (old != null) wm.removeView(old)
@@ -435,6 +457,12 @@ private class BubbleView(
     /** Transient tap-revealed time; when non-null it replaces the count. */
     private var timeText: String? = null
 
+    /**
+     * One Reel / Unblock "reels left" override. When non-null the bubble renders
+     * a distinct teal unlock badge (remaining + "left") instead of any variant.
+     */
+    private var remaining: Int? = null
+
     init {
         // Software layer so the mint glow (shadow layer) renders; the view only
         // redraws on count change, so there's no per-frame cost.
@@ -476,7 +504,21 @@ private class BubbleView(
     /** True while a tap-revealed time is on screen. */
     val isRevealing: Boolean get() = timeText != null
 
+    /** Set the "reels left" override (null → back to the styled variant + count). */
+    fun setRemaining(value: Int?) {
+        if (value == remaining) return
+        remaining = value
+        requestLayout() // measured shape switches to the circular unlock badge
+        invalidate()
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        // The unlock badge is always a circle, regardless of the styled variant.
+        if (remaining != null) {
+            val s = ((contentRadius + glowMargin) * 2f).roundToInt()
+            setMeasuredDimension(s, s)
+            return
+        }
         if (isPill) {
             setMeasuredDimension(
                 (pillContentWidth() + glowMargin * 2f).roundToInt(),
@@ -502,12 +544,42 @@ private class BubbleView(
     }
 
     override fun onDraw(canvas: Canvas) {
+        if (remaining != null) {
+            drawRemaining(canvas)
+            return
+        }
         when (spec.variant) {
             BubbleStyleSpec.USAGE_RING -> drawUsageRing(canvas)
             BubbleStyleSpec.EMOJI_MOOD -> drawEmoji(canvas)
             BubbleStyleSpec.MINIMAL_PILL -> drawPill(canvas)
             else -> drawOrb(canvas)
         }
+    }
+
+    /**
+     * The One Reel / Unblock unlock badge: the orb background with the remaining
+     * count (big) over a small "left" caption, both in the teal accent — visibly
+     * distinct from the white today-total. All paints reset on the next normal
+     * draw, so this leaves no shared-paint state behind.
+     */
+    private fun drawRemaining(canvas: Canvas) {
+        val cx = width / 2f
+        val cy = height / 2f
+        canvas.drawCircle(cx, cy, contentRadius, fillPaint)
+        canvas.drawCircle(cx, cy, contentRadius - borderStroke / 2f, borderPaint)
+        val n = (remaining ?: 0).toString()
+        textPaint.color = 0xFF3CDDC7.toInt() // teal accent (AppColors.tealBright)
+        textPaint.textAlign = Paint.Align.CENTER
+        textPaint.textSize = baseTextSize(n) * spec.textScale
+        val fm = textPaint.fontMetrics
+        canvas.drawText(
+            n,
+            cx,
+            cy - (fm.ascent + fm.descent) / 2f - contentRadius * 0.16f,
+            textPaint,
+        )
+        textPaint.textSize = contentRadius * 0.26f
+        canvas.drawText("left", cx, cy + contentRadius * 0.52f, textPaint)
     }
 
     // ── Variants ────────────────────────────────────────────────────────────────

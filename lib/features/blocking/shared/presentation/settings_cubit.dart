@@ -1,23 +1,35 @@
 import 'dart:async';
 
+import 'package:detoxo/features/blocking/plans/domain/entities/reel_session_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/sessions.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Owns the user's [AppSettings] and drives the Pause state machine. Every
-/// mutation persists locally and pushes the (derived) state to the native
-/// engine. While a pause is live a 1 Hz ticker flips the UI/state back to Block
-/// All the instant the window ends (native already enforces this via pauseUntil,
-/// so the flip survives even if the app is asleep — this just keeps the UI true).
+/// Owns the user's [AppSettings] and drives the mode state machine.
+///
+/// Modes split into two kinds. **Base modes** (Block All — default, and Conscious
+/// = the `curious` plan) are sticky: picking one records it as the `baseMode`.
+/// **Override modes** (One Reel / Unblock / Pause) are
+/// temporary — when their unit (reel count / time) completes the app auto-reverts
+/// to the base mode. Pause reverts via its 1 Hz ticker; One Reel / Unblock revert
+/// when the native engine signals the allowance is spent (see [_onReelSession]).
+///
+/// Every mutation persists locally and pushes the (derived) state to the native
+/// engine.
 class SettingsCubit extends Cubit<AppSettings> {
-  SettingsCubit(this._settings, this._engine) : super(const AppSettings());
+  SettingsCubit(this._settings, this._engine) : super(const AppSettings()) {
+    // Auto-revert One Reel / Unblock to the base mode once the native allowance
+    // is spent (native owns the count; this only flips the plan back).
+    _reelSub = _engine.reelSessionStream().listen(_onReelSession);
+  }
 
   final SettingsRepository _settings;
   final EngineRepository _engine;
 
   Timer? _ticker;
+  StreamSubscription<ReelSessionState>? _reelSub;
 
   Future<void> bootstrap() async {
     final loaded = await _settings.load();
@@ -34,9 +46,19 @@ class SettingsCubit extends Cubit<AppSettings> {
   }
 
   /// Switch the active plan. Clears any live pause (the user is choosing a fresh
-  /// plan). Entering Conscious resets the native bank (handled engine-side).
-  Future<void> setPlan(BlockingPlan plan) =>
-      _commit(state.copyWith(activePlan: plan, clearPauseSession: true));
+  /// plan). Choosing a base mode (Block All / Conscious) also records it as the
+  /// sticky `baseMode` that override modes revert to.
+  Future<void> setPlan(BlockingPlan plan) {
+    final isBase =
+        plan == BlockingPlan.blockAll || plan == BlockingPlan.curious;
+    return _commit(
+      state.copyWith(
+        activePlan: plan,
+        baseMode: isBase ? plan : null,
+        clearPauseSession: true,
+      ),
+    );
+  }
 
   Future<void> setDefaultBlockMode(BlockingMode mode) =>
       _commit(state.copyWith(defaultBlockMode: mode));
@@ -87,27 +109,28 @@ class SettingsCubit extends Cubit<AppSettings> {
   // ── Pause ──────────────────────────────────────────────────────────────────
 
   /// Start a pause: every app is allowed for the [pause] window, after which
-  /// blocking returns immediately as Block All. The plan is set to Block All up
-  /// front so when the window lapses (even while the app is dead) the state is
-  /// already correct; the live pause is tracked purely by the pause session.
+  /// blocking resumes as the sticky base mode (Block All or Conscious). The plan
+  /// is set to the base up front so when the window lapses (even while the app is
+  /// dead) the state is already correct; the live pause is tracked purely by the
+  /// pause session.
   Future<void> startPause({required Duration pause}) {
     final session = PauseSession(
       startedAt: DateTime.now(),
       pauseDuration: pause,
-      cooldownDuration: Duration.zero, // no wind-down: straight to Block All
-      planToResume: BlockingPlan.blockAll,
+      cooldownDuration: Duration.zero, // no wind-down: straight to the base mode
+      planToResume: state.baseMode,
     );
     return _commit(
-      state.copyWith(activePlan: BlockingPlan.blockAll, pauseSession: session),
+      state.copyWith(activePlan: state.baseMode, pauseSession: session),
     );
   }
 
-  /// "Resume blocking now" — end the pause immediately and block as Block All.
+  /// "Resume blocking now" — end the pause immediately and return to the base mode.
   Future<void> resumeNow() {
     if (state.pauseSession == null) return Future.value();
     return _commit(
       state.copyWith(
-        activePlan: BlockingPlan.blockAll,
+        activePlan: state.baseMode,
         clearPauseSession: true,
       ),
     );
@@ -115,12 +138,34 @@ class SettingsCubit extends Cubit<AppSettings> {
 
   // ── Conscious ───────────────────────────────────────────────────────────────
 
-  /// Turn on Conscious (earn-as-you-abstain). The native engine starts a fresh,
-  /// empty bank; Dart only flips the plan.
-  Future<void> enterConscious() => setPlan(BlockingPlan.curious);
+  /// Turn on Conscious (earn-as-you-abstain) and start a fresh, empty bank. The
+  /// explicit reset means a later auto-revert *into* Conscious keeps the earned
+  /// bank — only a genuine user entry starts from zero.
+  Future<void> enterConscious() async {
+    await setPlan(BlockingPlan.curious);
+    await _engine.resetConsciousBank();
+  }
 
   /// Exit Conscious and fall back to Block All.
   Future<void> stopConscious() => setPlan(BlockingPlan.blockAll);
+
+  // ── One Reel / Unblock ──────────────────────────────────────────────────────
+
+  /// Arm the One Reel (count 1) / Unblock (count 2..20) plan: allow [count]
+  /// reels, then re-block. Re-arms a fresh allowance on every call — the native
+  /// consumed-count is reset via the imperative `armReelSession` command, so an
+  /// unrelated settings push can't re-arm mid-session.
+  Future<void> setOneReel({required int count}) async {
+    final n = count.clamp(1, 20);
+    await _commit(
+      state.copyWith(
+        activePlan: BlockingPlan.oneReel,
+        reelAllowance: n,
+        clearPauseSession: true,
+      ),
+    );
+    await _engine.armReelSession(n);
+  }
 
   // ── Pause ticker ────────────────────────────────────────────────────────────
 
@@ -136,11 +181,25 @@ class SettingsCubit extends Cubit<AppSettings> {
 
   Future<void> _onTick() async {
     final s = state;
-    // Pause window finished → settle the state to Block All and drop the
-    // session. (activePlan is already Block All; this just clears the banner.)
+    // Pause window finished → settle the state back to the base mode and drop
+    // the session. (activePlan is already the base; this just clears the banner.)
     if (s.pauseSession != null && !s.isPauseContractLive()) {
       await _commit(
-        s.copyWith(activePlan: BlockingPlan.blockAll, clearPauseSession: true),
+        s.copyWith(activePlan: s.baseMode, clearPauseSession: true),
+      );
+    }
+  }
+
+  // ── One Reel / Unblock auto-revert ──────────────────────────────────────────
+
+  /// Native signals the reel allowance is spent → return to the base mode. The
+  /// `activePlan == oneReel` guard makes it idempotent: a second `blocked` event
+  /// after the flip is ignored, and arming (which emits `blocked == false`) never
+  /// trips it.
+  void _onReelSession(ReelSessionState rs) {
+    if (state.activePlan == BlockingPlan.oneReel && rs.active && rs.blocked) {
+      unawaited(
+        _commit(state.copyWith(activePlan: state.baseMode, clearPauseSession: true)),
       );
     }
   }
@@ -148,6 +207,7 @@ class SettingsCubit extends Cubit<AppSettings> {
   @override
   Future<void> close() {
     _ticker?.cancel();
+    _reelSub?.cancel();
     return super.close();
   }
 }

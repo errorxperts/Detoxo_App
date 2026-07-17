@@ -23,6 +23,19 @@ abstract final class SessionDefaults {
     return stepped.clamp(pauseSliderMin, pauseSliderMax);
   }
 
+  // ── Unblock (allow N reels, then revert to the base mode) ──────────────────
+  // Circular count slider: 2–20 reels in steps of 1. One Reel is the count-1
+  // special case and needs no picker (it arms directly).
+  static const int unblockSliderMin = 2;
+  static const int unblockSliderMax = 20;
+  static const int unblockSliderStep = 1;
+  static const int unblockDefault = 5;
+
+  /// Snaps an arbitrary slider value to the nearest whole reel count, clamped to
+  /// the [unblockSliderMin]..[unblockSliderMax] range.
+  static int snapUnblockCount(double value) =>
+      value.round().clamp(unblockSliderMin, unblockSliderMax);
+
   // ── Conscious (earn-as-you-abstain token bucket) ───────────────────────────
   // While abstaining the bank fills at 1 / [consciousEarnDivisor] of elapsed
   // time (10 → +1 min per 10 min); while watching it drains 1:1. Capped at

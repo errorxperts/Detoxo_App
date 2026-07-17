@@ -17,8 +17,10 @@ see [`../code_docs/`](../code_docs/00-index.md).)
 ## The 30-second version
 - **Blocks reels/shorts** the moment they appear in Instagram, YouTube, TikTok, Facebook,
   Snapchat and more — it pulls you out (Back / close / lock).
-- **Blocking plans**: **Block-All**, **Conscious** (earn watch-time by staying off first),
-  **One-Reel** (peek once, then blocked), and **Pause** (a timed break).
+- **Blocking modes** — two that **stick** (**Block All**, the default, and **Conscious**,
+  earn watch-time by staying off first) plus three **temporary** overrides that auto-return
+  to your base mode when done: **One Reel** (watch one), **Unblock** (release 2–20 reels via
+  a dial), and **Pause** (a timed break).
 - **App blocker, website blocker, and daily limit** for broader control.
 - **On-device reel counter** — a floating bubble + a home-screen widget that count the short
   videos you scroll, so the habit becomes visible.
