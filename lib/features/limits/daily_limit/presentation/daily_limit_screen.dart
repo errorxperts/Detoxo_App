@@ -1,23 +1,18 @@
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
-import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+/// Reads and mutates the app-wide [DailyLimitCubit] (provided in `main.dart`),
+/// not a private instance — so a saved limit updates the dashboard ring live.
 class DailyLimitScreen extends StatelessWidget {
   const DailyLimitScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => DailyLimitCubit(sl<DailyLimitRepository>())..load(),
-      child: const _DailyLimitView(),
-    );
-  }
+  Widget build(BuildContext context) => const _DailyLimitView();
 }
 
 class _DailyLimitView extends StatefulWidget {

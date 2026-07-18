@@ -2,13 +2,12 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
-import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
-import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
+import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
 import 'package:detoxo/features/onboarding/presentation/widgets/screen_time_dial.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:lottie_tgs/lottie.dart';
 
 class _Page {
@@ -102,15 +101,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _finish() async {
     final settings = sl<SettingsRepository>();
-    await settings.save((await settings.load()).copyWith(onboarded: true));
     // Seed the dashboard ring's daily limit from the quick-pick (or the default
-    // if the step was skipped). Domain-only reach into daily_limit.
-    await sl<DailyLimitRepository>().save(
-      DailyLimit(
-        limit: _draftLimit ?? _defaultLimit,
-        dateSignature: DateFormat('dd-MM-yyyy').format(DateTime.now()),
-      ),
-    );
+    // if the step was skipped) through the app-wide cubit, so the dashboard
+    // reflects it live — setLimit persists + emits on the shared instance.
+    final dailyLimit = context.read<DailyLimitCubit>();
+    await settings.save((await settings.load()).copyWith(onboarded: true));
+    await dailyLimit.setLimit(_draftLimit ?? _defaultLimit);
     if (mounted) context.go(Routes.permissions);
   }
 

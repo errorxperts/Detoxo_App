@@ -76,6 +76,7 @@ class _BlockAppTileState extends State<BlockAppTile> {
           subtitle: installed ? t.appName : 'Not installed',
           enabled: installed,
           value: _isOn(t),
+          selected: _isOn(t),
           onChanged:
               installed ? (v) => widget.onToggle(t.platformId, enabled: v) : null,
         ),
@@ -85,6 +86,7 @@ class _BlockAppTileState extends State<BlockAppTile> {
     return _padded(
       GlassContainer(
         enableBlur: false,
+        selected: installed && _enabledCount > 0,
         padding: EdgeInsets.zero,
         child: Column(
           mainAxisSize: MainAxisSize.min,

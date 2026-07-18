@@ -13,6 +13,7 @@ class GlassListTile extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onTap,
+    this.selected = false,
     super.key,
   });
 
@@ -22,11 +23,15 @@ class GlassListTile extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
 
+  /// Elevates the row to the premium active state (see [GlassContainer.selected]).
+  final bool selected;
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final row = GlassContainer(
       enableBlur: false,
+      selected: selected,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
@@ -65,6 +70,7 @@ class AdaptiveSwitchTile extends StatelessWidget {
     this.enabled = true,
     this.locked = false,
     this.onLockedTap,
+    this.selected = false,
     super.key,
   });
 
@@ -77,6 +83,9 @@ class AdaptiveSwitchTile extends StatelessWidget {
   final bool locked;
   final VoidCallback? onLockedTap;
 
+  /// Elevates the row to the premium active state (see [GlassContainer.selected]).
+  final bool selected;
+
   @override
   Widget build(BuildContext context) {
     final trailing = locked
@@ -87,6 +96,7 @@ class AdaptiveSwitchTile extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       trailing: trailing,
+      selected: selected,
       onTap: locked ? onLockedTap : null,
     );
   }

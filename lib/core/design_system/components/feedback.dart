@@ -101,27 +101,17 @@ class ProgressRing extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           // Raised glass disc nested inside the arc. Sized to ~72% so a clear
-          // gap sits between the arc and the disc (the depth cue), with a soft
-          // elevation shadow so it reads as floating above the card.
-          Container(
+          // gap sits between the arc and the disc (the depth cue). A true circle
+          // (not the squircle) so it follows the ring; GlassContainer supplies
+          // the soft elevation shadow so it reads as floating above the card.
+          SizedBox(
             width: size * 0.72,
             height: size * 0.72,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.35),
-                  blurRadius: 30,
-                  spreadRadius: -6,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            child: GlassContainer(
+            child: const GlassContainer(
               blurSigma: AppBlur.hero,
-              borderRadius: size * 0.36,
+              circle: true,
               padding: EdgeInsets.zero,
-              child: const SizedBox.expand(),
+              child: SizedBox.expand(),
             ),
           ),
           CustomPaint(

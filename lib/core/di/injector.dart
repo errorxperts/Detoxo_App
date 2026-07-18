@@ -27,6 +27,8 @@ import 'package:detoxo/features/limits/app_blocker/data/repositories/app_block_r
 import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block_repository.dart';
 import 'package:detoxo/features/limits/daily_limit/data/repositories/daily_limit_repository_impl.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
+import 'package:detoxo/features/limits/streak/data/repositories/streak_repository_impl.dart';
+import 'package:detoxo/features/limits/streak/domain/repositories/streak_repository.dart';
 import 'package:detoxo/features/limits/web_blocker/data/repositories/web_block_repository_impl.dart';
 import 'package:detoxo/features/limits/web_blocker/data/repositories/web_block_stats_repository_impl.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_repository.dart';
@@ -75,6 +77,9 @@ Future<void> configureDependencies() async {
     )
     ..registerLazySingleton<DailyLimitRepository>(
       () => DailyLimitRepositoryImpl(sl()),
+    )
+    ..registerLazySingleton<StreakRepository>(
+      () => StreakRepositoryImpl(sl()),
     )
     ..registerLazySingleton<AnalyticsRepository>(
       () => AnalyticsRepositoryImpl(sl()),

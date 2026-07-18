@@ -20,6 +20,8 @@ import 'package:detoxo/features/content_counter/content_counter_core/domain/repo
 import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
+import 'package:detoxo/features/limits/streak/domain/repositories/streak_repository.dart';
+import 'package:detoxo/features/limits/streak/presentation/streak_cubit.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:detoxo/firebase_options.dart';
@@ -86,6 +88,11 @@ class DetoxoApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => DailyLimitCubit(sl<DailyLimitRepository>())..load(),
+        ),
+        // "Days under your daily limit" streak — fed by the dashboard hero and
+        // read back into its stat pill.
+        BlocProvider(
+          create: (_) => StreakCubit(sl<StreakRepository>())..load(),
         ),
       ],
       child: BlocListener<SettingsCubit, AppSettings>(

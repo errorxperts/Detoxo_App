@@ -36,7 +36,7 @@ Widget buildFeatureShowcaseScope({
   );
 }
 
-/// Starts the five-step tour. Drives the tour through the registered
+/// Starts the seven-step tour. Drives the tour through the registered
 /// [ShowcaseView] singleton rather than `ShowCaseWidget.of(context)` so it works
 /// regardless of the caller's position in the tree (the tooltip below is
 /// rendered in the root overlay, with no `ShowCaseWidget` ancestor).

@@ -11,7 +11,9 @@ are follow-ups.
 > **Status at a glance.** The quota can be set, saved, displayed, and reset at
 > midnight. The `limit` value is now **seeded during onboarding** (the daily-scroll
 > quick-pick — see [13-onboarding-permissions.md](13-onboarding-permissions.md))
-> and **read by the dashboard's screen-time ring** as that ring's max. But nothing
+> and **read by the dashboard's screen-time ring** as that ring's max. Editing the
+> limit now propagates **live** to that ring (one shared cubit), and the
+> limit-vs-usage comparison also drives a new **day-streak** stat (§8). But nothing
 > in the shipped app — neither Dart nor the native AccessibilityService — ever
 > increments `consumed`, and nothing reads `isExceeded` / `remaining` to actually
 > block anything. The dashboard ring fills from **native usage time**
@@ -34,10 +36,14 @@ Standard feature-first Clean Architecture slice under
 | presentation | `presentation/daily_limit_cubit.dart` | `DailyLimitCubit` — date-signature reset, `setLimit` |
 | presentation | `presentation/daily_limit_screen.dart` | Slider UI, progress card, info banner |
 
-The public barrel `lib/features/limits/limits.dart` re-exports **only** the domain
-entity and repository contract (`DailyLimit`, `DailyLimitRepository`), per the
-boundary rule enforced by `tool/check_boundaries.sh`. No other feature imports the
-cubit or screen.
+The public barrel `lib/features/limits/limits.dart` re-exports **only** domain
+entities and repository contracts (`DailyLimit` / `DailyLimitRepository`, and the
+sibling `Streak` / `StreakRepository`), per the boundary rule enforced by
+`tool/check_boundaries.sh`. No other feature imports the cubits or screen.
+
+A sibling sub-feature, **`lib/features/limits/streak/`**, derives from this one:
+the "days under your daily limit" streak shown on the dashboard (§8). It mirrors
+this slice's layout (entity / repository / cubit).
 
 ---
 
@@ -144,17 +150,22 @@ engine has no knowledge of the daily limit (grep of `android/` for
 )
 ```
 
-The **cubit is not in the locator** (get_it), but it now has **two** live
-instances built from the repository:
+The **cubit is not in the locator** (get_it). It has **one shared instance**: a
+**global** `DailyLimitCubit(sl<DailyLimitRepository>())..load()` registered as a
+`BlocProvider` in `lib/main.dart`. Both the dashboard hero (`dashboard_tab.dart`,
+which watches `limit` for its screen-time ring) **and** the editing screen
+(`DailyLimitScreen`, §5) read and mutate this same instance — so a limit saved on
+the screen re-emits to the dashboard **live**, with no restart.
 
-1. A **global** `DailyLimitCubit(sl<DailyLimitRepository>())..load()` registered as
-   a `BlocProvider` in `lib/main.dart`, which the dashboard hero
-   (`dashboard_tab.dart`) watches to read the `limit` for its screen-time ring.
-2. The **screen-scoped** one built inline by `DailyLimitScreen` (§5) for editing.
+> **Live-sync fix.** `DailyLimitScreen` previously wrapped its own inline
+> `BlocProvider`, creating a *second* cubit; `setLimit` emitted only on that
+> private instance and the dashboard ring went stale until relaunch. The screen
+> now resolves the global instance up the tree instead, and onboarding seeds the
+> limit through the same instance (`setLimit`) rather than writing the repo
+> directly.
 
-Both just wrap the same persisted record; there is still **no background usage
-observer** — neither instance accrues `consumed`, and the global one exists only
-to surface the `limit` on the dashboard.
+There is still **no background usage observer** — the instance never accrues
+`consumed`; it exists to surface (and now live-update) the `limit` on the dashboard.
 
 ---
 
@@ -179,8 +190,8 @@ static String todaySignature() =>
 
 ### When the reset fires
 
-The comparison runs only when `DailyLimitCubit.load()` is called (which happens
-once per screen mount, §5):
+The comparison runs only when `DailyLimitCubit.load()` is called — now **once at
+app start** (the global provider's `..load()` cascade in `lib/main.dart`), §5:
 
 ```dart
 Future<void> load() async {
@@ -190,9 +201,9 @@ Future<void> load() async {
 }
 ```
 
-So a "day rollover" is detected and applied the **next time the Daily Limit
-screen is opened** after midnight — not at midnight itself, and not from any
-background process. Because `consumed` is never populated in production (§7),
+So a "day rollover" is detected and applied the **next time the app is launched**
+after midnight — not at midnight itself, and not from any background process.
+Because `consumed` is never populated in production (§7),
 this reset is currently a no-op in practice, but the mechanism is correct and
 unit-tested.
 
@@ -206,7 +217,7 @@ Initial state `const DailyLimit()`. Three methods:
 
 | Method | Behavior |
 |--------|----------|
-| `load()` | Load from repo, `refreshed(today)`, save, emit. Run once on screen mount. |
+| `load()` | Load from repo, `refreshed(today)`, save, emit. Run once at app start (global provider). |
 | `setLimit(Duration limit)` | `copyWith(limit: …, dateSignature: today())`, save, emit. **Does not touch `consumed`** — changing the cap mid-day keeps the running total. |
 | `addConsumed(Duration delta)` | **`@visibleForTesting` only.** Adds to `consumed`, saves, emits. **No production caller exists.** |
 
@@ -216,8 +227,8 @@ day. Note the deliberate asymmetry: only `refreshed()` (a new day) clears
 
 ### `DailyLimitScreen`
 
-- `BlocProvider` builds `DailyLimitCubit(sl<DailyLimitRepository>())..load()`
-  inline (the cubit is scoped to this route).
+- Uses the **app-wide** `DailyLimitCubit` (provided in `lib/main.dart`); it no
+  longer builds its own `BlocProvider`, so an edit re-emits to the dashboard live.
 - **Today card** — shows `"$consumed of ${limit} min used"` (or `"No daily limit
   set"` when `limit == zero`) plus a `LinearProgressIndicator` of
   `consumed / limit` clamped to `[0,1]`.
@@ -295,7 +306,7 @@ not enforced.**
 - Native reference check: `grep -rn "dailyLimit\|consumedMs\|dateSignature\|daily_limit" android/` → **no matches**.
 - Consumption writers: only `DailyLimitCubit.addConsumed` (`@visibleForTesting`); no external caller (`grep addConsumed lib/ android/` → only the definition).
 - Gate readers: no reader of `isExceeded` / `remaining` outside the entity and its test. (The dashboard ring reads the raw `limit` field for display, not these gate getters.)
-- Seeding / display: `limit` is seeded by `onboarding_screen.dart` (`DailyLimitRepository.save`) and read by `dashboard_tab.dart` via the global `DailyLimitCubit` in `main.dart`.
+- Seeding / display: `limit` is seeded by `onboarding_screen.dart` via the shared `DailyLimitCubit.setLimit` (routed through the global provider so onboarding's pick shows on the dashboard live), and read by `dashboard_tab.dart` from that same instance.
 - Test coverage: `test/domain_test.dart` exercises `refreshed()` (day rollover clears `consumed`, preserves `limit`). No test drives an end-to-end enforcement path (there is none).
 
 > **Naming caution:** do not confuse this feature's `DailyLimit` with
@@ -308,19 +319,67 @@ not enforced.**
 
 ---
 
+## 8. Under-limit streak — `Streak`
+
+The dashboard hero's second stat pill is a **day streak**: the number of
+consecutive days the user has stayed **under their daily limit** (it replaced the
+old raw "blocked today" count). It lives in the sibling sub-feature
+`lib/features/limits/streak/`, mirrors this feature's slice
+(entity / repository / cubit), and persists to its own `LocalStore` key
+`StoreKeys.streak = 'daily_limit_streak'`.
+
+### Model — `Streak { base, lastDay, todayFailed }`
+
+| Field | Meaning |
+|-------|---------|
+| `base` | Consecutive under-limit days completed **before** today |
+| `lastDay` | `dd-MM-yyyy` signature of the last day the streak was evaluated |
+| `todayFailed` | Whether today has broken the streak (limit exceeded, or no limit set) — sticky within a day |
+
+`int get count => base + (todayFailed ? 0 : 1)` — today counts optimistically
+while still under the limit and drops the +1 the moment the limit is exceeded; the
+default state (`base:0, lastDay:'', todayFailed:true`) reads `0`.
+
+### Evaluation — `StreakCubit`
+
+A **global** `StreakCubit(sl<StreakRepository>())..load()` is registered in
+`lib/main.dart`. The dashboard hero (`dashboard_tab.dart`) — which already computes
+`underLimit = hasLimit && spent < limit` for the ring — calls
+`observe(now, underLimit)` in a post-frame callback each build (bloc skips equal
+states, so re-observes are cheap no-ops). The pure transition
+(`StreakCubit.advance`, `@visibleForTesting`) is:
+
+- **same day** → a failure is sticky (`todayFailed |= !underLimit`);
+- **consecutive day** → carry yesterday's committed streak forward if it qualified,
+  else reset (`base = lastDay==yesterday && !todayFailed ? count : 0`);
+- **gap / first run** → start fresh.
+
+Because "under limit" is only observed while the app is open, a fully skipped day
+resets the streak — standard streak behaviour, and consistent with the lazy
+date-rollover used for the limit itself (§4). Like the limit, it is a
+**display-only** metric — it never gates or blocks. Covered by
+`test/streak_test.dart`.
+
+---
+
 ## Source files
 
 - `lib/features/limits/daily_limit/domain/entities/daily_limit.dart`
 - `lib/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart`
 - `lib/features/limits/daily_limit/data/repositories/daily_limit_repository_impl.dart`
 - `lib/features/limits/daily_limit/presentation/daily_limit_cubit.dart`
-- `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart`
+- `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart` (uses the app-wide cubit; no inline provider)
+- `lib/features/limits/streak/domain/entities/streak.dart` (§8)
+- `lib/features/limits/streak/domain/repositories/streak_repository.dart`
+- `lib/features/limits/streak/data/repositories/streak_repository_impl.dart`
+- `lib/features/limits/streak/presentation/streak_cubit.dart`
 - `lib/features/limits/limits.dart`
-- `lib/core/storage/local_store.dart` (`StoreKeys.dailyLimit = 'daily_limit'`)
-- `lib/core/di/injector.dart` (`DailyLimitRepository` registration)
+- `lib/core/storage/local_store.dart` (`StoreKeys.dailyLimit = 'daily_limit'`, `StoreKeys.streak = 'daily_limit_streak'`)
+- `lib/core/di/injector.dart` (`DailyLimitRepository` + `StreakRepository` registrations)
 - `lib/core/navigation/routes.dart` / `lib/core/navigation/app_router.dart` (`Routes.dailyLimit = '/daily-limit'`)
 - `lib/features/settings/presentation/settings_screen.dart` / `lib/features/dashboard/presentation/widgets/app_drawer.dart` (entry points)
-- `lib/features/onboarding/presentation/onboarding_screen.dart` (seeds `limit` on finish)
-- `lib/main.dart` (global `DailyLimitCubit` provider for the dashboard ring)
-- `lib/features/dashboard/presentation/dashboard_tab.dart` (reads `limit` for the screen-time ring)
-- `test/domain_test.dart` (`DailyLimit reset` group)
+- `lib/features/onboarding/presentation/onboarding_screen.dart` (seeds `limit` on finish via the shared `DailyLimitCubit.setLimit`)
+- `lib/main.dart` (global `DailyLimitCubit` + `StreakCubit` providers)
+- `lib/features/dashboard/presentation/dashboard_tab.dart` (reads `limit` for the ring; observes the under-limit streak and reads its `count`)
+- `lib/features/dashboard/presentation/widgets/command_center_card.dart` (the day-streak stat pill)
+- `test/domain_test.dart` (`DailyLimit reset` group) / `test/streak_test.dart` (streak transitions)

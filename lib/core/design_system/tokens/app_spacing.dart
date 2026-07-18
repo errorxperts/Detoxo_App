@@ -49,6 +49,23 @@ abstract final class AppRadius {
   static final BorderRadius brLg = BorderRadius.circular(lg);
   static final BorderRadius brXl = BorderRadius.circular(xl);
   static final BorderRadius brPill = BorderRadius.circular(pill);
+
+  /// Tuning knob for [continuous]: how round the squircle is vs the legacy
+  /// circular radius. 1.0 keeps the same numeric radius (slightly tighter,
+  /// smoother corners); raise toward ~1.6 for a rounder squircle.
+  static const double continuousCornerScale = 1.0;
+
+  /// Apple-style continuous ("squircle") border used by every glass surface.
+  /// [pill] radius stays a true [StadiumBorder]; finite radii become a
+  /// [ContinuousRectangleBorder] so corners flow smoothly instead of snapping
+  /// to a circular arc. Pass a [side] to also stroke the edge.
+  static ShapeBorder continuous(double radius, {BorderSide side = BorderSide.none}) {
+    if (radius >= pill) return StadiumBorder(side: side);
+    return ContinuousRectangleBorder(
+      borderRadius: BorderRadius.circular(radius * continuousCornerScale),
+      side: side,
+    );
+  }
 }
 
 /// Common edge insets so screens stop re-declaring `EdgeInsets.all(16)`.

@@ -75,7 +75,11 @@ Because it works from those on-screen signals, it counts your *active* time well
 
 ## How do I set or change my daily limit?
 
-You first set a daily limit during the welcome tour by dragging a dial (the "How much do you scroll daily?" question). To change it any time, open **Settings → Daily limit**, drag the slider, and tap **Save limit** (0 means "no limit"). Your home-screen ring fills toward whatever you set. Today the limit is a self-awareness target — it colors the ring green → amber → red and tells you when you go over, but it doesn't hard-stop you; for a firm stop use **Block All** or **Conscious**.
+You first set a daily limit during the welcome tour by dragging a dial (the "How much do you scroll daily?" question). To change it any time, open **Settings → Daily limit**, drag the slider, and tap **Save limit** (0 means "no limit"). Your home-screen ring updates **immediately** and fills toward whatever you set. Today the limit is a self-awareness target — it colors the ring green → amber → red and tells you when you go over, but it doesn't hard-stop you; for a firm stop use **Block All** or **Conscious**.
+
+## What is the "day streak" on my dashboard?
+
+The small **day streak** beside your reels count is how many days in a row you've stayed **under your daily limit**. It ticks up each day you finish under the limit and resets if you go over or skip a day — a gentle motivator to keep your scrolling in check. It's counted on your device while the app is open; nothing is uploaded.
 
 ## The floating bubble needs "Display over apps" — why?
 

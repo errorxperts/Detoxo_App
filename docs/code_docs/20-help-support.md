@@ -60,7 +60,14 @@ offers two replayable tours:
 - **Dashboard tour** — the walkthrough **moved here from Settings**. Its target keys only exist
   on the dashboard, so it replays via the established pattern:
   `SettingsCubit.setShowcaseSeen(value: false)` + `context.go(Routes.home)`; the dashboard's
-  coordinator restarts the tour on the flag's true→false edge once front-most.
+  coordinator restarts the tour on the flag's true→false edge once front-most. The tour is
+  **seven steps** (`featureShowcaseStepCount = 7`, defined in
+  [`feature_showcase_steps.dart`](../../lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart)):
+  it spotlights all **five mode pills** — Block All, Conscious, Pause, **One Reel** (position 4),
+  **Unblock** (position 5) — in `DashboardMode` order at indices 0–4 (wrapped by
+  `ModeSelector.showcaseBuilder`, which maps mode `i` → `featureShowcaseSteps[i]`; `oneReel` and
+  `unblock` are the two `FeatureShowcaseKeys` added here) — then the **App Blocker** and **Web
+  Blocker** capsules at `featureShowcaseSteps[5]` / `[6]`.
 - **Feedback button** — an independent, single-step coach-mark spotlighting the **real
   top-bar feedback button** (`FeedbackActionButton`), reusing the same `ShowcaseTooltipCard`
   and glass theme as the dashboard tour. Because that button is hidden while
@@ -150,6 +157,7 @@ Both tiles push the same reusable
 - `lib/features/help/legal/presentation/legal_web_view_screen.dart`
 - `lib/core/constants/app_constants.dart` (`AppLegal` URLs)
 - `pubspec.yaml` (`webview_flutter` dependency)
+- `lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart` (7-step keys/order/content)
 - `lib/features/additional_feature/showcase_view/presentation/feature_showcase.dart` (scoped-tour helpers)
 - `lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart` (optional `scope`)
 - `lib/features/additional_feature/showcase_view/showcase_view.dart` (barrel doc)

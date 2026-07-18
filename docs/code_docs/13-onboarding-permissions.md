@@ -69,12 +69,11 @@ UI mechanics:
 
 ```dart
 final settings = sl<SettingsRepository>();
+// Seed the dashboard ring's daily limit from the quick-pick (or 90 min default)
+// through the app-wide cubit, so the dashboard reflects it live.
+final dailyLimit = context.read<DailyLimitCubit>();
 await settings.save((await settings.load()).copyWith(onboarded: true));
-// Seed the dashboard ring's daily limit from the quick-pick (or 90 min default).
-await sl<DailyLimitRepository>().save(
-  DailyLimit(limit: _draftLimit ?? _defaultLimit,
-             dateSignature: DateFormat('dd-MM-yyyy').format(DateTime.now())),
-);
+await dailyLimit.setLimit(_draftLimit ?? _defaultLimit);
 if (mounted) context.go(Routes.permissions);
 ```
 
@@ -82,7 +81,7 @@ Three things to note:
 
 1. It persists `onboarded: true` **directly through `SettingsRepository`** (resolved from `sl`), not through `SettingsCubit`. The flag is durable for the next launch's splash gate; the in-memory `SettingsCubit.state` is not updated here, which is harmless because…
 2. …it navigates **straight to `/permissions`**, bypassing the splash re-check (and therefore the PIN gate — which is a no-op on first run anyway, since no PIN exists yet). On subsequent launches the splash gate takes over normally.
-3. It **seeds the daily limit** by saving a fresh `DailyLimit` (the quick-pick choice, or the 90-minute default) via `DailyLimitRepository` — a domain-only reach into the `daily_limit` feature. This is the value the dashboard's screen-time ring reads as its max (the ring's fill comes from native usage time, not `DailyLimit.consumed`). See [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).
+3. It **seeds the daily limit** through the **app-wide `DailyLimitCubit`** (`context.read<DailyLimitCubit>().setLimit(...)`, the quick-pick choice or the 90-minute default) — not a direct `DailyLimitRepository.save`, so the value re-emits to the dashboard's screen-time ring **live**. This is the value the ring reads as its max (the ring's fill comes from native usage time, not `DailyLimit.consumed`). See [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).
 
 ---
 
@@ -215,8 +214,7 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 - `lib/features/onboarding/onboarding.dart`
 - `lib/features/onboarding/presentation/onboarding_screen.dart` (5-page intro + `_LimitStep`; seeds `DailyLimit`)
 - `lib/features/onboarding/presentation/widgets/screen_time_dial.dart` (`ScreenTimeDial` — the draggable daily-limit gauge)
-- `lib/features/limits/daily_limit/domain/entities/daily_limit.dart` (`DailyLimit` — seeded on finish)
-- `lib/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart` (`DailyLimitRepository.save`)
+- `lib/features/limits/daily_limit/presentation/daily_limit_cubit.dart` (`DailyLimitCubit.setLimit` — seeds the limit on finish, via the app-wide provider)
 - `lib/features/permissions/permissions.dart`
 - `lib/features/permissions/domain/entities/permission_status.dart`
 - `lib/features/permissions/domain/repositories/permission_repository.dart`

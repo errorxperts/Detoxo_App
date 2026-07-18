@@ -101,8 +101,9 @@ The five modes fall into two groups:
 > **today's screen time** in the social apps Detoxo watches, filling toward your
 > **daily limit** (the one you set during onboarding — §6). It shifts **green →
 > amber → red** as you approach the limit, and reads "*X over your Y limit*" once
-> you pass it. Below the ring, a single plain line (no boxed card) shows today's
-> **Blocked** count and your **Reels** watched today. (Start a **Pause** or **Conscious**
+> you pass it. Below the ring, a single plain line (no boxed card) shows your
+> **Reels** watched today and your **day streak** — the number of consecutive days
+> you've stayed under your daily limit. (Start a **Pause** or **Conscious**
 > session and the ring switches to that session's live countdown.)
 
 | Mode | What it does |
@@ -470,7 +471,9 @@ grouped into **Get help**, **Learn & share**, and **Legal**:
   to filter; tap a question to expand its answer.
 - **Feature tutorials** — replay the guided tours:
   - **Dashboard tour** — the same welcome walkthrough of the home screen
-    (this is where it lives now, having moved out of Settings).
+    (this is where it lives now, having moved out of Settings). It walks you through
+    all five blocking modes — **Block All**, **Conscious**, **Pause**, **One Reel**,
+    and **Unblock** — plus the **App** and **Web** blockers.
   - **Feedback button** — a quick, one-step highlight that turns the top-bar
     feedback button on (if it's off) and points out where it is and what it does.
 - **Share an idea** — a simple box to tell us what would make Detoxo better.

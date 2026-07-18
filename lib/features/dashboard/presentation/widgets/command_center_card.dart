@@ -38,7 +38,7 @@ class CommandCenterCard extends StatelessWidget {
     required this.progress,
     required this.limitLabel,
     required this.statusLabel,
-    required this.blockedValue,
+    required this.streakValue,
     required this.reelsValue,
     this.overLimit = false,
     this.countdown,
@@ -58,9 +58,11 @@ class CommandCenterCard extends StatelessWidget {
   final bool overLimit;
 
   final String statusLabel;
-  final String blockedValue;
 
-  /// Reels counted today (real data; replaces the old placeholder streak).
+  /// Consecutive days the user stayed under their daily limit.
+  final String streakValue;
+
+  /// Reels counted today (real on-device count).
   final String reelsValue;
 
   /// When a Pause / Conscious / One Reel session is live, the hero ring becomes
@@ -97,9 +99,10 @@ class CommandCenterCard extends StatelessWidget {
                     iconColor: scheme.secondary,
                   ),
                   StatPill(
-                    icon: Icons.smart_display_outlined,
-                    value: blockedValue,
-                    label: 'blocked',
+                    icon: Icons.local_fire_department,
+                    value: streakValue,
+                    label: 'day streak',
+                    iconColor: AppColors.warning,
                   ),
                 ],
               ),

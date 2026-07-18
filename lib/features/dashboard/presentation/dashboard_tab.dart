@@ -19,6 +19,7 @@ import 'package:detoxo/features/dashboard/presentation/widgets/dashboard_top_bar
 import 'package:detoxo/features/dashboard/presentation/widgets/mode_selector.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/protection_status_card.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
+import 'package:detoxo/features/limits/streak/presentation/streak_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -121,8 +122,8 @@ class _DashboardTabState extends State<DashboardTab> {
               children: [
                 Expanded(
                   child: showcaseTarget(
-                    step: featureShowcaseSteps[3],
-                    index: 3,
+                    step: featureShowcaseSteps[5],
+                    index: 5,
                     child: BlockerCapsule(
                       icon: AppIcon.appBlocker,
                       title: 'App Blocker',
@@ -134,8 +135,8 @@ class _DashboardTabState extends State<DashboardTab> {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: showcaseTarget(
-                    step: featureShowcaseSteps[4],
-                    index: 4,
+                    step: featureShowcaseSteps[6],
+                    index: 6,
                     child: BlockerCapsule(
                       icon: AppIcon.websiteBlocker,
                       title: 'Web Blocker',
@@ -197,10 +198,10 @@ class _HeroState extends State<_Hero> {
 
   @override
   Widget build(BuildContext context) {
-    final snapshot = context.watch<ServiceCubit>().state;
     final settings = context.watch<SettingsCubit>().state;
     final counter = context.watch<ContentCounterCubit>().state;
     final daily = context.watch<DailyLimitCubit>().state;
+    final streak = context.watch<StreakCubit>().state;
     final now = DateTime.now();
     final pauseLive = settings.isPauseContractLive(now);
     _syncTicker(pauseLive: pauseLive);
@@ -214,6 +215,14 @@ class _HeroState extends State<_Hero> {
         ? (spent.inSeconds / limit.inSeconds).clamp(0.0, 1.0)
         : 0.0;
     final overLimit = hasLimit && spent >= limit;
+    // Advance the "days under your daily limit" streak once today's under/over
+    // status is known — post-frame so we don't emit during build.
+    final underLimit = hasLimit && !overLimit;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<StreakCubit>().observe(now: now, underLimit: underLimit);
+      }
+    });
     final limitLabel = !hasLimit
         ? 'No daily limit set'
         : overLimit
@@ -251,7 +260,7 @@ class _HeroState extends State<_Hero> {
       limitLabel: limitLabel,
       overLimit: overLimit,
       statusLabel: _statusLabel(settings, pauseLive: pauseLive),
-      blockedValue: '${snapshot.blocksToday}',
+      streakValue: '${streak.count}',
       reelsValue: '${counter.today}',
       countdown: countdown,
     );
@@ -274,18 +283,17 @@ class _ModeSection extends StatelessWidget {
       selected: _dashMode(settings, pauseLive: pauseLive),
       reelSession: reel,
       onSelect: (mode) => unawaited(_onModeSelect(context, mode)),
-      // Spotlight Block All / Conscious / Pause during the feature tour (the two
-      // reel modes aren't toured); identity when the tour isn't running.
+      // Spotlight each mode pill during the feature tour (indices align with
+      // featureShowcaseSteps); identity when the tour isn't running.
       showcaseBuilder: (mode, child) {
         final i = switch (mode) {
           DashboardMode.blockAll => 0,
           DashboardMode.conscious => 1,
           DashboardMode.pause => 2,
-          _ => -1,
+          DashboardMode.oneReel => 3,
+          DashboardMode.unblock => 4,
         };
-        return i < 0
-            ? child
-            : showcaseTarget(step: featureShowcaseSteps[i], index: i, child: child);
+        return showcaseTarget(step: featureShowcaseSteps[i], index: i, child: child);
       },
     );
   }

@@ -7,6 +7,18 @@ import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+/// Overlays sit over arbitrary (often dimmed) content, so they use a *thicker*
+/// frosted material than chrome glass — a mostly-opaque surface tint keeps text
+/// crisply readable while the backdrop blur still shows through at the edges.
+({Color top, Color bottom}) _overlayMaterial(BuildContext context) {
+  final scheme = Theme.of(context).colorScheme;
+  final dark = Theme.of(context).brightness == Brightness.dark;
+  return (
+    top: scheme.surfaceContainerHigh.withValues(alpha: dark ? 0.82 : 0.90),
+    bottom: scheme.surfaceContainer.withValues(alpha: dark ? 0.76 : 0.84),
+  );
+}
+
 /// Frosted modal bottom sheet. Use instead of raw `showModalBottomSheet` so
 /// every sheet shares the glass chrome, drag handle and radius.
 abstract final class GlassBottomSheet {
@@ -28,6 +40,8 @@ abstract final class GlassBottomSheet {
         child: GlassContainer(
           blurSigma: AppBlur.sheet,
           borderRadius: AppRadius.xl,
+          tintTop: _overlayMaterial(context).top,
+          tintBottom: _overlayMaterial(context).bottom,
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.lg,
             AppSpacing.sm,
@@ -88,6 +102,8 @@ abstract final class GlassDialog {
       child: GlassContainer(
         blurSigma: AppBlur.sheet,
         borderRadius: AppRadius.xl,
+        tintTop: _overlayMaterial(context).top,
+        tintBottom: _overlayMaterial(context).bottom,
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: child,
       ),
@@ -126,6 +142,8 @@ abstract final class GlassToast {
           content:
               GlassContainer(
                     blurSigma: AppBlur.bar,
+                    tintTop: _overlayMaterial(context).top,
+                    tintBottom: _overlayMaterial(context).bottom,
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md,
                       vertical: AppSpacing.sm,
@@ -135,7 +153,17 @@ abstract final class GlassToast {
                       children: [
                         Icon(icon, color: color, size: 20),
                         const SizedBox(width: AppSpacing.sm),
-                        Expanded(child: Text(message)),
+                        Expanded(
+                          child: Text(
+                            message,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: context.glass.onGlass,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.3,
+                                ),
+                          ),
+                        ),
                       ],
                     ),
                   )

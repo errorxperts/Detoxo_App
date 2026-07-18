@@ -91,6 +91,7 @@ Each key maps to exactly one repository that owns its JSON shape:
 | `webBlockStats` | `web_block_stats` | no | `WebBlockStatsRepositoryImpl` | `{date, today, total, hosts:{host:count}}` |
 | `appBlocklist` | `app_blocklist` | no | `AppBlockRepositoryImpl` | JSON list of `AppBlockEntry.toJson()` |
 | `dailyLimit` | `daily_limit` | no | `DailyLimitRepositoryImpl` | `DailyLimit.toJson()` — one JSON object |
+| `streak` | `daily_limit_streak` | no | `StreakRepositoryImpl` | `Streak.toJson()` — `{base, lastDay, todayFailed}` |
 | `analyticsEvents` | `analytics_events` | no | `AnalyticsRepositoryImpl` | JSON list of block events (capped) |
 | `premiumDevUnlock` | `premium_dev_unlock` | no | *(reserved — no live consumer)* | — |
 | `dismissedNotices` | `dismissed_notices` | no | *(reserved — no live consumer)* | — |
@@ -135,6 +136,11 @@ Each key maps to exactly one repository that owns its JSON shape:
   from reel-platform detection).
 - **`daily_limit`** — `DailyLimit.toJson()`; defaults to `const DailyLimit()`
   when absent. See [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).
+- **`daily_limit_streak`** — `Streak.toJson()` (`{base, lastDay, todayFailed}`);
+  the "days under your daily limit" streak surfaced on the dashboard hero.
+  Defaults to `const Streak()` when absent. Owned by `StreakRepositoryImpl`,
+  advanced once per day by `StreakCubit`. See
+  [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).
 - **`analytics_events`** — a capped JSON list of block events, newest-first.
   `AnalyticsRepositoryImpl` prepends each new event and truncates to
   **`_maxEvents = 500`**. Each event serialises as
@@ -362,6 +368,7 @@ counted reel (throttled) so the widget refreshes without any Dart round-trip.
 - `lib/features/limits/web_blocker/data/repositories/web_block_repository_impl.dart`
 - `lib/features/limits/app_blocker/data/repositories/app_block_repository_impl.dart`
 - `lib/features/limits/daily_limit/data/repositories/daily_limit_repository_impl.dart`
+- `lib/features/limits/streak/data/repositories/streak_repository_impl.dart`
 - `lib/features/analytics/data/repositories/analytics_repository_impl.dart`
 - `lib/features/settings/presentation/settings_screen.dart`
 - `lib/features/content_counter/home_content_counter/data/repositories/home_widget_repository_impl.dart`
