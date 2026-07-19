@@ -13,21 +13,29 @@ For the "why does it need that?" behind each permission, see
 
 ## 1. First run: the welcome tour
 
-The first time you open Detoxo you'll see a short intro that explains what
-the app does — spotting Reels, Shorts and infinite feeds, choosing which apps to
-block, taking a mindful **Pause**, and building the habit.
+The first time you open Detoxo you'll see a short, five-step intro. Instead of a
+feature list, each page names a problem you'll recognise and shows how Detoxo
+answers it:
 
-1. Swipe through the pages, or tap **Next**.
-2. Tap **Skip** (top-right) any time to jump to the end.
-3. On the last page, tap **Get started**.
+1. **Take your time back** — why you're here.
+2. **Caught the moment it starts** — Detoxo spots Reels, Shorts and infinite feeds
+   the instant they play and pulls you out, right inside the apps you already use.
+3. **Not all-or-nothing** — tap through the five plans (Block All, Conscious, One
+   Reel, Unblock, Pause) to see how each fits a different way of changing.
+4. **See the number, set the line** — a live "reels a day" counter, then a quick
+   daily-limit question.
+5. **Make it stick** — a PIN, uninstall protection and an always-on guard.
 
-One page asks a single quick question — **"How much do you scroll daily?"** — with
-a **drag dial**: spin it around to set your daily social-media time, and the
-number animates in the centre. Your choice sets a **daily limit** that your
-home-screen ring fills toward (you can change it any time in **Settings → Daily
-limit**; if you skip the question, Detoxo uses a sensible default). Nothing else
-is turned on or asked for during the tour. When you finish, Detoxo takes you
-straight to permission setup (next section).
+Swipe through the pages or tap **Next**; tap **Skip** (top-right) any time to jump
+to the end; on the last page tap **Get started**.
+
+The one page that asks something — **"See the number, set the line"** — has a
+**drag dial**: spin it around to set your daily social-media time, and the number
+animates in the centre. Your choice sets a **daily limit** that your home-screen
+ring fills toward (change it any time in **Settings → Daily limit**; skip it and
+Detoxo uses a sensible default). Nothing else is turned on or asked for during the
+tour. When you finish, Detoxo takes you straight to permission setup (next
+section).
 
 > You can replay this tour later from **Help & support → Feature tutorials →
 > Dashboard tour**.
@@ -263,8 +271,8 @@ When you're on a blocked site, Detoxo simply presses back to take you off it.
 
 ## 6. App blocker & daily limit
 
-You first set a daily limit during onboarding (the "How much do you scroll daily?"
-question — §1). To change it later, open **Daily limit** from **Settings → Daily
+You first set a daily limit during onboarding (the "See the number, set the line"
+step's drag dial — §1). To change it later, open **Daily limit** from **Settings → Daily
 limit** (or the menu) to adjust the cap on how much time you want per day.
 
 1. Drag the slider to your target — **0 to 180 minutes**, in 5-minute steps.

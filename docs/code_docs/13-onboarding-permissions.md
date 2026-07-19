@@ -44,26 +44,27 @@ The `build()` method renders a branded splash (Detoxo logo, "Reclaim your attent
 
 `lib/features/onboarding/` is a **presentation-only feature** — its public barrel (`onboarding.dart`) exports just `OnboardingScreen`; there is no data/ or domain/ layer.
 
-`presentation/onboarding_screen.dart` is a 5-page horizontal `PageView` over the ambient gradient (`GlassScaffold`):
+`presentation/onboarding_screen.dart` is a 5-page horizontal `PageView` over the ambient gradient (`GlassScaffold`). Each page is a **problem→solution** beat driven by a `_HeroKind` enum, and every hero is a **coded illustration built from the design system** (no bespoke Lottie/image assets):
 
-| Page | Accent | Title | Illustration / kind | Fallback icon |
-|------|--------|-------|--------------|---------------|
-| 0 (welcome) | `AppColors.seed` | "Welcome to Detoxo" | app logo image (`assets/images/detox_logo_no_bg.png`) | — |
-| 1 | `AppColors.seed` | "Stop the doom-scroll" | Lottie `bow` | `motion_photos_off` |
-| 2 | `AppColors.onbTeal` | "You stay in control" | Lottie `nightyNight` | `tune` |
-| 3 (limit step) | `AppColors.onbTeal` | "How much do you scroll daily?" | **interactive drag dial** (`ScreenTimeDial`) | — |
-| 4 | `AppColors.onbViolet` | "Build the habit" | Lottie `glasses` | `lock_clock` |
+| Page | `_HeroKind` | Accent | Title | Hero / interaction |
+|------|-------------|--------|-------|--------------------|
+| 0 | `welcome` | `AppColors.seed` | "Take your time back" | brand logo (`assets/images/detox_logo_no_bg.png`) in an accent halo, breathing (`_WelcomeHero`) |
+| 1 | `caught` | `AppColors.seed` | "Caught the moment it starts" | `CaughtHero` — real app-pack icons ring a rising "reel" card a shield sweeps away; `Pill` footer "Blocks the reels, not the app" |
+| 2 | `plans` | `AppColors.onbTeal` | "Not all-or-nothing" | `PlanPreview` — tap any of the five plan chips to morph the badge + promise line |
+| 3 | `limit` | `AppColors.onbTeal` | "See the number, set the line" | `_ReelCountUp` (counts up once) above the interactive `ScreenTimeDial` |
+| 4 | `stick` | `AppColors.onbViolet` | "Make it stick" | `CommitmentHero` — shield with a lock that clicks shut + an always-on `StatusDot`; three benefit rows |
 
-Copy is value-prop only (detecting Reels/Shorts/infinite feeds, choosing which apps to block, pausing with a mindful cooldown, daily limits + schedules + PIN lock) — **except page 3**, the one interactive step. Nothing else is requested or persisted per-page.
+Copy is **value/outcome-first**: each page opens with the user's pain and answers it with what Detoxo does — the bottomless feed caught in the moment (page 1), the five flexible plans that fit how you change (page 2), an honest on-device reel count + a daily limit you set (page 3), and PIN/uninstall/always-on protection that makes it stick (page 4). Deep per-plan teaching is deliberately **deferred to the in-context dashboard feature showcase** (`additional_feature/showcase_view`); onboarding only sells the value and hands off. Nothing is requested or persisted per-page except the limit dial on page 3.
 
-**The daily-limit dial (page 3, `_LimitStep`).** Instead of a Lottie slide, page 3 asks "How much do you scroll daily?" and presents an interactive **`ScreenTimeDial`** (`presentation/widgets/screen_time_dial.dart`) — a draggable 270° radial gauge (range **15 min – 5 h**, **15-minute** steps, default **90 min**) that visually mirrors the dashboard screen-time ring. Dragging (or tapping) the arc updates the value, which animates in the centre; it's a Semantics slider (increase/decrease step) for accessibility. The selection is held in local `_draftLimit` state (nothing is saved until finish) and seeds the dashboard's screen-time ring max. Because the dial owns its drag gestures, the `PageView` horizontal swipe is **suspended on this page** (`NeverScrollableScrollPhysics`) — Back/Next still navigate. If the user skips the step, `_finish()` falls back to the **90-minute** default.
+**The daily-limit step (page 3, `_LimitStep`).** Page 3 — "See the number, set the line" — first surfaces the on-device reel counter as a tangible number via `_ReelCountUp` (an illustrative "reels a day, typically" ticker that counts up **once** on entry, respecting reduce-motion), then presents the interactive **`ScreenTimeDial`** (`presentation/widgets/screen_time_dial.dart`) — a draggable 270° radial gauge (range **15 min – 5 h**, **15-minute** steps, default **90 min**) that visually mirrors the dashboard screen-time ring. Dragging (or tapping) the arc updates the value, which animates in the centre and fires a **selection haptic** on each new step; it's a Semantics slider (increase/decrease step) for accessibility. The selection is held in local `_draftLimit` state (nothing is saved until finish) and seeds the dashboard's screen-time ring max. Because the dial owns its drag gestures, the `PageView` horizontal swipe is **suspended on this page** (`NeverScrollableScrollPhysics`) — Back/Next still navigate. If the user skips the step, `_finish()` falls back to the **90-minute** default.
 
 UI mechanics:
-- **Parallax:** each `_Illustration` drifts at 60px × page-delta relative to the swipe (`Transform.translate` driven by the `PageController`).
-- **Lottie with graceful fallback:** illustrations render via `lottie_tgs`; on any load error `_Illustration._fallback()` draws the page's accent-tinted `fallbackIcon` instead, so a missing/broken asset never blanks the page.
+- **Coded heroes, no external art:** the welcome/caught/stick heroes (`_WelcomeHero`, `CaughtHero`, `CommitmentHero`) and the plans/limit interactions are composed entirely from design-system primitives (`GlassContainer`/`IconBadge`/`AppChip`/`StatusDot`/`ScreenTimeDial`) and `flutter_animate` — there are no Lottie/illustration assets to load or fall back for. All motion is guarded by `MediaQuery.maybeDisableAnimationsOf` and degrades to a static end-state under reduce-motion.
+- **Parallax:** the welcome/caught/stick heroes drift at 60px × page-delta relative to the swipe (`Transform.translate` driven by the `PageController`) in `_PageView`.
+- **Haptics:** a **selection** tick on every page change (`onPageChanged`) and on each dial step, and a **success** pulse when `_finish()` runs (`AppHaptics`, gated by the global vibration setting).
 - **Skip** (top-right `GhostButton`) — visible on pages 0–3, fades out (opacity 0, disabled) on the last page (index 4).
 - **Back** (top-left `GhostButton`) — hidden (opacity 0, disabled) on page 0, visible from page 1 onward; steps back one page via `PageController.previousPage`. Gives a discoverable way back for screen-reader users, since TalkBack intercepts the `PageView` swipe.
-- **Bottom bar** — animated dot indicator (active dot widens to 22px in the page accent; the dot row is wrapped in `Semantics(label: 'Page N of M')` so progress is announced) plus a full-width `PrimaryButton` labelled **"Next"** on pages 0–3 and **"Get started"** on the last page, tinted with the current page's accent.
+- **Bottom bar** — a segmented filling progress bar (`_ProgressBar`: five segments, each filling with the current page accent as the user advances; wrapped in `Semantics(label: 'Step N of M')` so progress is announced) plus a full-width `PrimaryButton` labelled **"Next"** on pages 0–3 and **"Get started"** on the last page, tinted with the current page's accent.
 
 **Finishing** (`_finish()`, reached by *Skip*, or by *Get started* on the last page via `_next()`):
 
@@ -72,6 +73,7 @@ final settings = sl<SettingsRepository>();
 // Seed the dashboard ring's daily limit from the quick-pick (or 90 min default)
 // through the app-wide cubit, so the dashboard reflects it live.
 final dailyLimit = context.read<DailyLimitCubit>();
+AppHaptics.success(); // completion pulse
 await settings.save((await settings.load()).copyWith(onboarded: true));
 await dailyLimit.setLimit(_draftLimit ?? _defaultLimit);
 if (mounted) context.go(Routes.permissions);
@@ -201,7 +203,7 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 ## 5. End-to-end sequence (first run, Android)
 
 1. Cold launch → `/` splash → `_bootstrap()` loads settings/targets/permissions/pin, seeds the enabled set from installed defaults, refreshes the counter widget.
-2. `onboarded == false` → `/onboarding`. User swipes/skips the 5-page intro (incl. the daily-scroll dial on page 3); finishing persists `onboarded: true`, seeds the daily limit (dialled value or 90 min default), and goes to `/permissions`.
+2. `onboarded == false` → `/onboarding`. User swipes/skips the 5-page value-first intro (five problem→solution beats, incl. the reel count-up + daily-limit dial on page 3); finishing persists `onboarded: true`, seeds the daily limit (dialled value or 90 min default), and goes to `/permissions`.
 3. `/permissions` funnel. User grants **Accessibility** and **Display over apps** (required) via system screens; returning each time re-checks on resume. Optional permissions (notifications, usage, battery, device-admin) offered but not blocking.
 4. Once both required are granted, **Continue** → `/home`.
 5. Next launch: splash finds `onboarded == true`, no app-scope PIN (unless the user set one), required permissions granted → routes straight to `/home`. If an app-scope PIN was later configured, step 2 of the gate diverts to `/pin/lock` first.
@@ -212,8 +214,11 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 
 - `lib/app/splash_screen.dart`
 - `lib/features/onboarding/onboarding.dart`
-- `lib/features/onboarding/presentation/onboarding_screen.dart` (5-page intro + `_LimitStep`; seeds `DailyLimit`)
+- `lib/features/onboarding/presentation/onboarding_screen.dart` (5-page problem→solution intro + `_LimitStep` + `_ReelCountUp` + `_ProgressBar`; seeds `DailyLimit`)
 - `lib/features/onboarding/presentation/widgets/screen_time_dial.dart` (`ScreenTimeDial` — the draggable daily-limit gauge)
+- `lib/features/onboarding/presentation/widgets/caught_hero.dart` (`CaughtHero` — page 1 app-icon ring + reel-catch)
+- `lib/features/onboarding/presentation/widgets/plan_preview.dart` (`PlanPreview` — page 2 interactive plan chooser)
+- `lib/features/onboarding/presentation/widgets/commitment_hero.dart` (`CommitmentHero` — page 4 shield/lock hero)
 - `lib/features/limits/daily_limit/presentation/daily_limit_cubit.dart` (`DailyLimitCubit.setLimit` — seeds the limit on finish, via the app-wide provider)
 - `lib/features/permissions/permissions.dart`
 - `lib/features/permissions/domain/entities/permission_status.dart`

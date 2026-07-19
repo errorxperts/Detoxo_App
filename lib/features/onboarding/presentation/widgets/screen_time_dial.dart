@@ -70,7 +70,10 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
     final raw = _minM + fraction.clamp(0.0, 1.0) * (_maxM - _minM);
     final snapped = ((raw / stepM).round() * stepM).clamp(_minM, _maxM);
     final next = Duration(minutes: snapped);
-    if (next != widget.value) widget.onChanged(next);
+    if (next != widget.value) {
+      AppHaptics.selection();
+      widget.onChanged(next);
+    }
   }
 
   void _nudge(int steps) =>
