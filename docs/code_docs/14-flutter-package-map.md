@@ -25,7 +25,7 @@ runtime behaviour yet). Every "wired" claim below is grounded in a real import i
 
 | Package | Version | Status | Role in Detoxo |
 | --- | --- | --- | --- |
-| `flutter_bloc` | `^9.1.1` | **Wired** (35 files) | The only state-management library. Every feature exposes **Cubits** (no event-driven Blocs, no Riverpod). Provides `BlocProvider`, `BlocBuilder`, `BlocSelector`, `BlocListener` used across screens (e.g. `main.dart` selects `(AppThemeMode, AppBackground)` off `SettingsCubit`). |
+| `flutter_bloc` | `^9.1.1` | **Wired** (35 files) | The only state-management library. Every feature exposes **Cubits** (no event-driven Blocs, no Riverpod). Provides `BlocProvider`, `BlocBuilder`, `BlocSelector`, `BlocListener` used across screens (e.g. `main.dart` selects `(AppThemeMode, AppBackground, AppBackground)` — theme + the per-mode dark/light background — off `SettingsCubit`). |
 | `bloc` | `^9.2.1` | **Wired (transitive)** | Foundation library re-exported by `flutter_bloc`; `Cubit`/`Emitter` come from here. Not imported directly (`package:bloc/bloc.dart` appears nowhere) but pinned so the version is explicit. |
 | `equatable` | `^2.0.8` | **Wired** (21 files) | Value equality for Cubit states and domain entities/value-objects, so `BlocBuilder`/`BlocSelector` can skip no-op rebuilds. |
 | `get_it` | `^9.2.1` | **Wired** | The service locator. Single registration surface in `lib/core/di/injector.dart` exposed as `sl`. All repositories/cubits/data sources are resolved through it. |

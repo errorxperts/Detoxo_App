@@ -18,30 +18,33 @@ class AdaptiveSwitch extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.enabled = true,
-    this.activeColor = AppColors.accent,
+    this.activeColor,
     super.key,
   });
 
   final bool value;
   final ValueChanged<bool>? onChanged;
   final bool enabled;
-  final Color activeColor;
+
+  /// Active-track tint. Defaults to the live (background-adaptive) brand accent.
+  final Color? activeColor;
 
   @override
   Widget build(BuildContext context) {
     final on = enabled && onChanged != null;
+    final tint = activeColor ?? Theme.of(context).colorScheme.secondary;
     if (PlatformAdaptive.useCupertino) {
       return CNSwitch(
         value: value,
         enabled: on,
-        color: activeColor,
+        color: tint,
         onChanged: on ? onChanged! : (_) {},
       );
     }
     return Switch(
       value: value,
       onChanged: on ? onChanged : null,
-      activeTrackColor: activeColor,
+      activeTrackColor: tint,
     );
   }
 }
@@ -102,7 +105,7 @@ class AdaptiveSlider extends StatelessWidget {
     this.max = 1,
     this.divisions,
     this.enabled = true,
-    this.color = AppColors.accent,
+    this.color,
     super.key,
   });
 
@@ -112,11 +115,14 @@ class AdaptiveSlider extends StatelessWidget {
   final double max;
   final int? divisions;
   final bool enabled;
-  final Color color;
+
+  /// Active-track tint. Defaults to the live (background-adaptive) brand accent.
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     final on = enabled && onChanged != null;
+    final tint = color ?? Theme.of(context).colorScheme.secondary;
     if (PlatformAdaptive.useCupertino) {
       final step = divisions != null && divisions! > 0 ? (max - min) / divisions! : null;
       return CNSlider(
@@ -125,7 +131,7 @@ class AdaptiveSlider extends StatelessWidget {
         max: max,
         step: step,
         enabled: on,
-        color: color,
+        color: tint,
         onChanged: on ? onChanged! : (_) {},
       );
     }
@@ -134,7 +140,7 @@ class AdaptiveSlider extends StatelessWidget {
       min: min,
       max: max,
       divisions: divisions,
-      activeColor: color,
+      activeColor: tint,
       onChanged: on ? onChanged : null,
     );
   }
@@ -259,14 +265,16 @@ class AdaptiveTabBar extends StatelessWidget {
     required this.items,
     required this.currentIndex,
     required this.onChanged,
-    this.tint = AppColors.accent,
+    this.tint,
     super.key,
   });
 
   final List<AdaptiveTabItem> items;
   final int currentIndex;
   final ValueChanged<int> onChanged;
-  final Color tint;
+
+  /// Selected-tab tint. Defaults to the live (background-adaptive) brand accent.
+  final Color? tint;
 
   @override
   Widget build(BuildContext context) {
@@ -274,7 +282,7 @@ class AdaptiveTabBar extends StatelessWidget {
       return CNTabBar(
         currentIndex: currentIndex,
         onTap: onChanged,
-        tint: tint,
+        tint: tint ?? Theme.of(context).colorScheme.secondary,
         items: [
           for (final item in items)
             CNTabBarItem(

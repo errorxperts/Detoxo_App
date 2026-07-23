@@ -305,7 +305,7 @@ class _BlocklistRow extends StatelessWidget {
     final site = PopularSites.byPrimaryDomain(entry.pattern);
     final color = entry.brandColor != null
         ? Color(entry.brandColor!)
-        : AppColors.accent;
+        : Theme.of(context).colorScheme.secondary;
     return AppCard(
       leading: IconBadge(
         icon: site?.icon ?? Icons.public,

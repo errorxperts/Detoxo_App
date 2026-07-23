@@ -1,6 +1,5 @@
 import 'package:detoxo/core/design_system/adaptive/adaptive_controls.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +13,7 @@ class AppToggle extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.enabled = true,
-    this.activeColor = AppColors.accent,
+    this.activeColor,
     this.label,
     super.key,
   });
@@ -22,7 +21,9 @@ class AppToggle extends StatelessWidget {
   final bool value;
   final ValueChanged<bool>? onChanged;
   final bool enabled;
-  final Color activeColor;
+
+  /// Active-track tint. Defaults to the live (background-adaptive) brand accent.
+  final Color? activeColor;
 
   /// Optional inline label rendered to the left of the switch.
   final String? label;
@@ -37,7 +38,7 @@ class AppToggle extends StatelessWidget {
     final toggle = AdaptiveSwitch(
       value: value,
       enabled: enabled,
-      activeColor: activeColor,
+      activeColor: activeColor ?? Theme.of(context).colorScheme.secondary,
       onChanged: onChanged == null ? null : _handle,
     );
     if (label == null) return toggle;

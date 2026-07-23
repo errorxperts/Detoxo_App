@@ -79,6 +79,9 @@ class _AppPressableState extends State<AppPressable>
     duration: AppDurations.instant,
   );
 
+  // Keyboard / switch-access focus, painted as an accent ring (see build).
+  bool _focused = false;
+
   @override
   void dispose() {
     _c.dispose();
@@ -105,6 +108,22 @@ class _AppPressableState extends State<AppPressable>
       child: widget.child,
     );
 
+    // Focus-visible ring for keyboard / switch access — an accent hairline drawn
+    // as a foreground border (no layout shift; transparent until focused).
+    visual = DecoratedBox(
+      position: DecorationPosition.foreground,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: _focused
+              ? Theme.of(context).colorScheme.secondary
+              : Colors.transparent,
+          width: 2,
+        ),
+      ),
+      child: visual,
+    );
+
     if (widget.minTapTarget != null) {
       visual = ConstrainedBox(
         constraints: BoxConstraints(
@@ -125,13 +144,14 @@ class _AppPressableState extends State<AppPressable>
       child: visual,
     );
 
-    // Keyboard / switch-access focus + Enter/Space activation.
-    // ponytail: no painted focus ring yet — deferred with the GlassTokens
-    //           focus/pressed state tokens (light-mode work). TalkBack reads
-    //           the focused node via semantics regardless.
+    // Keyboard / switch-access focus + Enter/Space activation. Focus highlight
+    // drives the accent ring painted above; TalkBack also reads the node.
     result = FocusableActionDetector(
       enabled: enabled,
       mouseCursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
+      onShowFocusHighlight: (v) {
+        if (mounted && v != _focused) setState(() => _focused = v);
+      },
       actions: <Type, Action<Intent>>{
         ActivateIntent: CallbackAction<ActivateIntent>(
           onInvoke: (_) {

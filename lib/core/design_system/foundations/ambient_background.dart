@@ -33,7 +33,7 @@ class AmbientBackground extends StatelessWidget {
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final drift = animated && !reduceMotion;
     final brightness = Theme.of(context).brightness;
-    final assetKey = svgAssetFor(BackgroundScope.of(context), brightness);
+    final assetKey = svgAssetFor(BackgroundScope.of(context, brightness));
     final gradient = _auroraGradient(brightness);
 
     return Stack(
@@ -46,7 +46,13 @@ class AmbientBackground extends StatelessWidget {
           // BoxFit.cover keeps the gradient angle and covers tall screens.
           DecoratedBox(
             decoration: BoxDecoration(gradient: gradient),
-            child: SvgPicture.asset(assetKey, fit: BoxFit.cover),
+
+            child: ImageFiltered(
+              // Heavy abstract blur so the SVG reads as ambient light, not a
+              // picture. 70 keeps that look at a fraction of sigma-100's GPU cost.
+              imageFilter: ImageFilter.blur(sigmaX: 70, sigmaY: 70),
+              child: SvgPicture.asset(assetKey, fit: BoxFit.cover),
+            ),
           ),
         child,
       ],
@@ -116,7 +122,8 @@ Gradient _auroraGradient(Brightness brightness) => brightness == Brightness.dark
     : const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xFFF8FAFF), Color(0xFFEEF1FB), Color(0xFFE8ECF7)],
+        // Soft, faintly-cool wash aligned to the light scheme surfaces.
+        colors: [Color(0xFFF9FAFE), Color(0xFFEDF0FA), Color(0xFFE3E8F5)],
         stops: [0.0, 0.5, 1.0],
       );
 

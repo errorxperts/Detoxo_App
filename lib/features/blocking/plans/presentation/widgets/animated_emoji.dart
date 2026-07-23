@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/emoji_band.dart';
 import 'package:flutter/material.dart';
@@ -133,7 +132,10 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppColors.accent.withValues(alpha: 0.25 + 0.45 * _pingPong(t)),
+                color: Theme.of(context)
+                    .colorScheme
+                    .secondary
+                    .withValues(alpha: 0.25 + 0.45 * _pingPong(t)),
                 blurRadius: 8 + 22 * _pingPong(t),
                 spreadRadius: 2 * _pingPong(t),
               ),

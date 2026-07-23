@@ -103,7 +103,7 @@ class AppDialog extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (icon != null) ...[
-          IconBadge(icon: icon, color: accent ?? AppColors.accent),
+          IconBadge(icon: icon, color: accent),
           const SizedBox(height: AppSpacing.md),
         ],
         Text(

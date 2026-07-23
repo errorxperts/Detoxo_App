@@ -41,7 +41,7 @@ class FaqExpansionTile extends StatelessWidget {
             AppSpacing.md,
             AppSpacing.md,
           ),
-          iconColor: AppColors.accent,
+          iconColor: Theme.of(context).colorScheme.secondary,
           collapsedIconColor: context.glass.onGlassMuted,
           title: Text(
             entry.question,

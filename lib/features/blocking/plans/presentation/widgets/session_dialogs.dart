@@ -101,10 +101,10 @@ class _UnblockDialogState extends State<_UnblockDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const AppAnimatedIcon(
+        AppAnimatedIcon(
           icon: AppIcon.unblock,
           size: 40,
-          color: AppColors.accent,
+          color: Theme.of(context).colorScheme.secondary,
           playOnAppear: true,
         ),
         const SizedBox(height: AppSpacing.xs),
@@ -204,10 +204,10 @@ class _PauseDialogState extends State<_PauseDialog> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const AppAnimatedIcon(
+        AppAnimatedIcon(
           icon: AppIcon.pause,
           size: 44,
-          color: AppColors.accent,
+          color: Theme.of(context).colorScheme.secondary,
           playOnAppear: true,
         ),
         const SizedBox(height: AppSpacing.xs),
@@ -279,7 +279,7 @@ class _ConsciousIntro extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Center(child: Icon(Icons.self_improvement, size: 44, color: AppColors.accent)),
+        Center(child: Icon(Icons.self_improvement, size: 44, color: Theme.of(context).colorScheme.secondary)),
         const SizedBox(height: AppSpacing.md),
         Text(
           'Conscious mode',
@@ -358,7 +358,7 @@ class _ConsciousLive extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Center(child: Icon(Icons.shield_outlined, size: 44, color: AppColors.accent)),
+            Center(child: Icon(Icons.shield_outlined, size: 44, color: Theme.of(context).colorScheme.secondary)),
             const SizedBox(height: AppSpacing.md),
             Text(
               headline,
@@ -403,9 +403,9 @@ class _Bullet extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top: 6, right: AppSpacing.sm),
-            child: Icon(Icons.circle, size: 6, color: AppColors.accent),
+          Padding(
+            padding: const EdgeInsets.only(top: 6, right: AppSpacing.sm),
+            child: Icon(Icons.circle, size: 6, color: Theme.of(context).colorScheme.secondary),
           ),
           Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
         ],

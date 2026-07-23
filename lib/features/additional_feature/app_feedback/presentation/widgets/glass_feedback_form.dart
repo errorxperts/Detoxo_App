@@ -71,6 +71,7 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
   @override
   Widget build(BuildContext context) {
     final glass = context.glass;
+    final accent = Theme.of(context).colorScheme.secondary;
     final text = Theme.of(context).textTheme;
     final draggable = widget.scrollController != null;
     return GlassContainer(
@@ -93,7 +94,7 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.rate_review_outlined, color: AppColors.accent, size: 20),
+                        Icon(Icons.rate_review_outlined, color: accent, size: 20),
                         const SizedBox(width: AppSpacing.xs),
                         Expanded(
                           child: Text(
@@ -160,7 +161,7 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: AppRadius.brMd,
-                          borderSide: const BorderSide(color: AppColors.accent),
+                          borderSide: BorderSide(color: accent),
                         ),
                       ),
                     ),

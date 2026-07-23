@@ -17,4 +17,9 @@ abstract final class AppCurves {
   static const Curve emphasized = Curves.easeInOutCubicEmphasized;
   static const Curve decelerate = Curves.easeOut;
   static const Curve gentle = Curves.easeInOut; // pulses, reversible
+
+  /// Premium, liquid deceleration (approx. easeOutExpo) for signature moments —
+  /// selection pills, hero reveals, the illuminated selected-card glow. Longer,
+  /// smoother settle than [standard] without ever overshooting.
+  static const Curve fluid = Cubic(0.16, 1.0, 0.30, 1.0);
 }

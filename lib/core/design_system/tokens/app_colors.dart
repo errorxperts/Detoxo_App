@@ -8,11 +8,14 @@ import 'package:flutter/material.dart';
 /// for the glassmorphic, dark-first redesign. The full Material 3 dark
 /// ColorScheme is built explicitly from these tokens in `app_theme.dart`.
 abstract final class AppColors {
-  // ── Brand ───────────────────────────────────────────────────────────────
-  static const Color seed = Color(0xFF6D3BD7); // violet seed (light theme + gradients)
-  static const Color accent = Color(0xFF44E2CD); // mint-teal (secondary)
-  static const Color indigoBright = Color(0xFFA078FF); // active violet on dark
-  static const Color tealBright = Color(0xFF3CDDC7); // active mint on dark
+  // ── Brand (evolved signature: electric indigo + aqua-cyan) ──────────────
+  // Fallback/anchor values used by gradients and as the default (Aurora) brand.
+  // The live brand accent/primary is background-adaptive and flows through the
+  // ColorScheme — see `brandFor` + `AppTheme` and `context.accent`.
+  static const Color seed = Color(0xFF6E7BFF); // electric indigo — primary anchor + gradients
+  static const Color accent = Color(0xFF35DCE8); // aqua-cyan — accent (secondary)
+  static const Color indigoBright = Color(0xFF8B93FF); // active indigo on dark (metric)
+  static const Color tealBright = Color(0xFF3DE0EC); // active aqua on dark (metric)
 
   // ── Semantic ────────────────────────────────────────────────────────────
   static const Color danger = Color(0xFFE5484D);
@@ -45,24 +48,28 @@ abstract final class AppColors {
   static const Color onbViolet = Color(0xFF5B3FB8); // was OnboardingScreen._violet
 
   // ── Glass fill / border / on-glass text (dark) ──────────────────────────
-  // Consumed via the GlassTokens extension; raw values live here.
-  static const Color glassFillTopDark = Color(0x1AFFFFFF); // ~10% white
-  static const Color glassFillBotDark = Color(0x0AFFFFFF); // ~4% white
-  static const Color glassBorderDark = Color(0x1FFFFFFF); // ~12% white hairline
-  static const Color glassHighlightDark = Color(0x33FFFFFF);
-  static const Color onGlassDark = Color(0xFFF3F4F8);
-  static const Color onGlassMutedDark = Color(0xB3F3F4F8); // ~70%
+  // Consumed via the GlassTokens extension; raw values live here. Fills and the
+  // hairline are a touch richer than a hyper-thin build so frosted surfaces read
+  // as crisp glass with a defined edge, while muted text keeps strong contrast.
+  static const Color glassFillTopDark = Color(0x1FFFFFFF); // ~12% white
+  static const Color glassFillBotDark = Color(0x0DFFFFFF); // ~5% white
+  static const Color glassBorderDark = Color(0x2EFFFFFF); // ~18% white hairline
+  static const Color glassHighlightDark = Color(0x3DFFFFFF); // ~24% sheen
+  static const Color onGlassDark = Color(0xFFF2F5FB);
+  static const Color onGlassMutedDark = Color(0xC8F2F5FB); // ~78%
+  static const Color glassShadowDark = Color(0x66040812); // cool near-black depth
 
   // ── Glass fill / border / on-glass text (light) ─────────────────────────
-  // Deeper tints than a typical glass build so surfaces, borders and secondary
-  // text stay clearly visible against the pale light background (the thin ~10%
-  // values washed out over the bright shader/aurora backgrounds).
-  static const Color glassFillTopLight = Color(0x26101012); // ~15% black
-  static const Color glassFillBotLight = Color(0x14101012); // ~8% black
-  static const Color glassBorderLight = Color(0x2E101012); // ~18% black hairline
-  static const Color glassHighlightLight = Color(0x40FFFFFF);
-  static const Color onGlassLight = Color(0xFF14151A);
-  static const Color onGlassMutedLight = Color(0xCC14151A); // ~80% black
+  // Deeper (cool-black) tints than a typical glass build so surfaces, borders
+  // and secondary text stay clearly visible against the pale light background
+  // (the thin values washed out over the bright shader/aurora backgrounds).
+  static const Color glassFillTopLight = Color(0x24101625); // ~14% cool-black
+  static const Color glassFillBotLight = Color(0x12101625); // ~7% cool-black
+  static const Color glassBorderLight = Color(0x33101625); // ~20% hairline
+  static const Color glassHighlightLight = Color(0x4DFFFFFF); // ~30% white sheen
+  static const Color onGlassLight = Color(0xFF11141D);
+  static const Color onGlassMutedLight = Color(0xD10F1420); // ~82% black
+  static const Color glassShadowLight = Color(0x1A1B2440); // soft cool depth
 
   // ── Hairline / outline (non-glass dividers) ─────────────────────────────
   static const Color hairlineDark = Color(0x1FFFFFFF);

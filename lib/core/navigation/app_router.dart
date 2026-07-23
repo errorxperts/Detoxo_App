@@ -5,10 +5,10 @@ import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/services/firebase/firebase.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_lock_screen.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_setup_screen.dart';
+import 'package:detoxo/features/additional_feature/appearance/presentation/appearance_screen.dart';
 import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
 import 'package:detoxo/features/content_counter/content_counter_appearance/presentation/bubble_style_screen.dart';
 import 'package:detoxo/features/content_counter/content_counter_appearance/presentation/home_widget_screen.dart';
-import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_screen.dart';
 import 'package:detoxo/features/dashboard/presentation/home_shell.dart';
 import 'package:detoxo/features/help/faq/presentation/faq_screen.dart';
 import 'package:detoxo/features/help/feature_tutorial/presentation/feature_tutorial_screen.dart';
@@ -55,8 +55,8 @@ GoRouter buildRouter() => GoRouter(
     ),
     GoRoute(path: Routes.analytics, builder: (_, _) => const AnalyticsScreen()),
     GoRoute(
-      path: Routes.contentCounter,
-      builder: (_, _) => const ContentCounterScreen(),
+      path: Routes.appearance,
+      builder: (_, _) => const AppearanceScreen(),
     ),
     GoRoute(
       path: Routes.bubbleStyle,

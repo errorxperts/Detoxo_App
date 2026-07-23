@@ -27,7 +27,7 @@ class _ReelCounterCardState extends State<ReelCounterCard> {
         final apps = _showAllTime ? count.perAppTotal : count.perAppToday;
 
         return GlassCard(
-          accent: AppColors.accent,
+          accent: Theme.of(context).colorScheme.secondary,
           padding: AppInsets.cardLg,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +122,9 @@ class _ReelCounterCardState extends State<ReelCounterCard> {
             padding: const EdgeInsets.only(bottom: 4),
             child: Text(
               _showAllTime ? 'all time' : 'today',
-              style: text.titleSmall?.copyWith(color: AppColors.accent),
+              style: text.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.secondary,
+              ),
             ),
           ),
         ],
@@ -199,6 +201,7 @@ class _PeriodToggle extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     final text = Theme.of(context).textTheme;
+    final accent = Theme.of(context).colorScheme.secondary;
     return AppPressable(
       onTap: onTap,
       selected: selected,
@@ -210,7 +213,7 @@ class _PeriodToggle extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.accent.withValues(alpha: 0.22)
+              ? accent.withValues(alpha: 0.22)
               : Colors.transparent,
           borderRadius: AppRadius.brPill,
         ),
@@ -218,7 +221,7 @@ class _PeriodToggle extends StatelessWidget {
           label,
           style: text.labelMedium?.copyWith(
             fontWeight: FontWeight.w700,
-            color: selected ? AppColors.accent : context.glass.onGlassMuted,
+            color: selected ? accent : context.glass.onGlassMuted,
           ),
         ),
       ),

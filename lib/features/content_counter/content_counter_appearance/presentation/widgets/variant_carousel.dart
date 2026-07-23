@@ -76,6 +76,7 @@ class _VariantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final accent = Theme.of(context).colorScheme.secondary;
     final borderWidth = selected ? 2.0 : 1.0;
     return AppPressable(
       onTap: onTap,
@@ -89,13 +90,13 @@ class _VariantCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.md),
           color: context.glass.fillBottom,
           border: Border.all(
-            color: selected ? AppColors.accent : context.glass.border,
+            color: selected ? accent : context.glass.border,
             width: borderWidth,
           ),
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: AppColors.accent.withValues(alpha: 0.30),
+                    color: accent.withValues(alpha: 0.30),
                     blurRadius: 12,
                   ),
                 ]
@@ -114,14 +115,14 @@ class _VariantCard extends StatelessWidget {
                       right: 0,
                       child: Container(
                         padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(
-                          color: AppColors.accent,
+                        decoration: BoxDecoration(
+                          color: accent,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.check,
                           size: 12,
-                          color: AppColors.surfaceDark,
+                          color: Theme.of(context).colorScheme.onSecondary,
                         ),
                       ),
                     ),
@@ -135,7 +136,7 @@ class _VariantCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: text.labelSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: selected ? AppColors.accent : context.glass.onGlassMuted,
+                color: selected ? accent : context.glass.onGlassMuted,
               ),
             ),
           ],

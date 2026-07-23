@@ -134,20 +134,32 @@ class GlassContainer extends StatelessWidget {
           : content,
     );
 
-    // Depth for standalone cards (skipped on flat list rows); a soft brand glow
-    // whenever selected so an active tile reads as illuminated.
+    // Depth for standalone cards (skipped on flat list rows): a layered
+    // ambient + key shadow (cool, themed via glass.shadow — never flat black)
+    // for premium, believable elevation. A soft brand glow whenever selected so
+    // an active tile reads as illuminated.
+    final shadow = glass.shadow;
     final shadows = <BoxShadow>[
-      if (enableBlur)
+      if (enableBlur) ...[
+        // Ambient: large, very soft — the diffuse contact-less lift.
         BoxShadow(
-          color: Colors.black.withValues(alpha: dark ? 0.22 : 0.10),
-          blurRadius: 22,
-          offset: const Offset(0, 10),
-          spreadRadius: -8,
+          color: shadow,
+          blurRadius: 30,
+          offset: const Offset(0, 16),
+          spreadRadius: -14,
         ),
+        // Key: tighter, closer — grounds the card's near edge.
+        BoxShadow(
+          color: shadow.withValues(alpha: shadow.a * 0.65),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+          spreadRadius: -6,
+        ),
+      ],
       if (selected)
         BoxShadow(
-          color: scheme.primary.withValues(alpha: dark ? 0.28 : 0.20),
-          blurRadius: 26,
+          color: scheme.primary.withValues(alpha: dark ? 0.30 : 0.22),
+          blurRadius: 28,
           spreadRadius: -6,
         ),
     ];

@@ -53,7 +53,10 @@ class _FeedbackButtonToggle extends StatelessWidget {
     return BlocBuilder<SettingsCubit, AppSettings>(
       builder: (context, settings) {
         return AdaptiveSwitchTile(
-          leading: const Icon(Icons.feedback_outlined, color: AppColors.accent),
+          leading: Icon(
+            Icons.feedback_outlined,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
           title: 'Feedback button',
           subtitle: 'Show a feedback button in every top bar',
           value: settings.showFeedbackButton,

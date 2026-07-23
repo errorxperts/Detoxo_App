@@ -347,15 +347,19 @@ runs **independently of blocking**: it keeps counting even while blocking is off
 paused, or the app is one you didn't block. A video only counts once you've
 watched it for **about 2 seconds**, so quick scroll-bys don't inflate the number.
 
-Open **Reel counter** (from the menu) to see today's and all-time counts, a
-per-app breakdown, and the controls below.
+The counter's controls live on the **Appearance** screen — open it from the menu
+(or **Settings → Appearance**) to turn counting on/off, toggle the bubble, and
+customize both surfaces. To see today's and all-time counts with a per-app
+breakdown, open **Activity**.
 
 ### Turn the pieces on/off
 
-On the Reel counter screen there are two switches:
+On the **Appearance** screen, under **Reel counter**:
 
-- **Counting** — the master on/off for counting.
-- **Bubble** — whether the floating bubble may appear.
+- **Count short videos** — the master on/off for the whole counter.
+- The **Bubble** and **Home widget** each appear as a card with a large live
+  preview. The **Bubble** card has its own on/off switch; tap either card's preview
+  to open its editor (available once the relevant switch — and counting — is on).
 
 ### The floating bubble
 
@@ -384,7 +388,7 @@ another reel.
 A 2×2 widget for your home screen showing today's count, a "reels today" caption,
 and your all-time total.
 
-1. On the Reel counter appearance screen (**Home widget**), tap
+1. On the **Appearance** screen, open **Home widget** and tap
    **Add to home screen**.
 2. Confirm the placement your launcher offers.
 
@@ -393,7 +397,8 @@ current.
 
 ### Make it yours (appearance)
 
-Both surfaces are customizable:
+Both surfaces are customizable from the **Appearance** screen — each is shown as a
+live preview of your current style; tap it to open the editor:
 
 - **Bubble style** — pick a look (**Glass orb**, **Usage ring**, **Emoji mood**,
   **Minimal pill**), and adjust size, text size, spacing, transparency, whether it
@@ -432,8 +437,15 @@ Open **Settings** from the top bar or menu. It's grouped into:
 
 **General**
 
-- **Appearance** — choose a **Theme** (System / Light / Dark) and a **Background**
-  (Aurora, Sunset, Ocean, Prism). Both preview live behind the picker.
+- **Appearance** — opens the Appearance screen: choose a **Theme** (**Light** or
+  **Dark**, or **Match system** to follow your device — the default), a
+  a **Background** — the options are theme-specific, so Dark and Light each keep
+  their own pick (Dark: Midnight, Twilight, Nebula, Magenta, Frost, Prism; Light:
+  Aurora plus Sky, Dawn, Blossom, Sunrise, Pastel). The chosen background also
+  sets the app's **accent colour**, so buttons, switches and highlights harmonise
+  with whatever is behind the glass. Manage the **reel counter** here too
+  (counting, the bubble, bubble style and the home widget). Everything previews
+  live.
 - **Feedback button** — show a quick feedback button in every top bar.
 
 > Replaying the walkthrough now lives in **Help & support → Feature tutorials**

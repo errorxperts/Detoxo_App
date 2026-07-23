@@ -439,14 +439,14 @@ class _AnimatedActionTile extends StatefulWidget {
     required this.title,
     required this.onTap,
     this.subtitle,
-    this.iconColor = AppColors.accent,
+    this.iconColor,
   });
 
   final AppIcon icon;
   final String title;
   final String? subtitle;
   final VoidCallback onTap;
-  final Color iconColor;
+  final Color? iconColor;
 
   @override
   State<_AnimatedActionTile> createState() => _AnimatedActionTileState();
@@ -476,7 +476,7 @@ class _AnimatedActionTileState extends State<_AnimatedActionTile> {
       leading: AppAnimatedIcon(
         icon: widget.icon,
         size: 24,
-        color: widget.iconColor,
+        color: widget.iconColor ?? Theme.of(context).colorScheme.secondary,
         controller: _controller,
         playOnAppear: true,
       ),

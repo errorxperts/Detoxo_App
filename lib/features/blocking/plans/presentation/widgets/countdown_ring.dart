@@ -12,6 +12,7 @@ CircularSliderAppearance pauseSliderAppearance(
 }) {
   // startAngle 150° / angleRange 240° (the package defaults) give the open-bottom
   // gauge look we want, so they're left implicit.
+  final accent = Theme.of(context).colorScheme.secondary;
   return CircularSliderAppearance(
     size: size,
     // The countdown is value-driven each tick, so let it animate the sweep; the
@@ -24,10 +25,10 @@ CircularSliderAppearance pauseSliderAppearance(
     ),
     customColors: CustomSliderColors(
       trackColor: context.glass.border,
-      progressBarColors: const [
-        AppColors.accent,
+      progressBarColors: [
+        accent,
         AppColors.seed,
-        AppColors.accent,
+        accent,
       ],
       dotColor: interactive ? Colors.white : Colors.transparent,
       hideShadow: true,

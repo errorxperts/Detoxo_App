@@ -8,7 +8,7 @@ enum AppTone { neutral, accent, success, warning, danger }
 /// Resolves a tone to its accent colour (context needed for `neutral`).
 Color toneColor(BuildContext context, AppTone tone) => switch (tone) {
       AppTone.neutral => Theme.of(context).colorScheme.onSurfaceVariant,
-      AppTone.accent => AppColors.accent,
+      AppTone.accent => Theme.of(context).colorScheme.secondary,
       AppTone.success => AppColors.success,
       AppTone.warning => AppColors.warning,
       AppTone.danger => AppColors.danger,

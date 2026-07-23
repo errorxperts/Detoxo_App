@@ -1,6 +1,5 @@
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:flutter/material.dart';
 
@@ -23,6 +22,7 @@ class AppChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final accent = Theme.of(context).colorScheme.secondary;
     return AppPressable(
       onTap: onSelected,
       pressedScale: 0.94,
@@ -32,9 +32,9 @@ class AppChip extends StatelessWidget {
         enableBlur: false,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
         borderRadius: AppRadius.pill,
-        tintTop: selected ? AppColors.accent.withValues(alpha: 0.28) : null,
-        tintBottom: selected ? AppColors.accent.withValues(alpha: 0.14) : null,
-        borderColor: selected ? AppColors.accent.withValues(alpha: 0.6) : null,
+        tintTop: selected ? accent.withValues(alpha: 0.28) : null,
+        tintBottom: selected ? accent.withValues(alpha: 0.14) : null,
+        borderColor: selected ? accent.withValues(alpha: 0.6) : null,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

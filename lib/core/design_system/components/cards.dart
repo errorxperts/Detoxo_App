@@ -83,7 +83,7 @@ class StatCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(icon, color: AppColors.accent),
+              Icon(icon, color: context.accent),
               if (trend != null)
                 AppBadge.label(
                   '${trend!.up ? '▲' : '▼'} ${trend!.percent}%',
@@ -121,7 +121,7 @@ class IconBadge extends StatelessWidget {
     this.icon,
     this.child,
     this.size = 40,
-    this.color = AppColors.accent,
+    this.color,
     this.gradient,
     this.shape = BoxShape.circle,
     this.radius,
@@ -141,7 +141,8 @@ class IconBadge extends StatelessWidget {
   final String? semanticLabel;
 
   /// Tints the fill (at [fillAlpha]), the border, and the default icon.
-  final Color color;
+  /// Defaults to the live (background-adaptive) brand accent.
+  final Color? color;
 
   /// When set, fills with this gradient instead of the tinted [color]; the
   /// default icon then renders white.
@@ -157,6 +158,7 @@ class IconBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCircle = shape == BoxShape.circle;
+    final tint = color ?? context.accent;
     return Container(
       width: size,
       height: size,
@@ -164,17 +166,17 @@ class IconBadge extends StatelessWidget {
       decoration: BoxDecoration(
         shape: shape,
         gradient: gradient,
-        color: gradient == null ? color.withValues(alpha: fillAlpha) : null,
+        color: gradient == null ? tint.withValues(alpha: fillAlpha) : null,
         borderRadius: isCircle ? null : BorderRadius.circular(radius ?? AppRadius.md),
         border: bordered
-            ? Border.all(color: color.withValues(alpha: 0.25), width: borderWidth)
+            ? Border.all(color: tint.withValues(alpha: 0.25), width: borderWidth)
             : null,
       ),
       child: child ??
           Icon(
             icon,
             size: size * 0.5,
-            color: gradient != null ? Colors.white : color,
+            color: gradient != null ? Colors.white : tint,
             semanticLabel: semanticLabel,
           ),
     );

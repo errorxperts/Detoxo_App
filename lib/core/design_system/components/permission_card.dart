@@ -34,6 +34,7 @@ class PermissionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final accent = Theme.of(context).colorScheme.secondary;
     return GlassContainer(
       enableBlur: false,
       borderColor: granted ? AppColors.success.withValues(alpha: 0.4) : null,
@@ -43,10 +44,10 @@ class PermissionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.16),
+              color: accent.withValues(alpha: 0.16),
               borderRadius: AppRadius.brMd,
             ),
-            child: Icon(icon, color: AppColors.accent),
+            child: Icon(icon, color: accent),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

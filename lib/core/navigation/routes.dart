@@ -14,7 +14,7 @@ abstract final class Routes {
   static const String appBlock = '/app-block';
   static const String dailyLimit = '/daily-limit';
   static const String analytics = '/analytics';
-  static const String contentCounter = '/content-counter';
+  static const String appearance = '/appearance';
   static const String bubbleStyle = '/content-counter/bubble';
   static const String homeWidget = '/content-counter/widget';
   static const String help = '/help';

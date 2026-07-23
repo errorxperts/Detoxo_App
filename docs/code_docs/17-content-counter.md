@@ -351,9 +351,14 @@ in-app previews render the same color/emoji at the same count.
 
 ## 6. Dart feature (`lib/features/content_counter/**`)
 
-Four sub-modules, registered in `lib/core/di/injector.dart` and routed at
-`/content-counter`, `/content-counter/bubble`, `/content-counter/widget`
-(`lib/core/navigation/routes.dart`).
+Four sub-modules, registered in `lib/core/di/injector.dart`. The bubble- and
+home-widget editors are routed at `/content-counter/bubble` and
+`/content-counter/widget` (`lib/core/navigation/routes.dart`); the counter's
+on/off toggles and the links into those editors now live on the shared
+**Appearance** screen (`/appearance`,
+`lib/features/additional_feature/appearance/**`) alongside the app theme +
+background, reached from the drawer and Settings. There is no longer a standalone
+"Reel counter" route.
 
 ### 6.1 `content_counter_core` — live count + hub
 
@@ -374,12 +379,21 @@ Four sub-modules, registered in `lib/core/di/injector.dart` and routed at
   which the `contentCounted` stream doesn't emit; the dashboard hero calls it on
   mount and on pull-to-refresh). It is provided globally in `lib/main.dart` so the
   dashboard ring can watch it.
-- **UI**: `ContentCounterScreen` (titled "Reel counter" — the hub with the
-  Counting + Bubble toggles and links to the appearance editors) and
-  `ReelCounterCard` (hero count-up card with today / all-time toggle and an
-  animated per-app breakdown; reduce-motion safe). Per-app icons render via the
-  shared `AppIconAvatar` (bundled `social_icon_pack` asset, with a letter-tile
-  fallback) — the same widget the blocklist uses.
+- **UI**: `ReelCounterCard` (hero count-up card with today / all-time toggle and
+  an animated per-app breakdown; reduce-motion safe) — shown on the **Activity**
+  screen (`analytics_screen.dart`). Per-app icons render via the shared
+  `AppIconAvatar` (bundled `social_icon_pack` asset, with a letter-tile fallback)
+  — the same widget the blocklist uses. The old `ContentCounterScreen` hub was
+  removed: its counting controls and the Bubble-style / Home-widget entries
+  migrated to the shared **Appearance** screen
+  (`features/additional_feature/appearance/presentation/appearance_screen.dart`).
+  There a single **Count short videos** master switch gates the section, and the
+  **Bubble** and **Home widget** are hero cards each rendering a large live
+  `BubblePreview` / `WidgetPreview` you tap to open its editor. The bubble carries
+  its own on/off (`bubbleEnabled`) on its card; the widget has **no** independent
+  enable (a placed widget always updates), so its card is gated by the counting
+  master. The screen reads/writes the same `ContentCounterRepository` /
+  `BubbleRepository` / `CounterAppearanceRepository`.
 - **Appearance carrier**: `CounterAppearance` (bubble + widget styles) with
   `CounterAppearanceCubit` — each setter emits immediately (so the preview tracks
   the slider with no lag) but **debounces the native push by 120ms** so dragging a
@@ -503,7 +517,6 @@ Dart (`lib/…`):
 - `features/content_counter/content_counter_core/data/repositories/counter_appearance_repository_impl.dart`
 - `features/content_counter/content_counter_core/presentation/content_counter_cubit.dart`
 - `features/content_counter/content_counter_core/presentation/counter_appearance_cubit.dart`
-- `features/content_counter/content_counter_core/presentation/content_counter_screen.dart`
 - `features/content_counter/content_counter_core/presentation/widgets/reel_counter_card.dart`
 - `features/content_counter/content_counter_bubble/domain/entities/bubble_style.dart`
 - `features/content_counter/content_counter_bubble/domain/repositories/bubble_repository.dart`
@@ -516,3 +529,11 @@ Dart (`lib/…`):
 - `features/content_counter/content_counter_appearance/presentation/widgets/bubble_preview.dart`
 - `features/content_counter/content_counter_appearance/presentation/widgets/widget_preview.dart`
 - `features/content_counter/content_counter_appearance/presentation/widgets/variant_carousel.dart`
+
+Cross-feature (the migrated counter hub; theme + background live here too):
+
+- `features/additional_feature/appearance/presentation/appearance_screen.dart` — the
+  shared **Appearance** screen that now hosts the **Count short videos** master switch
+  and the Bubble / Home-widget hero cards (large live `BubblePreview` / `WidgetPreview`,
+  tapped to edit; bubble on/off on its card, widget gated by the master), plus the app
+  theme (a custom Light/Dark segmented control + Match system) and background picker.

@@ -175,6 +175,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
   Widget build(BuildContext context) {
     final configured = context.watch<PinCubit>().state.isConfigured;
     final text = Theme.of(context).textTheme;
+    final accent = Theme.of(context).colorScheme.secondary;
 
     return GlassScaffold(
       appBar: const GlassAppBar(title: Text('PIN lock')),
@@ -201,7 +202,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Right now that is "${_derivedPreview()}".',
-              style: text.bodySmall?.copyWith(color: AppColors.accent),
+              style: text.bodySmall?.copyWith(color: accent),
             ),
           ],
           // None removes the lock, so the PIN, scope, recovery and biometric
@@ -253,7 +254,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
             if (_biometricAvailable) ...[
               const SectionHeader('Convenience'),
               AdaptiveSwitchTile(
-                leading: const Icon(Icons.fingerprint, color: AppColors.accent),
+                leading: Icon(Icons.fingerprint, color: accent),
                 title: 'Allow biometric unlock',
                 subtitle: 'Use fingerprint / face to unlock',
                 value: _biometric,
@@ -340,7 +341,7 @@ class _PinTypePicker extends StatelessWidget {
                     ? Icons.radio_button_checked
                     : Icons.radio_button_unchecked,
                 color: type == selected
-                    ? AppColors.accent
+                    ? Theme.of(context).colorScheme.secondary
                     : context.glass.onGlassMuted,
               ),
               title: _pinTypeLabel(type),

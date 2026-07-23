@@ -18,7 +18,6 @@ import 'package:detoxo/features/permissions/domain/entities/permission_status.da
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 /// The app's control hub: protection, feedback, usage, security & permissions,
@@ -73,14 +72,6 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  Future<void> _openTheme() async {
-    await GlassBottomSheet.show<void>(
-      context: context,
-      title: 'Appearance',
-      child: const _ThemeSheet(),
-    );
-  }
-
   /// Disabling protection is a sensitive change, so it asks for the PIN (when
   /// the `settings` scope guards it); enabling proceeds directly. The switch is
   /// bound to `settings.masterEnabled`, so a cancelled PIN snaps it back.
@@ -117,6 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.secondary;
     // The Settings screen is a separate route (not under HomeShell's
     // UpgradeGate), so it hosts its own UpgradeCubit. It auto-checks on open so
     // the app-version banner can reveal a compact "Update" button when a newer
@@ -152,9 +144,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 _Spaced(
                   AdaptiveSwitchTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.shield_outlined,
-                      color: AppColors.accent,
+                      color: accent,
                     ),
                     title: 'Blocking active',
                     subtitle: 'Master switch for all detection',
@@ -166,9 +158,9 @@ class _SettingsScreenState extends State<SettingsScreen>
 
                 _Spaced(
                   AdaptiveSwitchTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.vibration,
-                      color: AppColors.accent,
+                      color: accent,
                     ),
                     title: 'Vibrate on block',
                     subtitle: 'Haptic buzz each time a reel is blocked',
@@ -188,15 +180,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                 FeatureTile(
                   icon: _themeIcon(settings.themeMode),
                   title: 'Appearance',
-                  subtitle:
-                      '${_themeLabel(settings.themeMode)} • ${_bgLabel(settings.backgroundId)}',
-                  onTap: _openTheme,
+                  subtitle: 'Theme, background & reel counter',
+                  onTap: () => context.push(Routes.appearance),
                 ),
                 _Spaced(
                   AdaptiveSwitchTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.feedback_outlined,
-                      color: AppColors.accent,
+                      color: accent,
                     ),
                     title: 'Feedback button',
                     subtitle: 'Show a feedback button in every top bar',
@@ -334,60 +325,11 @@ String _blockModeTitle(BlockingMode m) => _blockModes
     .firstWhere((e) => e.$1 == m, orElse: () => _blockModes.first)
     .$2;
 
-String _themeLabel(AppThemeMode m) => switch (m) {
-  AppThemeMode.system => 'System',
-  AppThemeMode.light => 'Light',
-  AppThemeMode.dark => 'Dark',
-};
-
-String _themeSubtitle(AppThemeMode m) => switch (m) {
-  AppThemeMode.system => 'Match your device theme',
-  AppThemeMode.light => 'Always light',
-  AppThemeMode.dark => 'Always dark',
-};
-
 IconData _themeIcon(AppThemeMode m) => switch (m) {
   AppThemeMode.system => Icons.brightness_auto,
   AppThemeMode.light => Icons.light_mode,
   AppThemeMode.dark => Icons.dark_mode,
 };
-
-// ── Background option data ─────────────────────────────────────────────────────
-
-const _backgrounds = <(AppBackground, String, String)>[
-  (AppBackground.aurora, 'Aurora', 'Soft brand glow (default)'),
-  (AppBackground.bg1, 'Sunset', 'Warm dusk gradient'),
-  (AppBackground.bg2, 'Ocean', 'Cool blue gradient'),
-  (AppBackground.bg3, 'Prism', 'Multi-colour gradient'),
-];
-
-String _bgLabel(AppBackground b) => _backgrounds
-    .firstWhere((e) => e.$1 == b, orElse: () => _backgrounds.first)
-    .$2;
-
-/// SVG asset for a background's theme variant, or null for Aurora (which has no
-/// asset). Mirrors `svgAssetFor` in the design system — the presentation layer
-/// can't reach `main.dart`'s domain→style mapper, so a small local copy keeps
-/// the picker self-contained.
-String? _bgSvgAsset(AppBackground style, bool dark) => switch (style) {
-  AppBackground.aurora => null,
-  AppBackground.bg1 =>
-    dark ? 'assets/images/bg/dark_bg1.svg' : 'assets/images/bg/light_bg1.svg',
-  AppBackground.bg2 =>
-    dark ? 'assets/images/bg/dark_bg2.svg' : 'assets/images/bg/light_bg2.svg',
-  AppBackground.bg3 =>
-    dark ? 'assets/images/bg/dark_bg3.svg' : 'assets/images/bg/light_bg3.svg',
-};
-
-/// A small gradient standing in for the (asset-less) Aurora background in its
-/// picker swatch.
-Gradient _auroraSwatchGradient(bool dark) => LinearGradient(
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
-  colors: dark
-      ? const [Color(0xFF1E2A52), Color(0xFF3A2A78), Color(0xFF0B1326)]
-      : const [Color(0xFFF1ECFF), Color(0xFFE6FBF6), Color(0xFFEEF1FB)],
-);
 
 // ── Selectable option row (used in pickers) ───────────────────────────────────
 
@@ -409,7 +351,9 @@ class _OptionTile extends StatelessWidget {
     return GlassListTile(
       leading: Icon(
         selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-        color: selected ? AppColors.accent : context.glass.onGlassMuted,
+        color: selected
+            ? Theme.of(context).colorScheme.secondary
+            : context.glass.onGlassMuted,
       ),
       title: title,
       subtitle: subtitle,
@@ -468,9 +412,9 @@ class _PinTile extends StatelessWidget {
           children: [
             _Spaced(
               AdaptiveSwitchTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.lock_outline,
-                  color: AppColors.accent,
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
                 title: 'PIN lock',
                 subtitle: on
@@ -568,7 +512,7 @@ class _PermissionSheet extends StatelessWidget {
                   child: GlassListTile(
                     leading: Icon(
                       _permissionIcon(s.kind),
-                      color: AppColors.accent,
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
                     title: s.kind.label,
                     subtitle: _permissionWhy(s.kind),
@@ -646,181 +590,6 @@ class _BlockModeSheet extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-// ── Appearance picker (popup) ───────────────────────────────────────────────────
-
-class _ThemeSheet extends StatelessWidget {
-  const _ThemeSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    // Reflects the active brightness (resolves System → device). bg4 is
-    // light-only, so the picker disables it while dark.
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return BlocBuilder<SettingsCubit, AppSettings>(
-      builder: (context, settings) {
-        // Don't pop on selection: theme + background update live behind the
-        // sheet (a free preview), and the user dismisses when happy.
-        return SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SectionHeader('Theme'),
-              for (final m in AppThemeMode.values)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                  child: _OptionTile(
-                    title: _themeLabel(m),
-                    subtitle: _themeSubtitle(m),
-                    selected: settings.themeMode == m,
-                    onTap: () => context.read<SettingsCubit>().setThemeMode(m),
-                  ),
-                ),
-              const SizedBox(height: AppSpacing.md),
-              const SectionHeader('Background'),
-              _BackgroundCarousel(selected: settings.backgroundId, dark: dark),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// A compact, horizontally-scrolling carousel of image-only SVG background
-/// previews. Tapping a card selects it; the selected card gets an accent ring +
-/// check, and the chosen background's name + description show below (kept off
-/// the cards to stay minimal).
-class _BackgroundCarousel extends StatelessWidget {
-  const _BackgroundCarousel({required this.selected, required this.dark});
-
-  final AppBackground selected;
-  final bool dark;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final current = _backgrounds.firstWhere(
-      (e) => e.$1 == selected,
-      orElse: () => _backgrounds.first,
-    );
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: 84,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
-            itemCount: _backgrounds.length,
-            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
-            itemBuilder: (context, i) {
-              final b = _backgrounds[i];
-              return _BgCard(
-                style: b.$1,
-                dark: dark,
-                selected: b.$1 == selected,
-                onTap: () => context.read<SettingsCubit>().setBackground(b.$1),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          current.$2,
-          style: text.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: context.glass.onGlass,
-          ),
-        ),
-        Text(
-          current.$3,
-          style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
-        ),
-      ],
-    );
-  }
-}
-
-/// One carousel card: the actual background preview (real SVG for bg1–bg3, a
-/// gradient for the asset-less Aurora). The selected card animates to an accent
-/// ring + glow with a check badge.
-class _BgCard extends StatelessWidget {
-  const _BgCard({
-    required this.style,
-    required this.dark,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final AppBackground style;
-  final bool dark;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final asset = _bgSvgAsset(style, dark);
-    final borderWidth = selected ? 2.0 : 1.0;
-    final preview = asset == null
-        ? DecoratedBox(
-            decoration: BoxDecoration(gradient: _auroraSwatchGradient(dark)),
-          )
-        : SvgPicture.asset(asset, fit: BoxFit.cover);
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: AppDurations.fast,
-        curve: AppCurves.standard,
-        width: 116,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(
-            color: selected ? AppColors.accent : context.glass.border,
-            width: borderWidth,
-          ),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: AppColors.accent.withValues(alpha: 0.35),
-                    blurRadius: 12,
-                  ),
-                ]
-              : null,
-        ),
-        // Clip the preview to a radius concentric with the border so the
-        // accent ring stays perfectly rounded around the tile when selected.
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.md - borderWidth),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              preview,
-              if (selected)
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: AppColors.accent,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check,
-                      size: 14,
-                      color: AppColors.surfaceDark,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

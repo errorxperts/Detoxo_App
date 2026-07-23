@@ -88,9 +88,9 @@ class AppDrawer extends StatelessWidget {
                         onTap: () => _go(context, Routes.analytics),
                       ),
                       _DrawerItem(
-                        icon: Icons.movie_filter_outlined,
-                        label: 'Reel counter',
-                        onTap: () => _go(context, Routes.contentCounter),
+                        icon: Icons.palette_outlined,
+                        label: 'Appearance',
+                        onTap: () => _go(context, Routes.appearance),
                       ),
                       _DrawerItem(
                         icon: Icons.lock,
@@ -145,7 +145,7 @@ class _DrawerItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return ListTile(
-      leading: Icon(icon, color: AppColors.accent),
+      leading: Icon(icon, color: Theme.of(context).colorScheme.secondary),
       title: Text(
         label,
         style: text.bodyLarge?.copyWith(color: context.glass.onGlass),

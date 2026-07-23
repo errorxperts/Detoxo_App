@@ -142,7 +142,9 @@ class _BlockAppTileState extends State<BlockAppTile> {
                 Text(
                   subtitle,
                   style: text.bodySmall?.copyWith(
-                    color: highlight ? AppColors.accent : context.glass.onGlassMuted,
+                    color: highlight
+                        ? Theme.of(context).colorScheme.secondary
+                        : context.glass.onGlassMuted,
                   ),
                 ),
               ],

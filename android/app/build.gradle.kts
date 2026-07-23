@@ -36,6 +36,12 @@ android {
             // Debug signing for now so `flutter run --release` works; swap in a
             // real keystore for store builds (see README).
             signingConfig = signingConfigs.getByName("debug")
+            // Flutter enables R8 minification for release by default; keep our
+            // rules (Room/WorkManager reflection survives R8 full mode).
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

@@ -148,7 +148,7 @@ class CommandCenterCard extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 child: ShaderMask(
                   shaderCallback: (bounds) =>
-                      (overLimit ? AppGradients.overLimit : AppGradients.metric)
+                      (overLimit ? AppGradients.overLimit : context.metricGradient)
                           .createShader(bounds),
                   blendMode: BlendMode.srcIn,
                   child: Text(
@@ -195,7 +195,7 @@ class CommandCenterCard extends StatelessWidget {
             AppAnimatedIcon(
               icon: icon,
               size: 30,
-              color: AppColors.accent,
+              color: Theme.of(context).colorScheme.secondary,
               playOnAppear: true,
             ),
             const SizedBox(height: AppSpacing.xs),

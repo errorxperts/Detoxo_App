@@ -151,20 +151,34 @@ enum AppThemeMode {
 }
 
 /// App-background choice. Domain-level (no Flutter dependency); the presentation
-/// layer maps this to a design-system `AppBackgroundStyle`, which resolves the
-/// dark/light variant for the active theme. [aurora] is the theme-aware default
-/// (the built-in ambient glow); [bg1]–[bg3] are SVG gradient backgrounds.
+/// layer maps this to a design-system `AppBackgroundStyle` and single SVG asset.
+///
+/// Backgrounds are theme-specific: [dark1]–[dark6] are the dark-mode options
+/// (default [dark1]) and [aurora] + [light1]–[light5] are the light-mode options
+/// (default [aurora], the built-in theme-aware ambient glow). A dark choice and a
+/// light choice are stored independently — see `AppSettings.darkBackground` /
+/// `lightBackground`.
 enum AppBackground {
   aurora('AURORA'),
-  bg1('BG1'),
-  bg2('BG2'),
-  bg3('BG3');
+  dark1('DARK1'),
+  dark2('DARK2'),
+  dark3('DARK3'),
+  dark4('DARK4'),
+  dark5('DARK5'),
+  dark6('DARK6'),
+  light1('LIGHT1'),
+  light2('LIGHT2'),
+  light3('LIGHT3'),
+  light4('LIGHT4'),
+  light5('LIGHT5');
 
   const AppBackground(this.wire);
   final String wire;
 
-  static AppBackground fromWire(String? v) =>
-      values.firstWhere((e) => e.wire == v, orElse: () => AppBackground.aurora);
+  static AppBackground fromWire(
+    String? v, {
+    AppBackground fallback = AppBackground.aurora,
+  }) => values.firstWhere((e) => e.wire == v, orElse: () => fallback);
 }
 
 /// Phase of a timed session (pause or curious).

@@ -42,6 +42,7 @@ Skip it for pure test/formatting changes with no behavioral or structural effect
 | `lib/app/unsupported_screen.dart`, `lib/core/platform/**` | 15 |
 | release status / what-works-vs-swap-in changes | 16 |
 | `lib/features/content_counter/**`, native `engine/ContentCounter*.kt`, `overlay/**`, `widget/**` | 17 |
+| `lib/features/additional_feature/appearance/**` (Appearance screen: theme + background + reel-counter hub) | 17 (theme/background source is `blocking/shared` `SettingsCubit`; **user-facing** → `info_docs/02` §8–§9) |
 | `lib/core/constants/channel_constants.dart`, native `channels/**` | 18 |
 | `lib/core/services/firebase/**`, `lib/firebase_options.dart`, Firebase Gradle plugins (`android/settings.gradle.kts`, `android/app/build.gradle.kts`) | 19 (+ 12, 14, 16; **privacy** → `info_docs/03` + `04`) |
 | `lib/features/help/**`, `lib/features/additional_feature/showcase_view/**` | 20 (+ user-facing → `info_docs/02` + `04`) |

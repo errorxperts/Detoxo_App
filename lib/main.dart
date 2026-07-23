@@ -33,9 +33,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Route uncaught framework and async errors to Crashlytics as early as
   // possible (before DI), so init-time crashes are captured.
   FirebaseCrashReportingService.installGlobalHandlers();
@@ -70,7 +68,8 @@ class DetoxoApp extends StatelessWidget {
         BlocProvider(create: (_) => ConsciousCubit(sl<EngineRepository>())),
         BlocProvider(create: (_) => ReelSessionCubit(sl<EngineRepository>())),
         BlocProvider(
-          create: (_) => SettingsCubit(sl<SettingsRepository>(), sl<EngineRepository>()),
+          create: (_) =>
+              SettingsCubit(sl<SettingsRepository>(), sl<EngineRepository>()),
         ),
         BlocProvider(
           create: (_) => TargetsCubit(
@@ -79,7 +78,9 @@ class DetoxoApp extends StatelessWidget {
             performance: sl<PerformanceService>(),
           ),
         ),
-        BlocProvider(create: (_) => PermissionsCubit(sl<PermissionRepository>())),
+        BlocProvider(
+          create: (_) => PermissionsCubit(sl<PermissionRepository>()),
+        ),
         BlocProvider(create: (_) => PinCubit(sl<PinRepository>())),
         // Live reel-counter stream (today count + today usage time) and the
         // daily limit — both feed the dashboard screen-time ring.
@@ -98,13 +99,29 @@ class DetoxoApp extends StatelessWidget {
       child: BlocListener<SettingsCubit, AppSettings>(
         listenWhen: (a, b) => a.vibrationEnabled != b.vibrationEnabled,
         listener: (_, state) => AppHaptics.enabled = state.vibrationEnabled,
-        child: BlocSelector<SettingsCubit, AppSettings, (AppThemeMode, AppBackground)>(
-          selector: (s) => (s.themeMode, s.backgroundId),
-          builder: (_, sel) => BackgroundScope(
-            style: _bgStyle(sel.$2),
-            child: _Router(themeMode: _flutterThemeMode(sel.$1)),
-          ),
-        ),
+        child:
+            BlocSelector<
+              SettingsCubit,
+              AppSettings,
+              (AppThemeMode, AppBackground, AppBackground)
+            >(
+              selector: (s) => (s.themeMode, s.darkBackground, s.lightBackground),
+              builder: (_, sel) {
+                final darkStyle = _bgStyle(sel.$2);
+                final lightStyle = _bgStyle(sel.$3);
+                return BackgroundScope(
+                  dark: darkStyle,
+                  light: lightStyle,
+                  // The selected background drives the live brand accent so the
+                  // whole app harmonises with what's behind the glass.
+                  child: _Router(
+                    themeMode: _flutterThemeMode(sel.$1),
+                    darkBrand: brandFor(darkStyle, Brightness.dark),
+                    lightBrand: brandFor(lightStyle, Brightness.light),
+                  ),
+                );
+              },
+            ),
       ),
     );
   }
@@ -117,19 +134,35 @@ ThemeMode _flutterThemeMode(AppThemeMode mode) => switch (mode) {
   AppThemeMode.dark => ThemeMode.dark,
 };
 
-/// Maps the domain background preference to the design-system style enum (which
-/// resolves the dark/light SVG variant for the active theme).
+/// Maps the domain background preference to the design-system style enum.
 AppBackgroundStyle _bgStyle(AppBackground background) => switch (background) {
   AppBackground.aurora => AppBackgroundStyle.aurora,
-  AppBackground.bg1 => AppBackgroundStyle.bg1,
-  AppBackground.bg2 => AppBackgroundStyle.bg2,
-  AppBackground.bg3 => AppBackgroundStyle.bg3,
+  AppBackground.dark1 => AppBackgroundStyle.dark1,
+  AppBackground.dark2 => AppBackgroundStyle.dark2,
+  AppBackground.dark3 => AppBackgroundStyle.dark3,
+  AppBackground.dark4 => AppBackgroundStyle.dark4,
+  AppBackground.dark5 => AppBackgroundStyle.dark5,
+  AppBackground.dark6 => AppBackgroundStyle.dark6,
+  AppBackground.light1 => AppBackgroundStyle.light1,
+  AppBackground.light2 => AppBackgroundStyle.light2,
+  AppBackground.light3 => AppBackgroundStyle.light3,
+  AppBackground.light4 => AppBackgroundStyle.light4,
+  AppBackground.light5 => AppBackgroundStyle.light5,
 };
 
 class _Router extends StatefulWidget {
-  const _Router({required this.themeMode});
+  const _Router({
+    required this.themeMode,
+    required this.darkBrand,
+    required this.lightBrand,
+  });
 
   final ThemeMode themeMode;
+
+  /// Background-matched brand pairing for each theme, fed into [AppTheme] so the
+  /// primary/accent adapt to the selected dark/light background.
+  final ({Color primary, Color accent}) darkBrand;
+  final ({Color primary, Color accent}) lightBrand;
 
   @override
   State<_Router> createState() => _RouterState();
@@ -145,11 +178,20 @@ class _RouterState extends State<_Router> {
       theme: glassFeedbackTheme(Brightness.light),
       darkTheme: glassFeedbackTheme(Brightness.dark),
       feedbackBuilder: (context, onSubmit, scrollController) =>
-          GlassFeedbackForm(onSubmit: onSubmit, scrollController: scrollController),
+          GlassFeedbackForm(
+            onSubmit: onSubmit,
+            scrollController: scrollController,
+          ),
       child: MaterialApp.router(
         title: 'Detoxo',
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
+        theme: AppTheme.light(
+          brandPrimary: widget.lightBrand.primary,
+          brandAccent: widget.lightBrand.accent,
+        ),
+        darkTheme: AppTheme.dark(
+          brandPrimary: widget.darkBrand.primary,
+          brandAccent: widget.darkBrand.accent,
+        ),
         themeMode: widget.themeMode,
         routerConfig: _router,
         debugShowCheckedModeBanner: false,

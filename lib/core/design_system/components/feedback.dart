@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_blur.dart';
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -20,12 +19,12 @@ class LoadingState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(
+          SizedBox(
             width: 28,
             height: 28,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: AppColors.accent,
+              color: context.accent,
             ),
           ),
           if (message != null) ...[
@@ -75,7 +74,7 @@ class ProgressRing extends StatelessWidget {
     required this.progress,
     this.size = 220,
     this.strokeWidth = 24,
-    this.color = AppColors.accent,
+    this.color,
     this.arcColor,
     this.child,
     super.key,
@@ -85,7 +84,9 @@ class ProgressRing extends StatelessWidget {
   final double progress;
   final double size;
   final double strokeWidth;
-  final Color color;
+
+  /// Reserved tint override; the ring otherwise uses the live brand sweep.
+  final Color? color;
 
   /// Optional solid arc tone. When null the arc uses the brand sweep gradient;
   /// when set (e.g. a usage-vs-limit ladder color) the whole arc + glow adopt it.
@@ -121,6 +122,8 @@ class ProgressRing extends StatelessWidget {
               strokeWidth: strokeWidth,
               trackColor: context.glass.border,
               arcColor: arcColor,
+              accent: Theme.of(context).colorScheme.secondary,
+              accentAlt: Theme.of(context).colorScheme.primary,
             ),
           ),
           ?child,
@@ -135,12 +138,18 @@ class _RingPainter extends CustomPainter {
     required this.progress,
     required this.strokeWidth,
     required this.trackColor,
+    required this.accent,
+    required this.accentAlt,
     this.arcColor,
   });
 
   final double progress;
   final double strokeWidth;
   final Color trackColor;
+
+  /// Live brand colours (background-adaptive) for the sweep + glow.
+  final Color accent;
+  final Color accentAlt;
   final Color? arcColor;
 
   @override
@@ -169,7 +178,7 @@ class _RingPainter extends CustomPainter {
     final tip = center + Offset(math.cos(angle), math.sin(angle)) * radius;
 
     // Bloom/bead tone follows the arc color when one is supplied.
-    final glow = arcColor ?? AppColors.accent;
+    final glow = arcColor ?? accent;
 
     canvas
       // Ambient bloom: a wider, blurred copy of the arc glowing behind it.
@@ -197,12 +206,8 @@ class _RingPainter extends CustomPainter {
           ..strokeWidth = strokeWidth
           ..strokeCap = StrokeCap.round
           ..shader = arcColor == null
-              ? const SweepGradient(
-                  colors: [
-                    AppColors.accent,
-                    AppColors.indigoBright,
-                    AppColors.accent,
-                  ],
+              ? SweepGradient(
+                  colors: [accent, accentAlt, accent],
                 ).createShader(rect)
               : null
           ..color = glow,
@@ -220,7 +225,10 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RingPainter old) =>
-      old.progress != progress || old.arcColor != arcColor;
+      old.progress != progress ||
+      old.arcColor != arcColor ||
+      old.accent != accent ||
+      old.accentAlt != accentAlt;
 }
 
 /// A glass linear progress bar (daily-limit usage, permissions completion).
@@ -242,8 +250,11 @@ class ProgressBar extends StatelessWidget {
             child: Container(
               height: height,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.accent, AppColors.seed],
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.secondary,
+                    Theme.of(context).colorScheme.primary,
+                  ],
                 ),
                 borderRadius: BorderRadius.circular(height),
               ),

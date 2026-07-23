@@ -12,30 +12,60 @@ abstract final class AppTypography {
   /// override the display/headline/title slots with Space Grotesk.
   static TextTheme apply(TextTheme base) {
     final body = GoogleFonts.interTextTheme(base);
+    // Tighter tracking on the Space Grotesk display/headline slots reads more
+    // premium at large sizes. Sizes and line-heights are left at the M3 base so
+    // layouts don't shift (only tracking + weight change).
     return body.copyWith(
-      displayLarge:
-          GoogleFonts.spaceGrotesk(textStyle: body.displayLarge, fontWeight: FontWeight.w700),
-      displayMedium:
-          GoogleFonts.spaceGrotesk(textStyle: body.displayMedium, fontWeight: FontWeight.w700),
-      displaySmall:
-          GoogleFonts.spaceGrotesk(textStyle: body.displaySmall, fontWeight: FontWeight.w700),
-      headlineLarge:
-          GoogleFonts.spaceGrotesk(textStyle: body.headlineLarge, fontWeight: FontWeight.w700),
-      headlineMedium:
-          GoogleFonts.spaceGrotesk(textStyle: body.headlineMedium, fontWeight: FontWeight.w800),
-      headlineSmall:
-          GoogleFonts.spaceGrotesk(textStyle: body.headlineSmall, fontWeight: FontWeight.w800),
-      titleLarge:
-          GoogleFonts.spaceGrotesk(textStyle: body.titleLarge, fontWeight: FontWeight.w700),
-      titleMedium: GoogleFonts.inter(textStyle: body.titleMedium, fontWeight: FontWeight.w600),
-      labelLarge: GoogleFonts.inter(textStyle: body.labelLarge, fontWeight: FontWeight.w600),
+      displayLarge: GoogleFonts.spaceGrotesk(
+        textStyle: body.displayLarge,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+      ),
+      displayMedium: GoogleFonts.spaceGrotesk(
+        textStyle: body.displayMedium,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+      ),
+      displaySmall: GoogleFonts.spaceGrotesk(
+        textStyle: body.displaySmall,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.25,
+      ),
+      headlineLarge: GoogleFonts.spaceGrotesk(
+        textStyle: body.headlineLarge,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.25,
+      ),
+      headlineMedium: GoogleFonts.spaceGrotesk(
+        textStyle: body.headlineMedium,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.25,
+      ),
+      headlineSmall: GoogleFonts.spaceGrotesk(
+        textStyle: body.headlineSmall,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.2,
+      ),
+      titleLarge: GoogleFonts.spaceGrotesk(
+        textStyle: body.titleLarge,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.15,
+      ),
+      titleMedium: GoogleFonts.inter(
+        textStyle: body.titleMedium,
+        fontWeight: FontWeight.w600,
+      ),
+      labelLarge: GoogleFonts.inter(
+        textStyle: body.labelLarge,
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 
   /// Tabular figures for countdowns / stats so digits don't jitter.
   static TextStyle mono(TextStyle? base) => GoogleFonts.spaceGrotesk(
-        textStyle: base,
-        fontWeight: FontWeight.w800,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      );
+    textStyle: base,
+    fontWeight: FontWeight.w800,
+    fontFeatures: const [FontFeature.tabularFigures()],
+  );
 }

@@ -102,7 +102,7 @@ class StatTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: AppColors.accent),
+            Icon(icon, color: Theme.of(context).colorScheme.secondary),
             const SizedBox(height: AppSpacing.xs),
             Text(
               value,
@@ -231,15 +231,16 @@ class _FeatureTileState extends State<FeatureTile> {
 
   @override
   Widget build(BuildContext context) {
+    final accent = Theme.of(context).colorScheme.secondary;
     final leading = widget.animatedIcon != null
         ? AppAnimatedIcon(
             icon: widget.animatedIcon!,
             size: 20,
-            color: AppColors.accent,
+            color: accent,
             controller: _iconController,
             playOnAppear: true,
           )
-        : Icon(widget.icon, size: 20, color: AppColors.accent);
+        : Icon(widget.icon, size: 20, color: accent);
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: GlassListTile(

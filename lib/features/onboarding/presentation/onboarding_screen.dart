@@ -537,7 +537,7 @@ class _ReelCountUp extends StatelessWidget {
           duration: AppDurations.slow,
           curve: AppCurves.standard,
           builder: (context, v, _) => ShaderMask(
-            shaderCallback: (b) => AppGradients.metric.createShader(b),
+            shaderCallback: (b) => context.metricGradient.createShader(b),
             blendMode: BlendMode.srcIn,
             child: Text(
               '$v',

@@ -17,7 +17,7 @@ class ScreenTimeDial extends StatefulWidget {
     this.min = const Duration(minutes: 15),
     this.max = const Duration(hours: 5),
     this.step = const Duration(minutes: 15),
-    this.accent = AppColors.accent,
+    this.accent,
     this.size = 260,
     super.key,
   });
@@ -27,7 +27,7 @@ class ScreenTimeDial extends StatefulWidget {
   final Duration min;
   final Duration max;
   final Duration step;
-  final Color accent;
+  final Color? accent;
   final double size;
 
   @override
@@ -114,7 +114,7 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
                   size: Size.square(widget.size),
                   painter: _DialPainter(
                     fraction: f,
-                    accent: widget.accent,
+                    accent: widget.accent ?? Theme.of(context).colorScheme.secondary,
                     trackColor: context.glass.border,
                   ),
                 ),
@@ -134,14 +134,14 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
         Text(
           'PER DAY',
           style: text.labelSmall?.copyWith(
-            color: widget.accent,
+            color: widget.accent ?? Theme.of(context).colorScheme.secondary,
             letterSpacing: 2,
             fontSize: 11,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         ShaderMask(
-          shaderCallback: (b) => AppGradients.metric.createShader(b),
+          shaderCallback: (b) => context.metricGradient.createShader(b),
           blendMode: BlendMode.srcIn,
           child: Text(
             _formatLimit(widget.value),
