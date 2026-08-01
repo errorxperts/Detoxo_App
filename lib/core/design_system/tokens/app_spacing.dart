@@ -61,7 +61,7 @@ abstract final class AppRadius {
   /// to a circular arc. Pass a [side] to also stroke the edge.
   static ShapeBorder continuous(double radius, {BorderSide side = BorderSide.none}) {
     if (radius >= pill) return StadiumBorder(side: side);
-    return ContinuousRectangleBorder(
+    return RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(radius * continuousCornerScale),
       side: side,
     );
@@ -74,6 +74,8 @@ abstract final class AppInsets {
   static const EdgeInsets screenH = EdgeInsets.symmetric(horizontal: AppSpacing.md);
   static const EdgeInsets card = EdgeInsets.all(AppSpacing.md);
   static const EdgeInsets cardLg = EdgeInsets.all(AppSpacing.lg);
-  static const EdgeInsets listTile =
-      EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xxs);
+  static const EdgeInsets listTile = EdgeInsets.symmetric(
+    horizontal: AppSpacing.md,
+    vertical: AppSpacing.xxs,
+  );
 }

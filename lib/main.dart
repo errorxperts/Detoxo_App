@@ -105,7 +105,8 @@ class DetoxoApp extends StatelessWidget {
               AppSettings,
               (AppThemeMode, AppBackground, AppBackground)
             >(
-              selector: (s) => (s.themeMode, s.darkBackground, s.lightBackground),
+              selector: (s) =>
+                  (s.themeMode, s.darkBackground, s.lightBackground),
               builder: (_, sel) {
                 final darkStyle = _bgStyle(sel.$2);
                 final lightStyle = _bgStyle(sel.$3);

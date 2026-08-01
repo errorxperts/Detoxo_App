@@ -113,15 +113,37 @@ dev_dependencies:
   mocktail: ^1.0.5
   flutter_launcher_icons: ^0.14.4
 
+# FlutterGen — typed asset accessors in lib/gen/assets.gen.dart.
+# Regenerate with `fluttergen` (or `bash tool/dev.sh assets`).
+# Lottie integration stays OFF: we ship `lottie_tgs`, not `lottie`, and the
+# showcase steps consume `Assets.lottie.*` as plain String paths.
+flutter_gen:
+  output: lib/gen/
+  line_length: 80
+  integrations:
+    flutter_svg: true
+  assets:
+    enabled: true
+    outputs:
+      class_name: Assets
+      style: dot-delimiter
+      package_parameter_enabled: false
+  fonts:
+    enabled: false
+
 # App launcher icon configuration. Regenerate with: dart run flutter_launcher_icons
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/detoxo_logo.png"
+  image_path: "assets/images/detoxo_app_icon.png"
   remove_alpha_ios: true
-  background_color_ios: "#000000"
-  adaptive_icon_background: "#000000"
-  adaptive_icon_foreground: "assets/images/detoxo_logo.png"
+  # Sampled from the artwork's edge, so the corners the adaptive/iOS mask cuts
+  # away blend instead of showing a seam. Foreground keeps the default 16%
+  # inset — the artwork is full-bleed and gets clipped inside the safe zone
+  # without it.
+  background_color_ios: "#1E4DE5"
+  adaptive_icon_background: "#1E4DE5"
+  adaptive_icon_foreground: "assets/images/detoxo_app_icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -139,6 +161,7 @@ flutter:
     - assets/content/
     - assets/images/
     - assets/images/bg/
+    - assets/images/illustration/
     - assets/images/social_icon_pack/
     - assets/lottie/
   # To add custom fonts to your application, add a fonts section here,

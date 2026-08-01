@@ -123,51 +123,51 @@ extension GlassThemeX on BuildContext {
   final dark = brightness == Brightness.dark;
   return switch (style) {
     AppBackgroundStyle.aurora => dark
-        ? (primary: Color(0xFF8B93FF), accent: Color(0xFF35DCE8))
-        : (primary: Color(0xFF4F46E5), accent: Color(0xFF0B7E8C)),
+        ? (primary: const Color(0xFF8B93FF), accent: const Color(0xFF35DCE8))
+        : (primary: const Color(0xFF4F46E5), accent: const Color(0xFF0B7E8C)),
     AppBackgroundStyle.dark1 => (
-      primary: Color(0xFF5B8CFF),
-      accent: Color(0xFF38E0F0),
+      primary: const Color(0xFF5B8CFF),
+      accent: const Color(0xFF38E0F0),
     ),
     AppBackgroundStyle.dark2 => (
-      primary: Color(0xFFA78BFF),
-      accent: Color(0xFF66D0FF),
+      primary: const Color(0xFFA78BFF),
+      accent: const Color(0xFF66D0FF),
     ),
     AppBackgroundStyle.dark3 => (
-      primary: Color(0xFF9B7CFF),
-      accent: Color(0xFF3AE0FF),
+      primary: const Color(0xFF9B7CFF),
+      accent: const Color(0xFF3AE0FF),
     ),
     AppBackgroundStyle.dark4 => (
-      primary: Color(0xFFFF6FB0),
-      accent: Color(0xFFC489FF),
+      primary: const Color(0xFFFF6FB0),
+      accent: const Color(0xFFC489FF),
     ),
     AppBackgroundStyle.dark5 => (
-      primary: Color(0xFF5AA0FF),
-      accent: Color(0xFF39E6F2),
+      primary: const Color(0xFF5AA0FF),
+      accent: const Color(0xFF39E6F2),
     ),
     AppBackgroundStyle.dark6 => (
-      primary: Color(0xFF37DFA0),
-      accent: Color(0xFF7C9BFF),
+      primary: const Color(0xFF37DFA0),
+      accent: const Color(0xFF7C9BFF),
     ),
     AppBackgroundStyle.light1 => (
-      primary: Color(0xFF2F6BFF),
-      accent: Color(0xFF0E7FA8),
+      primary: const Color(0xFF2F6BFF),
+      accent: const Color(0xFF0E7FA8),
     ),
     AppBackgroundStyle.light2 => (
-      primary: Color(0xFF0B7E8C),
-      accent: Color(0xFF3B5FD0),
+      primary: const Color(0xFF0B7E8C),
+      accent: const Color(0xFF3B5FD0),
     ),
     AppBackgroundStyle.light3 => (
-      primary: Color(0xFFC21D9E),
-      accent: Color(0xFF5A4FD0),
+      primary: const Color(0xFFC21D9E),
+      accent: const Color(0xFF5A4FD0),
     ),
     AppBackgroundStyle.light4 => (
-      primary: Color(0xFFC0367A),
-      accent: Color(0xFF2F6FC0),
+      primary: const Color(0xFFC0367A),
+      accent: const Color(0xFF2F6FC0),
     ),
     AppBackgroundStyle.light5 => (
-      primary: Color(0xFF5257DB),
-      accent: Color(0xFF7E36C8),
+      primary: const Color(0xFF5257DB),
+      accent: const Color(0xFF7E36C8),
     ),
   };
 }

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/additional_feature/showcase_view/showcase_view.dart';
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
@@ -13,7 +12,7 @@ import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dar
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
-import 'package:detoxo/features/dashboard/presentation/widgets/blocker_capsule.dart';
+import 'package:detoxo/features/dashboard/presentation/widgets/blocker_section.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/command_center_card.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/dashboard_top_bar.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/mode_selector.dart';
@@ -22,7 +21,6 @@ import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubi
 import 'package:detoxo/features/limits/streak/presentation/streak_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class DashboardTab extends StatefulWidget {
   const DashboardTab({this.scrollController, this.onMenu, super.key});
@@ -118,36 +116,7 @@ class _DashboardTabState extends State<DashboardTab> {
             const _SessionBanners(),
             const ProtectionStatusCard(),
             const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: showcaseTarget(
-                    step: featureShowcaseSteps[5],
-                    index: 5,
-                    child: BlockerCapsule(
-                      icon: AppIcon.appBlocker,
-                      title: 'App Blocker',
-                      caption: 'Restricted',
-                      onTap: () => context.push(Routes.appBlock),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: showcaseTarget(
-                    step: featureShowcaseSteps[6],
-                    index: 6,
-                    child: BlockerCapsule(
-                      icon: AppIcon.websiteBlocker,
-                      title: 'Web Blocker',
-                      caption: 'Active',
-                      accent: Theme.of(context).colorScheme.secondary,
-                      onTap: () => context.push(Routes.webBlock),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            const BlockerSection(),
           ],
         ),
       ),

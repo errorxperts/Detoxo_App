@@ -26,6 +26,7 @@ export 'foundations/ambient_background.dart';
 export 'foundations/animated_icons.dart';
 export 'foundations/background_scope.dart';
 export 'foundations/glass_container.dart';
+export 'foundations/liquid_glass_border.dart';
 export 'foundations/motion.dart';
 // Typography + theme
 export 'theme/app_theme.dart';

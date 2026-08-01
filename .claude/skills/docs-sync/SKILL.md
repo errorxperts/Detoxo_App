@@ -38,6 +38,7 @@ Skip it for pure test/formatting changes with no behavioral or structural effect
 | `lib/features/monetization/premium/**` | 11 |
 | `lib/features/analytics/**`, native FGS notification / `receivers/BootReceiver.kt` / `admin/DetoxoDeviceAdminReceiver.kt` | 12 |
 | `lib/features/{onboarding,permissions}/**`, `lib/app/splash_screen.dart` | 13 |
+| `lib/features/dashboard/**` (home shell + dashboard sections), `lib/core/design_system/foundations/**` (glass primitives) | 01 (+ **user-facing** → `info_docs/02` §1) |
 | `pubspec.yaml` | 14 |
 | `lib/app/unsupported_screen.dart`, `lib/core/platform/**` | 15 |
 | release status / what-works-vs-swap-in changes | 16 |

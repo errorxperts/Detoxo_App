@@ -82,7 +82,6 @@ class CaughtHero extends StatelessWidget {
   Widget _reelCard() {
     return GlassContainer(
       enableBlur: false,
-      borderRadius: AppRadius.lg,
       tintTop: accent.withValues(alpha: 0.18),
       tintBottom: accent.withValues(alpha: 0.05),
       child: SizedBox(

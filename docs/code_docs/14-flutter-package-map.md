@@ -8,7 +8,7 @@ runtime behaviour yet). Every "wired" claim below is grounded in a real import i
 
 - **App identity:** `name: detoxo`, `version: 1.0.0+1`, `environment.sdk: ^3.12.1`,
   `publish_to: 'none'` (private app, never published to pub.dev). The launcher-icon
-  package writes the app icon from `assets/images/detoxo_logo.png`.
+  package writes the app icon from `assets/images/detoxo_app_icon.png`.
 - **Architecture recap:** Cubit-only state (`flutter_bloc`), a single `get_it`
   service locator (`sl`), declarative routing (`go_router`), feature-first Clean
   Architecture. See [01-overview-architecture.md](01-overview-architecture.md) and
@@ -43,6 +43,17 @@ runtime behaviour yet). Every "wired" claim below is grounded in a real import i
 
 Codegen for these runs through `build_runner` + `freezed` + `json_serializable`
 (dev dependencies, §7). Regenerate with `dart run build_runner build`.
+
+`flutter_gen` is **not** a build_runner builder here — `lib/gen/assets.gen.dart`
+is produced by the standalone `fluttergen` CLI, configured by the `flutter_gen:`
+block in `pubspec.yaml` (output `lib/gen/`, `flutter_svg` integration on so SVGs
+generate as `SvgGenImage`; the Lottie integration stays **off** because we ship
+`lottie_tgs`, not `lottie`, and `Assets.lottie.*` is consumed as a `String`
+path). Regenerate with `bash tool/dev.sh assets`.
+
+`tool/dev.sh` wraps the routine command combos (fresh build, codegen, quality,
+pre-commit, full validation, dependency refresh, reset, FlutterFire, assets,
+launcher icons) — run it bare for a menu or pass an entry name/number.
 
 ---
 
@@ -185,10 +196,14 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 `uses-material-design: true` bundles the Material Icons font.
 
 **Launcher icons** (`flutter_launcher_icons` block): source
-`assets/images/detoxo_logo.png`, adaptive icon on a `#000000` background/foreground,
-`remove_alpha_ios: true`. Regenerate with `dart run flutter_launcher_icons`. (iOS is
-generated but the app is **not supported on iOS** — see
-[00-index.md](00-index.md).)
+`assets/images/detoxo_app_icon.png` for both the legacy icon and the adaptive
+foreground, on a `#1E4DE5` background (sampled from the artwork's outer rim, so
+the corners the adaptive/iOS mask cuts away blend instead of showing a seam).
+The foreground keeps the package default 16% inset — the artwork is full-bleed
+and its glyph gets clipped inside the adaptive safe zone without it.
+`remove_alpha_ios: true` flattens iOS onto the same `#1E4DE5`. Regenerate with
+`dart run flutter_launcher_icons`. (iOS is generated but the app is **not
+supported on iOS** — see [00-index.md](00-index.md).)
 
 ---
 

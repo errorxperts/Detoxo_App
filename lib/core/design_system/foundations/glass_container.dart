@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:detoxo/core/design_system/foundations/liquid_glass_border.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_blur.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
@@ -10,23 +11,28 @@ import 'package:flutter/material.dart';
 ///
 /// Built as a liquid-glass stack: a [ContinuousRectangleBorder] squircle
 /// ([AppRadius.continuous]) clips a subtle backdrop blur; a top-weighted sheen
-/// gives the Fresnel edge light + internal reflection; a crisp hairline border
-/// (drawn as a foreground so the blur never softens it) simulates glass
-/// thickness; and standalone cards get a soft outer depth shadow. Colours,
-/// radii, padding and sizes are unchanged from the flat build.
+/// gives the Fresnel edge light + internal reflection; and a [LiquidGlassBorder]
+/// lights the edge so the surface reads as curved glass.
+///
+/// **There are no drop shadows.** Depth comes entirely from the glass — the
+/// fill gradient, the sheen and the lit rim — so surfaces stay clean over the
+/// ambient background instead of sitting on a grey smudge.
 ///
 /// Set [enableBlur] to `false` for rows inside a long [ListView] to skip the
-/// per-card `saveLayer` (and the depth shadow) — the surface stays flat and
-/// fast while keeping the shape, tint, sheen and border.
+/// per-card `saveLayer` — the surface stays flat and fast while keeping the
+/// shape, tint, sheen and border.
 ///
 /// [selected] elevates the surface to the premium active state: a faint
-/// primary/secondary tint, a brighter fill and edge, a stronger sheen and a
-/// soft brand ambient glow — an illuminated card without a heavy fill.
+/// primary/secondary tint, a brighter fill, and a brand-lit rim — an
+/// illuminated card without a heavy fill.
+///
+/// [liquidEdge] is on by default. Set it `false` to fall back to the plain
+/// 1px hairline (cheaper by one painter, but visibly flatter).
 class GlassContainer extends StatelessWidget {
   const GlassContainer({
     required this.child,
     this.blurSigma = AppBlur.card,
-    this.borderRadius = AppRadius.xl,
+    this.borderRadius = AppRadius.lg,
     this.tintTop,
     this.tintBottom,
     this.borderColor,
@@ -35,6 +41,7 @@ class GlassContainer extends StatelessWidget {
     this.enableBlur = true,
     this.selected = false,
     this.circle = false,
+    this.liquidEdge = true,
     super.key,
   });
 
@@ -47,8 +54,7 @@ class GlassContainer extends StatelessWidget {
   final double borderWidth;
   final EdgeInsetsGeometry padding;
 
-  /// Set `false` inside long scrollables to skip the BackdropFilter saveLayer
-  /// and the depth shadow.
+  /// Set `false` inside long scrollables to skip the BackdropFilter saveLayer.
   final bool enableBlur;
 
   /// Elevates the surface to the premium active/illuminated state.
@@ -59,11 +65,14 @@ class GlassContainer extends StatelessWidget {
   /// disc, where a [ContinuousRectangleBorder] would read as a rounded square.
   final bool circle;
 
+  /// Lights the edge with a [LiquidGlassBorder] specular rim. `false` falls
+  /// back to the plain 1px hairline.
+  final bool liquidEdge;
+
   @override
   Widget build(BuildContext context) {
     final glass = context.glass;
     final scheme = Theme.of(context).colorScheme;
-    final dark = Theme.of(context).brightness == Brightness.dark;
 
     // Fill — the existing tokens by default; selected blends a faint brand tint
     // in (brighter, slightly more saturated) without a heavy fill.
@@ -71,10 +80,7 @@ class GlassContainer extends StatelessWidget {
     var bottom = tintBottom ?? glass.fillBottom;
     if (selected) {
       top = Color.alphaBlend(scheme.primary.withValues(alpha: 0.12), top);
-      bottom = Color.alphaBlend(
-        scheme.secondary.withValues(alpha: 0.06),
-        bottom,
-      );
+      bottom = Color.alphaBlend(scheme.secondary.withValues(alpha: 0.06), bottom);
     }
 
     // Hairline edge — simulates glass thickness; selected brightens it with a
@@ -82,23 +88,17 @@ class GlassContainer extends StatelessWidget {
     final edge =
         borderColor ??
         (selected
-            ? Color.alphaBlend(
-                scheme.primary.withValues(alpha: 0.45),
-                glass.border,
-              )
+            ? Color.alphaBlend(scheme.primary.withValues(alpha: 0.45), glass.border)
             : glass.border);
     final side = BorderSide(color: edge, width: borderWidth);
     final shape = circle
         ? CircleBorder(side: side)
         : AppRadius.continuous(borderRadius, side: side);
-    final clipShape = circle
-        ? const CircleBorder()
-        : AppRadius.continuous(borderRadius);
+    final clipShape = circle ? const CircleBorder() : AppRadius.continuous(borderRadius);
 
     // Inner highlight: a top-weighted sheen = Fresnel edge light + internal
     // reflection. Softer on dense list rows, stronger when selected.
-    final sheenAlpha =
-        glass.highlight.a * (selected ? 1.0 : (enableBlur ? 0.7 : 0.4));
+    final sheenAlpha = glass.highlight.a * (selected ? 1.0 : (enableBlur ? 0.7 : 0.4));
     final content = DecoratedBox(
       decoration: ShapeDecoration(
         shape: clipShape,
@@ -134,46 +134,28 @@ class GlassContainer extends StatelessWidget {
           : content,
     );
 
-    // Depth for standalone cards (skipped on flat list rows): a layered
-    // ambient + key shadow (cool, themed via glass.shadow — never flat black)
-    // for premium, believable elevation. A soft brand glow whenever selected so
-    // an active tile reads as illuminated.
-    final shadow = glass.shadow;
-    final shadows = <BoxShadow>[
-      if (enableBlur) ...[
-        // Ambient: large, very soft — the diffuse contact-less lift.
-        BoxShadow(
-          color: shadow,
-          blurRadius: 30,
-          offset: const Offset(0, 16),
-          spreadRadius: -14,
+    // No drop shadows anywhere — depth comes from the glass itself: the fill
+    // gradient, the top-weighted sheen, and the lit edge below.
+    if (!liquidEdge) {
+      // Legacy flat hairline. Stroked over everything (unclipped) so the blur
+      // never softens it.
+      return RepaintBoundary(
+        child: DecoratedBox(
+          position: DecorationPosition.foreground,
+          decoration: ShapeDecoration(shape: shape),
+          child: clipped,
         ),
-        // Key: tighter, closer — grounds the card's near edge.
-        BoxShadow(
-          color: shadow.withValues(alpha: shadow.a * 0.65),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-          spreadRadius: -6,
-        ),
-      ],
-      if (selected)
-        BoxShadow(
-          color: scheme.primary.withValues(alpha: dark ? 0.30 : 0.22),
-          blurRadius: 28,
-          spreadRadius: -6,
-        ),
-    ];
+      );
+    }
 
-    final result = Container(
-      decoration: shadows.isEmpty
-          ? null
-          : ShapeDecoration(shape: clipShape, shadows: shadows),
-      // Border stroked over everything (unclipped) so the blur never softens it.
-      foregroundDecoration: ShapeDecoration(shape: shape),
-      child: clipped,
+    // Selected surfaces light their rim with the brand instead of a glow
+    // shadow, so an active tile still reads as illuminated.
+    return RepaintBoundary(
+      child: LiquidGlassBorder(
+        shape: clipShape,
+        tint: borderColor ?? (selected ? scheme.primary : null),
+        child: clipped,
+      ),
     );
-
-    // Isolate each glass surface's layer from sibling repaints.
-    return RepaintBoundary(child: result);
   }
 }

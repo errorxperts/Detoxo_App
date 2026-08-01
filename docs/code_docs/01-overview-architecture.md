@@ -178,10 +178,13 @@ splash screen loads state and then `context.go(...)`s to the right place.
 
 ### 4. Splash gating order — `lib/app/splash_screen.dart`
 
-After first frame, `_bootstrap()` awaits `settings.bootstrap()`, `targets.load()`,
-`permissions.refresh()`, `pin.load()` in parallel, seeds the enabled-platform set
-from installed defaults on first run, fire-and-forgets a home-widget refresh with
-the latest counter snapshot, then routes:
+After first frame, `_bootstrap()` awaits **only what the gating below reads** —
+`settings.bootstrap()`, `permissions.refresh()`, `pin.load()` in parallel.
+`targets.load()` (native config push + installed-package scan, the slow leg) is
+awaited **only on first run**, where its installed-defaults are needed to seed
+the enabled-platform set; on every later launch it is fire-and-forgotten so it
+still pushes config to native without holding the splash. A home-widget refresh
+with the latest counter snapshot is likewise fire-and-forget. Then it routes:
 
 ```
 onboarding  →  PIN lock  →  permissions  →  home
@@ -198,6 +201,59 @@ onboarding  →  PIN lock  →  permissions  →  home
 gradient, with a frosted floating bottom bar. The former "More" tab now lives in
 a right-side `AppDrawer`. Deeper screens (settings, blockers, daily limit,
 analytics, content-counter appearance) are reached via routes.
+
+`DashboardTab` renders its sections in order: `DashboardTopBar` → `_Hero`
+(`CommandCenterCard`) → `_ModeSection` (`ModeSelector`) → `_SessionBanners` →
+`ProtectionStatusCard` → `BlockerSection`. The house split is that a section
+needing cubits stays inline in `dashboard_tab.dart` as a private `_Xxx` widget
+while its presentational half lives in `presentation/widgets/`.
+
+`BlockerSection` (`presentation/widgets/blocker_section.dart`) is the exception
+that owns its own data: it renders the App Blocker / Web Blocker pair as two
+`BlockerTile`s and reads the live entry counts itself. Both blocker cubits are
+screen-scoped — created inside `BlocProvider`s in `app_block_screen.dart` /
+`web_block_screen.dart` — so there is nothing to watch from the dashboard. The
+section resolves `AppBlockRepository` and `WebBlockRepository` through `sl`
+instead, counts the entries with `enabled == true`, and re-reads them when the
+user pops back from either blocker screen, so the captions never go stale.
+
+### Glass surfaces — `lib/core/design_system/foundations/`
+
+`GlassContainer` is the one glass primitive; nothing else calls `BackdropFilter`
+directly. It clips a squircle (`AppRadius.continuous`) over a backdrop blur, adds
+a top-weighted sheen, and lights the edge with a `LiquidGlassBorder`.
+
+**Glass surfaces cast no drop shadow.** Depth comes from the glass itself — the
+fill gradient, the sheen, and the lit rim — so cards sit cleanly on the ambient
+background instead of on a grey smudge. Don't reintroduce a `BoxShadow` here;
+`test/core/design_system/glass_container_test.dart` fails if you do. (A `BoxShadow`
+with its `color` omitted defaults to **opaque black**, which is how this
+regressed once already.)
+
+`LiquidGlassBorder` is the Apple Liquid Glass / visionOS edge: two stroked paths,
+no `saveLayer`, no `MaskFilter`, no shader asset, nothing animated.
+
+- **Rim** — a hairline stroke of `shape.getOuterPath(...)` shaded by a
+  `SweepGradient`. The arcs are deliberately asymmetric: a wide, bright key light
+  at the top-left (sweep fraction `0.625`) and a tighter, dimmer bounce where
+  that light exits again at the bottom-right (`0.125`), falling back to the plain
+  hairline token elsewhere. Equal arcs read as a decorative gradient; unequal
+  ones read as a lit object. The boosted specular is capped below full opacity —
+  an opaque hairline is an outline again.
+- **Thickness** — a second stroke inset ~1.2px, lit top-down rather than
+  diagonally, so it is a different cue from the corner arcs rather than a fainter
+  copy of them.
+
+Because it takes a `ShapeBorder`, squircles, circles, stadiums and any radius all
+work with no separate code path. Every colour comes from the `GlassTokens`
+extension (`context.glass`), so the edge tracks the live theme and the selected
+background; only the alphas belong to the widget, and `intensity` scales them
+together.
+
+`liquidEdge` defaults to **true**, so every glass surface in the app gets the lit
+edge. `selected` tints the rim with the brand instead of casting a glow shadow.
+Set `liquidEdge: false` to fall back to the plain 1px hairline — one painter
+cheaper, but visibly flatter.
 
 ---
 
@@ -275,6 +331,7 @@ lib/
     platform_channels/          engine_channel.dart (MethodChannel/EventChannel wrapper)
     storage/                    local_store.dart (key-value)
     design_system/  theme/      tokens, foundations, components, glass UI
+                                foundations: glass_container · liquid_glass_border
     error/ utils/ widgets/      shared helpers + common widgets
   features/
     blocking/                   CORE: shared(spine) · engine · blocklist · plans
@@ -346,7 +403,12 @@ Detailed treatment lives in the persistence and configuration docs.
 - `lib/core/constants/channel_constants.dart`
 - `lib/core/platform_channels/engine_channel.dart`
 - `lib/core/platform/platform_capabilities.dart`
+- `lib/core/design_system/foundations/glass_container.dart`
+- `lib/core/design_system/foundations/liquid_glass_border.dart`
 - `lib/features/dashboard/presentation/home_shell.dart`
+- `lib/features/dashboard/presentation/dashboard_tab.dart`
+- `lib/features/dashboard/presentation/widgets/blocker_section.dart`
+- `lib/features/dashboard/presentation/widgets/blocker_tile.dart`
 - `lib/features/` (feature tree: `blocking`, `content_counter`, `limits`, `access_protection`, `monetization/premium`, `analytics`, `permissions`, `onboarding`, `settings`, `dashboard`, `additional_feature`)
 - `tool/check_boundaries.sh`
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/MainActivity.kt`

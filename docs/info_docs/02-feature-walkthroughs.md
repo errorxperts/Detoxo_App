@@ -204,8 +204,13 @@ you close Detoxo in the meantime.
 
 ## 4. Building your app blocklist ("Block apps")
 
-Open **App Blocker** from the home screen (or the menu). The **Block apps** screen
-has two parts:
+Open **App Blocker** from the home screen (or the menu). On the home screen the
+two blocker tiles show what you've actually set up — "3 apps blocked" once you
+have a list, or "Not set up" until then, with the status dot lit only when
+something really is being blocked. The counts refresh as soon as you come back
+from either blocker screen.
+
+The **Block apps** screen has two parts:
 
 ### Apps & feeds (the built-in catalog)
 
