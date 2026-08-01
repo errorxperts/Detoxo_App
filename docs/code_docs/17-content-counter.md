@@ -536,4 +536,7 @@ Cross-feature (the migrated counter hub; theme + background live here too):
   shared **Appearance** screen that now hosts the **Count short videos** master switch
   and the Bubble / Home-widget hero cards (large live `BubblePreview` / `WidgetPreview`,
   tapped to edit; bubble on/off on its card, widget gated by the master), plus the app
-  theme (a custom Light/Dark segmented control + Match system) and background picker.
+  theme (a Light/Dark `GlassSegmented` control + Match system) and background picker.
+  `GlassSegmented` (design system, `components/selection.dart`) is the shared
+  liquid-glass segmented control — frosted stadium track with a depth shadow and an
+  accent-lit sliding pill; also used for the Reels-seen today/all-time selector.

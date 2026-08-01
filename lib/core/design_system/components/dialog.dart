@@ -86,7 +86,7 @@ class AppDialog extends StatelessWidget {
         ),
         PrimaryButton(
           label: confirmLabel,
-          tint: destructive ? AppColors.danger : AppColors.seed,
+          tint: destructive ? AppColors.danger : null,
           onPressed: () => Navigator.of(context).pop(true),
         ),
       ],

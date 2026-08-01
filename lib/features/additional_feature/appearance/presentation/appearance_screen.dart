@@ -208,7 +208,11 @@ class _ThemeControl extends StatelessWidget {
             AnimatedOpacity(
               duration: AppDurations.fast,
               opacity: system ? 0.55 : 1,
-              child: _ThemeSegmented(
+              child: GlassSegmented(
+                segments: const [
+                  (label: 'Light', icon: Icons.light_mode_rounded),
+                  (label: 'Dark', icon: Icons.dark_mode_rounded),
+                ],
                 selectedIndex: selectedIndex,
                 onChanged: (i) => cubit.setThemeMode(
                   i == 0 ? AppThemeMode.light : AppThemeMode.dark,
@@ -247,100 +251,6 @@ class _ThemeControl extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-/// A custom two-option segmented control with a sliding accent pill. Snappier and
-/// more tactile than the plain Material segmented button — the pill glides
-/// between segments and each tap fires a selection haptic.
-class _ThemeSegmented extends StatelessWidget {
-  const _ThemeSegmented({required this.selectedIndex, required this.onChanged});
-
-  final int selectedIndex;
-  final ValueChanged<int> onChanged;
-
-  static const List<(String, IconData)> _items = [
-    ('Light', Icons.light_mode_rounded),
-    ('Dark', Icons.dark_mode_rounded),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final accent = Theme.of(context).colorScheme.secondary;
-    return Container(
-      height: 52,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: context.glass.fillBottom,
-        borderRadius: AppRadius.brPill,
-        border: Border.all(color: context.glass.border),
-      ),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // The sliding selection pill.
-          AnimatedAlign(
-            duration: AppDurations.normal,
-            curve: AppCurves.emphasized,
-            alignment: selectedIndex == 0
-                ? Alignment.centerLeft
-                : Alignment.centerRight,
-            child: FractionallySizedBox(
-              widthFactor: 0.5,
-              heightFactor: 1,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.22),
-                  borderRadius: AppRadius.brPill,
-                  border: Border.all(
-                    color: accent.withValues(alpha: 0.6),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Row(
-            children: [
-              for (var i = 0; i < _items.length; i++)
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      AppHaptics.selection();
-                      onChanged(i);
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _items[i].$2,
-                          size: 18,
-                          color: selectedIndex == i
-                              ? accent
-                              : context.glass.onGlassMuted,
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          _items[i].$1,
-                          style: text.labelLarge?.copyWith(
-                            fontWeight: selectedIndex == i
-                                ? FontWeight.w700
-                                : FontWeight.w500,
-                            color: selectedIndex == i
-                                ? accent
-                                : context.glass.onGlassMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

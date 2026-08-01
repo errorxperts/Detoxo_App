@@ -69,24 +69,30 @@ class _WebBlockView extends StatelessWidget {
             if (state.isLoading) {
               return const LoadingState(message: 'Loading…');
             }
+            // The list has no right padding so the chip rows can scroll off the
+            // screen edge; every other child adds it back.
+            Widget inset(Widget child) => Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.md),
+              child: child,
+            );
             return ListView(
               padding: EdgeInsets.fromLTRB(
                 AppSpacing.md,
                 AppSpacing.md,
-                AppSpacing.md,
+                0,
                 96 + MediaQuery.viewPaddingOf(context).bottom,
               ),
               children: [
                 if (state.hasStats) ...[
-                  _StatsSection(stats: state.stats),
+                  inset(_StatsSection(stats: state.stats)),
                   const SizedBox(height: AppSpacing.xs),
                 ],
-                const SectionHeader('Protection'),
-                _ProtectionTiles(state: state),
-                const SectionHeader('Popular sites'),
+                inset(const SectionHeader('Protection')),
+                inset(_ProtectionTiles(state: state)),
+                inset(const SectionHeader('Popular sites')),
                 _PopularChips(state: state),
-                const SectionHeader('Your blocklist'),
-                _Blocklist(state: state),
+                inset(const SectionHeader('Your blocklist')),
+                inset(_Blocklist(state: state)),
               ],
             );
           },
@@ -252,6 +258,8 @@ class _PopularChips extends StatelessWidget {
     );
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      // Only the far end of the scroll keeps a gutter.
+      padding: const EdgeInsets.only(right: AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

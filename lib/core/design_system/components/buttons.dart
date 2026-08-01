@@ -1,11 +1,15 @@
 import 'package:detoxo/core/design_system/adaptive/adaptive_controls.dart';
+import 'package:detoxo/core/design_system/adaptive/platform_adaptive.dart';
 import 'package:detoxo/core/design_system/foundations/animated_icons.dart';
+import 'package:detoxo/core/design_system/foundations/liquid_glass_border.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
+import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:flutter/material.dart';
 
-/// Primary call-to-action. Filled & brand-tinted (native CNButton on iOS).
+/// Primary call-to-action. Native CNButton on iOS; on Android a [LiquidPill] —
+/// a lit brand-gradient pill with a coloured glow, so the hero action reads as
+/// the brightest thing on a dark glass screen instead of a flat Material fill.
 /// `expand: true` makes it full-width (the old `FullWidthButton` behaviour).
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
@@ -13,7 +17,7 @@ class PrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.expand = false,
     this.icon,
-    this.tint = AppColors.seed,
+    this.tint,
     super.key,
   });
 
@@ -21,19 +25,169 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool expand;
   final IconData? icon;
-  final Color tint;
+
+  /// Fill hue. Defaults to the live (background-adaptive) brand primary.
+  final Color? tint;
 
   @override
-  Widget build(BuildContext context) => AdaptiveButton(
+  Widget build(BuildContext context) {
+    final brand = tint ?? Theme.of(context).colorScheme.primary;
+    if (PlatformAdaptive.useCupertino) {
+      return AdaptiveButton(
         label: label,
         onPressed: onPressed,
-        tint: tint,
+        tint: brand,
         expand: expand,
         icon: icon,
       );
+    }
+    return LiquidPill(
+      tint: brand,
+      expand: expand,
+      onPressed: onPressed,
+      semanticLabel: label,
+      child: _PillContent(
+        label: label,
+        leading: icon == null ? null : Icon(icon, size: 20, color: onLiquid(brand)),
+        color: onLiquid(brand),
+      ),
+    );
+  }
 }
 
-/// Lower-emphasis tonal button (e.g. "Restore purchases", "Resume now").
+/// Ink colour that stays legible on a [LiquidPill] of [fill].
+Color onLiquid(Color fill) =>
+    ThemeData.estimateBrightnessForColor(fill) == Brightness.dark
+        ? Colors.white
+        : const Color(0xFF0A0E17);
+
+/// The hero-CTA skin: a single-hue brand sweep (lit from the top-left), a
+/// specular [LiquidGlassBorder] rim and a coloured drop-glow, squishing on
+/// press. Shared by [PrimaryButton] and [AnimatedIconButton]; pass any [child].
+///
+/// Deliberately the *only* filled-brand control — [SecondaryButton] is a
+/// compact outlined pill so the two never read as the same weight.
+class LiquidPill extends StatelessWidget {
+  const LiquidPill({
+    required this.child,
+    required this.tint,
+    required this.onPressed,
+    this.expand = false,
+    this.semanticLabel,
+    super.key,
+  });
+
+  final Widget child;
+  final Color tint;
+  final VoidCallback? onPressed;
+  final bool expand;
+  final String? semanticLabel;
+
+  /// Full-width CTAs sit at the bottom of a screen and carry more weight than
+  /// an inline button, so they get a taller pill.
+  static const double _expandedHeight = 56;
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = onPressed == null;
+    final hsl = HSLColor.fromColor(tint);
+    final lit = hsl.withLightness((hsl.lightness + 0.09).clamp(0.0, 1.0)).toColor();
+    final shade = hsl.withLightness((hsl.lightness - 0.13).clamp(0.0, 1.0)).toColor();
+
+    final pill = Container(
+      height: expand ? _expandedHeight : AppSizes.controlHeight,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: AppRadius.brPill,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [lit, tint, shade],
+          stops: const [0, 0.55, 1],
+        ),
+        boxShadow: disabled
+            ? null
+            : [
+                // Coloured glow under the pill + a cool depth shadow, the two
+                // `box-shadow`s that make the CTA float off the glass.
+                BoxShadow(
+                  color: tint.withValues(alpha: 0.45),
+                  blurRadius: 24,
+                  spreadRadius: -6,
+                  offset: const Offset(0, 10),
+                ),
+                BoxShadow(
+                  color: context.shadow,
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+      ),
+      child: child,
+    );
+
+    Widget content = LiquidGlassBorder(
+      shape: const StadiumBorder(),
+      tint: Colors.white.withValues(alpha: 0.5),
+      child: pill,
+    );
+    if (expand) content = SizedBox(width: double.infinity, child: content);
+    if (disabled) return Opacity(opacity: 0.45, child: content);
+    return AppPressable(
+      onTap: onPressed!,
+      semanticLabel: semanticLabel,
+      minTapTarget: AppSizes.minTapTargetSquare,
+      child: content,
+    );
+  }
+}
+
+/// Label (+ optional leading widget) laid out for a [LiquidPill].
+class _PillContent extends StatelessWidget {
+  const _PillContent({
+    required this.label,
+    required this.color,
+    this.leading,
+    this.dense = false,
+  });
+
+  final String label;
+  final Color color;
+  final Widget? leading;
+
+  /// Smaller type for the shorter [SecondaryButton] pill.
+  final bool dense;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (leading != null) ...[leading!, const SizedBox(width: AppSpacing.xs)],
+        Text(
+          label,
+          style: (dense ? text.labelLarge : text.titleMedium)?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Compact inline action (e.g. "Grant", "Restore purchases", "Resume now") —
+/// the counterpart to [PrimaryButton], never a smaller copy of it.
+///
+/// Where the hero CTA is *filled* brand with a glow, this is **outlined**: a
+/// short 36dp pill of translucent brand tint behind a brand hairline, brand-
+/// coloured label, no gradient and no shadow. Different shape, different
+/// weight, same hue — so a card can carry one of each without them competing.
+/// Native tinted CNButton on iOS.
 class SecondaryButton extends StatelessWidget {
   const SecondaryButton({
     required this.label,
@@ -48,14 +202,49 @@ class SecondaryButton extends StatelessWidget {
   final bool expand;
   final IconData? icon;
 
+  /// Sits clearly below the 44dp hero pill; the 48dp tap floor is restored by
+  /// `AppPressable.minTapTarget`, so the shrink is purely visual.
+  static const double _height = 36;
+
   @override
-  Widget build(BuildContext context) => AdaptiveButton(
+  Widget build(BuildContext context) {
+    if (PlatformAdaptive.useCupertino) {
+      return AdaptiveButton(
         label: label,
         onPressed: onPressed,
         variant: AdaptiveButtonVariant.tinted,
         expand: expand,
         icon: icon,
       );
+    }
+    final brand = Theme.of(context).colorScheme.primary;
+    final disabled = onPressed == null;
+
+    Widget content = Container(
+      height: _height,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: brand.withValues(alpha: 0.12),
+        borderRadius: AppRadius.brPill,
+        border: Border.all(color: brand.withValues(alpha: 0.45)),
+      ),
+      child: _PillContent(
+        label: label,
+        color: brand,
+        dense: true,
+        leading: icon == null ? null : Icon(icon, size: 18, color: brand),
+      ),
+    );
+    if (expand) content = SizedBox(width: double.infinity, child: content);
+    if (disabled) return Opacity(opacity: 0.45, child: content);
+    return AppPressable(
+      onTap: onPressed!,
+      semanticLabel: label,
+      minTapTarget: AppSizes.minTapTargetSquare,
+      child: content,
+    );
+  }
 }
 
 /// Text-only, lowest emphasis (e.g. "Skip", "Maybe later").
@@ -82,7 +271,7 @@ class AnimatedIconButton extends StatefulWidget {
     required this.label,
     required this.icon,
     required this.onPressed,
-    this.tint = AppColors.seed,
+    this.tint,
     this.expand = false,
     super.key,
   });
@@ -90,7 +279,9 @@ class AnimatedIconButton extends StatefulWidget {
   final String label;
   final AppIcon icon;
   final VoidCallback? onPressed;
-  final Color tint;
+
+  /// Fill hue. Defaults to the live (background-adaptive) brand primary.
+  final Color? tint;
   final bool expand;
 
   @override
@@ -118,41 +309,23 @@ class _AnimatedIconButtonState extends State<AnimatedIconButton> {
 
   @override
   Widget build(BuildContext context) {
-    final disabled = widget.onPressed == null;
-    final pill = Container(
-      height: AppSizes.controlHeight,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      decoration: BoxDecoration(
-        color: disabled ? widget.tint.withValues(alpha: 0.4) : widget.tint,
-        borderRadius: AppRadius.brPill,
+    final brand = widget.tint ?? Theme.of(context).colorScheme.primary;
+    final ink = onLiquid(brand);
+    return LiquidPill(
+      tint: brand,
+      expand: widget.expand,
+      onPressed: widget.onPressed == null ? null : _onTap,
+      semanticLabel: widget.label,
+      child: _PillContent(
+        label: widget.label,
+        color: ink,
+        leading: AppAnimatedIcon(
+          icon: widget.icon,
+          size: 20,
+          color: ink,
+          controller: _iconController,
+        ),
       ),
-      child: Row(
-        mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AppAnimatedIcon(
-            icon: widget.icon,
-            size: 20,
-            color: Colors.white,
-            controller: _iconController,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            widget.label,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
-      ),
-    );
-    final content = widget.expand ? SizedBox(width: double.infinity, child: pill) : pill;
-    if (disabled) return Opacity(opacity: 0.6, child: content);
-    return AppPressable(
-      onTap: _onTap,
-      minTapTarget: AppSizes.minTapTargetSquare,
-      child: content,
     );
   }
 }

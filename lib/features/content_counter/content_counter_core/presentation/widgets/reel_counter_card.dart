@@ -77,9 +77,15 @@ class _ReelCounterCardState extends State<ReelCounterCard> {
             ],
           ),
         ),
-        _PeriodToggle(
-          showAllTime: _showAllTime,
-          onChanged: (v) => setState(() => _showAllTime = v),
+        GlassSegmented(
+          segments: const [
+            (label: 'Today', icon: null),
+            (label: 'All', icon: null),
+          ],
+          selectedIndex: _showAllTime ? 1 : 0,
+          onChanged: (i) => setState(() => _showAllTime = i == 1),
+          height: AppSizes.controlHeight,
+          expand: false,
         ),
       ],
     );
@@ -154,77 +160,6 @@ class _ReelCounterCardState extends State<ReelCounterCard> {
             child: _AppRow(app: app, fraction: app.count / max, reduce: reduce),
           ),
       ],
-    );
-  }
-}
-
-/// Two-chip today / all-time selector with tactile press feedback.
-class _PeriodToggle extends StatelessWidget {
-  const _PeriodToggle({required this.showAllTime, required this.onChanged});
-
-  final bool showAllTime;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: context.glass.fillBottom,
-        borderRadius: AppRadius.brPill,
-        border: Border.all(color: context.glass.border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _chip(
-            context,
-            label: 'Today',
-            selected: !showAllTime,
-            onTap: () => onChanged(false),
-          ),
-          _chip(
-            context,
-            label: 'All',
-            selected: showAllTime,
-            onTap: () => onChanged(true),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _chip(
-    BuildContext context, {
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    final text = Theme.of(context).textTheme;
-    final accent = Theme.of(context).colorScheme.secondary;
-    return AppPressable(
-      onTap: onTap,
-      selected: selected,
-      child: AnimatedContainer(
-        duration: AppDurations.fast,
-        curve: AppCurves.standard,
-        alignment: Alignment.center,
-        constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-        decoration: BoxDecoration(
-          color: selected
-              ? accent.withValues(alpha: 0.22)
-              : Colors.transparent,
-          borderRadius: AppRadius.brPill,
-        ),
-        child: Text(
-          label,
-          style: text.labelMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-            color: selected ? accent : context.glass.onGlassMuted,
-          ),
-        ),
-      ),
     );
   }
 }
