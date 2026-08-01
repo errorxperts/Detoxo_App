@@ -208,6 +208,14 @@ analytics, content-counter appearance) are reached via routes.
 needing cubits stays inline in `dashboard_tab.dart` as a private `_Xxx` widget
 while its presentational half lives in `presentation/widgets/`.
 
+`ModeSelector` (`presentation/widgets/mode_selector.dart`) is the horizontally
+scrolling strip of five mode pills. Each pill is an illustration "coin" over its
+label: the mode's `assets/images/illustration/*.png` clipped to a ring-lit circle
+— the same artwork its feature-tour step shows. The art is full-colour on an
+opaque backdrop, so the circular clip is what turns it into an icon, and the
+inactive state dims/shrinks the coin rather than tinting it. Every decode is
+capped with `cacheWidth` (the source art is 1024²).
+
 `BlockerSection` (`presentation/widgets/blocker_section.dart`) is the exception
 that owns its own data: it renders the App Blocker / Web Blocker pair as two
 `BlockerTile`s and reads the live entry counts itself. Both blocker cubits are

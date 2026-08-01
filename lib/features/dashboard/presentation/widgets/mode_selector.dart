@@ -1,5 +1,6 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/reel_session_state.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 /// The five blocking modes. Order = the two sticky **base** modes and Pause
@@ -7,9 +8,10 @@ import 'package:flutter/material.dart';
 /// the count-based override modes.
 enum DashboardMode { blockAll, conscious, pause, oneReel, unblock }
 
-/// The blocking-mode picker: a horizontally-scrolling row of pill cells (an icon
-/// over a label; the active cell fills with a primary→secondary gradient pill).
-/// All five modes fit by scrolling sideways within one glass strip.
+/// The blocking-mode picker: a horizontally-scrolling row of pill cells (a
+/// glossy illustration "coin" over a label; the active cell fills with a
+/// primary→secondary gradient pill). All five modes fit by scrolling sideways
+/// within one glass strip.
 class ModeSelector extends StatelessWidget {
   const ModeSelector({
     required this.selected,
@@ -72,56 +74,56 @@ class ModeSelector extends StatelessWidget {
 
   /// The live "N" remaining badge for the active One Reel / Unblock pill.
   int? _badgeFor(DashboardMode mode) {
-    final isReel =
-        mode == DashboardMode.oneReel || mode == DashboardMode.unblock;
+    final isReel = mode == DashboardMode.oneReel || mode == DashboardMode.unblock;
     if (isReel && selected == mode && reelSession.active) {
       return reelSession.remaining;
     }
     return null;
   }
 
-  Widget _decorate(DashboardMode mode, Widget cell) =>
-      showcaseBuilder?.call(mode, cell) ?? cell;
+  Widget _decorate(DashboardMode mode, Widget cell) => showcaseBuilder?.call(mode, cell) ?? cell;
 }
 
-/// Static per-mode presentation (icon, label).
+/// Static per-mode presentation (illustration asset, label).
 class _ModeSpec {
-  const _ModeSpec({
-    required this.mode,
-    required this.icon,
-    required this.label,
-  });
+  const _ModeSpec({required this.mode, required this.image, required this.label});
 
   final DashboardMode mode;
-  final AppIcon icon;
+
+  /// Illustration asset path — the same artwork the feature tour shows.
+  final String image;
   final String label;
 }
 
-const _modeSpecs = <_ModeSpec>[
+final _modeSpecs = <_ModeSpec>[
   _ModeSpec(
     mode: DashboardMode.blockAll,
-    icon: AppIcon.ban,
+    image: Assets.images.illustration.block.path,
     label: 'Block All',
   ),
   _ModeSpec(
     mode: DashboardMode.conscious,
-    icon: AppIcon.shieldCheck,
+    image: Assets.images.illustration.conscious.path,
     label: 'Conscious',
   ),
-  _ModeSpec(mode: DashboardMode.pause, icon: AppIcon.pause, label: 'Pause'),
+  _ModeSpec(
+    mode: DashboardMode.pause,
+    image: Assets.images.illustration.countdown.path,
+    label: 'Pause',
+  ),
   _ModeSpec(
     mode: DashboardMode.oneReel,
-    icon: AppIcon.oneReel,
+    image: Assets.images.illustration.oneReel.path,
     label: 'One Reel',
   ),
   _ModeSpec(
     mode: DashboardMode.unblock,
-    icon: AppIcon.unblock,
+    image: Assets.images.illustration.timer.path,
     label: 'Unblock',
   ),
 ];
 
-class _ModeCell extends StatefulWidget {
+class _ModeCell extends StatelessWidget {
   const _ModeCell({
     required this.spec,
     required this.selected,
@@ -141,57 +143,30 @@ class _ModeCell extends StatefulWidget {
   /// Fixed pill width so cells read as pills and scroll sideways.
   static const double _width = 92;
 
-  @override
-  State<_ModeCell> createState() => _ModeCellState();
-}
-
-class _ModeCellState extends State<_ModeCell> {
-  final AnimatedIconController _controller = AnimatedIconController();
-
-  bool get _reduceMotion =>
-      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-
-  @override
-  void didUpdateWidget(_ModeCell old) {
-    super.didUpdateWidget(old);
-    if (widget.selected && !old.selected && !_reduceMotion) {
-      _controller.animate();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   void _onTap() {
     AppHaptics.selection();
-    widget.onTap();
+    onTap();
   }
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
-    final selected = widget.selected;
     final fg = selected
         ? scheme.onPrimary
-        : scheme.onSurfaceVariant.withValues(
-            alpha: widget.enabled ? 0.7 : 0.35,
-          );
+        : scheme.onSurfaceVariant.withValues(alpha: enabled ? 0.7 : 0.35);
 
     return AppPressable(
       onTap: _onTap,
-      enabled: widget.enabled,
+      enabled: enabled,
       selected: selected,
       haptic: false, // _onTap already fires a selection click
       child: SizedBox(
-        width: _ModeCell._width,
+        width: _width,
         child: AnimatedContainer(
           duration: AppDurations.fast,
           curve: AppCurves.standard,
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs, horizontal: AppSpacing.xxs),
           decoration: BoxDecoration(
             gradient: selected
                 ? LinearGradient(
@@ -214,15 +189,14 @@ class _ModeCellState extends State<_ModeCell> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _IconWithBadge(
-                icon: widget.spec.icon,
-                color: fg,
-                controller: _controller,
-                badge: widget.badge,
+              _ModeArt(
+                image: spec.image,
+                selected: selected,
+                enabled: enabled,
+                badge: badge,
               ),
-              const SizedBox(height: AppSpacing.xxs),
               Text(
-                widget.spec.label,
+                spec.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: text.labelSmall?.copyWith(
@@ -239,36 +213,54 @@ class _ModeCellState extends State<_ModeCell> {
   }
 }
 
-/// The pill's animated glyph with an optional accent "N" badge (remaining reels).
-class _IconWithBadge extends StatelessWidget {
-  const _IconWithBadge({
-    required this.icon,
-    required this.color,
-    required this.controller,
+/// The pill's illustration "coin": the mode's artwork clipped to a ring-lit
+/// circle (the source art is a glow on an opaque backdrop, so a circular clip
+/// is what turns it into an icon), with an optional accent "N" badge.
+///
+/// The inactive state dims and shrinks the coin instead of tinting it — the
+/// artwork is full-colour, so a colour filter is not available as the
+/// selected/unselected signal.
+class _ModeArt extends StatelessWidget {
+  const _ModeArt({
+    required this.image,
+    required this.selected,
+    required this.enabled,
     this.badge,
   });
 
-  final AppIcon icon;
-  final Color color;
-  final AnimatedIconController controller;
+  final String image;
+  final bool selected;
+  final bool enabled;
   final int? badge;
+
+  static const double _size = 50;
+
+  /// Decode cap for the 1024² source art — without it every pill would pin
+  /// ~4 MB of bitmap for a 50dp icon.
+  static const int _cacheWidth = 150;
 
   @override
   Widget build(BuildContext context) {
-    final glyph = AppAnimatedIcon(
-      icon: icon,
-      size: 20,
-      color: color,
-      controller: controller,
+    final coin = AnimatedScale(
+      scale: selected ? 1 : .8,
+      duration: AppDurations.fast,
+      curve: AppCurves.standard,
+      child: Image.asset(
+        image,
+        height: _size,
+        cacheWidth: _cacheWidth,
+        opacity: AlwaysStoppedAnimation(enabled ? (selected ? 1.0 : 0.72) : 0.3),
+      ),
     );
-    if (badge == null) return glyph;
+
+    if (badge == null) return coin;
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        glyph,
+        coin,
         Positioned(
-          top: -6,
-          right: -10,
+          top: -4,
+          right: -8,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
             decoration: BoxDecoration(

@@ -42,8 +42,7 @@ const int featureShowcaseStepCount = 7;
 final List<ShowcaseStep> featureShowcaseSteps = [
   ShowcaseStep(
     key: FeatureShowcaseKeys.blockAll,
-    lottieAsset: Assets.lottie.nope,
-    fallbackIcon: AppIcon.ban,
+    image: Assets.images.illustration.block.path,
     tone: AppTone.danger,
     title: 'Block All',
     body:
@@ -52,8 +51,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.conscious,
-    lottieAsset: Assets.lottie.thinking,
-    fallbackIcon: AppIcon.shieldCheck,
+    image: Assets.images.illustration.conscious.path,
     tone: AppTone.accent,
     title: 'Conscious',
     body:
@@ -62,8 +60,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.pause,
-    lottieAsset: Assets.lottie.plsWait,
-    fallbackIcon: AppIcon.pause,
+    image: Assets.images.illustration.pause.path,
     tone: AppTone.warning,
     title: 'Pause',
     body:
@@ -72,8 +69,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.oneReel,
-    lottieAsset: Assets.lottie.like,
-    fallbackIcon: AppIcon.oneReel,
+    image: Assets.images.illustration.oneReel.path,
     tone: AppTone.accent,
     title: 'One Reel',
     body:
@@ -83,8 +79,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.unblock,
-    lottieAsset: Assets.lottie.horray,
-    fallbackIcon: AppIcon.unblock,
+    image: Assets.images.illustration.unlock.path,
     tone: AppTone.success,
     title: 'Unblock',
     body:
@@ -94,8 +89,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.appBlocker,
-    lottieAsset: Assets.lottie.handUp,
-    fallbackIcon: AppIcon.appBlocker,
+    image: Assets.images.illustration.appBlock.path,
     tone: AppTone.accent,
     title: 'App Blocker',
     body:
@@ -104,8 +98,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.webBlocker,
-    lottieAsset: Assets.lottie.glasses,
-    fallbackIcon: AppIcon.websiteBlocker,
+    image: Assets.images.illustration.webBlock.path,
     tone: AppTone.success,
     title: 'Web Blocker',
     body:

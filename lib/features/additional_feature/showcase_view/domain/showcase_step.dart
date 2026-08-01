@@ -4,29 +4,29 @@ import 'package:flutter/widgets.dart';
 /// Immutable description of one step in the feature showcase / walkthrough.
 ///
 /// Each step binds a [key] (attached to the highlighted dashboard widget) to the
-/// content shown in its glass tooltip: a small Lottie animation, a [title], a
-/// [body], a semantic [tone] that colours the badge and progress dot, and a
-/// Lucide [fallbackIcon] used when the Lottie asset can't be decoded.
+/// content shown in its glass tooltip: a feature badge ([image] artwork, or an
+/// [icon] glyph where no artwork exists), a [title], a [body], and a semantic
+/// [tone] that colours the badge and progress dot.
 @immutable
 class ShowcaseStep {
   const ShowcaseStep({
     required this.key,
-    required this.lottieAsset,
-    required this.fallbackIcon,
     required this.tone,
     required this.title,
     required this.body,
-  });
+    this.image,
+    this.icon,
+  }) : assert(image != null || icon != null, 'Provide an image or an icon');
 
   /// The showcase target key — attach this to the widget being highlighted.
   final GlobalKey key;
 
-  /// Path to the Lottie asset rendered as the feature icon
-  /// (e.g. `Assets.lottie.nope`).
-  final String lottieAsset;
+  /// Illustration asset shown in the badge — the same artwork the highlighted
+  /// widget uses (e.g. `Assets.images.illustration.block.path`).
+  final String? image;
 
-  /// Animated-icon shown when [lottieAsset] fails to load.
-  final AppIcon fallbackIcon;
+  /// Animated glyph used when the step has no [image].
+  final AppIcon? icon;
 
   /// Semantic accent for the badge / active progress dot.
   final AppTone tone;

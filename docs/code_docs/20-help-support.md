@@ -67,7 +67,13 @@ offers two replayable tours:
   **Unblock** (position 5) — in `DashboardMode` order at indices 0–4 (wrapped by
   `ModeSelector.showcaseBuilder`, which maps mode `i` → `featureShowcaseSteps[i]`; `oneReel` and
   `unblock` are the two `FeatureShowcaseKeys` added here) — then the **App Blocker** and **Web
-  Blocker** capsules at `featureShowcaseSteps[5]` / `[6]`.
+  Blocker** capsules at `featureShowcaseSteps[5]` / `[6]`. Each step's badge shows the same
+  artwork as the widget it points at: `ShowcaseStep.image` is an
+  `assets/images/illustration/*.png` path, clipped to a circle inside a tone-lit `IconBadge`
+  (the art is a glow on an opaque backdrop, so the circular clip is what makes it an icon).
+  `ShowcaseStep.icon` is the alternative for a step with no artwork — an `AppAnimatedIcon`
+  glyph, used by the feedback coach-mark below. A step asserts that at least one is set;
+  `image` wins when both are.
 - **Feedback button** — an independent, single-step coach-mark spotlighting the **real
   top-bar feedback button** (`FeedbackActionButton`), reusing the same `ShowcaseTooltipCard`
   and glass theme as the dashboard tour. Because that button is hidden while
@@ -158,6 +164,7 @@ Both tiles push the same reusable
 - `lib/core/constants/app_constants.dart` (`AppLegal` URLs)
 - `pubspec.yaml` (`webview_flutter` dependency)
 - `lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart` (7-step keys/order/content)
+- `lib/features/additional_feature/showcase_view/domain/showcase_step.dart` (`image` / `icon` badge art)
 - `lib/features/additional_feature/showcase_view/presentation/feature_showcase.dart` (scoped-tour helpers)
 - `lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart` (optional `scope`)
 - `lib/features/additional_feature/showcase_view/showcase_view.dart` (barrel doc)

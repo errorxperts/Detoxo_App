@@ -100,7 +100,7 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 | `showcaseview` | `^5.1.0` | **Wired** | Onboarding coach-marks / feature tour (`lib/features/additional_feature/showcase_view/`). |
 | `flutter_svg` | `^2.3.0` | **Wired** (2 files) | Renders bundled SVG art. |
 | `cached_network_image` | `^3.4.1` | **Wired** | Remote-icon fallback in `AppIconAvatar` (`app_icon_avatar.dart`, used by blocklist tiles + the reel-counter card). App icons now ship **locally** in `assets/images/social_icon_pack/`; this only handles `http…` `iconUrl`s from remote config. |
-| `lottie_tgs` | (no version pin) | **Wired** | Lottie/TGS animation rendering — showcase step icons (`showcase_lottie_icon.dart`) and onboarding illustrations. Chosen over stock `lottie` for TGS support. |
+| `lottie_tgs` | (no version pin) | **Declared, not wired** | Lottie/TGS rendering. No longer imported anywhere in `lib/`: onboarding heroes are coded from the design system and the showcase tour now uses the PNG illustrations in `assets/images/illustration/`. Kept (over stock `lottie`) for TGS support if animated art returns; otherwise a cleanup candidate along with `assets/lottie/`. |
 | `intl` | `^0.20.2` | **Wired** (2 files) | Number/date formatting and localisation-safe strings. |
 
 ---
@@ -223,7 +223,6 @@ supported on iOS** — see [00-index.md](00-index.md).)
 - `lib/gen/assets.gen.dart`
 - `lib/core/design_system/adaptive/adaptive_controls.dart`
 - `lib/core/design_system/foundations/animated_icons.dart`
-- `lib/features/additional_feature/showcase_view/presentation/widgets/showcase_lottie_icon.dart`
 - `lib/features/onboarding/presentation/onboarding_screen.dart`
 - `lib/features/blocking/blocklist/presentation/widgets/block_app_tile.dart`
 - `lib/features/content_counter/content_counter_core/presentation/widgets/reel_counter_card.dart`

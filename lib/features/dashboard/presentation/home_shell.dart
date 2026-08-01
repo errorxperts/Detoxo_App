@@ -74,14 +74,13 @@ class _HomeShellState extends State<HomeShell> {
           borderRadius: AppRadius.brPill,
           barColor: Colors.transparent,
           width: barWidth,
-          offset: AppSpacing.sm + bottomInset,
+          offset: bottomInset,
           duration: AppDurations.normal,
           curve: AppCurves.standard,
           showIcon: false,
           body: (context, controller) => buildFeatureShowcaseScope(
             // Persist on finish AND dismiss so a skipped tour is remembered too.
-            onSeen: () =>
-                context.read<SettingsCubit>().setShowcaseSeen(value: true),
+            onSeen: () => context.read<SettingsCubit>().setShowcaseSeen(value: true),
             child: SafeArea(bottom: false, child: _tab(controller)),
           ),
           child: GlassContainer(
@@ -136,8 +135,7 @@ class _NavPillItem extends StatefulWidget {
 class _NavPillItemState extends State<_NavPillItem> {
   final AnimatedIconController _controller = AnimatedIconController();
 
-  bool get _reduceMotion =>
-      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+  bool get _reduceMotion => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
   @override
   void initState() {
@@ -168,9 +166,7 @@ class _NavPillItemState extends State<_NavPillItem> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final iconColor = widget.selected
-        ? scheme.onPrimary
-        : scheme.onSurfaceVariant;
+    final iconColor = widget.selected ? scheme.onPrimary : scheme.onSurfaceVariant;
     return Semantics(
       button: true,
       selected: widget.selected,

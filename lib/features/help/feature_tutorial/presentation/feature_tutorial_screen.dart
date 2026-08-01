@@ -6,7 +6,6 @@ import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dart';
 import 'package:detoxo/features/additional_feature/showcase_view/showcase_view.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -33,8 +32,7 @@ class FeatureTutorialScreen extends StatefulWidget {
 class _FeatureTutorialScreenState extends State<FeatureTutorialScreen> {
   late final ShowcaseStep _feedbackStep = ShowcaseStep(
     key: _feedbackHelpKey,
-    lottieAsset: Assets.lottie.like,
-    fallbackIcon: AppIcon.info,
+    icon: AppIcon.info,
     tone: AppTone.accent,
     title: 'Feedback button',
     body:

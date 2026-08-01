@@ -258,21 +258,25 @@ class $AssetsImagesBgGen {
 class $AssetsImagesIllustrationGen {
   const $AssetsImagesIllustrationGen();
 
-  /// File path: assets/images/illustration/analizer.png
-  AssetGenImage get analizer =>
-      const AssetGenImage('assets/images/illustration/analizer.png');
+  /// File path: assets/images/illustration/Daily_limit.png
+  AssetGenImage get dailyLimit =>
+      const AssetGenImage('assets/images/illustration/Daily_limit.png');
+
+  /// File path: assets/images/illustration/activity.png
+  AssetGenImage get activity =>
+      const AssetGenImage('assets/images/illustration/activity.png');
 
   /// File path: assets/images/illustration/app_block.png
   AssetGenImage get appBlock =>
       const AssetGenImage('assets/images/illustration/app_block.png');
 
+  /// File path: assets/images/illustration/appearance.png
+  AssetGenImage get appearance =>
+      const AssetGenImage('assets/images/illustration/appearance.png');
+
   /// File path: assets/images/illustration/block.png
   AssetGenImage get block =>
       const AssetGenImage('assets/images/illustration/block.png');
-
-  /// File path: assets/images/illustration/block_form.png
-  AssetGenImage get blockForm =>
-      const AssetGenImage('assets/images/illustration/block_form.png');
 
   /// File path: assets/images/illustration/clock_circular.png
   AssetGenImage get clockCircular =>
@@ -281,6 +285,14 @@ class $AssetsImagesIllustrationGen {
   /// File path: assets/images/illustration/clock_squre.png
   AssetGenImage get clockSqure =>
       const AssetGenImage('assets/images/illustration/clock_squre.png');
+
+  /// File path: assets/images/illustration/conscious.png
+  AssetGenImage get conscious =>
+      const AssetGenImage('assets/images/illustration/conscious.png');
+
+  /// File path: assets/images/illustration/countdown.png
+  AssetGenImage get countdown =>
+      const AssetGenImage('assets/images/illustration/countdown.png');
 
   /// File path: assets/images/illustration/globe.png
   AssetGenImage get globe =>
@@ -294,13 +306,13 @@ class $AssetsImagesIllustrationGen {
   AssetGenImage get lockPro =>
       const AssetGenImage('assets/images/illustration/lock_pro.png');
 
-  /// File path: assets/images/illustration/manu.png
-  AssetGenImage get manu =>
-      const AssetGenImage('assets/images/illustration/manu.png');
+  /// File path: assets/images/illustration/one_reel.png
+  AssetGenImage get oneReel =>
+      const AssetGenImage('assets/images/illustration/one_reel.png');
 
-  /// File path: assets/images/illustration/mind.png
-  AssetGenImage get mind =>
-      const AssetGenImage('assets/images/illustration/mind.png');
+  /// File path: assets/images/illustration/pause.png
+  AssetGenImage get pause =>
+      const AssetGenImage('assets/images/illustration/pause.png');
 
   /// File path: assets/images/illustration/phone_lock.png
   AssetGenImage get phoneLock =>
@@ -318,27 +330,50 @@ class $AssetsImagesIllustrationGen {
   AssetGenImage get progessGraph =>
       const AssetGenImage('assets/images/illustration/progess_graph.png');
 
+  /// File path: assets/images/illustration/protection_status.png
+  AssetGenImage get protectionStatus =>
+      const AssetGenImage('assets/images/illustration/protection_status.png');
+
+  /// File path: assets/images/illustration/setting.png
+  AssetGenImage get setting =>
+      const AssetGenImage('assets/images/illustration/setting.png');
+
+  /// File path: assets/images/illustration/timer.png
+  AssetGenImage get timer =>
+      const AssetGenImage('assets/images/illustration/timer.png');
+
+  /// File path: assets/images/illustration/unlock.png
+  AssetGenImage get unlock =>
+      const AssetGenImage('assets/images/illustration/unlock.png');
+
   /// File path: assets/images/illustration/web_block.png
   AssetGenImage get webBlock =>
       const AssetGenImage('assets/images/illustration/web_block.png');
 
   /// List of all assets
   List<AssetGenImage> get values => [
-    analizer,
+    dailyLimit,
+    activity,
     appBlock,
+    appearance,
     block,
-    blockForm,
     clockCircular,
     clockSqure,
+    conscious,
+    countdown,
     globe,
     lock,
     lockPro,
-    manu,
-    mind,
+    oneReel,
+    pause,
     phoneLock,
     phonePassword,
     phoneProtact,
     progessGraph,
+    protectionStatus,
+    setting,
+    timer,
+    unlock,
     webBlock,
   ];
 }
