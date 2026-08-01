@@ -12,43 +12,6 @@ import 'package:flutter/material.dart';
 /// into their `color`/`tint`. `CNIcon` is never used — it has no Android
 /// fallback and would crash; [AdaptiveIcon] is a plain Material `Icon`.
 
-/// Native `UISwitch` on iOS, Material `Switch` on Android.
-class AdaptiveSwitch extends StatelessWidget {
-  const AdaptiveSwitch({
-    required this.value,
-    required this.onChanged,
-    this.enabled = true,
-    this.activeColor,
-    super.key,
-  });
-
-  final bool value;
-  final ValueChanged<bool>? onChanged;
-  final bool enabled;
-
-  /// Active-track tint. Defaults to the live (background-adaptive) brand accent.
-  final Color? activeColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final on = enabled && onChanged != null;
-    final tint = activeColor ?? Theme.of(context).colorScheme.secondary;
-    if (PlatformAdaptive.useCupertino) {
-      return CNSwitch(
-        value: value,
-        enabled: on,
-        color: tint,
-        onChanged: on ? onChanged! : (_) {},
-      );
-    }
-    return Switch(
-      value: value,
-      onChanged: on ? onChanged : null,
-      activeTrackColor: tint,
-    );
-  }
-}
-
 /// Native segmented control on iOS, Material `SegmentedButton` on Android.
 class AdaptiveSegmentedControl extends StatelessWidget {
   const AdaptiveSegmentedControl({

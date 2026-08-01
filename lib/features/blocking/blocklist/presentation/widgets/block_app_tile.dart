@@ -66,7 +66,7 @@ class _BlockAppTileState extends State<BlockAppTile> {
     if (group.isSingle) {
       final t = group.surfaces.first;
       return _padded(
-        AdaptiveSwitchTile(
+        AppToggleTile(
           leading: AppIconAvatar(
             iconUrl: group.iconUrl,
             appName: group.appName,
@@ -188,7 +188,7 @@ class _BlockAppTileState extends State<BlockAppTile> {
               children: [
                 Expanded(child: Text(t.displayName, style: text.bodyMedium)),
                 const SizedBox(width: AppSpacing.sm),
-                AdaptiveSwitch(
+                AppToggle(
                   value: widget.enabledIds.contains(t.platformId),
                   onChanged: (v) => widget.onToggle(t.platformId, enabled: v),
                 ),

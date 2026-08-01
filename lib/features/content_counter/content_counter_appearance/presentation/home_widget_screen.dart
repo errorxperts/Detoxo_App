@@ -133,28 +133,28 @@ class _BodyState extends State<_Body> {
             ),
             const SizedBox(height: AppSpacing.md),
             const SectionHeader('Show'),
-            AdaptiveSwitchTile(
+            AppToggleTile(
               leading: const IconBadge(icon: Icons.today_rounded),
               title: 'Today’s count',
               value: style.showToday,
               onChanged: (v) => _setStyle(style.copyWith(showToday: v)),
             ),
             const SizedBox(height: AppSpacing.sm),
-            AdaptiveSwitchTile(
+            AppToggleTile(
               leading: const IconBadge(icon: Icons.label_outline_rounded),
               title: '“reels today” label',
               value: style.showLabel,
               onChanged: (v) => _setStyle(style.copyWith(showLabel: v)),
             ),
             const SizedBox(height: AppSpacing.sm),
-            AdaptiveSwitchTile(
+            AppToggleTile(
               leading: const IconBadge(icon: Icons.functions_rounded),
               title: 'All-time total',
               value: style.showTotal,
               onChanged: (v) => _setStyle(style.copyWith(showTotal: v)),
             ),
             const SizedBox(height: AppSpacing.sm),
-            AdaptiveSwitchTile(
+            AppToggleTile(
               leading: const IconBadge(icon: Icons.palette_outlined),
               title: 'Color by usage',
               subtitle: 'Tint the count green→red as you watch more',

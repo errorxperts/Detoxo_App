@@ -148,14 +148,14 @@ class _BodyState extends State<_Body> {
               onChanged: (v) => _setStyle(style.copyWith(opacity: v)),
             ),
             const SizedBox(height: AppSpacing.xs),
-            AdaptiveSwitchTile(
+            AppToggleTile(
               leading: const IconBadge(icon: Icons.short_text_rounded),
               title: 'Show caption',
               subtitle: 'A tiny “reels” label under the count',
               value: style.showLabel,
               onChanged: (v) => _setStyle(style.copyWith(showLabel: v)),
             ),
-            AdaptiveSwitchTile(
+            AppToggleTile(
               leading: const IconBadge(icon: Icons.schedule_rounded),
               title: 'Show time on tap',
               subtitle: 'Tap the bubble to reveal today’s watch time '

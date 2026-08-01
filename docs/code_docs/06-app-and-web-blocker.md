@@ -236,7 +236,7 @@ blocker"**. `BlocConsumer` surfaces transient `error` strings as a toast. Layout
 - **Stats dashboard** (`_StatsSection`) — three `StatCard`s (Blocked today,
   Total blocked, Focus saved [min]) plus a "Most blocked" line; only shown when
   `state.hasStats`.
-- **Protection** — two `AdaptiveSwitchTile`s: "Block websites of blocked apps"
+- **Protection** — two `AppToggleTile`s: "Block websites of blocked apps"
   (`setBlockForApps`) and "Block adult content (18+)" (`setBlockAdult`).
 - **Popular sites** — `AppChip`s from `PopularSites.all` split across two rows
   inside one horizontal `SingleChildScrollView` (both rows scroll together);

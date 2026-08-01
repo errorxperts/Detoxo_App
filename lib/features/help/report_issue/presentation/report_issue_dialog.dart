@@ -52,7 +52,7 @@ class _FeedbackButtonToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, AppSettings>(
       builder: (context, settings) {
-        return AdaptiveSwitchTile(
+        return AppToggleTile(
           leading: Icon(
             Icons.feedback_outlined,
             color: Theme.of(context).colorScheme.secondary,

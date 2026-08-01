@@ -434,7 +434,7 @@ background, reached from the drawer and Settings. There is no longer a standalon
 
 - `BubbleStyleScreen` — variant carousel + live preview + size/text/spacing/
   opacity sliders + a "Show caption" toggle and a **"Show time on tap"**
-  `AdaptiveSwitchTile` (drives `showTime`); when that toggle is on, an **"On
+  `AppToggleTile` (drives `showTime`); when that toggle is on, an **"On
   single tap"** demo card renders the tap-reveal at the real today-watch-time
   via `BubblePreview(time: …)` (the preview mirror gained a `time` param +
   `formatBubbleClock`, matching native `formatMs`). A "Preview count" slider

@@ -26,7 +26,7 @@ scattered across the blocking config models, one design-system pill, one reserve
 | Ad slot config | `Map<String, AdSlotModel> admobConfig` | Parsed, **never consumed** |
 | Premium-exclusive notices | `InAppNotificationModel.premiumExclusive` | Parsed, **never consumed** |
 | Dev-unlock flag | `StoreKeys.premiumDevUnlock` (`'premium_dev_unlock'`) | **Declared only** — no read/write, no UI |
-| "Premium" lock pill | `AdaptiveSwitchTile.locked` → `Pill(label: 'Premium')` | Scaffolding, **never triggered** |
+| "Premium" lock pill | `AppToggleTile.locked` → `Pill(label: 'Premium')` | Scaffolding, **never triggered** |
 | Premium/crown icon | `AppIcon.premium` → `CrownIcon` | Defined, **never referenced** |
 | AdMob app id | `AndroidManifest.xml` meta-data (Google **test** id) | Metadata only, no init |
 | Ads SDK | `google_mobile_ads` (pubspec) | Plugin auto-registered, **dormant** |
@@ -95,7 +95,7 @@ return BlockTarget(
 ```
 
 But `BlockTarget.premiumExclusive` is a **dead read**: nothing consumes it. The
-blocklist tile (`block_app_tile.dart`) builds an `AdaptiveSwitchTile` from a target
+blocklist tile (`block_app_tile.dart`) builds an `AppToggleTile` from a target
 and never passes `locked:` — so a "premium-exclusive" platform renders as a normal,
 fully-usable toggle. No app or platform is actually gated at runtime.
 
@@ -159,7 +159,7 @@ See [09-persistence-data-model.md](09-persistence-data-model.md).
 
 The design system ships the *visual* language for gating, but nothing drives it.
 
-### `AdaptiveSwitchTile.locked`
+### `AppToggleTile.locked`
 
 `lib/core/design_system/components/list_tiles.dart` defines a switch row that swaps
 its trailing switch for a lock pill when `locked` is `true`:
@@ -167,7 +167,7 @@ its trailing switch for a lock pill when `locked` is `true`:
 ```dart
 final trailing = locked
     ? const Pill(label: 'Premium', tone: AppTone.warning, icon: Icons.lock_outline)
-    : AdaptiveSwitch(value: value, onChanged: onChanged, enabled: enabled);
+    : AppToggle(value: value, onChanged: onChanged, enabled: enabled);
 return GlassListTile(
   ..., trailing: trailing, onTap: locked ? onLockedTap : null,
 );
@@ -184,7 +184,7 @@ entitlement) is the intended hook — see §2 for the missing read.
 The reusable status chip (`lib/core/design_system/components/badges.dart`,
 `class Pill`) supports a `'Premium'` label with `AppTone.warning`. It is a generic
 component ("Required" / "Premium" / "Active"); the only premium usage is the inert
-`AdaptiveSwitchTile.locked` branch above.
+`AppToggleTile.locked` branch above.
 
 ### `AppIcon.premium` / `CrownIcon`
 
@@ -287,10 +287,10 @@ ship locally in `assets/images/social_icon_pack/`). Do not go live on this bundl
 - `lib/features/blocking/shared/data/models/platform_config_model.dart` (`PlatformModel.premiumExclusive`)
 - `lib/features/blocking/shared/domain/entities/block_target.dart` (`BlockTarget.premiumExclusive`)
 - `lib/features/blocking/shared/data/repositories/config_repository_impl.dart` (copies `premiumExclusive`; consumes only `inappNotification`)
-- `lib/core/design_system/components/list_tiles.dart` (`AdaptiveSwitchTile.locked` → `Pill('Premium')`)
+- `lib/core/design_system/components/list_tiles.dart` (`AppToggleTile.locked` → `Pill('Premium')`)
 - `lib/core/design_system/components/badges.dart` (`Pill`)
 - `lib/core/design_system/foundations/animated_icons.dart` (`AppIcon.premium` → `CrownIcon`)
-- `lib/features/blocking/blocklist/presentation/widgets/block_app_tile.dart` (uses `AdaptiveSwitchTile`, never `locked`)
+- `lib/features/blocking/blocklist/presentation/widgets/block_app_tile.dart` (uses `AppToggleTile`, never `locked`)
 - `assets/config/initial_config.json` (bundled `admobConfig` / `activePlanDetails` / `premiumPurchaseCTA` — carries stale old-app values)
 - `pubspec.yaml` (`google_mobile_ads: ^8.0.0`, `in_app_purchase: ^3.3.0`)
 - `android/app/src/main/AndroidManifest.xml` (AdMob test `APPLICATION_ID`, `AD_ID` + `com.android.vending.BILLING` permissions)

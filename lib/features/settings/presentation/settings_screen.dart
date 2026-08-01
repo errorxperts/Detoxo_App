@@ -143,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   onTap: _openBlockMode,
                 ),
                 _Spaced(
-                  AdaptiveSwitchTile(
+                  AppToggleTile(
                     leading: Icon(
                       Icons.shield_outlined,
                       color: accent,
@@ -157,7 +157,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
 
                 _Spaced(
-                  AdaptiveSwitchTile(
+                  AppToggleTile(
                     leading: Icon(
                       Icons.vibration,
                       color: accent,
@@ -184,7 +184,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                   onTap: () => context.push(Routes.appearance),
                 ),
                 _Spaced(
-                  AdaptiveSwitchTile(
+                  AppToggleTile(
                     leading: Icon(
                       Icons.feedback_outlined,
                       color: accent,
@@ -411,7 +411,7 @@ class _PinTile extends StatelessWidget {
         return Column(
           children: [
             _Spaced(
-              AdaptiveSwitchTile(
+              AppToggleTile(
                 leading: Icon(
                   Icons.lock_outline,
                   color: Theme.of(context).colorScheme.secondary,

@@ -253,7 +253,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
             ),
             if (_biometricAvailable) ...[
               const SectionHeader('Convenience'),
-              AdaptiveSwitchTile(
+              AppToggleTile(
                 leading: Icon(Icons.fingerprint, color: accent),
                 title: 'Allow biometric unlock',
                 subtitle: 'Use fingerprint / face to unlock',
@@ -281,7 +281,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
 
   Widget _scopeTile(PinScope scope, String label, String subtitle) => Padding(
     padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-    child: AdaptiveSwitchTile(
+    child: AppToggleTile(
       title: label,
       subtitle: subtitle,
       value: _scopes.contains(scope),

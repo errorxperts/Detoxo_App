@@ -207,7 +207,7 @@ class _ProtectionTiles extends StatelessWidget {
     final cubit = context.read<WebBlockCubit>();
     return Column(
       children: [
-        AdaptiveSwitchTile(
+        AppToggleTile(
           title: 'Block websites of blocked apps',
           leading: const IconBadge(
             icon: Icons.apps_outlined,
@@ -218,7 +218,7 @@ class _ProtectionTiles extends StatelessWidget {
           onChanged: (v) => cubit.setBlockForApps(value: v),
         ),
         const SizedBox(height: AppSpacing.sm),
-        AdaptiveSwitchTile(
+        AppToggleTile(
           title: 'Block adult content (18+)',
           leading: const IconBadge(
             icon: Icons.shield_outlined,

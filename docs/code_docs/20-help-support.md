@@ -30,7 +30,7 @@ share**, and **Legal** section headers:
 
 [`ReportIssueDialog.show(context)`](../../lib/features/help/report_issue/presentation/report_issue_dialog.dart)
 is a glass `AppDialog` (presentation-only). It explains the bug-report flow, hosts a live
-`AdaptiveSwitchTile` bound to `settings.showFeedbackButton`
+`AppToggleTile` bound to `settings.showFeedbackButton`
 (`SettingsCubit.setShowFeedbackButton`), and offers **Report a bug now** which pops the dialog
 and calls `FeedbackLauncher.show(context)` — the app-wide `BetterFeedback` overlay captures the
 underlying screen, so the annotated screenshot is of the real screen, not the dialog. Delivery

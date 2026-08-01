@@ -122,7 +122,7 @@ class _AppearanceScreenState extends State<AppearanceScreen> {
 
           // ── Reel counter: master switch + the two surfaces as cards ─────
           const SectionHeader('Reel counter'),
-          AdaptiveSwitchTile(
+          AppToggleTile(
             leading: const IconBadge(icon: Icons.movie_filter_rounded),
             title: 'Count short videos',
             value: _counterOn,

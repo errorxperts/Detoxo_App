@@ -1,5 +1,5 @@
-import 'package:detoxo/core/design_system/adaptive/adaptive_controls.dart';
 import 'package:detoxo/core/design_system/components/badges.dart';
+import 'package:detoxo/core/design_system/components/toggle.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
@@ -59,11 +59,11 @@ class GlassListTile extends StatelessWidget {
   }
 }
 
-/// A labelled row with a trailing adaptive switch. When [locked], shows a
+/// A labelled row with a trailing [AppToggle]. When [locked], shows a
 /// "Premium" pill in the same trailing slot instead of the switch — keeping
 /// every row in a list visually consistent (fixes the blocklist inconsistency).
-class AdaptiveSwitchTile extends StatelessWidget {
-  const AdaptiveSwitchTile({
+class AppToggleTile extends StatelessWidget {
+  const AppToggleTile({
     required this.title,
     required this.value, required this.onChanged, this.subtitle,
     this.leading,
@@ -90,7 +90,7 @@ class AdaptiveSwitchTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final trailing = locked
         ? const Pill(label: 'Premium', tone: AppTone.warning, icon: Icons.lock_outline)
-        : AdaptiveSwitch(value: value, onChanged: onChanged, enabled: enabled);
+        : AppToggle(value: value, onChanged: onChanged, enabled: enabled);
     return GlassListTile(
       leading: leading,
       title: title,
