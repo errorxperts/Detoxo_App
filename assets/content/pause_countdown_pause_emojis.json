@@ -209,7 +209,7 @@
           "rangeMax": 60,
           "emoji": "🚨",
           "title": "Final boss timer",
-          "description": "Sixty minutes of guilt-free scrolling—then NoScroll snaps back.",
+          "description": "Sixty minutes of guilt-free scrolling—then Detoxo snaps back.",
           "animation": "SHAKE"
         }
       ]
@@ -253,7 +253,7 @@
           "rangeMax": 15,
           "emoji": "🔋",
           "title": "Charge cycle",
-          "description": "Feed the scroll beast before NoScroll reins you back.",
+          "description": "Feed the scroll beast before Detoxo reins you back.",
           "animation": "GLOW"
         },
         {
@@ -637,7 +637,7 @@
           "rangeMax": 60,
           "emoji": "🌑",
           "title": "Lights out set",
-          "description": "Go hard, then let NoScroll tuck you back in.",
+          "description": "Go hard, then let Detoxo tuck you back in.",
           "animation": "GLOW"
         }
       ]
@@ -958,7 +958,7 @@
           "rangeMax": 60,
           "emoji": "🌙",
           "title": "Midnight snack marathon",
-          "description": "Go wild, then let NoScroll snap the pantry shut.",
+          "description": "Go wild, then let Detoxo snap the pantry shut.",
           "animation": "GLOW"
         }
       ]
@@ -1279,7 +1279,7 @@
           "rangeMax": 60,
           "emoji": "⚠️",
           "title": "System restore pending",
-          "description": "NoScroll returns after max pause—save your eyes.",
+          "description": "Detoxo returns after max pause—save your eyes.",
           "animation": "SHAKE"
         }
       ]
@@ -1493,7 +1493,7 @@
           "rangeMax": 60,
           "emoji": "🐉",
           "title": "Legend boss",
-          "description": "Max pause energy—tame the scroll, then NoScroll returns.",
+          "description": "Max pause energy—tame the scroll, then Detoxo returns.",
           "animation": "GLOW"
         }
       ]

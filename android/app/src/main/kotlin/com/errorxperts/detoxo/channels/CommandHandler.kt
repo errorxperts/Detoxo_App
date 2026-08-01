@@ -287,14 +287,19 @@ class CommandHandler(
         SimpleDateFormat("dd-MM-yyyy", Locale.US).format(System.currentTimeMillis())
 
     private fun isAccessibilityEnabled(): Boolean {
-        val expected = ComponentName(
-            context, DetoxoAccessibilityService::class.java,
-        ).flattenToString()
+        val component = ComponentName(context, DetoxoAccessibilityService::class.java)
+        // Most ROMs write the long form (pkg/pkg.Class), but some OEMs write the
+        // short form (pkg/.Class). Accept either — a false "not enabled" would
+        // send an already-granted user down the restricted-settings recovery flow.
+        val long = component.flattenToString()
+        val short = component.flattenToShortString()
         val enabled = Settings.Secure.getString(
             context.contentResolver,
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
         ) ?: return false
-        return enabled.split(':').any { it.equals(expected, ignoreCase = true) }
+        return enabled.split(':').any {
+            it.equals(long, ignoreCase = true) || it.equals(short, ignoreCase = true)
+        }
     }
 
     private fun hasUsageAccess(): Boolean {

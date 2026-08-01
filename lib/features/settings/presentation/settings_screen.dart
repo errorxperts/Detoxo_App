@@ -15,6 +15,7 @@ import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_screen.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
+import 'package:detoxo/features/permissions/presentation/permission_actions.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -144,10 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 _Spaced(
                   AppToggleTile(
-                    leading: Icon(
-                      Icons.shield_outlined,
-                      color: accent,
-                    ),
+                    leading: Icon(Icons.shield_outlined, color: accent),
                     title: 'Blocking active',
                     subtitle: 'Master switch for all detection',
                     value: settings.masterEnabled,
@@ -158,10 +156,7 @@ class _SettingsScreenState extends State<SettingsScreen>
 
                 _Spaced(
                   AppToggleTile(
-                    leading: Icon(
-                      Icons.vibration,
-                      color: accent,
-                    ),
+                    leading: Icon(Icons.vibration, color: accent),
                     title: 'Vibrate on block',
                     subtitle: 'Haptic buzz each time a reel is blocked',
                     value: settings.vibrationEnabled,
@@ -185,10 +180,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                 ),
                 _Spaced(
                   AppToggleTile(
-                    leading: Icon(
-                      Icons.feedback_outlined,
-                      color: accent,
-                    ),
+                    leading: Icon(Icons.feedback_outlined, color: accent),
                     title: 'Feedback button',
                     subtitle: 'Show a feedback button in every top bar',
                     value: settings.showFeedbackButton,
@@ -450,15 +442,6 @@ IconData _permissionIcon(AppPermission p) => switch (p) {
   AppPermission.deviceAdmin => Icons.shield,
 };
 
-String _permissionWhy(AppPermission p) => switch (p) {
-  AppPermission.accessibility => 'Detect and block reels & shorts',
-  AppPermission.overlay => 'Show the block / PIN screen over apps',
-  AppPermission.notifications => 'Alert you if protection stops',
-  AppPermission.usageAccess => 'Power app usage limits',
-  AppPermission.batteryOptimization => 'Keep the blocker alive',
-  AppPermission.deviceAdmin => 'Uninstall protection',
-};
-
 /// Main-screen entry: a single tile summarising permission status; opens the
 /// full list in a popup.
 class _PermissionsTile extends StatelessWidget {
@@ -515,7 +498,7 @@ class _PermissionSheet extends StatelessWidget {
                       color: Theme.of(context).colorScheme.secondary,
                     ),
                     title: s.kind.label,
-                    subtitle: _permissionWhy(s.kind),
+                    subtitle: s.kind.why,
                     trailing: s.granted
                         ? const Pill(
                             label: 'Granted',
@@ -523,10 +506,12 @@ class _PermissionSheet extends StatelessWidget {
                             icon: Icons.check,
                           )
                         : TextButton(
-                            onPressed: () => context
-                                .read<PermissionsCubit>()
-                                .request(s.kind),
-                            child: Text(s.kind.required ? 'Grant' : 'Enable'),
+                            onPressed: () => requestPermission(context, s.kind),
+                            child: Text(
+                              s.blockedByRestrictedSettings
+                                  ? 'Fix'
+                                  : (s.kind.required ? 'Grant' : 'Enable'),
+                            ),
                           ),
                   ),
                 ),

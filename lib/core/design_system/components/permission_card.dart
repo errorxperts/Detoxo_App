@@ -17,6 +17,7 @@ class PermissionCard extends StatelessWidget {
     required this.onGrant,
     this.isRequired = false,
     this.permanentlyDenied = false,
+    this.actionLabel,
     super.key,
   });
 
@@ -29,6 +30,10 @@ class PermissionCard extends StatelessWidget {
   /// When true the OS won't prompt again, so the action label becomes
   /// "Open settings" (its callback should route to the app's system settings).
   final bool permanentlyDenied;
+
+  /// Overrides the action label — e.g. "Fix this" when the tap opens a help
+  /// sheet rather than a system screen.
+  final String? actionLabel;
   final VoidCallback onGrant;
 
   @override
@@ -59,7 +64,9 @@ class PermissionCard extends StatelessWidget {
                     Flexible(
                       child: Text(
                         title,
-                        style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                        style: text.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     if (isRequired) ...[
@@ -74,14 +81,20 @@ class PermissionCard extends StatelessWidget {
                 if (granted)
                   const Row(
                     children: [
-                      Icon(Icons.check_circle, color: AppColors.success, size: 18),
+                      Icon(
+                        Icons.check_circle,
+                        color: AppColors.success,
+                        size: 18,
+                      ),
                       SizedBox(width: AppSpacing.xs),
                       Text('Granted'),
                     ],
                   )
                 else
                   SecondaryButton(
-                    label: permanentlyDenied ? 'Open settings' : 'Grant',
+                    label:
+                        actionLabel ??
+                        (permanentlyDenied ? 'Open settings' : 'Grant'),
                     onPressed: onGrant,
                   ),
               ],

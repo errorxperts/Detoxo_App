@@ -14,12 +14,20 @@ Detoxo uses that permission for exactly one purpose: to recognise a short-video 
 
 Your **content** stays private — what you watch, browse, and type never leaves your phone. Detoxo does send a small amount of **anonymous, aggregated** usage and crash data (via Google Firebase) so we can fix bugs and improve the app.
 
-- **Never leaves your phone:** the sites and apps you open, the reels you watch, your messages, your blocked-events history, your installed-app list, your PIN, and your recovery email. The Accessibility permission only *recognises* a reel feed in the moment to block it — it doesn't capture or upload what's on your screen, and your PIN lives in your device's secure storage.
+- **Never leaves your phone:** the sites and apps you open, the reels you watch, your messages, your blocked-events history, your installed-app list, and your PIN. The Accessibility permission only *recognises* a reel feed in the moment to block it — it doesn't capture or upload what's on your screen, and your PIN lives in your device's secure storage.
 - **Anonymous diagnostics we do collect:** which screens you open, when you change plan or toggle protection, how often blocking fires (by app *category* — e.g. "YouTube" — never the specific video or URL), rough reel-count totals, crash reports, and performance timings. This is linked to a **random ID** generated on your device — not to your name, email, or an account (there is no account or login).
 - **Blocked websites stay private:** when Detoxo bounces you off a site, it records only *that a block happened* — never which site.
 - **No ads, no ad tracking, and we don't sell your data.**
 
 In short: Detoxo keeps what you *see and do* private, and shares only anonymous "how the app is used / did it crash" signals to make it better. (A switch to turn diagnostics off is planned.)
+
+## Android says "restricted setting" and won't let me turn on Accessibility
+
+If you installed Detoxo from an APK rather than the Play Store, Android blocks a few powerful switches until you confirm you meant to enable them. You'll see *"Restricted setting"* or *"App was denied access"*.
+
+Open **Settings → Apps → Detoxo**, tap the **⋮** menu at the top right, and choose **"Allow restricted settings"** (on some phones it's at the bottom of the App info page instead). Then come back to Detoxo and tap **Grant** again. It's a one-time confirmation and unlocks every affected switch at once.
+
+The ⋮ entry usually shows up only after you've tried the blocked switch once. Detoxo also notices when a grant isn't taking and offers a **"Fix this"** button that jumps you to the right screen. Installing from the Play Store avoids this entirely — see [Permissions explained](03-permissions-explained.md#if-a-switch-wont-turn-on).
 
 ## How does Detoxo actually stop me from scrolling?
 
@@ -121,9 +129,11 @@ The reel counter is controlled separately (in the reel counter screen), so you c
 
 ## I set a PIN and forgot it — how do I get back in?
 
-When you set up the PIN lock, Detoxo asks for a **recovery email**. On the lock screen, tap **"Forgot PIN?"**, confirm a code sent to that email, and you'll be able to set a fresh PIN (your other settings stay intact).
+**There's no reset, and that's on purpose.** Your PIN is stored (hashed) on your phone and nowhere else — there's no account, no server, and no support code. Any code Detoxo could accept would be a bypass that anyone holding your phone could use too, which would make the lock decorative.
 
-Honest note: in the current offline build, the "email the code" step isn't yet connected to a live mail server (it's a planned addition), so recovery uses a fallback code. If you're locked out and stuck, email **errorxperts@gmail.com** and we'll help you reset.
+If you're locked out for good, the way back is to **uninstall Detoxo and install it again**. That clears the PIN along with your settings, blocklists and counts, and you start fresh. If you turned on uninstall protection, switch it off first in *Settings → Security → Device admin apps*.
+
+Detoxo says this plainly on the PIN setup screen and behind **"Forgot PIN?"** on the lock screen, so it shouldn't be a surprise — pick something you'll remember.
 
 ## How do I uninstall Detoxo?
 

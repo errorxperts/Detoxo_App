@@ -315,9 +315,11 @@ A PIN keeps you from disabling Detoxo (or changing protected settings) on impuls
    - **App** — ask for the PIN every time Detoxo launches.
    - **Settings** — ask before disabling blocking, resetting data, or changing the
      PIN.
-4. Add a **recovery email** (required for a Custom PIN, so a forgotten code is
-   always recoverable), and optionally turn on **biometric unlock**.
+4. Optionally turn on **biometric unlock**.
 5. Save.
+
+   The screen warns you plainly that there is no reset — pick something you'll
+   remember.
 
 ### Biometric unlock
 
@@ -327,15 +329,14 @@ lock screen offers a biometric shortcut (and can prompt automatically). It shows
 
 ### If you forget your PIN
 
-On the lock screen, tap **Forgot PIN?** and follow three steps:
+There is **no reset**, by design. Your PIN is hashed and stored on your phone
+only — there's no account, no server and no support code behind it. Any code the
+app could accept would be a bypass available to anyone holding your phone.
 
-1. **Email** — confirm your recovery email (shown masked if already on file).
-2. **Code** — enter the code sent to you and tap **Verify**.
-3. **New PIN** — set a fresh PIN and confirm.
-
-> This build uses an offline recovery stub for testing: the code is **000000**
-> (the app tells you this on the recovery screen). Wiring recovery to a real email
-> service is a documented follow-up.
+Tapping **Forgot PIN?** on the lock screen says exactly that, and names the one
+real escape hatch: **uninstall Detoxo and install it again**, which clears the
+PIN along with your settings, blocklists and counts. If uninstall protection is
+on, turn it off first in *Settings → Security → Device admin apps*.
 
 ### A note on lockouts
 

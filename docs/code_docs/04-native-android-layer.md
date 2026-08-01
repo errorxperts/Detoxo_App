@@ -99,7 +99,7 @@ Broadly the methods fall into four groups. (Argument/return shapes are in [18-pl
 **Permission queries & launches** — pure platform checks and Settings intents:
 `isAccessibilityEnabled`, `openAccessibilitySettings`, `canDrawOverlays`, `requestOverlayPermission`, `hasUsageAccess`, `openUsageAccessSettings`, `isIgnoringBatteryOptimizations`, `requestIgnoreBatteryOptimizations`, `isDeviceAdminActive`, `requestDeviceAdmin`, `removeDeviceAdmin`.
 
-- `isAccessibilityEnabled` reads `Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES` and matches our flattened `ComponentName` (case-insensitive) — it does **not** rely on the service's `instance`, so it is correct even before first bind.
+- `isAccessibilityEnabled` reads `Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES` and matches our `ComponentName` case-insensitively in **both** flattened forms — long (`pkg/pkg.Class`) and short (`pkg/.Class`), since some OEM ROMs write the short one. It does **not** rely on the service's `instance`, so it is correct even before first bind. A false negative here would push an already-granted user into the restricted-settings recovery flow, hence accepting both.
 - `hasUsageAccess` uses `AppOpsManager` (`OPSTR_GET_USAGE_STATS`), API-versioned (`unsafeCheckOpNoThrow` on Q+).
 - Device-admin add/remove go through `DevicePolicyManager` against `DetoxoDeviceAdminReceiver` (§6).
 - `launch(intent)` prefers the held `Activity`; with none it adds `FLAG_ACTIVITY_NEW_TASK` and starts from the app context. All launches are wrapped in try/catch and return a boolean.
@@ -234,14 +234,19 @@ Provider metadata (`res/xml/content_counter_widget_info.xml`): `minWidth/minHeig
 | `POST_NOTIFICATIONS` | the ongoing FGS notification |
 | `RECEIVE_BOOT_COMPLETED` | `BootReceiver` |
 | `PACKAGE_USAGE_STATS` | usage-access permission surface |
-| `QUERY_ALL_PACKAGES` | package visibility (the `installedPackages` query is also satisfied by `<queries>`) |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | battery-exemption request |
 | `KILL_BACKGROUND_PROCESSES` | the `KILL_APP` block mode |
 | `VIBRATE` | block haptics |
 | `USE_BIOMETRIC` | PIN/biometric app lock (`local_auth`) |
 | `WAKE_LOCK` | reliability of the service |
-| `com.android.vending.BILLING` | modeled premium (no live Play Billing — see the monetization doc) |
-| `com.google.android.gms.permission.AD_ID` | AdMob (test ids only) |
+
+**Deliberately absent** (see [22-play-release.md](22-play-release.md) §1):
+
+| Permission | Why not |
+|---|---|
+| `QUERY_ALL_PACKAGES` | `queryLaunchablePackages()` only calls `queryIntentActivities(MAIN + LAUNCHER)`, already covered by `<queries>`. Declaring a Play-restricted permission for no functional gain invites a Console declaration and a review question. |
+| `com.android.vending.BILLING` | no live billing; the SDK was removed |
+| `com.google.android.gms.permission.AD_ID`, `ACCESS_ADSERVICES_*` | **merged in by Firebase Analytics**, so they are stripped with `tools:node="remove"`. Analytics works without the advertising ID, and this keeps the data-safety form consistent with the in-app "no ad tracking" claim. Re-verify the merged manifest after any Firebase bump. |
 
 ### Application components
 
@@ -250,11 +255,10 @@ Provider metadata (`res/xml/content_counter_widget_info.xml`): `minWidth/minHeig
 - **`.receivers.BootReceiver`** — exported, filters `BOOT_COMPLETED` / `MY_PACKAGE_REPLACED` / `QUICKBOOT_POWERON`.
 - **`.widget.ContentCounterWidgetProvider`** — `exported="false"`, `APPWIDGET_UPDATE` filter, `<meta-data>` → `@xml/content_counter_widget_info`.
 - **`.admin.DetoxoDeviceAdminReceiver`** — exported, `BIND_DEVICE_ADMIN`, `<meta-data>` → `@xml/device_admin_policies`, `DEVICE_ADMIN_ENABLED` filter.
-- **AdMob app-id meta-data** — `ca-app-pub-3940256099942544~3347511713` — Google's **test** App ID. Swap for a real App ID before release (there is no live ads init in Dart).
 
 ### `<queries>` (package visibility, Android 11+)
 
-- `PROCESS_TEXT` (`text/plain`) and `MAIN` — general app visibility; the `MAIN` entry is what lets `installedPackages` enumerate launchable apps without strictly needing `QUERY_ALL_PACKAGES`.
+- `PROCESS_TEXT` (`text/plain`) and `MAIN` — general app visibility; the `MAIN` entry is what lets `installedPackages` enumerate launchable apps. This is now the *only* mechanism: `QUERY_ALL_PACKAGES` was removed.
 - `VIEW` with `https` and `http` schemes — browser visibility for the website blocker.
 
 ---
@@ -297,7 +301,8 @@ See §8.
 - `namespace` / `applicationId` = `com.errorxperts.detoxo`.
 - `minSdk = 24` (AccessibilityService + overlays + the plugin set are comfortable here; the `specialUse` FGS type is gated at API 34 in code). `compileSdk` / `targetSdk` / version fields come from the Flutter Gradle plugin.
 - Java 17, Kotlin `jvmTarget = 17`, `multiDexEnabled = true`, **core library desugaring** (`desugar_jdk_libs 2.1.4`, required by `flutter_local_notifications`).
-- `release` currently uses the **debug** signing config so `flutter run --release` works — swap in a real keystore for store builds.
+- `release` signing loads `android/key.properties` (gitignored). The config is registered **only when that file exists** — an unguarded `as String` cast used to fail *configuration* for every build type on a fresh clone or CI machine. When it is missing the release type falls back to debug signing and logs a warning, so local release builds still run; `bash tool/dev.sh release` refuses to produce an unsigned upload artifact. See [22-play-release.md](22-play-release.md) §2.
+- `release` also sets `isMinifyEnabled` / `isShrinkResources` with `proguard-rules.pro` on top of `proguard-android-optimize.txt`.
 
 ---
 

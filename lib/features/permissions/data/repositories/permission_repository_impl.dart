@@ -3,6 +3,7 @@ import 'package:detoxo/core/platform_channels/engine_channel.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/domain/repositories/permission_repository.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 /// Resolves permission status via the native channel (accessibility, overlay,
@@ -39,8 +40,8 @@ class PermissionRepositoryImpl implements PermissionRepository {
         state: s.isGranted
             ? PermissionState.granted
             : s.isPermanentlyDenied
-                ? PermissionState.permanentlyDenied
-                : PermissionState.denied,
+            ? PermissionState.permanentlyDenied
+            : PermissionState.denied,
       );
     }
     final granted = switch (permission) {
@@ -81,4 +82,25 @@ class PermissionRepositoryImpl implements PermissionRepository {
         }
     }
   }
+
+  @override
+  Future<bool> installedOutsidePlay() async {
+    if (!PlatformCapabilities.usesAndroidPermissionFunnel) return false;
+    try {
+      // package_info_plus reads getInstallSourceInfo().initiatingPackageName on
+      // API 30+, which — unlike the installing package — cannot be rewritten
+      // after install. Play is the only installer exempt from the gate in
+      // practice; an adb/debug install reports null, which is also restricted.
+      final store = (await PackageInfo.fromPlatform()).installerStore;
+      return store != _playStorePackage;
+    } catch (_) {
+      // Unknown installer: don't guess, don't nag.
+      return false;
+    }
+  }
+
+  @override
+  Future<void> openAppSettings() => ph.openAppSettings();
+
+  static const String _playStorePackage = 'com.android.vending';
 }

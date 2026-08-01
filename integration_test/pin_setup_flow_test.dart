@@ -1,5 +1,4 @@
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
-import 'package:detoxo/core/utils/result.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
 import 'package:detoxo/features/access_protection/domain/pin_hasher.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
@@ -17,11 +16,6 @@ class _FakePinRepo implements PinRepository {
   Future<PinConfig> load() async => _stored;
   @override
   Future<void> save(PinConfig config) async => _stored = config;
-  @override
-  Future<Result<void>> sendRecoveryOtp(String email) async => const Ok(null);
-  @override
-  Future<Result<bool>> validateOtp(String email, String otp) async =>
-      Ok(otp.trim() == '000000');
 }
 
 PinConfig _configuredCustom() {
@@ -32,33 +26,32 @@ PinConfig _configuredCustom() {
     salt: salt,
     secretLength: 4,
     scopes: const {PinScope.app, PinScope.settings},
-    verifiedEmail: 'a@b.com',
   );
 }
 
 Widget _host(PinCubit cubit) => MaterialApp(
-      theme: AppTheme.dark(),
-      home: BlocProvider.value(
-        value: cubit,
-        child: Builder(
-          builder: (context) => Scaffold(
-            body: Center(
-              child: ElevatedButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => BlocProvider.value(
-                      value: cubit,
-                      child: const PinSetupScreen(),
-                    ),
-                  ),
+  theme: AppTheme.dark(),
+  home: BlocProvider.value(
+    value: cubit,
+    child: Builder(
+      builder: (context) => Scaffold(
+        body: Center(
+          child: ElevatedButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => BlocProvider.value(
+                  value: cubit,
+                  child: const PinSetupScreen(),
                 ),
-                child: const Text('open setup'),
               ),
             ),
+            child: const Text('open setup'),
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
 
 // GlassScaffold runs an infinite ambient animation, so pumpAndSettle never
 // converges — settle by pumping a few fixed frames instead.
@@ -78,8 +71,10 @@ void main() {
     await settle(tester);
 
     await tester.enterText(find.widgetWithText(TextField, 'PIN'), '1234');
-    await tester.enterText(find.widgetWithText(TextField, 'Confirm PIN'), '1234');
-    await tester.enterText(find.widgetWithText(TextField, 'Email'), 'a@b.com');
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Confirm PIN'),
+      '1234',
+    );
     await settle(tester);
 
     // The Save button sits below the fold in the lazy ListView — scroll to it.

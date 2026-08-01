@@ -100,7 +100,7 @@ a system settings/consent intent and returns a `Boolean` = *launch succeeded*
 
 | Method | Args | Returns | Dart wrapper |
 |---|---|---|---|
-| `isAccessibilityEnabled` | — | `Boolean` (service present in `ENABLED_ACCESSIBILITY_SERVICES`) | `isAccessibilityEnabled()` |
+| `isAccessibilityEnabled` | — | `Boolean` (service present in `ENABLED_ACCESSIBILITY_SERVICES`, matched in both long and short flattened `ComponentName` forms) | `isAccessibilityEnabled()` |
 | `openAccessibilitySettings` | — | `Boolean` | `openAccessibilitySettings()` |
 | `canDrawOverlays` | — | `Boolean` (`Settings.canDrawOverlays`) | `canDrawOverlays()` |
 | `requestOverlayPermission` | — | `Boolean` | `requestOverlay()` |
@@ -111,6 +111,20 @@ a system settings/consent intent and returns a `Boolean` = *launch succeeded*
 | `isDeviceAdminActive` | — | `Boolean` | `isDeviceAdminActive()` |
 | `requestDeviceAdmin` | — | `Boolean` (launches `ACTION_ADD_DEVICE_ADMIN`) | `requestDeviceAdmin()` |
 | `removeDeviceAdmin` | — | `true` (removes active admin; swallows errors) | `removeDeviceAdmin()` |
+
+> **Not on this channel, on purpose.** The restricted-settings / ECM recovery flow
+> ([13-onboarding-permissions.md](13-onboarding-permissions.md) §3.4) needs the
+> install source and a way to open the app's own settings page. Both already exist
+> in dependencies the app ships — `package_info_plus`
+> (`PackageInfo.installerStore` → `getInstallSourceInfo().initiatingPackageName`)
+> and `permission_handler` (`openAppSettings()` →
+> `ACTION_APPLICATION_DETAILS_SETTINGS`). No channel methods were added; don't add
+> duplicates.
+>
+> There is likewise **no method to query the ECM gate itself** — the backing appop
+> is `@hide`, read-restricted, and defaults to `MODE_DEFAULT` under ECM, and
+> `EnhancedConfirmationManager` is not in the public SDK. Detection is behavioural
+> and lives in `PermissionsCubit`.
 
 ### Block actions
 

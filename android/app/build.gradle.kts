@@ -40,18 +40,32 @@ android {
         multiDexEnabled = true
     }
 
-    signingConfigs {
-        create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = file(keystoreProperties["storeFile"] as String)
-            storePassword = keystoreProperties["storePassword"] as String
+    // key.properties is gitignored, so it is absent on any fresh clone and in
+    // CI. Registering the config unconditionally would fail *configuration* for
+    // every build type, not just release — hence the guard.
+    val hasReleaseKeystore = keystorePropertiesFile.exists()
+    if (hasReleaseKeystore) {
+        signingConfigs {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // Falls back to debug signing so `flutter build --release` still
+            // works locally without the keystore. A store upload needs the real
+            // one — see docs/code_docs/22-play-release.md.
+            signingConfig = if (hasReleaseKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn("key.properties missing — release build is DEBUG-SIGNED, not uploadable.")
+                signingConfigs.getByName("debug")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             // Keep our rules (Room/WorkManager reflection survives R8 full mode).

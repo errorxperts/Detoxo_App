@@ -79,9 +79,9 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 
 | Package | Version | Status | Role in Detoxo |
 | --- | --- | --- | --- |
-| `permission_handler` | `^12.0.3` | **Wired** | Runtime permission checks/requests in `lib/features/permissions/data/repositories/permission_repository_impl.dart` (imported as `ph`). Note: the *specialised* Android permissions (accessibility, overlay, usage-access, battery exemption, device admin) are driven natively over the MethodChannel, not through this package. |
+| `permission_handler` | `^12.0.3` | **Wired** | Runtime permission checks/requests in `lib/features/permissions/data/repositories/permission_repository_impl.dart` (imported as `ph`). Also provides `openAppSettings()` (→ `ACTION_APPLICATION_DETAILS_SETTINGS`) for the restricted-settings recovery flow. Note: the *specialised* Android permissions (accessibility, overlay, usage-access, battery exemption, device admin) are driven natively over the MethodChannel, not through this package. |
 | `device_info_plus` | `^13.1.0` | **Wired** | Device/OS metadata (model, Android version) for diagnostics/feedback. |
-| `package_info_plus` | `^10.1.0` | **Wired** | App version/build number surfaced in Settings / feedback. |
+| `package_info_plus` | `^10.1.0` | **Wired** | App version/build number surfaced in Settings / feedback. Also supplies `installerStore` (→ `getInstallSourceInfo().initiatingPackageName`) for the restricted-settings / ECM detection in [13-onboarding-permissions.md](13-onboarding-permissions.md) §3.4. |
 | `home_widget` | `^0.7.0` | **Wired** | Bridge to the native home-screen **content-counter widget** (`ContentCounterWidgetProvider.kt`). Dart writes the `cc_today` / `cc_total` keys and pins/refreshes the widget. See [17-content-counter.md](17-content-counter.md). |
 
 ---
@@ -146,8 +146,6 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 | `drift` | `^2.33.0` | No relational DB in the Dart tree; `LocalStore` uses a Hive `Box<String>` instead. | Swap-in for a future relational store. Planned / follow-up. |
 | `sqlite3_flutter_libs` | `^0.6.0+eol` | Only meaningful with `drift`; unused. | Ships with the `drift` scaffold. Planned / follow-up. |
 | `dio` | `^5.9.2` | No HTTP client is instantiated anywhere (`Dio` appears in no file). Config is **offline-first** from bundled assets; there is no live backend. | Swap-in for the documented remote `ConfigRepository`. Planned / follow-up. |
-| `in_app_purchase` | `^3.3.0` | No billing code. Premium is a **local dev-unlock** (`StoreKeys.premiumDevUnlock`, Settings → Developer). | Swap-in for real Play Billing. Not live — see [11-monetization.md](11-monetization.md). |
-| `google_mobile_ads` | `^8.0.0` | No `MobileAds`/ads init in Dart. Only a Google **test** app id lives in the Android manifest (`ca-app-pub-3940256099942544~3347511713`). | No live ads. Planned / follow-up. |
 | `workmanager` | `^0.9.0+3` | No `Workmanager` usage in Dart. Background work is the **native accessibility foreground service** (`DetoxoAccessibilityService.kt`), not a Dart worker. | Swap-in for future Dart-side periodic tasks. Planned / follow-up. |
 | `flutter_local_notifications` | `^22.0.0` | No Dart notification code. The persistent service notification is created **natively** (channel `detoxo_protection_channel`, `NOTIF_ID 1125`). | Swap-in for future Dart-scheduled notifications. Planned / follow-up. |
 | `app_settings` | `^7.0.0` | The package (`package:app_settings`) is never imported; grep hits are the unrelated `AppSettings` domain entity. Settings screens are opened via the native MethodChannel (`openAccessibilitySettings`, `openUsageAccessSettings`, …) and `permission_handler`. | Redundant / follow-up cleanup candidate. |

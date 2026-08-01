@@ -17,7 +17,8 @@ feature, update its mapped doc — see [`CLAUDE.md`](CLAUDE.md) and run `/docs-s
 **Feature-first + Clean Architecture.** Each feature is self-contained with its own
 `data / domain / presentation` layers; cross-feature code talks only through a feature's public
 barrel (`features/<x>/<x>.dart`) or its `domain/` contracts — never another feature's internals
-(enforced by `tool/check_boundaries.sh`).
+(enforced by `tool/check_boundaries.sh`; pre-existing violations are grandfathered in
+`tool/boundaries_baseline.txt` — new ones fail).
 
 ```
 lib/
@@ -31,7 +32,7 @@ lib/
       blocklist/ presentation (TargetsCubit, blocklist UI)
       plans/   domain (session phase rules) + data (content) + presentation (pause, countdown)
     limits/                app_blocker · web_blocker · daily_limit   (each: data/domain/presentation)
-    access_protection/     PIN setup/lock/recovery        (data/domain/presentation)
+    access_protection/     PIN setup + lock (no recovery) (data/domain/presentation)
     monetization/premium/  subscriptions + entitlement     (data/domain/presentation)
     analytics/             block-event history             (data/domain/presentation)
     permissions/           permission funnel               (data/domain/presentation)
@@ -46,7 +47,7 @@ android/app/src/main/kotlin/com/errorxperts/detoxo/
 Dependency rule: `presentation → domain ← data` inside a feature; a feature may depend on `core/*`
 and on another feature's `domain/` (contracts + entities) only. Composition roots
 (`app/`, `core/di`, `core/navigation`, `dashboard`, `settings`) are the only places allowed to wire
-features together. Run `bash tool/check_boundaries.sh` in CI to enforce this.
+features together. Run `bash tool/check_boundaries.sh` to enforce this (there is no CI yet; `bash tool/dev.sh precommit` runs it).
 
 **The hot path runs natively** (per-package 150 ms throttle → active-plan gate → 3-stage view-id
 detection, max 12 000 nodes → block with a 1200 ms debounce / 1100 ms back rate-limit). Dart owns
@@ -95,15 +96,15 @@ This build is **offline-first**: it runs fully standalone with no backend.
 | PIN lock + biometric + retry lockout | ✅ (`local_auth` + secure storage) |
 | Daily limit / app blocker / web blocker | ✅ UI + persistence; **native enforcement of app/web/usage is a follow-up** (the v1 native engine focuses on the reel/short view-id path) |
 | Premium gating | ✅ via local **dev-unlock** (Settings → Developer); real Play Billing is a swap-in |
-| Ads | Wired with Google **test** ad-unit IDs |
-| Analytics / notifications | ✅ local; Firebase is optional, not bundled |
+| Ads | **None** — the ads/billing SDKs were removed (see `docs/code_docs/11-monetization.md`) |
+| Analytics / notifications | ✅ local block-event history; **Firebase Analytics + Crashlytics + Performance are bundled and live** (anonymous, collection unconditional — an opt-out is the main open gap) |
 
 ### Swap in real services (config points)
-- **Backend API** — implement a remote `ConfigRepository` / OTP calls (`PinRepositoryImpl.sendRecoveryOtp/validateOtp`, currently a documented dev code `000000`). Base URL belongs in `core/config/`.
-- **Firebase** — add `android/app/google-services.json` + the Firebase plugins, then back `AnalyticsRepository` / FCM with it.
-- **AdMob** — replace the test App ID in `AndroidManifest.xml` (`ca-app-pub-3940256099942544~3347511713`) and the test ad-unit IDs with yours.
-- **Play Billing** — implement `PremiumRepositoryImpl.purchase/restore` with `in_app_purchase` + Play Console products.
-- **Release signing** — add a keystore + `signingConfig` in `android/app/build.gradle.kts`.
+- **Backend API** — implement a remote `ConfigRepository`. Base URL belongs in `core/config/`. (PIN recovery is deliberately *not* on this list: a client-side recovery code is a lock bypass, not a recovery, so the OTP stub was removed rather than wired. See `docs/code_docs/08-pin-lock-recovery.md`.)
+- **Firebase** — already wired (`google-services.json`, `firebase_options.dart`, Crashlytics/GMS Gradle plugins). Still open: a telemetry consent/opt-out toggle, and FCM push.
+- **AdMob** — nothing to swap: the SDK, the test App ID and the `AD_ID` permission were all removed. Re-adding is a deliberate act that must also correct the in-app "no ads" copy.
+- **Play Billing** — implement `PremiumRepositoryImpl.purchase/restore` against Play Console products. The `in_app_purchase` dependency was removed (nothing used it, and it declared Billing to Play); re-add it as part of that work. See `docs/code_docs/11-monetization.md`.
+- **Release signing** — done: `android/app/build.gradle.kts` loads `android/key.properties` (gitignored) and falls back to debug signing with a warning when absent. Build the upload artifact with `bash tool/dev.sh release`.
 
 ---
 
@@ -115,5 +116,13 @@ This build is **offline-first**: it runs fully standalone with no backend.
 
 ## Compliance notes
 Shipping an AccessibilityService on Google Play requires a qualifying use + a prominent in-app
-disclosure. Device-admin uninstall protection and overlays have their own policy/OEM constraints.
-See [`docs/code_docs/16-implementation-roadmap.md`](docs/code_docs/16-implementation-roadmap.md).
+disclosure (implemented in `permission_actions.dart`, shown before the grant). Device-admin
+uninstall protection and overlays have their own policy/OEM constraints.
+
+Note that Android 13+ **restricted settings** / 15+ **ECM** block the accessibility and overlay
+toggles for sideloaded installs — expected, not a bug, and handled in-app with a "Fix this"
+walkthrough. Play installs are exempt.
+
+The declaration text, data-safety answers and the signed-`.aab` build steps live in
+[`docs/code_docs/22-play-release.md`](docs/code_docs/22-play-release.md); broader status in
+[`docs/code_docs/16-implementation-roadmap.md`](docs/code_docs/16-implementation-roadmap.md).

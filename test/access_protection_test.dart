@@ -1,4 +1,3 @@
-import 'package:detoxo/core/utils/result.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
 import 'package:detoxo/features/access_protection/domain/pin_hasher.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
@@ -18,13 +17,6 @@ class _FakePinRepo implements PinRepository {
 
   @override
   Future<void> save(PinConfig config) async => _stored = config;
-
-  @override
-  Future<Result<void>> sendRecoveryOtp(String email) async => const Ok(null);
-
-  @override
-  Future<Result<bool>> validateOtp(String email, String otp) async =>
-      Ok(otp.trim() == '000000');
 }
 
 void main() {
@@ -98,34 +90,45 @@ void main() {
     });
   });
 
-  group('PinCubit.resetSecretAfterRecovery', () {
-    test(
-      'sets a fresh custom PIN, clears lockout, preserves scopes/email/biometric',
-      () async {
-        final cubit = PinCubit(_FakePinRepo());
-        await cubit.setup(
-          type: PinType.date,
-          secret: '',
-          scopes: {PinScope.app, PinScope.settings},
-          verifiedEmail: 'user@example.com',
-          biometricEnabled: true,
-        );
+  group('no recovery backdoor', () {
+    // A build once shipped a hardcoded '000000' recovery code that unlocked any
+    // PIN. Nothing but the real PIN may ever verify.
+    test('the retired dev recovery code does not unlock', () async {
+      final cubit = PinCubit(_FakePinRepo());
+      await cubit.setup(
+        type: PinType.custom,
+        secret: '1357',
+        scopes: {PinScope.app},
+      );
+      expect(await cubit.verify('000000'), isFalse);
+      expect(await cubit.verify('1357'), isTrue);
+    });
 
-        await cubit.resetSecretAfterRecovery('4321');
+    test('a stored config carries no email or other identifier', () async {
+      final cubit = PinCubit(_FakePinRepo());
+      await cubit.setup(
+        type: PinType.custom,
+        secret: '1357',
+        scopes: {PinScope.app},
+      );
+      expect(cubit.state.toJson().keys, isNot(contains('verifiedEmail')));
+    });
 
-        expect(cubit.state.type, PinType.custom);
-        // The new PIN is stored hashed (never plaintext) but still verifies.
-        expect(cubit.state.secretHash, isNotEmpty);
-        expect(cubit.state.salt, isNotEmpty);
-        expect(cubit.expectedLength, 4);
-        expect(await cubit.verify('4321'), isTrue);
-        expect(cubit.state.retryCount, 0);
-        expect(cubit.state.isLockedOut, isFalse);
-        expect(cubit.state.scopes, {PinScope.app, PinScope.settings});
-        expect(cubit.state.verifiedEmail, 'user@example.com');
-        expect(cubit.state.biometricEnabled, isTrue);
-      },
-    );
+    test('a legacy config with verifiedEmail still loads', () {
+      // Older installs persisted the key; fromJson must ignore it, not throw.
+      final config = PinConfig.fromJson(const {
+        'type': 'CUSTOM',
+        'secretHash': 'abc',
+        'salt': 'def',
+        'secretLength': 4,
+        'scopes': ['APP'],
+        'verifiedEmail': 'legacy@example.com',
+        'retryCount': 0,
+        'biometricEnabled': false,
+      });
+      expect(config.type, PinType.custom);
+      expect(config.scopes, const {PinScope.app});
+    });
   });
 
   group('requirePin short-circuit', () {

@@ -55,6 +55,31 @@ This is the heart of Detoxo, which is why it's the one permission you can't skip
 
 ---
 
+## If a switch won't turn on
+
+You flip **Accessibility** or **Display over other apps**, and Android refuses — showing something like *"Restricted setting"*, or a shield with *"App was denied access — access to this permission can put your personal and financial info at risk."* The switch stays off.
+
+**This isn't a problem with Detoxo, and nothing is wrong with your phone.** Android 13 and later lock a small set of powerful switches for any app that wasn't installed from an app store, until you confirm you meant to turn them on. It's a blanket rule; it applies to every sideloaded app, whatever it does.
+
+**The fix takes about ten seconds, once:**
+
+1. Open Android's **Settings → Apps → Detoxo**.
+2. Tap the **⋮** menu at the top right.
+3. Choose **Allow restricted settings**.
+4. Come back to Detoxo and tap **Grant** again.
+
+A few notes that save time:
+
+- The ⋮ entry usually appears only *after* you've tried the blocked switch once — so try the switch first, dismiss the message, then go to App info.
+- On some phones it sits at the **bottom of the App info page** rather than in the ⋮ menu.
+- The confirmation is **per app, not per permission** — doing it once unblocks Accessibility, Display over apps and uninstall protection together.
+
+Detoxo watches for this. If it notices a grant isn't taking, the button on the permission changes to **Fix this** and walks you through the same steps with a shortcut straight to the right screen.
+
+**Installing from the Play Store avoids this completely** — Play is a trusted installer, so the restriction never applies.
+
+---
+
 ## Usage access — recommended
 
 **What you'll see:** "Usage access" — *Powers app usage limits.*

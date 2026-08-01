@@ -4,6 +4,10 @@ import 'package:equatable/equatable.dart';
 /// PIN-lock configuration. Custom PINs are stored as a salted SHA-256 hash
 /// (never plaintext); Date/Time PINs are derived from the clock and store no
 /// secret at all. The retry ladder escalates lockouts on repeated failures.
+///
+/// No email or other identifier is stored: there is no recovery channel, so
+/// collecting one would be PII gathered for nothing. `fromJson` silently drops
+/// the legacy `verifiedEmail` key, so older installs need no migration.
 class PinConfig extends Equatable {
   const PinConfig({
     this.type = PinType.none,
@@ -11,27 +15,25 @@ class PinConfig extends Equatable {
     this.salt = '',
     this.secretLength = 0,
     this.scopes = const {},
-    this.verifiedEmail = '',
     this.retryCount = 0,
     this.lockedUntil,
     this.biometricEnabled = false,
   });
 
   factory PinConfig.fromJson(Map<String, dynamic> json) => PinConfig(
-        type: PinType.fromWire(json['type'] as String?),
-        secretHash: json['secretHash'] as String? ?? '',
-        salt: json['salt'] as String? ?? '',
-        secretLength: json['secretLength'] as int? ?? 0,
-        scopes: ((json['scopes'] as List?)?.cast<String>() ?? const [])
-            .map(PinScope.fromWire)
-            .toSet(),
-        verifiedEmail: json['verifiedEmail'] as String? ?? '',
-        retryCount: json['retryCount'] as int? ?? 0,
-        lockedUntil: json['lockedUntil'] == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(json['lockedUntil'] as int),
-        biometricEnabled: json['biometricEnabled'] as bool? ?? false,
-      );
+    type: PinType.fromWire(json['type'] as String?),
+    secretHash: json['secretHash'] as String? ?? '',
+    salt: json['salt'] as String? ?? '',
+    secretLength: json['secretLength'] as int? ?? 0,
+    scopes: ((json['scopes'] as List?)?.cast<String>() ?? const [])
+        .map(PinScope.fromWire)
+        .toSet(),
+    retryCount: json['retryCount'] as int? ?? 0,
+    lockedUntil: json['lockedUntil'] == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(json['lockedUntil'] as int),
+    biometricEnabled: json['biometricEnabled'] as bool? ?? false,
+  );
 
   final PinType type;
 
@@ -46,7 +48,6 @@ class PinConfig extends Equatable {
   final int secretLength;
 
   final Set<PinScope> scopes;
-  final String verifiedEmail;
   final int retryCount;
   final DateTime? lockedUntil;
   final bool biometricEnabled;
@@ -63,48 +64,43 @@ class PinConfig extends Equatable {
     String? salt,
     int? secretLength,
     Set<PinScope>? scopes,
-    String? verifiedEmail,
     int? retryCount,
     DateTime? lockedUntil,
     bool clearLockout = false,
     bool? biometricEnabled,
-  }) =>
-      PinConfig(
-        type: type ?? this.type,
-        secretHash: secretHash ?? this.secretHash,
-        salt: salt ?? this.salt,
-        secretLength: secretLength ?? this.secretLength,
-        scopes: scopes ?? this.scopes,
-        verifiedEmail: verifiedEmail ?? this.verifiedEmail,
-        retryCount: retryCount ?? this.retryCount,
-        lockedUntil: clearLockout ? null : (lockedUntil ?? this.lockedUntil),
-        biometricEnabled: biometricEnabled ?? this.biometricEnabled,
-      );
+  }) => PinConfig(
+    type: type ?? this.type,
+    secretHash: secretHash ?? this.secretHash,
+    salt: salt ?? this.salt,
+    secretLength: secretLength ?? this.secretLength,
+    scopes: scopes ?? this.scopes,
+    retryCount: retryCount ?? this.retryCount,
+    lockedUntil: clearLockout ? null : (lockedUntil ?? this.lockedUntil),
+    biometricEnabled: biometricEnabled ?? this.biometricEnabled,
+  );
 
   Map<String, dynamic> toJson() => {
-        'type': type.wire,
-        'secretHash': secretHash,
-        'salt': salt,
-        'secretLength': secretLength,
-        'scopes': scopes.map((e) => e.wire).toList(),
-        'verifiedEmail': verifiedEmail,
-        'retryCount': retryCount,
-        'lockedUntil': lockedUntil?.millisecondsSinceEpoch,
-        'biometricEnabled': biometricEnabled,
-      };
+    'type': type.wire,
+    'secretHash': secretHash,
+    'salt': salt,
+    'secretLength': secretLength,
+    'scopes': scopes.map((e) => e.wire).toList(),
+    'retryCount': retryCount,
+    'lockedUntil': lockedUntil?.millisecondsSinceEpoch,
+    'biometricEnabled': biometricEnabled,
+  };
 
   @override
   List<Object?> get props => [
-        type,
-        secretHash,
-        salt,
-        secretLength,
-        scopes,
-        verifiedEmail,
-        retryCount,
-        lockedUntil,
-        biometricEnabled,
-      ];
+    type,
+    secretHash,
+    salt,
+    secretLength,
+    scopes,
+    retryCount,
+    lockedUntil,
+    biometricEnabled,
+  ];
 }
 
 /// The escalating lockout ladder (verified thresholds from the reference app).

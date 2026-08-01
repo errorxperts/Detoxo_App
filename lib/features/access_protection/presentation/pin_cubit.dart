@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_auth/local_auth.dart';
 
 /// PIN setup + verification with the escalating lockout ladder, plus biometric
-/// unlock and email-OTP recovery.
+/// unlock. There is no recovery path — see [PinRepository].
 class PinCubit extends Cubit<PinConfig> {
   PinCubit(this._repo, {LocalAuthentication? localAuth})
     : _localAuth = localAuth ?? LocalAuthentication(),
@@ -21,7 +21,6 @@ class PinCubit extends Cubit<PinConfig> {
     required PinType type,
     required String secret,
     required Set<PinScope> scopes,
-    String verifiedEmail = '',
     bool biometricEnabled = false,
   }) async {
     // Custom PINs are stored as a salted hash; Date/Time derive from the clock
@@ -33,7 +32,6 @@ class PinCubit extends Cubit<PinConfig> {
       salt: salt,
       secretLength: type == PinType.custom ? secret.length : 0,
       scopes: scopes,
-      verifiedEmail: verifiedEmail,
       biometricEnabled: biometricEnabled,
     );
     await _repo.save(config);
@@ -44,23 +42,6 @@ class PinCubit extends Cubit<PinConfig> {
     const config = PinConfig();
     await _repo.save(config);
     emit(config);
-  }
-
-  /// After a verified recovery, set a fresh custom PIN — keeping the guarded
-  /// scopes, recovery email and biometric preference, and clearing the retry /
-  /// lockout state. Used by the "Forgot PIN" flow instead of disabling the lock.
-  Future<void> resetSecretAfterRecovery(String newSecret) async {
-    final salt = PinHasher.newSalt();
-    final next = state.copyWith(
-      type: PinType.custom,
-      secretHash: PinHasher.hash(salt, newSecret),
-      salt: salt,
-      secretLength: newSecret.length,
-      retryCount: 0,
-      clearLockout: true,
-    );
-    await _repo.save(next);
-    emit(next);
   }
 
   /// Digit count that constitutes a complete entry for the active PIN type, so
@@ -115,8 +96,7 @@ class PinCubit extends Cubit<PinConfig> {
     return switch (config.type) {
       PinType.date => entry == '${_two(now.day)}${_two(now.month)}${now.year}',
       PinType.time => entry == '${_two(now.hour)}${_two(now.minute)}',
-      PinType.custom =>
-        PinHasher.verify(config.salt, config.secretHash, entry),
+      PinType.custom => PinHasher.verify(config.salt, config.secretHash, entry),
       _ => false,
     };
   }
@@ -136,13 +116,5 @@ class PinCubit extends Cubit<PinConfig> {
     } on Exception {
       return false;
     }
-  }
-
-  Future<bool> sendRecoveryOtp(String email) async =>
-      (await _repo.sendRecoveryOtp(email)).isOk;
-
-  Future<bool> validateRecoveryOtp(String email, String otp) async {
-    final result = await _repo.validateOtp(email, otp);
-    return result.fold((_) => false, (valid) => valid);
   }
 }

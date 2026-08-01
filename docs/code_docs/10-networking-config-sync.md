@@ -274,15 +274,16 @@ Everything above is offline-first by design. To add a live backend:
 
 ## 7. Infra follow-ups (bundled data)
 
-The bundled JSON assets were carried over from an earlier product iteration and
-still contain some **legacy branding strings**. `iconUrl` values in
-`platforms_config.json` have been **repointed to bundled local assets**
-(`assets/images/social_icon_pack/<base>.png`, one brand-colored icon per app) —
-the old `curizic.com` host is gone — but `initial_config.json` still carries
-legacy notice copy and `expiry` timestamps.
+The bundled JSON assets were carried over from an earlier product iteration.
+`iconUrl` values in `platforms_config.json` were repointed to bundled local assets
+(`assets/images/social_icon_pack/<base>.png`, one brand-colored icon per app), and
+`initial_config.json` was rewritten in Aug 2026 to remove every pre-rebrand string,
+the third-party ad units and the dead package references — see
+[02-detection-config-schema.md](02-detection-config-schema.md) §3. Only the far-future
+`expiry` timestamps remain as carried-over data.
 
-These are **infra follow-ups**, not code bugs: the offline flow works because
-the icons/notices are just data fields projected into `BlockTarget`/`AppNotice`.
+The offline flow is unaffected either way: icons and notices are just data fields
+projected into `BlockTarget`/`AppNotice`.
 If remote config later serves `iconUrl`s, an `http…` value still loads remotely
 via `AppIconAvatar`; a local asset path renders directly. Do not hard-code a
 replacement URL in code — it belongs in the config payload.

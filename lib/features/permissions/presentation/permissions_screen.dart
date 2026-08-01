@@ -1,6 +1,7 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
+import 'package:detoxo/features/permissions/presentation/permission_actions.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,7 +16,8 @@ class PermissionsScreen extends StatefulWidget {
   State<PermissionsScreen> createState() => _PermissionsScreenState();
 }
 
-class _PermissionsScreenState extends State<PermissionsScreen> with WidgetsBindingObserver {
+class _PermissionsScreenState extends State<PermissionsScreen>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -31,28 +33,19 @@ class _PermissionsScreenState extends State<PermissionsScreen> with WidgetsBindi
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed && mounted) {
       context.read<PermissionsCubit>().refresh();
     }
   }
 
   IconData _iconFor(AppPermission p) => switch (p) {
-        AppPermission.accessibility => Icons.accessibility_new,
-        AppPermission.overlay => Icons.layers,
-        AppPermission.notifications => Icons.notifications,
-        AppPermission.usageAccess => Icons.bar_chart,
-        AppPermission.batteryOptimization => Icons.battery_charging_full,
-        AppPermission.deviceAdmin => Icons.shield,
-      };
-
-  String _whyFor(AppPermission p) => switch (p) {
-        AppPermission.accessibility => 'Lets Detoxo detect and block reels & shorts.',
-        AppPermission.overlay => 'Shows the block / PIN screen over other apps.',
-        AppPermission.notifications => 'Alerts you if protection stops.',
-        AppPermission.usageAccess => 'Powers app usage limits.',
-        AppPermission.batteryOptimization => 'Keeps the blocker alive in the background.',
-        AppPermission.deviceAdmin => 'Optional uninstall protection.',
-      };
+    AppPermission.accessibility => Icons.accessibility_new,
+    AppPermission.overlay => Icons.layers,
+    AppPermission.notifications => Icons.notifications,
+    AppPermission.usageAccess => Icons.bar_chart,
+    AppPermission.batteryOptimization => Icons.battery_charging_full,
+    AppPermission.deviceAdmin => Icons.shield,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -65,14 +58,20 @@ class _PermissionsScreenState extends State<PermissionsScreen> with WidgetsBindi
           final required = statuses.where((s) => s.kind.required).toList();
           final optional = statuses.where((s) => !s.kind.required).toList();
           final grantedReq = required.where((s) => s.granted).length;
-          final progress = required.isEmpty ? 1.0 : grantedReq / required.length;
+          final progress = required.isEmpty
+              ? 1.0
+              : grantedReq / required.length;
 
           return Column(
             children: [
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
                   children: [
                     Text(
                       'Grant a few permissions so Detoxo can do its job.',
@@ -93,18 +92,14 @@ class _PermissionsScreenState extends State<PermissionsScreen> with WidgetsBindi
                     if (required.isNotEmpty) ...[
                       const _SectionLabel('Required to block'),
                       EntranceList(
-                        children: [
-                          for (final s in required) _card(context, s),
-                        ],
+                        children: [for (final s in required) _card(context, s)],
                       ),
                       const SizedBox(height: AppSpacing.md),
                     ],
                     if (optional.isNotEmpty) ...[
                       const _SectionLabel('Recommended'),
                       EntranceList(
-                        children: [
-                          for (final s in optional) _card(context, s),
-                        ],
+                        children: [for (final s in optional) _card(context, s)],
                       ),
                     ],
                   ],
@@ -115,9 +110,13 @@ class _PermissionsScreenState extends State<PermissionsScreen> with WidgetsBindi
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: PrimaryButton(
-                    label: allRequired ? 'Continue' : 'Grant required permissions',
+                    label: allRequired
+                        ? 'Continue'
+                        : 'Grant required permissions',
                     expand: true,
-                    onPressed: allRequired ? () => context.go(Routes.home) : null,
+                    onPressed: allRequired
+                        ? () => context.go(Routes.home)
+                        : null,
                   ),
                 ),
               ),
@@ -134,11 +133,12 @@ class _PermissionsScreenState extends State<PermissionsScreen> with WidgetsBindi
       child: PermissionCard(
         icon: _iconFor(status.kind),
         title: status.kind.label,
-        why: _whyFor(status.kind),
+        why: status.kind.why,
         granted: status.granted,
         isRequired: status.kind.required,
         permanentlyDenied: status.permanentlyDenied,
-        onGrant: () => context.read<PermissionsCubit>().request(status.kind),
+        actionLabel: status.blockedByRestrictedSettings ? 'Fix this' : null,
+        onGrant: () => requestPermission(context, status.kind),
       ),
     );
   }
@@ -155,10 +155,10 @@ class _SectionLabel extends StatelessWidget {
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-            ),
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
       ),
     );
   }

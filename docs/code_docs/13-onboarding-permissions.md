@@ -95,21 +95,25 @@ Three things to note:
 
 `domain/entities/permission_status.dart`:
 
-- **`AppPermission`** enum — one entry per permission, carrying a user-facing `label` and a `required` flag:
+- **`AppPermission`** enum — one entry per permission, carrying a user-facing `label`, the `why` copy, and a `required` flag:
 
-  | Enum | Label | Required |
-  |------|-------|----------|
-  | `accessibility` | "Accessibility" | **yes** |
-  | `overlay` | "Display over apps" | **yes** |
-  | `notifications` | "Notifications" | no |
-  | `usageAccess` | "Usage access" | no |
-  | `batteryOptimization` | "Unrestricted battery" | no |
-  | `deviceAdmin` | "Uninstall protection" | no |
+  | Enum | Label | `why` | Required | Gate-able |
+  |------|-------|-------|----------|-----------|
+  | `accessibility` | "Accessibility" | "Lets Detoxo detect and block reels & shorts." | **yes** | ✓ |
+  | `overlay` | "Display over apps" | "Shows the block / PIN screen over other apps." | **yes** | ✓ |
+  | `notifications` | "Notifications" | "Alerts you if protection stops." | no | — |
+  | `usageAccess` | "Usage access" | "Powers app usage limits." | no | — |
+  | `batteryOptimization` | "Unrestricted battery" | "Keeps the blocker alive in the background." | no | — |
+  | `deviceAdmin` | "Uninstall protection" | "Optional uninstall protection." | no | ✓ |
+
+  `why` lives on the enum because three surfaces render it (funnel, settings sheet, dashboard card) and the previously duplicated copies had already drifted. Icons stay in presentation — an `IconData` field would drag `flutter/material` into a domain layer that otherwise imports only `equatable`.
+
+  **Gate-able** marks `restrictedWhenSideloaded`: the toggles Android's restricted-settings / ECM gate can silently refuse (§3.5).
 
   Only **accessibility** and **overlay** are required — they are the minimum for the blocker to detect and to draw the block/PIN screen. Everything else is "recommended".
 
-- **`PermissionStatus`** (`Equatable`) — `{ kind, state }` with `granted` (`state == PermissionState.granted`) and `permanentlyDenied` (`state == PermissionState.permanentlyDenied`) getters and `copyWith`.
-- **`PermissionState`** (defined in `lib/features/blocking/shared/domain/entities/enums.dart`) — `{ granted, denied, permanentlyDenied, unknown }`. New statuses default to `unknown`. `permanentlyDenied` only arises for **notifications** — the one runtime permission the OS can mark "don't ask again"; the five settings-based permissions never reach it.
+- **`PermissionStatus`** (`Equatable`) — `{ kind, state }` with `granted`, `permanentlyDenied`, and `blockedByRestrictedSettings` (`permanentlyDenied && kind.restrictedWhenSideloaded`) getters, plus `copyWith`.
+- **`PermissionState`** (defined in `lib/features/blocking/shared/domain/entities/enums.dart`) — `{ granted, denied, permanentlyDenied, unknown }`. New statuses default to `unknown`. `permanentlyDenied` arises two ways: from the OS for **notifications** (the one runtime permission that can be marked "don't ask again"), and from `PermissionsCubit` for a gate-able permission it has inferred is blocked by restricted settings (§3.5). `blockedByRestrictedSettings` is what separates the two, since the recovery differs.
 
 `domain/repositories/permission_repository.dart` — the contract:
 
@@ -118,8 +122,17 @@ abstract interface class PermissionRepository {
   Future<List<PermissionStatus>> statuses();
   Future<PermissionStatus> status(AppPermission permission);
   Future<void> request(AppPermission permission);
+
+  /// Play Store install? Drives the restricted-settings inference (§3.5).
+  Future<bool> installedOutsidePlay();
+
+  /// Opens the app's own system settings page (the ⋮ → "Allow restricted
+  /// settings" screen).
+  Future<void> openAppSettings();
 }
 ```
+
+`installedOutsidePlay()` reads `PackageInfo.fromPlatform().installerStore` (`package_info_plus`, which calls `getInstallSourceInfo().initiatingPackageName` on API 30+ — immutable after install, unlike the *installing* package) and compares against `com.android.vending`. It returns `false` on any throw: an unknown installer means don't guess and don't nag. `openAppSettings()` delegates to `permission_handler`'s `openAppSettings()`. **Neither goes through the MethodChannel** — both are already provided by existing dependencies.
 
 ### 3.2 Data layer — how status/request map to the platform
 
@@ -174,21 +187,81 @@ DI: registered as a global `BlocProvider` in `lib/main.dart` (`PermissionsCubit(
 - A `WidgetsBindingObserver` that calls `PermissionsCubit.refresh()` on `initState` **and** on every `AppLifecycleState.resumed`. This is the key UX move: the user leaves to a system settings screen, flips a toggle, and returns — the list updates live to reflect what they just granted.
 - Splits statuses into **"Required to block"** and **"Recommended"** sections (by `kind.required`), each an animated `EntranceList` of `PermissionCard`s.
 - A progress row: a `ProgressBar` plus "*grantedReq* of *totalRequired*" (fraction of required permissions granted).
-- Each card shows an icon, the permission `label`, a plain-language *why*, a granted/needed indicator, and an action wired to `cubit.request(status.kind)`. The action reads **Grant** normally, or **Open settings** when the status is `permanentlyDenied` (`PermissionCard(permanentlyDenied: ...)`) — so a don't-ask-again notification permission points at the app's system settings instead of a dead button.
+- Each card shows an icon, the permission `label`, its `why`, a granted/needed indicator, and an action wired to `requestPermission(context, status.kind)`. The action reads **Grant** normally, **Open settings** when `permanentlyDenied` (so a don't-ask-again notification permission points at system settings instead of a dead button), or **Fix this** when `blockedByRestrictedSettings` (`PermissionCard(actionLabel: ...)`).
 - Bottom `PrimaryButton`: while `allRequiredGranted` is false it reads **"Grant required permissions"** and is **disabled**; once both required permissions are granted it becomes **"Continue"** and `context.go(Routes.home)`.
 
-Per-permission icons and "why" copy (from the screen):
+Per-permission icons (`_iconFor`, presentation-only; the `why` copy is on the enum — see §3.1):
 
-| Permission | Icon | Why |
-|------------|------|-----|
-| accessibility | `accessibility_new` | "Lets Detoxo detect and block reels & shorts." |
-| overlay | `layers` | "Shows the block / PIN screen over other apps." |
-| notifications | `notifications` | "Alerts you if protection stops." |
-| usageAccess | `bar_chart` | "Powers app usage limits." |
-| batteryOptimization | `battery_charging_full` | "Keeps the blocker alive in the background." |
-| deviceAdmin | `shield` | "Optional uninstall protection." |
+| Permission | Icon |
+|------------|------|
+| accessibility | `accessibility_new` |
+| overlay | `layers` |
+| notifications | `notifications` |
+| usageAccess | `bar_chart` |
+| batteryOptimization | `battery_charging_full` |
+| deviceAdmin | `shield` |
 
-### 3.4 Re-entry after onboarding
+**`requestPermission(context, kind)`** (`presentation/permission_actions.dart`) is the single grant entry point for all three surfaces (funnel, settings sheet, dashboard card), so the disclosure and recovery flows cannot drift between them. In order:
+
+1. If the status is `blockedByRestrictedSettings` → open `RestrictedSettingsSheet` instead. Another trip to the system toggle would just repeat the dead end.
+2. If the kind is `accessibility` → show the **prominent disclosure** dialog first (Play's Accessibility API policy requires an in-app disclosure of what the service does and why, *before* the grant). The copy mirrors `accessibility_service_description` in `android/app/src/main/res/values/strings.xml`; keep the two in sync. Declining returns without requesting.
+3. Otherwise → `cubit.request(kind)`.
+
+### 3.4 Restricted settings / ECM recovery
+
+Android 13+ **Restricted Settings** and Android 15+ **Enhanced Confirmation Mode (ECM)**
+refuse the Accessibility, overlay and device-admin toggles for any app whose installer is
+not trusted. A sideloaded APK is untrusted; **a Play Store install is exempt**. The user
+sees *"Restricted setting"* or a shield with *"App was denied access"*, the toggle stays
+off, and — before this flow existed — the app had no idea anything had gone wrong.
+
+**There is no API to detect it.** Verified against the Android 35 SDK sources:
+
+- `AppOpsManager.OPSTR_ACCESS_RESTRICTED_SETTINGS` is `@hide` — absent from the public `android.jar`.
+- The op is declared `setRestrictRead(true)`, so a normal app's `unsafeCheckOpNoThrow` gets a `SecurityException`.
+- Under ECM its default is `MODE_DEFAULT`, **not** `MODE_ALLOWED` — a `hasUsageAccess`-style `== MODE_ALLOWED` check would report "restricted" for every app, Play installs included.
+- `android.app.ecm.EnhancedConfirmationManager` is not in the public SDK.
+
+So detection is **behavioural**, and lives in `PermissionsCubit`:
+
+| Signal | Source |
+|---|---|
+| Not installed by Play | `repo.installedOutsidePlay()`, cached for the session |
+| The permission is gate-able | `AppPermission.restrictedWhenSideloaded` — accessibility, overlay, device admin |
+| Still denied after **2** grant attempts | `_attempts` map, incremented in `request()` |
+
+All three must hold. `refresh()` then rewrites that status to
+`PermissionState.permanentlyDenied`, which `blockedByRestrictedSettings` distinguishes from
+the notification don't-ask-again case.
+
+Why **two** attempts, not one: a single failure is ordinary noise — the user backs out,
+gets distracted, or taps Grant just to look. Two round-trips with no change is a stuck
+user. `Continue` stays disabled until both required permissions are granted, so they will
+try again; there is no dead end. Attempts are cleared for any permission that comes back
+granted (self-healing) and wholesale when the user opens App info.
+
+`_ecmGated` deliberately excludes `usageAccess` and `batteryOptimization` — not behind the
+gate, so two failures there mean something else — and `notifications`, which has its own
+legitimate `permanentlyDenied` path.
+
+**The UX** is passive: no auto-opening sheet on resume (intrusive, and it would fire
+mid-rebuild). Instead the card's own button becomes **Fix this**, so a stuck user cannot
+miss it — it is the only control there. It opens `RestrictedSettingsSheet`
+(`presentation/widgets/restricted_settings_sheet.dart`): four numbered steps and an
+**Open app info** button that pops the sheet and calls
+`PermissionsCubit.openAppSettings()`.
+
+Copy is **version-agnostic** — the escape hatch is the same ⋮ → *Allow restricted
+settings* on 13/14 and 15+, and only the system dialog's wording differs, so one sentence
+naming both variants covers it. No `sdkInt` branch, and therefore no `deviceInfo()` read.
+
+The allowance is **per app, not per permission**: one confirmation unblocks all three
+toggles.
+
+Covered by `test/permissions_restricted_settings_test.dart` (threshold, gate-able set,
+Play-install negative case, and the clear-on-open-settings path).
+
+### 3.5 Re-entry after onboarding
 
 The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/presentation/settings_screen.dart`): a `_PermissionsTile` summarising status ("All set" / "*granted*/*total*") that opens a `_PermissionSheet` listing every permission with **Grant**/**Enable** actions. Settings also `refresh()`es the cubit on init and on resume, so a user who skipped optional permissions during the funnel can grant them later without re-running onboarding.
 
@@ -196,7 +269,7 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 
 ## 4. Manufacturer-specific accessibility guidance
 
-**None is present in the code.** The onboarding, permissions, and splash sources contain no OEM-specific branches or copy (no Xiaomi/MIUI, Oppo, Vivo, Huawei, Samsung, OnePlus, Realme, autostart, etc.). The accessibility request simply opens the standard system Accessibility settings via `openAccessibilitySettings()`; battery-optimization exemption is offered as its own recommended permission. Any OEM autostart/background-restriction guidance would be a **follow-up** (docs/UX), not something the app currently detects or special-cases.
+**None is present in the code**, with one system-level exception: the restricted-settings / ECM recovery in §3.4, which is an Android-version behaviour rather than an OEM one. The onboarding, permissions, and splash sources contain no OEM-specific branches or copy (no Xiaomi/MIUI, Oppo, Vivo, Huawei, Samsung, OnePlus, Realme, autostart, etc.). The accessibility request simply opens the standard system Accessibility settings via `openAccessibilitySettings()`; battery-optimization exemption is offered as its own recommended permission. Any OEM autostart/background-restriction guidance would be a **follow-up** (docs/UX), not something the app currently detects or special-cases.
 
 ---
 
@@ -221,6 +294,9 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 - `lib/features/onboarding/presentation/widgets/commitment_hero.dart` (`CommitmentHero` — page 4 shield/lock hero)
 - `lib/features/limits/daily_limit/presentation/daily_limit_cubit.dart` (`DailyLimitCubit.setLimit` — seeds the limit on finish, via the app-wide provider)
 - `lib/features/permissions/permissions.dart`
+- `lib/features/permissions/presentation/permission_actions.dart` (`requestPermission` — the single grant entry point; prominent disclosure + restricted-settings routing)
+- `lib/features/permissions/presentation/widgets/restricted_settings_sheet.dart` (`RestrictedSettingsSheet`)
+- `test/permissions_restricted_settings_test.dart`
 - `lib/features/permissions/domain/entities/permission_status.dart`
 - `lib/features/permissions/domain/repositories/permission_repository.dart`
 - `lib/features/permissions/data/repositories/permission_repository_impl.dart`

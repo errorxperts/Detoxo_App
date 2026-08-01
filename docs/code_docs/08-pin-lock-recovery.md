@@ -1,9 +1,16 @@
-# PIN Lock, Biometrics & Recovery
+# PIN Lock & Biometrics
 
 The **access_protection** feature is Detoxo's app-level lock: a PIN that gates
 opening the app and changing protected settings, an escalating retry-lockout
-ladder, optional biometric unlock (`local_auth`), and a "Forgot PIN" recovery
-flow. It is a self-contained Clean-Architecture feature — `data / domain /
+ladder, and optional biometric unlock (`local_auth`).
+
+> **There is no recovery channel, deliberately.** An earlier build shipped an
+> email-OTP flow backed by a hardcoded `_devOtp = '000000'` that `validateOtp`
+> accepted against *any* address — a one-tap bypass of the app's core commitment
+> device, in release builds, with the code printed on screen. It was removed
+> rather than wired to a backend: with the PIN stored only on-device and no
+> account behind it, any code the client can accept is a bypass available to
+> anyone holding the phone, not a recovery. See §7. It is a self-contained Clean-Architecture feature — `data / domain /
 presentation` under `lib/features/access_protection/` — and the rest of the app
 touches it only through `PinCubit`, the public barrel
 (`access_protection.dart`), and the `requirePin` / `PinGuard` helpers.
@@ -23,13 +30,13 @@ touches it only through `PinCubit`, the public barrel
 |-------|------|----------------|
 | domain / entity | `domain/entities/pin_config.dart` | `PinConfig` (persisted state) + `PinLockoutPolicy` (the ladder) |
 | domain / hashing | `domain/pin_hasher.dart` | `PinHasher` — salted SHA-256 for custom PINs |
-| domain / contract | `domain/repositories/pin_repository.dart` | `PinRepository` interface (load/save + OTP) |
-| data | `data/repositories/pin_repository_impl.dart` | secure-storage persistence, legacy migration, dev-OTP stub |
-| presentation / state | `presentation/pin_cubit.dart` | `PinCubit` — setup, verify, lockout, biometrics, recovery glue |
+| domain / contract | `domain/repositories/pin_repository.dart` | `PinRepository` interface (load / save only) |
+| data | `data/repositories/pin_repository_impl.dart` | secure-storage persistence, legacy plaintext migration |
+| presentation / state | `presentation/pin_cubit.dart` | `PinCubit` — setup, verify, lockout, biometrics |
 | presentation / gate | `presentation/pin_gate.dart` | `requirePin()` + `PinGuard` — how other features demand the PIN |
 | presentation / UI | `presentation/pin_lock_screen.dart` | the full-screen keypad lock |
 | presentation / UI | `presentation/pin_setup_screen.dart` | configure / disable the lock |
-| presentation / UI | `presentation/pin_recovery_sheet.dart` | 3-step email-OTP reset |
+| presentation / UI | `presentation/pin_help_sheet.dart` | "Forgot PIN?" — explains there is no reset |
 | barrel | `access_protection.dart` | exports **only** `PinConfig` + `PinRepository` |
 
 `PinType` and `PinScope` live in the shared blocking enums file
@@ -45,12 +52,11 @@ repository round-trips to secure storage. Fields:
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `type` | `PinType` | `none` (default), `custom`, `date`, `time` (also `otp` / `deviceDefault`, modeled but not offered — see §3) |
+| `type` | `PinType` | `none` (default), `custom`, `date`, `time` (also `deviceDefault`, modeled but not offered — see §3) |
 | `secretHash` | `String` | salted SHA-256 of a **custom** PIN; empty for date/time/none |
 | `salt` | `String` | random salt behind `secretHash`; empty otherwise |
 | `secretLength` | `int` | digit count of a custom PIN — stored so the lock screen can draw the right number of dots and auto-submit **without ever holding the secret** |
 | `scopes` | `Set<PinScope>` | which sections the PIN guards |
-| `verifiedEmail` | `String` | recovery email |
 | `retryCount` | `int` | cumulative failed attempts (persisted, drives the ladder) |
 | `lockedUntil` | `DateTime?` | end of the current cooldown window (null = not locked) |
 | `biometricEnabled` | `bool` | whether fingerprint/face unlock is allowed |
@@ -82,7 +88,6 @@ exact shape written under the secure key `pin_config`.
 | `custom` | `CUSTOM` | yes | user-chosen 4–10 digits; stored as salted hash |
 | `date` | `DATE` | yes | derived from the clock: `ddMMyyyy` (8 digits), **changes daily** |
 | `time` | `TIME` | yes | derived from the clock: `HHmm` (4 digits), **changes each minute** |
-| `otp` | `OTP` | no | modeled for wire compat; not selectable |
 | `deviceDefault` | `DEVICE_DEFAULT` | no | modeled for wire compat; not selectable |
 
 **Derived PINs (date/time) store no secret at all** — no salt, no hash,
@@ -159,11 +164,6 @@ to a fresh `LocalAuthentication()`, injectable for tests). Registered app-wide (
   stores empty salt/hash and `secretLength = 0`. Saves and emits.
 - `disable()` — saves and emits `const PinConfig()` (i.e. `type = none`), removing
   the lock entirely.
-- `resetSecretAfterRecovery(newSecret)` — used by the "Forgot PIN" flow. Sets a
-  fresh custom hash/salt/length while **keeping** the guarded scopes, recovery
-  email and biometric preference, and **clears** the retry ladder
-  (`retryCount: 0, clearLockout: true`). Recovery resets the PIN; it never
-  silently disables the lock.
 
 ### Verification and the lockout ladder
 
@@ -209,15 +209,9 @@ post-increment attempt count to a cooldown:
 > cooldown — the ladder only gates the numeric keypad. Biometrics are gated only
 > by `biometricEnabled` being set at setup.
 
-### Recovery glue
-
-- `sendRecoveryOtp(email)` → `repo.sendRecoveryOtp(email).isOk`.
-- `validateRecoveryOtp(email, otp)` → `repo.validateOtp(...).fold((_) => false,
-  (valid) => valid)`.
-
 ---
 
-## 7. Persistence & the recovery backend — `PinRepositoryImpl`
+## 7. Persistence — `PinRepositoryImpl`
 
 `PinRepositoryImpl` implements `PinRepository` over `LocalStore`'s **secure**
 key-value API (`readSecret` / `writeSecret`, backed by `flutter_secure_storage`).
@@ -230,26 +224,24 @@ plaintext custom PIN under a `secret` key: if the config is `custom`, has no
 with a fresh salt, persists the migrated config, and returns it — so the plaintext
 is never re-saved and never sits unhashed again.
 
-**Recovery is a documented stub (offline-first).** With no backend wired, the two
-OTP methods are local:
+**No recovery, and no `verifiedEmail`.** The repository is `load` / `save` only.
+With recovery gone, storing a recovery address would be PII collected for nothing
+and one more item to declare on the Play data-safety form, so the field was
+dropped from `PinConfig` entirely. `fromJson` simply ignores the legacy
+`verifiedEmail` key, so installs written by an older build load without migration
+(covered by a test in `test/access_protection_test.dart`).
 
-```dart
-static const String _devOtp = '000000';
+**The escape hatch is reinstalling.** Uninstalling clears
+`flutter_secure_storage` along with the rest of app storage. That is deliberate
+friction rather than a one-tap bypass, and it is what `PinHelpSheet`, the setup
+screen and the FAQ all tell the user. If uninstall protection (device admin) is
+on, it must be turned off first.
 
-sendRecoveryOtp(email) => _isValidEmail(email)
-    ? Ok(null)                                  // "sends" nothing; format-checks only
-    : Err(ValidationFailure('Enter a valid email address.'));
-
-validateOtp(email, otp) => Ok(otp.trim() == _devOtp);   // dev code 000000
-```
-
-Both carry code comments naming the intended real endpoints — a live impl would
-`POST /communication/sendOtp` and `POST /communication/validateOtp`. **These are
-the documented swap-in targets; do not treat them as live URLs.** `Result<T>` is
-the app's tiny `Ok`/`Err` sum type (`lib/core/utils/result.dart`).
-
-The dev OTP `000000` is surfaced to the user in the recovery sheet itself ("Dev
-build: use 000000."), so QA can complete a reset without a mail server.
+> ⚠️ Android auto-backup is enabled by default and could in principle restore the
+> encrypted blob on reinstall. The Keystore key is not backed up, so the blob
+> should be undecryptable — but **verify uninstall/reinstall actually clears the
+> PIN on a real device**; if it survives, set `android:allowBackup="false"` or add
+> a backup-exclusion rule.
 
 ---
 
@@ -290,8 +282,8 @@ Key behaviours:
 - The keypad is 1–9 then `[biometric] 0 [backspace]`: the bottom-left key is the
   fingerprint shortcut when `biometricEnabled`, otherwise empty. `_Dots` renders
   `expectedLength` progress dots (clamped 1–10).
-- "Forgot PIN?" opens `PinRecoverySheet` with `onRecovered: _succeed` — a
-  successful reset unlocks the current gate directly.
+- "Forgot PIN?" opens `PinHelpSheet` — an explanation, not an unlock. It never
+  calls `_succeed`, so there is no path from this button into the app.
 
 ### `PinSetupScreen` (`pin_setup_screen.dart`)
 
@@ -305,30 +297,25 @@ Save validation (`_save`):
    nothing was configured).
 2. custom: PIN ≥ 4 digits, and PIN == confirm (both toast on failure).
 3. at least one scope selected.
-4. recovery email must be valid *if provided*; and for a **custom** PIN an email is
-   effectively required (warns and aborts if empty) — so a forgotten custom PIN is
-   always recoverable.
-5. `setup(..., biometricEnabled: _biometric && _biometricAvailable)`, toast, pop.
+4. `setup(..., biometricEnabled: _biometric && _biometricAvailable)`, toast, pop.
+
+The screen states inline that there is no reset and that a forgotten PIN means
+reinstalling — shown *before* the user commits, not discovered afterwards.
 
 The custom-PIN fields are digits-only, obscured, `maxLength: 10` (hint "Enter 4–10
 digits"). Date/Time selections show a live derived-value preview instead of an
 entry field. A bottom-sheet radio picker chooses among none / custom / date / time.
 
-### `PinRecoverySheet` (`pin_recovery_sheet.dart`)
+### `PinHelpSheet` (`pin_help_sheet.dart`)
 
-A glass bottom sheet with three steps (`_Step.email → code → newPin`):
+A glass bottom sheet titled **"Forgot your PIN?"**. It states that Detoxo cannot
+unlock the PIN for anyone, explains why (the PIN never leaves the device, there is
+no account), names reinstalling as the way to start over, and notes that uninstall
+protection must be switched off first. One **Got it** button; it dismisses and
+nothing else.
 
-1. **email** — if a `verifiedEmail` is already on file it is shown read-only and
-   **masked** (`maskEmail`: `john.doe@example.com → j•••@e•••.com`); otherwise the
-   user types one. "Send code" calls `sendRecoveryOtp` and, on success, advances
-   and starts a 30-second resend cooldown. The dev-code hint ("use 000000") is
-   toasted here.
-2. **code** — a 6-digit field; "Verify" calls `validateRecoveryOtp`. A "Resend in
-   Ns" button is disabled during the cooldown.
-3. **newPin** — new PIN (≥ 4 digits) + confirm; on submit
-   `resetSecretAfterRecovery(pin)` writes a fresh custom PIN (keeping scopes/email/
-   biometrics, clearing the ladder) and pops `true`, which fires the caller's
-   `onRecovered`.
+It replaced a 299-line 3-step OTP flow. `maskEmail` and `_ReadOnlyField` went with
+it — neither had any other caller.
 
 ---
 
@@ -387,10 +374,10 @@ call is safe even when no PIN is set — it's a pass-through until the user opts
 | Date/Time PINs | live — clock-derived convenience locks, no stored secret |
 | Retry-lockout ladder | live — cumulative, persisted, survives restart |
 | Biometric unlock | live via `local_auth` (Android); bypasses the keypad lockout by design |
-| Email-OTP recovery | **stub** — dev code `000000`, offline "send"; real `/communication/sendOtp` + `/communication/validateOtp` are documented swap-ins |
+| PIN recovery | **removed by design** — the `000000` dev backdoor is gone and no replacement is planned; reinstalling is the escape hatch (§7) |
 | Hash KDF hardening | follow-up — single-round SHA-256 today |
 | `LOCK_APP` native enforcement | follow-up — engine degrades to a back press (see [03-detection-engine.md](03-detection-engine.md)) |
-| `otp` / `deviceDefault` PIN types, `planSwitch` / `appLocker` scopes | modeled for wire compatibility; not offered / pruned in the UI |
+| `deviceDefault` PIN type, `planSwitch` / `appLocker` scopes | modeled for wire compatibility; not offered / pruned in the UI |
 | iOS | unsupported (the whole app is Android-only) |
 
 ---
@@ -406,7 +393,7 @@ call is safe even when no PIN is set — it's a pass-through until the user opts
 - `lib/features/access_protection/presentation/pin_gate.dart`
 - `lib/features/access_protection/presentation/pin_lock_screen.dart`
 - `lib/features/access_protection/presentation/pin_setup_screen.dart`
-- `lib/features/access_protection/presentation/pin_recovery_sheet.dart`
+- `lib/features/access_protection/presentation/pin_help_sheet.dart`
 - `lib/features/blocking/shared/domain/entities/enums.dart` (`PinType`, `PinScope`)
 - `lib/core/storage/local_store.dart` (`StoreKeys.pinConfig`)
 - `lib/core/utils/result.dart` (`Result` / `Ok` / `Err`)

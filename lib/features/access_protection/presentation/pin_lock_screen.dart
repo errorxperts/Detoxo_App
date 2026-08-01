@@ -4,7 +4,7 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
-import 'package:detoxo/features/access_protection/presentation/pin_recovery_sheet.dart';
+import 'package:detoxo/features/access_protection/presentation/pin_help_sheet.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -176,7 +176,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
   }
 
   Future<void> _forgotPin() async {
-    await PinRecoverySheet.show(context, onRecovered: _succeed);
+    await PinHelpSheet.show(context);
   }
 
   /// Title, supporting line and glyph for the active scope.

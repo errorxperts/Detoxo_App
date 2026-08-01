@@ -111,13 +111,18 @@ therefore exempt from the cross-feature rule:
 `*.g.dart` / `*.freezed.dart`), skips the composition roots above, and flags any
 file that imports another feature's `data/` or `presentation/`.
 
-> **Infra follow-up:** the script's `grep`/`sed` patterns match
-> `package:noscroll/features/...`, but the real package is `detoxo` (see
-> `pubspec.yaml` → `name: detoxo`). No source file uses `package:noscroll`, so
-> the grep never matches and the check currently reports "✓ No feature-boundary
-> violations" unconditionally. Updating `noscroll` → `detoxo` in
-> `tool/check_boundaries.sh` restores enforcement. (`noscroll` is a leftover from
-> the old blueprint and is otherwise absent from the codebase.)
+> **Fixed (Aug 2026).** The script's patterns still carried the pre-rebrand package
+> prefix while the real package is `detoxo`, so the grep never matched and the check
+> reported "✓ No feature-boundary violations" unconditionally from the rename onward.
+> It now greps `package:detoxo/` and genuinely enforces the rule.
+>
+> Repairing it surfaced **12 pre-existing violations** in one go. They are listed
+> in `tool/boundaries_baseline.txt` and reported as warnings so the gate can be
+> enforced today; anything *not* on that list fails the build. Most share a single
+> root cause: `settings_cubit` is a cross-cutting cubit six features need, but it
+> is only reachable through `blocking/shared/presentation/` — exporting it from the
+> blocking barrel (or moving it to `core/`) clears five entries at once. Burn the
+> list down and delete it; do not add to it.
 
 ---
 

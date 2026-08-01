@@ -49,7 +49,8 @@ const List<FaqEntry> kFaqEntries = [
   // ── Blocking & plans ──────────────────────────────────────────────────────
   FaqEntry(
     category: FaqCategory.blocking,
-    question: "What's the difference between Block All, Conscious, One Reel and Pause?",
+    question:
+        "What's the difference between Block All, Conscious, One Reel and Pause?",
     answer:
         'Block All closes every reel on sight. Conscious lets you earn '
         'watch-time by staying off reels. One Reel allows a single clip, then '
@@ -176,16 +177,21 @@ const List<FaqEntry> kFaqEntries = [
     category: FaqCategory.pin,
     question: 'I forgot my PIN — how do I get back in?',
     answer:
-        'On the lock screen tap "Forgot PIN?", confirm the code sent to your '
-        'recovery email, and set a fresh PIN. Your other settings stay intact. '
-        'If you’re stuck, email errorxperts@gmail.com and we’ll help.',
+        'There is no reset, and that is deliberate. Your PIN never leaves your '
+        'phone and there is no account behind it, so any code Detoxo could '
+        'accept would be a bypass anyone holding your phone could use. If you '
+        'are locked out for good, uninstall Detoxo and install it again — that '
+        'clears the PIN along with your settings and counts. Turn off '
+        'uninstall protection first if you enabled it (Android Settings → '
+        'Security → Device admin apps).',
   ),
   FaqEntry(
     category: FaqCategory.pin,
-    question: 'Can I change my PIN type or recovery email?',
+    question: 'Can I change my PIN type or turn the lock off?',
     answer:
-        'Yes — open Settings → PIN settings to change the PIN type, recovery '
-        'email and biometrics. It is gated by your current PIN.',
+        'Yes — open Settings → PIN settings to change the PIN type, what it '
+        'guards, and biometrics, or to turn the lock off entirely. It is gated '
+        'by your current PIN.',
   ),
 
   // ── Privacy & data ────────────────────────────────────────────────────────
@@ -231,6 +237,20 @@ const List<FaqEntry> kFaqEntries = [
   ),
 
   // ── Troubleshooting, battery & uninstall ──────────────────────────────────
+  FaqEntry(
+    category: FaqCategory.troubleshooting,
+    question:
+        'The Accessibility or "Display over other apps" switch won’t turn on',
+    answer:
+        'If Android showed "Restricted setting" or "App was denied access", '
+        'that is Android protecting apps installed outside the Play Store — not '
+        'a problem with Detoxo. Open Android Settings → Apps → Detoxo, tap the '
+        '⋮ menu at the top right and choose "Allow restricted settings" (some '
+        'phones list it at the bottom of App info instead), then come back and '
+        'tap Grant. It is a one-time confirmation and unlocks every switch at '
+        'once. Detoxo also offers a "Fix this" button once it notices a switch '
+        'isn’t taking. Installing from the Play Store avoids this entirely.',
+  ),
   FaqEntry(
     category: FaqCategory.troubleshooting,
     question: 'Will Detoxo drain my battery?',

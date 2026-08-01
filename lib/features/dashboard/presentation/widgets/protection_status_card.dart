@@ -4,6 +4,7 @@ import 'package:detoxo/core/platform/platform_capabilities.dart';
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
+import 'package:detoxo/features/permissions/presentation/permission_actions.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,10 +38,16 @@ class ProtectionStatusCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Preview mode',
-                      style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                    'Preview mode',
+                    style: text.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  const Text('Blocking runs on Android. iOS support is coming soon.'),
+                  const Text(
+                    'Blocking runs on Android. iOS support is coming soon.',
+                  ),
                 ],
               ),
             ),
@@ -53,6 +60,13 @@ class ProtectionStatusCard extends StatelessWidget {
         context.watch<ServiceCubit>().state.status == ServiceStatus.running;
 
     if (!running) {
+      // Android's restricted-settings gate can swallow the grant silently; when
+      // it has, another trip to the toggle is a dead end — offer the fix instead.
+      final blocked = context.watch<PermissionsCubit>().state.any(
+        (s) =>
+            s.kind == AppPermission.accessibility &&
+            s.blockedByRestrictedSettings,
+      );
       return GlassCard(
         accent: AppColors.danger,
         child: Row(
@@ -68,18 +82,25 @@ class ProtectionStatusCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Protection off',
-                      style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                    'Protection off',
+                    style: text.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  const Text('Enable the accessibility service to start blocking.'),
+                  Text(
+                    blocked
+                        ? 'Android is blocking the accessibility switch.'
+                        : 'Enable the accessibility service to start blocking.',
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   AnimatedIconButton(
-                    label: 'Enable now',
+                    label: blocked ? 'Fix this' : 'Enable now',
                     icon: AppIcon.shieldCheck,
                     tint: AppColors.danger,
-                    onPressed: () => context
-                        .read<PermissionsCubit>()
-                        .request(AppPermission.accessibility),
+                    onPressed: () =>
+                        requestPermission(context, AppPermission.accessibility),
                   ),
                 ],
               ),
@@ -101,11 +122,19 @@ class ProtectionStatusCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Protection Status',
-                    style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                Text(
+                  'Protection Status',
+                  style: text.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text('Active & Optimized',
-                    style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
+                Text(
+                  'Active & Optimized',
+                  style: text.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
@@ -137,7 +166,11 @@ class _PulsingShield extends StatelessWidget {
             color: color,
             playOnAppear: true,
           ),
-          Positioned(top: -2, right: -2, child: StatusDot(color: color, size: 8)),
+          Positioned(
+            top: -2,
+            right: -2,
+            child: StatusDot(color: color, size: 8),
+          ),
         ],
       ),
     );

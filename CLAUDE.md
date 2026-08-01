@@ -16,8 +16,10 @@ on-device reel counter**, built in Flutter with a native Kotlin AccessibilitySer
   `com.errorxperts.detoxo/commands` + **one** EventChannel `com.errorxperts.detoxo/events`.
 
 ## Naming invariants (never break)
-- Never write `noscroll`, `curizic`, `brainpal`, `newswarajya`, `no_scroll`, or `:as_process` —
-  those are a prior app / an outdated blueprint. Use **Detoxo** / **errorxperts**.
+- **Detoxo** and **errorxperts** are the only app and vendor names anywhere in this repo —
+  code, assets, config, docs, filenames. Never reintroduce a prior app's or prior vendor's
+  name when copying config, assets or blueprint text; rewrite it to Detoxo/errorxperts first.
+  Same for a `:as_process` service suffix — this build is single-process.
 - The blocking-plan token **`curious` / `"CURIOUS"`** is real (native
   `PLAN_CONSCIOUS = "CURIOUS"`); keep it verbatim in code/wire. Its **UI label is "Conscious"** —
   use "Conscious" in user-facing text.

@@ -29,10 +29,10 @@ path is native; Dart owns config, settings and UI, bridged by **one** MethodChan
 | 05 | [Plans, Pause & Conscious](05-plans-pause-conscious.md) | Block-All / Conscious / One-Reel / Pause, the Conscious time-bank, countdown & content engine |
 | 06 | [App Blocker & Web Blocklist](06-app-and-web-blocker.md) | Full-app blocking + website blocklist (`WebBlockEngine`) |
 | 07 | [Daily Limit & Scheduler](07-daily-limit-scheduler.md) | Daily time quota + reset |
-| 08 | [PIN Lock, Biometrics & Recovery](08-pin-lock-recovery.md) | PIN gate, lockout ladder, biometrics, recovery |
+| 08 | [PIN Lock & Biometrics](08-pin-lock-recovery.md) | PIN gate, lockout ladder, biometrics; why there is no recovery channel |
 | 09 | [Persistence & Data Model](09-persistence-data-model.md) | `local_store` + `detoxo_engine_prefs` + secure storage + widget keys |
 | 10 | [Config Sync (offline-first)](10-networking-config-sync.md) | Bundled config load; remote as swap-in |
-| 11 | [Monetization](11-monetization.md) | Premium entitlement model + dev-unlock; test AdMob; billing = swap-in |
+| 11 | [Monetization](11-monetization.md) | Premium entitlement model + dev-unlock; ads/billing SDKs removed pending real monetization |
 | 12 | [Analytics, Notifications & Resilience](12-analytics-notifications-resilience.md) | Local analytics; FGS notification; boot; device-admin |
 | 13 | [Onboarding & Permission Funnel](13-onboarding-permissions.md) | First-run + permission funnel + splash gating |
 | 14 | [Flutter Package Map](14-flutter-package-map.md) | Real `pubspec.yaml` deps → purpose |
@@ -43,6 +43,7 @@ path is native; Dart owns config, settings and UI, bridged by **one** MethodChan
 | 19 | [Firebase Telemetry](19-firebase-telemetry.md) | Analytics / Crashlytics / Performance service layer — the one off-device data path |
 | 20 | [Help & Support](20-help-support.md) | In-app help hub: report an issue, FAQ, feature tutorials (scoped tours), share an idea |
 | 21 | [App Upgrader](21-app-upgrader.md) | In-app "update available" prompt (`upgrader` engine + custom glass dialog, force-update, auto + manual check) |
+| 22 | [Play Store Release & Policy](22-play-release.md) | Signed `.aab` build, Accessibility/FGS/device-admin declarations, data-safety answers, restricted-settings notes |
 
 ## Glossary
 | Term | Meaning |

@@ -25,7 +25,7 @@ required.
 | Web blocklist enforcement | **Wired natively** — `WebBlockEngine` reads the browser address bar in the hot path, matches wildcards, presses Back with per-host debounce, records stats | [06-app-and-web-blocker.md](06-app-and-web-blocker.md), `engine/WebBlockEngine.kt` |
 | Content counter (decoupled from blocking) + bubble + home-screen widget | **Works** — side-effect-free counting pass runs even when blocking is off; drives overlay bubble + `home_widget` | [17-content-counter.md](17-content-counter.md) |
 | Blocklist (data-driven) | **Works** — parsed from bundled `assets/config/platforms_config.json`; per-platform enable/disable persisted natively | [02-detection-config-schema.md](02-detection-config-schema.md) |
-| PIN lock + biometric + retry-lockout ladder | **Works** — `local_auth` + `flutter_secure_storage`; PIN recovery uses a **dev OTP** (see §3) | [08-pin-lock-recovery.md](08-pin-lock-recovery.md) |
+| PIN lock + biometric + retry-lockout ladder | **Works** — `local_auth` + `flutter_secure_storage`. **No recovery channel by design**; the `000000` dev backdoor was removed, not wired | [08-pin-lock-recovery.md](08-pin-lock-recovery.md) |
 | Analytics (block-event history) | **Works, local only** — capped in-memory/JSON block-event buffer (recent ~100); no cloud sink | [12-analytics-notifications-resilience.md](12-analytics-notifications-resilience.md) |
 | Firebase telemetry | **Wired** — Analytics (screen views + usage events), Crashlytics, Performance; anonymised, collection on in every build | [19-firebase-telemetry.md](19-firebase-telemetry.md) |
 | Persistence | **Works, on-device only** — Dart `local_store` + native `detoxo_engine_prefs` + secure storage + widget keys `cc_today`/`cc_total` | [09-persistence-data-model.md](09-persistence-data-model.md) |
@@ -62,15 +62,15 @@ model and usage sampling the engine doesn't carry yet. See
 Every external dependency is isolated behind a repository or a single config value so it can be
 replaced without touching feature code.
 
-### Backend API (config + OTP)
+### Backend API (config)
 - **Config:** `ConfigRepositoryImpl` (`lib/features/blocking/shared/data/repositories/config_repository_impl.dart`)
   reads bundled JSON assets. A remote refresh is a documented swap-in — implement a networked
   `ConfigRepository` and point a base URL at it (README notes `core/config/` as the home for
   base URLs / product ids). No live endpoint is bundled.
-- **PIN recovery OTP:** `PinRepositoryImpl` (`lib/features/access_protection/data/repositories/pin_repository_impl.dart`)
-  ships a **dev stub** — `_devOtp = '000000'`; `sendRecoveryOtp` always "succeeds" and `validateOtp`
-  accepts `000000`. Comments mark the real target (`POST /communication/validateOtp`). Wire a real
-  OTP endpoint behind these two methods. **This is a dev-only backdoor — do not ship as-is.**
+- **PIN recovery is deliberately not a swap-in.** The old `_devOtp = '000000'` stub — which
+  `validateOtp` accepted against any email, with the code shown to the user — was **removed**.
+  A client-side code is a lock bypass, not a recovery, so there is nothing here to wire later.
+  Reinstalling is the documented escape hatch. See [08-pin-lock-recovery.md](08-pin-lock-recovery.md).
 
 ### Firebase / FCM
 - **Telemetry is now bundled.** `android/app/google-services.json`, `lib/firebase_options.dart`, and
@@ -81,23 +81,20 @@ replaced without touching feature code.
 - **Still swap-ins:** FCM push is not bundled, and the local `AnalyticsRepository` block-event buffer
   has no cloud sink (it stays on-device).
 
-### Play Billing / Premium (see honest state below)
-- `in_app_purchase: ^3.3.0` is declared in `pubspec.yaml` and its plugin is registered, but **there
-  is no monetization feature and no purchase/restore code in Dart**. Manifest declares the
-  `com.android.vending.BILLING` permission. Implement a `PremiumRepository` (`purchase`/`restore`)
-  against Play Console products when you're ready.
+### Play Billing / Premium & AdMob — SDKs removed
+- `in_app_purchase` and `google_mobile_ads` were **deleted from `pubspec.yaml`**, along with the
+  `BILLING` / `AD_ID` permissions and the Google **test** AdMob App ID in the manifest. Nothing
+  imported either SDK, but shipping them declared Advertising ID and Billing to Play while the
+  in-app FAQ promised "no ads, no ad tracking" — a data-safety contradiction, plus a test ad id in a
+  production listing. Re-add deliberately, with real ad units and corrected in-app copy, when
+  monetization is actually built. See [11-monetization.md](11-monetization.md) §5.
 
-### AdMob
-- `google_mobile_ads: ^8.0.0` is declared and its plugin registered, but **`MobileAds` is never
-  initialized and no ad widgets exist in Dart** — nothing renders. `AndroidManifest.xml` carries the
-  Google **test** App ID `ca-app-pub-3940256099942544~3347511713` and the `AD_ID` permission.
-  Replace the test App ID + add real ad-unit IDs and an init call for live ads.
-
-### Release signing
-- `android/app/build.gradle.kts` `release` build type uses `signingConfig = signingConfigs.getByName("debug")`
-  (debug signing "for now so `flutter run --release` works"). Add a real keystore + `signingConfig`
-  before a store build.
-
+### Release signing & build — done
+- `android/app/build.gradle.kts` loads a real keystore from the gitignored `android/key.properties`,
+  registering the signing config **only when that file exists** (an unguarded cast previously broke
+  configuration for *all* build types on a fresh clone). Missing keystore → debug signing + a warning.
+- `bash tool/dev.sh release` builds the signed `.aab` with `--obfuscate --split-debug-info` and
+  refuses to run without the keystore. See [22-play-release.md](22-play-release.md).
 ---
 
 ## 4. Premium, ads & billing — honest state
@@ -145,9 +142,10 @@ places business rules live:
 ### Boundary / architecture check
 `tool/check_boundaries.sh` enforces the feature-isolation rule (a feature may import another
 feature's public barrel or `domain/`, never its `data/`/`presentation/`).
-**Follow-up:** the script currently greps for `package:noscroll/features/...` (the **old** package
-name). This build's package is `detoxo` (imports are `package:detoxo/...`), so the check **matches
-nothing and is effectively a no-op** — update the prefix to `package:detoxo/` to re-arm it in CI.
+**Fixed (Aug 2026).** The script used to grep a pre-rebrand package prefix, so it matched nothing
+and passed vacuously from the rename onward. It now greps `package:detoxo/` and genuinely enforces
+the rule. Repairing it surfaced 12 pre-existing violations, grandfathered in
+`tool/boundaries_baseline.txt`; anything new fails the build.
 
 ### Native (Kotlin)
 - **No instrumented/unit tests are bundled** for the engine. The detection/block hot path is
@@ -178,8 +176,14 @@ release.
   device-admin policy and OEM behavior; use it sparingly and disclose it.
 - **Overlays.** The content-counter bubble uses `SYSTEM_ALERT_WINDOW` (Display over apps) with a
   `TYPE_APPLICATION_OVERLAY` → `TYPE_PHONE` fallback — its own policy/OEM constraints apply.
-- **`QUERY_ALL_PACKAGES`.** Declared to enumerate installed apps for the blocklist; Play requires a
-  declared justification for this sensitive permission.
+- **`QUERY_ALL_PACKAGES` — removed.** `queryLaunchablePackages()` only needs the manifest's
+  `<queries>` MAIN entry, so the restricted permission (and its Console declaration) was dropped
+  entirely.
+- **Restricted settings / ECM.** Android 13+/15+ block the accessibility, overlay and device-admin
+  toggles for non-Play installs. Handled in-app with a detection + walkthrough flow;
+  `android:isAccessibilityTool` **stays unset** (Detoxo is not an assistive tool — claiming
+  otherwise to dodge the gate is a policy violation). See
+  [13-onboarding-permissions.md](13-onboarding-permissions.md) §3.4.
 - **Data collection disclosure (Play Data safety / GDPR).** The app now sends anonymised usage
   analytics, crash reports, and performance traces to Firebase
   ([19-firebase-telemetry.md](19-firebase-telemetry.md)). This must be declared in the Play **Data
@@ -191,13 +195,19 @@ release.
 
 ## 7. Known infra follow-ups (grab-bag)
 
-- **Stale vendor URLs in bundled config.** `platforms_config.json` `iconUrl`s are **done** —
-  repointed to bundled local assets (`assets/images/social_icon_pack/`), so `curizic.com` no longer
-  appears there. Remaining pre-rebrand leftovers live in `assets/config/initial_config.json` (an
-  `.../NoScroll/...` CTA PDF, a `NoScroll_Official` subreddit, and a `com.curizic.annote` deep link) —
-  repoint them to Detoxo/errorxperts infrastructure. Noted here as an infra follow-up; do not invent
-  replacement URLs.
-- **Boundary check package prefix** (see §5) — `noscroll` → `detoxo`.
+- **Inherited vendor strings in bundled config — done.** `platforms_config.json` `iconUrl`s point
+  at bundled local assets. `assets/config/initial_config.json` was rewritten: the inherited
+  notification ids, prior-vendor CTA PDF, community link and dead package references, the
+  third-party `inhouseNativeAdConfig` promo and the foreign `admobConfig` ad units are all gone.
+  `assets/content/pause_countdown_pause_emojis.json` was rebranded too (6 user-visible strings).
+  The repo now contains **zero** prior-app / prior-vendor names in any file, folder, asset or doc
+  — including the orphaned `android/*.iml` IDE module file, which was deleted.
+- **Boundary check package prefix — done.** Repointed at the real package. Fixing it revealed **12
+  pre-existing violations** the gate had never caught (it had matched nothing since the rebrand).
+  They are grandfathered in `tool/boundaries_baseline.txt` and reported as warnings; anything new
+  fails. Most share one root cause — `settings_cubit` is cross-cutting but only reachable through
+  `blocking/shared/presentation/`. **Burn the list down.**
+- **Telemetry consent / opt-out** — still the main open compliance gap (§6).
 - **Release signing** (see §3) — replace debug signing.
 - **Backend + OTP + FCM + Billing + real ads** — remaining §3 swap-ins (Firebase telemetry is wired;
   a telemetry consent/opt-out gate is the follow-up).

@@ -25,5 +25,7 @@ see [`../code_docs/`](../code_docs/00-index.md).)
 - **On-device reel counter** — a floating bubble + a home-screen widget that count the short
   videos you scroll, so the habit becomes visible.
 - **PIN lock** so you can't disable it on impulse.
-- **Private by design**: everything runs **on your device**; this build sends nothing to a server.
+- **Private by design**: blocking and counting run **entirely on your device**, and what you
+  scroll, watch or browse is never uploaded. The app sends only anonymous, aggregated crash and
+  usage diagnostics — see [Permissions explained](03-permissions-explained.md#your-privacy-plainly).
 - Android only (there is no equivalent capability on iOS).

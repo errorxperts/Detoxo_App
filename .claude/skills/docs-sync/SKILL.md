@@ -67,7 +67,9 @@ new `code_docs/NN-*.md` and register it in `docs/code_docs/00-index.md`.
 
 ## Naming invariants (do not break)
 - Brand is **Detoxo**; package/appId **`com.errorxperts.detoxo`**; asset/vendor namespace
-  **errorxperts**. Never introduce `noscroll`, `curizic`, `brainpal`, `newswarajya`, or `:as_process`.
+  **errorxperts**. These are the only app/vendor names in the repo — never reintroduce a prior
+  app's or prior vendor's name when copying blueprint text, and never a `:as_process` suffix
+  (this build is single-process).
 - The plan token **`curious` / `"CURIOUS"`** is real (native `PLAN_CONSCIOUS = "CURIOUS"`) and
   must stay verbatim in code/wire contexts. Its **user-facing label is "Conscious"** — use
   "Conscious" in prose and `info_docs`, `curious`/`CURIOUS` when quoting code/enums/wire.

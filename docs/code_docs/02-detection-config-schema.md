@@ -367,10 +367,14 @@ Note `featuresAvailability.reels_by_friends.params` is `":id/reply_bar_edittext"
 the same view-id used by the `ig_reel_by_friend` allow-list detector in §1.5, letting
 that exception be feature-flagged independently.
 
-Legacy strings survive in this bundle too (`notificationId: "/noscroll/..."`,
-`ctaUrl` values, `warningMessages[].ctaUrl` package ids like
-`com.newswarajya.noswipe.reelshortblocker` / `com.curizic.annote`). These are **infra
-follow-ups** to re-brand to `com.errorxperts.detoxo`, not authoritative Detoxo values.
+**Rebranded (Aug 2026).** This bundle was inherited from a prior app and carried its
+branding throughout — notification ids, a prior-vendor CTA PDF link, a community link,
+dead `ctaUrl` package ids, a third-party app promo under `inhouseNativeAdConfig`, and
+`admobConfig` ad units under a **foreign publisher account**
+(`ca-app-pub-1071824559641088/…`). All are gone: ids are `/detoxo/…`, copy is Detoxo's,
+`admobConfig` is `{}`, and the unmodelled ad/video keys were dropped.
+`versionAvailability` now matches the real app version with `available: false` so no
+phantom update prompt can fire.
 
 ---
 

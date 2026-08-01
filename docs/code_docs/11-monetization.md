@@ -28,9 +28,8 @@ scattered across the blocking config models, one design-system pill, one reserve
 | Dev-unlock flag | `StoreKeys.premiumDevUnlock` (`'premium_dev_unlock'`) | **Declared only** — no read/write, no UI |
 | "Premium" lock pill | `AppToggleTile.locked` → `Pill(label: 'Premium')` | Scaffolding, **never triggered** |
 | Premium/crown icon | `AppIcon.premium` → `CrownIcon` | Defined, **never referenced** |
-| AdMob app id | `AndroidManifest.xml` meta-data (Google **test** id) | Metadata only, no init |
-| Ads SDK | `google_mobile_ads` (pubspec) | Plugin auto-registered, **dormant** |
-| Billing SDK | `in_app_purchase` (pubspec) + `com.android.vending.BILLING` perm | **Unused** — no Dart code |
+| Ads SDK / AdMob app id | — | **Removed** (see §5) |
+| Billing SDK | — | **Removed** (see §5) |
 
 ---
 
@@ -195,47 +194,18 @@ paywall, currently unused.
 
 ---
 
-## 5. AdMob & billing wiring (present but dormant)
+## 5. Ads & billing — removed
 
-### AndroidManifest
+Both SDKs were deleted. Nothing imported them: `grep -rn "MobileAds|AdWidget|BannerAd|InterstitialAd|InAppPurchase" lib/` returned zero hits, and there was no native `BillingClient` code either. What shipped instead was a policy liability:
 
-`android/app/src/main/AndroidManifest.xml` declares:
+- The manifest carried Google's **public test** AdMob App ID (`ca-app-pub-3940256099942544~3347511713`). A test ad id in a production listing is a known review flag and would never serve.
+- `AD_ID` + `com.android.vending.BILLING` were declared, forcing an Advertising-ID entry on the Play data-safety form — while the app's own in-app FAQ told users *"no ads, no ad tracking, and never sells your data."* Declaring one thing to Play and another to the user is how listings get pulled.
 
-```xml
-<!-- AdMob test App ID (swap for your real App ID for release). -->
-<meta-data
-    android:name="com.google.android.gms.ads.APPLICATION_ID"
-    android:value="ca-app-pub-3940256099942544~3347511713"/>
-```
+Removed: `google_mobile_ads` and `in_app_purchase` from `pubspec.yaml`; the `AD_ID`, `BILLING` permissions and the AdMob `APPLICATION_ID` meta-data from the manifest; the foreign `admobConfig` ad units from the bundled config (§6).
 
-`ca-app-pub-3940256099942544~3347511713` is **Google's public sample/test AdMob app
-id**, not a real Detoxo publisher id. The manifest also declares the ad/billing
-permissions:
+Firebase Analytics still merges `AD_ID` and `ACCESS_ADSERVICES_*` in from `play-services-measurement`, so those are stripped with `tools:node="remove"` — see [22-play-release.md](22-play-release.md) §1 and §4.
 
-- `com.google.android.gms.permission.AD_ID`
-- `com.android.vending.BILLING`
-
-### Dart / plugin state
-
-| Package (pubspec) | State |
-| --- | --- |
-| `google_mobile_ads: ^8.0.0` | `GoogleMobileAdsPlugin` is auto-registered in `GeneratedPluginRegistrant`, but **no Dart code imports it**. There is no `MobileAds.instance.initialize()`, no `BannerAd`/`InterstitialAd`, no ad widget. The SDK is present and dormant. |
-| `in_app_purchase: ^3.3.0` | **No Dart usage at all** — no `InAppPurchase`, no product query, no purchase stream. No native `BillingClient` code either. |
-
-So: **no ad is initialized or loaded**, and **no purchase flow can be started**.
-The bundled `admobConfig` in `initial_config.json` maps ad-slot paths (e.g.
-`/home/dashboard/banner`) to `AdSlotModel { adTag, adType }`, but since nothing reads
-`admobConfig` those slots are never realized.
-
-**Swap-in checklist (ads):** replace the manifest app id with the real publisher id,
-call `MobileAds.instance.initialize()` at bootstrap (`lib/main.dart`), build ad
-widgets that resolve unit ids from `admobConfig`, and gate them on
-`ActivePlanDetails.blockAds` (ad-free entitlement).
-
-**Swap-in checklist (billing):** implement an `in_app_purchase` (or RevenueCat)
-repository, map SKUs → `plans` in `ActivePlanDetails`, persist the resulting
-entitlement, and replace the reserved `premium_dev_unlock` dev path (§3) as the sole
-unlock mechanism for release builds.
+**Re-adding them is a deliberate act**, not a default: restore the dependency, wire real ad units under Detoxo's own publisher account, add the permissions back, **and fix the in-app FAQ + `info_docs/03` copy in the same change** so the claims stay true.
 
 ---
 
@@ -248,10 +218,12 @@ fields. Because nothing consumes these fields today it is harmless at runtime, b
 
 - `premiumPurchaseCTA` — its `id`, `desc`, and `whatsNew` copy still reference the
   **previous app's brand name**, not "Detoxo". Rewrite before showing an upgrade CTA.
-- `admobConfig` ad units are under a **third-party publisher account**
-  (`ca-app-pub-1071824559641088/…`), i.e. **not** Detoxo's and **not** the Google
-  test ids in the manifest. Replace with Detoxo's own ad units (or test ids) before
-  enabling ads.
+- `admobConfig` shipped ad units under a **third-party publisher account**
+  (`ca-app-pub-1071824559641088/…`) — not Detoxo's. **Fixed:** `admobConfig` is now
+  `{}`. The whole bundled config was rebranded at the same time — inherited notification
+  ids, a prior-vendor CTA PDF link, a community link, dead package references, and a
+  third-party app promo in `inhouseNativeAdConfig` (dropped entirely).
+  `premiumPurchaseCTA` is now inert (`active: false`) with empty copy.
 
 Treat both as **infra / config follow-ups**, analogous to the leftover legacy
 config strings noted elsewhere (the app-icon URLs are already fixed — icons now
@@ -266,9 +238,8 @@ ship locally in `assets/images/social_icon_pack/`). Do not go live on this bundl
   `premiumExclusive`, `premiumPurchaseCTA`, and `admobConfig` are all
   parsed-then-dropped (only `inappNotification` is consumed).
 - **`premium_dev_unlock` is a declared key with zero read/write and no Developer UI.**
-- **AdMob** = Google test app id in the manifest + a dormant, auto-registered plugin;
-  **no ad is initialized or loaded**.
-- **Billing** = `in_app_purchase` dependency + `BILLING` permission; **no code**.
+- **Ads and billing SDKs are gone** — removed rather than left dormant, because dormant
+  SDKs still shape the Play data-safety declaration (§5).
 - Making any of this real is a discrete swap-in; see the checklists in §3 and §5, and
   the config-hygiene fixes in §6. Related: config loading in
   [10-networking-config-sync.md](10-networking-config-sync.md), the `BlockTarget`
@@ -291,7 +262,5 @@ ship locally in `assets/images/social_icon_pack/`). Do not go live on this bundl
 - `lib/core/design_system/components/badges.dart` (`Pill`)
 - `lib/core/design_system/foundations/animated_icons.dart` (`AppIcon.premium` → `CrownIcon`)
 - `lib/features/blocking/blocklist/presentation/widgets/block_app_tile.dart` (uses `AppToggleTile`, never `locked`)
-- `assets/config/initial_config.json` (bundled `admobConfig` / `activePlanDetails` / `premiumPurchaseCTA` — carries stale old-app values)
-- `pubspec.yaml` (`google_mobile_ads: ^8.0.0`, `in_app_purchase: ^3.3.0`)
-- `android/app/src/main/AndroidManifest.xml` (AdMob test `APPLICATION_ID`, `AD_ID` + `com.android.vending.BILLING` permissions)
-- `android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java` (`GoogleMobileAdsPlugin` auto-registration)
+- `assets/config/initial_config.json` (bundled `activePlanDetails` / `premiumPurchaseCTA`; `admobConfig` is now empty)
+- `docs/code_docs/22-play-release.md` (why the ads/billing SDKs stay out)

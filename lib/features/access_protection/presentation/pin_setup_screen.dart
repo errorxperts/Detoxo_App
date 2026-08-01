@@ -6,8 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Configure (or turn off) the PIN lock, which sections it guards, the recovery
-/// email and biometric unlock. Custom PINs require a matching confirmation.
+/// Configure (or turn off) the PIN lock, which sections it guards, and
+/// biometric unlock. Custom PINs require a matching confirmation. There is no
+/// recovery channel — see `PinHelpSheet`.
 class PinSetupScreen extends StatefulWidget {
   const PinSetupScreen({super.key});
 
@@ -16,23 +17,14 @@ class PinSetupScreen extends StatefulWidget {
 }
 
 class _PinSetupScreenState extends State<PinSetupScreen> {
-  // Verified email regex from the reference app (doc §9).
-  static final _emailRegex = RegExp(
-    r'^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[a-zA-Z]{2,}$',
-  );
-
   /// The scopes this screen can toggle; any others persisted by an older build
   /// (e.g. the retired `planSwitch` or `appLocker`) are pruned on load so they
   /// aren't re-saved.
-  static const _supportedScopes = {
-    PinScope.app,
-    PinScope.settings,
-  };
+  static const _supportedScopes = {PinScope.app, PinScope.settings};
 
   PinType _type = PinType.custom;
   final _pinController = TextEditingController();
   final _confirmController = TextEditingController();
-  final _emailController = TextEditingController();
   final Set<PinScope> _scopes = {..._supportedScopes};
   bool _biometric = false;
   bool _biometricAvailable = false;
@@ -46,7 +38,6 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
       _scopes
         ..clear()
         ..addAll(config.scopes.where(_supportedScopes.contains));
-      _emailController.text = config.verifiedEmail;
       _biometric = config.biometricEnabled;
     }
     _loadBiometricAvailability();
@@ -61,7 +52,6 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
   void dispose() {
     _pinController.dispose();
     _confirmController.dispose();
-    _emailController.dispose();
     super.dispose();
   }
 
@@ -72,7 +62,6 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
       return;
     }
 
-    final email = _emailController.text.trim();
     if (_type == PinType.custom) {
       final pin = _pinController.text.trim();
       if (pin.length < 4) {
@@ -96,28 +85,11 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
       );
       return;
     }
-    if (email.isNotEmpty && !_emailRegex.hasMatch(email)) {
-      GlassToast.show(
-        context,
-        'Enter a valid recovery email.',
-        tone: AppTone.danger,
-      );
-      return;
-    }
-    if (_type == PinType.custom && email.isEmpty) {
-      GlassToast.show(
-        context,
-        'Add a recovery email so you can reset your PIN.',
-        tone: AppTone.warning,
-      );
-      return;
-    }
 
     await context.read<PinCubit>().setup(
       type: _type,
       secret: _pinController.text.trim(),
       scopes: _scopes,
-      verifiedEmail: email,
       biometricEnabled: _biometric && _biometricAvailable,
     );
     if (!mounted) return;
@@ -205,7 +177,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
               style: text.bodySmall?.copyWith(color: accent),
             ),
           ],
-          // None removes the lock, so the PIN, scope, recovery and biometric
+          // None removes the lock, so the PIN, scope and biometric
           // sections are hidden — only the type picker and Save remain.
           if (_type != PinType.none) ...[
             if (_type == PinType.custom) ...[
@@ -241,14 +213,14 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
               'Changing protected settings',
               'Ask before disabling blocking, resetting data or changing the PIN',
             ),
-            const SectionHeader('Recovery email'),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                hintText: 'you@example.com',
-                helperText: 'Used to reset your PIN if you forget it',
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'There is no reset. Your PIN stays on this phone and Detoxo '
+              'cannot unlock it for you — if you forget it, the only way back '
+              'is to reinstall the app, which clears everything. Pick '
+              'something you will remember.',
+              style: text.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
             if (_biometricAvailable) ...[
@@ -294,7 +266,6 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
       }),
     ),
   );
-
 }
 
 /// Human labels & hints for the PIN types, shared by the setup row and the

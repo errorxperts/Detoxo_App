@@ -5,4 +5,14 @@ abstract interface class PermissionRepository {
   Future<List<PermissionStatus>> statuses();
   Future<PermissionStatus> status(AppPermission permission);
   Future<void> request(AppPermission permission);
+
+  /// True when Detoxo was not installed by the Play Store, so Android's
+  /// restricted-settings / ECM gate can silently swallow the Accessibility,
+  /// overlay and device-admin toggles. There is no API to query the gate
+  /// itself, so the installer is the only signal available.
+  Future<bool> installedOutsidePlay();
+
+  /// Opens Detoxo's own system settings page — the screen whose ⋮ overflow
+  /// holds "Allow restricted settings".
+  Future<void> openAppSettings();
 }
