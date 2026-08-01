@@ -43,9 +43,18 @@ class _WebBlockView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      appBar: const GlassAppBar(title: Text('Website blocker')),
+      appBar: const GlassAppBar(
+        title: Text('Website blocker'),
+        actions: [
+          InfoButton(
+            'Blocks distracting sites in any browser — Detoxo reads the '
+            'address bar and closes the tab. Turn on a category, tap a '
+            'popular site, or add your own.',
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showSheet(context),
+        onPressed: () => _showSiteSheet(context),
         icon: const Icon(Icons.add),
         label: const Text('Add website'),
       ),
@@ -68,19 +77,13 @@ class _WebBlockView extends StatelessWidget {
                 96 + MediaQuery.viewPaddingOf(context).bottom,
               ),
               children: [
-                Text(
-                  'Block distracting sites in any browser. Turn on a category, '
-                  'tap a popular site, or add your own.',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: AppSpacing.md),
                 if (state.hasStats) ...[
                   _StatsSection(stats: state.stats),
                   const SizedBox(height: AppSpacing.xs),
                 ],
                 const SectionHeader('Protection'),
                 _ProtectionTiles(state: state),
-                const SectionHeader('Popular time-wasting websites'),
+                const SectionHeader('Popular sites'),
                 _PopularChips(state: state),
                 const SectionHeader('Your blocklist'),
                 _Blocklist(state: state),
@@ -92,20 +95,22 @@ class _WebBlockView extends StatelessWidget {
     );
   }
 
-  Future<void> _showSheet(BuildContext context, {WebBlockEntry? entry}) async {
-    final cubit = context.read<WebBlockCubit>();
-    final host = await GlassBottomSheet.show<String>(
-      context: context,
-      title: entry == null ? 'Block a website' : 'Edit website',
-      child: _SiteSheet(cubit: cubit, entry: entry),
+}
+
+/// Add / edit sheet, shared by the FAB, the "Add website" chip and row edit.
+Future<void> _showSiteSheet(BuildContext context, {WebBlockEntry? entry}) async {
+  final cubit = context.read<WebBlockCubit>();
+  final host = await GlassBottomSheet.show<String>(
+    context: context,
+    title: entry == null ? 'Block a website' : 'Edit website',
+    child: _SiteSheet(cubit: cubit, entry: entry),
+  );
+  if (host != null && context.mounted) {
+    GlassToast.show(
+      context,
+      entry == null ? 'Blocked $host' : 'Updated to $host',
+      tone: AppTone.success,
     );
-    if (host != null && context.mounted) {
-      GlassToast.show(
-        context,
-        entry == null ? 'Blocked $host' : 'Updated to $host',
-        tone: AppTone.success,
-      );
-    }
   }
 }
 
@@ -197,9 +202,7 @@ class _ProtectionTiles extends StatelessWidget {
     return Column(
       children: [
         AdaptiveSwitchTile(
-          title: 'Block sites for blocked apps',
-          subtitle:
-              'Auto-block the websites of apps you blocked in App Blocker',
+          title: 'Block websites of blocked apps',
           leading: const IconBadge(
             icon: Icons.apps_outlined,
             color: AppColors.seed,
@@ -211,7 +214,6 @@ class _ProtectionTiles extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         AdaptiveSwitchTile(
           title: 'Block adult content (18+)',
-          subtitle: 'Blocks known adult websites across browsers',
           leading: const IconBadge(
             icon: Icons.shield_outlined,
             color: AppColors.danger,
@@ -235,18 +237,39 @@ class _PopularChips extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<WebBlockCubit>();
     final active = state.activePopularIds;
-    return Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
-      children: [
-        for (final site in state.popular)
-          AppChip(
-            label: site.name,
-            icon: site.icon,
-            selected: active.contains(site.id),
-            onSelected: () => cubit.togglePopular(site),
+    final sites = state.popular;
+    // Two rows sharing one horizontal scroll; the "Add website" chip closes
+    // the second row so it sits at the end of the scroll.
+    final half = (sites.length + 1) ~/ 2;
+    Widget chip(PopularSite site) => Padding(
+      padding: const EdgeInsets.only(right: AppSpacing.xs),
+      child: AppChip(
+        label: site.name,
+        icon: site.icon,
+        selected: active.contains(site.id),
+        onSelected: () => cubit.togglePopular(site),
+      ),
+    );
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [for (final site in sites.take(half)) chip(site)]),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              for (final site in sites.skip(half)) chip(site),
+              AppChip(
+                label: 'Add website',
+                icon: Icons.add,
+                selected: false,
+                onSelected: () => _showSiteSheet(context),
+              ),
+            ],
           ),
-      ],
+        ],
+      ),
     ).animate().fadeIn(duration: AppDurations.normal);
   }
 }
@@ -261,10 +284,7 @@ class _Blocklist extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<WebBlockCubit>();
     if (!state.hasEntries) {
-      return const _Hint(
-        icon: Icons.public_off,
-        text: 'No sites yet — pick a popular site above or tap "Add website".',
-      );
+      return const InlineHint(icon: Icons.public_off, text: 'No sites blocked yet.');
     }
     final entries = state.visibleEntries;
     return Column(
@@ -327,7 +347,7 @@ class _BlocklistRow extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.edit_outlined),
               tooltip: 'Edit',
-              onPressed: () => _edit(context),
+              onPressed: () => _showSiteSheet(context, entry: entry),
             ),
           IconButton(
             visualDensity: VisualDensity.compact,
@@ -340,46 +360,6 @@ class _BlocklistRow extends StatelessWidget {
     );
   }
 
-  Future<void> _edit(BuildContext context) async {
-    final cubit = context.read<WebBlockCubit>();
-    final host = await GlassBottomSheet.show<String>(
-      context: context,
-      title: 'Edit website',
-      child: _SiteSheet(cubit: cubit, entry: entry),
-    );
-    if (host != null && context.mounted) {
-      GlassToast.show(context, 'Updated to $host', tone: AppTone.success);
-    }
-  }
-}
-
-/// A muted inline hint shown when the blocklist is empty.
-class _Hint extends StatelessWidget {
-  const _Hint({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: context.glass.onGlassMuted),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              text,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.glass.onGlassMuted,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 /// Add / edit bottom-sheet body with inline domain validation.

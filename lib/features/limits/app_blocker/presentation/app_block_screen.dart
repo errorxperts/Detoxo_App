@@ -41,7 +41,16 @@ class _AppBlockViewState extends State<_AppBlockView> {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      appBar: const GlassAppBar(title: Text('Block apps')),
+      appBar: const GlassAppBar(
+        title: Text('Block apps'),
+        actions: [
+          InfoButton(
+            'Two ways to block: switch off a built-in feed (Reels, Shorts, '
+            'Explore…) to keep the app but lose the feed, or add an app by its '
+            'package name to lock the whole thing.',
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAdd(context),
         icon: const Icon(Icons.add),
@@ -62,12 +71,6 @@ class _AppBlockViewState extends State<_AppBlockView> {
                 96 + MediaQuery.viewPaddingOf(context).bottom,
               ),
               children: [
-                Text(
-                  'Lock the apps you add, and switch off the built-in feeds you '
-                  "don't want to see.",
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: AppSpacing.md),
                 ..._customSection(context, custom),
                 const SizedBox(height: AppSpacing.lg),
                 ..._curatedSection(context, targets, enabledIds),
@@ -82,11 +85,11 @@ class _AppBlockViewState extends State<_AppBlockView> {
   // ── Custom whole-app locks ────────────────────────────────────────────────
   List<Widget> _customSection(BuildContext context, List<AppBlockEntry> custom) {
     return [
-      const _SectionHeader('Custom apps'),
+      const SectionHeader('Custom apps'),
       if (custom.isEmpty)
-        const _Hint(
+        const InlineHint(
           icon: Icons.add_circle_outline,
-          text: 'Tap "Add app" to lock any app by its package name.',
+          text: 'No custom apps yet.',
         )
       else
         for (var i = 0; i < custom.length; i++)
@@ -122,7 +125,7 @@ class _AppBlockViewState extends State<_AppBlockView> {
   ) {
     if (state.isLoading) {
       return const [
-        _SectionHeader('Apps & feeds'),
+        SectionHeader('Apps & feeds'),
         Padding(
           padding: EdgeInsets.only(top: AppSpacing.md),
           child: LoadingState(message: 'Loading apps…'),
@@ -131,7 +134,7 @@ class _AppBlockViewState extends State<_AppBlockView> {
     }
     if (state.error != null) {
       return [
-        const _SectionHeader('Apps & feeds'),
+        const SectionHeader('Apps & feeds'),
         EmptyState(
           icon: Icons.error_outline,
           title: 'Could not load apps',
@@ -156,7 +159,7 @@ class _AppBlockViewState extends State<_AppBlockView> {
     final browsers = filtered.where((t) => t.isBrowser).toList();
 
     return [
-      const _SectionHeader('Apps & feeds'),
+      const SectionHeader('Apps & feeds'),
       if (state.targets.length > 8) ...[
         AppSearchField(
           hintText: 'Search apps & feeds',
@@ -168,7 +171,7 @@ class _AppBlockViewState extends State<_AppBlockView> {
         for (final group in BlockAppGroup.from(apps)) _appTile(context, group, enabledIds),
       if (browsers.isNotEmpty) ...[
         const SizedBox(height: AppSpacing.sm),
-        const _GroupLabel('Browsers'),
+        const SectionHeader('Browsers'),
         for (final group in BlockAppGroup.from(browsers)) _appTile(context, group, enabledIds),
       ],
       if (filtered.isEmpty)
@@ -224,76 +227,6 @@ class _AppBlockViewState extends State<_AppBlockView> {
           },
         ),
       ],
-    );
-  }
-}
-
-/// Section title with a thin rule — separates "Custom apps" from "Apps & feeds".
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Text(
-        label,
-        style: Theme.of(context)
-            .textTheme
-            .titleMedium
-            ?.copyWith(fontWeight: FontWeight.w800),
-      ),
-    );
-  }
-}
-
-/// Smaller uppercase sub-label used within a section (e.g. "Browsers").
-class _GroupLabel extends StatelessWidget {
-  const _GroupLabel(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: AppSpacing.xs),
-      child: Text(
-        label.toUpperCase(),
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-            ),
-      ),
-    );
-  }
-}
-
-/// A muted inline hint shown when a section is empty.
-class _Hint extends StatelessWidget {
-  const _Hint({required this.icon, required this.text});
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: context.glass.onGlassMuted),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              text,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: context.glass.onGlassMuted),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

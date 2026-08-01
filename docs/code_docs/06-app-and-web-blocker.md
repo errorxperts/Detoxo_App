@@ -93,6 +93,10 @@ is a *management* surface unifying two systems that **enforce differently**:
 Only the `AppBlockCubit` is route-scoped (`BlocProvider` in the screen);
 `TargetsCubit` and `SettingsCubit` are global (created in `main.dart`).
 
+Like the web blocker, the screen carries no intro paragraph: the app-bar
+`InfoButton` explains the feed-vs-whole-app split, and section labels use the
+shared `SectionHeader` / `InlineHint` from `core/widgets/common_widgets.dart`.
+
 The practical takeaway: adding a *custom app* records intent but has no native
 enforcer wired in this build; toggling a *curated feed* takes effect immediately
 through the existing reel/short detection engine (see
@@ -232,13 +236,20 @@ blocker"**. `BlocConsumer` surfaces transient `error` strings as a toast. Layout
 - **Stats dashboard** (`_StatsSection`) — three `StatCard`s (Blocked today,
   Total blocked, Focus saved [min]) plus a "Most blocked" line; only shown when
   `state.hasStats`.
-- **Protection** — two `AdaptiveSwitchTile`s: "Block sites for blocked apps"
+- **Protection** — two `AdaptiveSwitchTile`s: "Block websites of blocked apps"
   (`setBlockForApps`) and "Block adult content (18+)" (`setBlockAdult`).
-- **Popular time-wasting websites** — `AppChip`s from `PopularSites.all`,
-  selected state driven by `state.activePopularIds`.
+- **Popular sites** — `AppChip`s from `PopularSites.all` split across two rows
+  inside one horizontal `SingleChildScrollView` (both rows scroll together);
+  selected state driven by `state.activePopularIds`. A trailing "Add website"
+  chip closes the second row and opens the same add sheet as the FAB.
 - **Your blocklist** — searchable rows (search appears past 6 entries); each row
   has an enable toggle, an edit button (custom only), and delete. Add/edit use a
-  `GlassBottomSheet` with inline `DomainValidator` feedback.
+  `GlassBottomSheet` with inline `DomainValidator` feedback (shared
+  `_showSiteSheet` helper).
+
+On-screen explanatory copy is kept to a minimum: the app-bar `InfoButton`
+(tap-to-open `Tooltip`) carries the feature explanation instead of an intro
+paragraph and per-toggle subtitles.
 
 ---
 

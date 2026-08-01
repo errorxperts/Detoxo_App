@@ -255,15 +255,16 @@ something.
 
 **Protection toggles:**
 
-- **Block sites for blocked apps** — automatically blocks the websites that match
+- **Block websites of blocked apps** — automatically blocks the websites that match
   the apps you've already blocked (e.g. blocking the Instagram app also blocks
   instagram.com).
 - **Block adult content (18+)** — blocks a bundled list of adult sites.
 
 **Adding sites:**
 
-1. **Popular time-wasting websites** — tap a chip (YouTube, Instagram, X, Reddit,
-   Netflix, TikTok, and more) to block or unblock it in one tap.
+1. **Popular sites** — two rows of chips (YouTube, Instagram, X, Reddit,
+   Netflix, TikTok, and more) that scroll sideways together; tap one to block or
+   unblock it, or scroll to the end and tap **Add website** for your own.
 2. **Your blocklist** — tap **Add** and type a domain (e.g. `youtube.com`).
    Detoxo cleans up what you type (it accepts full URLs, `www.`, subdomains) and
    warns you if it isn't a valid site or is already on the list.

@@ -156,3 +156,25 @@ class _AnimatedIconButtonState extends State<AnimatedIconButton> {
     );
   }
 }
+
+/// Tap-to-open explainer icon — carries a feature's copy in a tooltip instead
+/// of an on-screen paragraph. Typically an app-bar action.
+class InfoButton extends StatelessWidget {
+  const InfoButton(this.message, {super.key});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: message,
+      triggerMode: TooltipTriggerMode.tap,
+      showDuration: const Duration(seconds: 8),
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: const Padding(
+        padding: EdgeInsets.all(AppSpacing.md),
+        child: Icon(Icons.info_outline, size: 20),
+      ),
+    );
+  }
+}

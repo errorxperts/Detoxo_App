@@ -282,3 +282,32 @@ String formatCountdown(Duration d) {
   final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
   return h > 0 ? '$h:$m:$s' : '$m:$s';
 }
+
+/// A muted inline hint shown when a section is empty.
+class InlineHint extends StatelessWidget {
+  const InlineHint({required this.icon, required this.text, super.key});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: context.glass.onGlassMuted),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.glass.onGlassMuted,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
