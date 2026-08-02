@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.12.1
@@ -31,15 +31,15 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  # No cupertino_icons: nothing references the CupertinoIcons class, so it only
+  # ever shipped a font asset for an unused API. Re-add if iOS-style glyphs land.
   flutter_bloc: ^9.1.1
   bloc: ^9.2.1
   equatable: ^2.0.8
   get_it: ^9.2.1
   go_router: ^17.3.0
-  dio: ^5.9.2
+  # No dio / http client: this build is offline-first and nothing in lib/ makes a
+  # request. `upgrader` brings its own client for the Play version check.
   freezed_annotation: ^3.1.0
   json_annotation: ^4.12.0
   flutter_secure_storage: ^10.3.1
@@ -62,17 +62,22 @@ dependencies:
   # No google_mobile_ads / in_app_purchase: nothing imports them, and shipping
   # them declares Advertising ID + Billing to Play while the in-app FAQ promises
   # "no ads, no ad tracking". Re-add when monetization is actually built.
-  workmanager: ^0.9.0+3
+  # No workmanager: nothing in lib/ uses it, and androidx.work drags
+  # FOREGROUND_SERVICE / WAKE_LOCK / RECEIVE_BOOT_COMPLETED into the merged
+  # manifest. Background work is the native accessibility service. Re-add when
+  # a Dart-side periodic task actually exists.
   cached_network_image: ^3.4.1
-  liquid_swipe: ^3.1.0
-  ms_undraw: ^4.1.1
+  # No liquid_swipe / ms_undraw: neither is imported anywhere. Onboarding uses
+  # our own PageView, and every illustration is a local asset.
   flutter_svg: ^2.3.0
   intl: ^0.20.2
   uuid: ^4.5.3
   collection: ^1.19.1
   crypto: ^3.0.6
-  flutter_gen:
-  lottie_tgs:
+  # No flutter_gen here: it is a build-time CLI, not a runtime package —
+  # lib/gen/assets.gen.dart imports only flutter + flutter_svg. Install it with
+  # `brew install FlutterGen/tap/fluttergen` (see tool/dev.sh assets).
+  # No lottie_tgs: nothing renders a Lottie file anywhere in lib/.
 
   # Design system: motion, type ramp, native iOS controls, floating nav.
   flutter_animate: ^4.5.2
@@ -115,9 +120,11 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
 
 # FlutterGen — typed asset accessors in lib/gen/assets.gen.dart.
-# Regenerate with `fluttergen` (or `bash tool/dev.sh assets`).
-# Lottie integration stays OFF: we ship `lottie_tgs`, not `lottie`, and the
-# showcase steps consume `Assets.lottie.*` as plain String paths.
+# Regenerate with `fluttergen` (or `bash tool/dev.sh assets`) after ANY asset
+# rename; the accessor name drops the extension, so a .png → .webp swap leaves
+# every call site untouched.
+# Lottie integration stays OFF: nothing renders a Lottie file, so `Assets.lottie.*`
+# is only ever a plain String path.
 flutter_gen:
   output: lib/gen/
   line_length: 80
@@ -133,10 +140,14 @@ flutter_gen:
     enabled: false
 
 # App launcher icon configuration. Regenerate with: dart run flutter_launcher_icons
+#
+# The source artwork lives in tool/branding/, NOT under assets/ — `assets:` below
+# declares whole directories, so anything dropped in assets/images/ ships inside
+# the APK. This file is a build-time input only; it was costing every user 2.3 MB.
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/detoxo_app_icon.png"
+  image_path: "tool/branding/detoxo_app_icon.png"
   remove_alpha_ios: true
   # Sampled from the artwork's edge, so the corners the adaptive/iOS mask cuts
   # away blend instead of showing a seam. Foreground keeps the default 16%
@@ -144,7 +155,7 @@ flutter_launcher_icons:
   # without it.
   background_color_ios: "#1E4DE5"
   adaptive_icon_background: "#1E4DE5"
-  adaptive_icon_foreground: "assets/images/detoxo_app_icon.png"
+  adaptive_icon_foreground: "tool/branding/detoxo_app_icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

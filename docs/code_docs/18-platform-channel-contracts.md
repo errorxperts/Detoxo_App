@@ -107,7 +107,7 @@ a system settings/consent intent and returns a `Boolean` = *launch succeeded*
 | `hasUsageAccess` | — | `Boolean` (`AppOpsManager` GET_USAGE_STATS) | `hasUsageAccess()` |
 | `openUsageAccessSettings` | — | `Boolean` | `openUsageAccess()` |
 | `isIgnoringBatteryOptimizations` | — | `Boolean` | `isIgnoringBattery()` |
-| `requestIgnoreBatteryOptimizations` | — | `Boolean` | `requestIgnoreBattery()` |
+| `requestIgnoreBatteryOptimizations` | — | `Boolean` (launches `ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS` — the list, **not** the permission-gated one-tap dialog) | `requestIgnoreBattery()` |
 | `isDeviceAdminActive` | — | `Boolean` | `isDeviceAdminActive()` |
 | `requestDeviceAdmin` | — | `Boolean` (launches `ACTION_ADD_DEVICE_ADMIN`) | `requestDeviceAdmin()` |
 | `removeDeviceAdmin` | — | `true` (removes active admin; swallows errors) | `removeDeviceAdmin()` |

@@ -315,14 +315,16 @@ short-circuit to safe defaults and the event stream is `Stream.empty()`, so
 screens render with sane defaults instead of throwing `MissingPluginException`.
 On iOS/web the router surfaces `UnsupportedScreen`.
 
-### The native engine is the foreground service
+### The native engine is a bound service, not a foreground service
 
 There is **no separate `:as_process`** — the AccessibilityService
-(`accessibility/DetoxoAccessibilityService.kt`) runs in the main process and *is*
-the foreground service (`startForeground`, `FOREGROUND_SERVICE_TYPE_SPECIAL_USE`,
-notification channel `detoxo_protection_channel`, id `1125`). The OS re-binds an
-enabled accessibility service automatically after boot; `receivers/BootReceiver.kt`
-only logs.
+(`accessibility/DetoxoAccessibilityService.kt`) runs in the main process. It does
+**not** call `startForeground()`: the system binds accessibility services with
+`BIND_FOREGROUND_SERVICE`, so the process already runs at foreground-service
+priority, and an FGS would only have added a `FOREGROUND_SERVICE_SPECIAL_USE`
+Play review. It posts an ongoing status notification instead (channel
+`detoxo_protection_channel`, id `1125`). The OS re-binds an enabled accessibility
+service automatically after boot; `receivers/BootReceiver.kt` only logs.
 
 ---
 
@@ -363,7 +365,7 @@ lib/
 ```
 MainActivity.kt                 FlutterFragmentActivity; wires the two channels
 accessibility/
-  DetoxoAccessibilityService.kt hot path: detect + block + count; foreground service
+  DetoxoAccessibilityService.kt hot path: detect + block + count; status notification
 channels/
   CommandHandler.kt             MethodChannel handler (Dart → native)
   DetoxoEventStream.kt          EventChannel stream handler (native → Dart)

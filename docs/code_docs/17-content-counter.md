@@ -270,7 +270,7 @@ pull reply additionally carries `timeTotalMs`; no new method/event name was adde
 
 ### 5.1 Floating bubble — `overlay/ContentCounterBubble.kt`
 
-- Hosted inside the **existing accessibility foreground service** — no new
+- Hosted inside the **existing accessibility service** — no new
   service. All view ops run on the main `Looper`.
 - `WindowManager` overlay: `TYPE_APPLICATION_OVERLAY` (API 26+) with a
   `TYPE_PHONE` fallback pre-O; flags `NOT_FOCUSABLE | NOT_TOUCH_MODAL |

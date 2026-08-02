@@ -8,7 +8,10 @@ runtime behaviour yet). Every "wired" claim below is grounded in a real import i
 
 - **App identity:** `name: detoxo`, `version: 1.0.0+1`, `environment.sdk: ^3.12.1`,
   `publish_to: 'none'` (private app, never published to pub.dev). The launcher-icon
-  package writes the app icon from `assets/images/detoxo_app_icon.png`.
+  package writes the app icon from `tool/branding/detoxo_app_icon.png` — **outside**
+  `assets/`, because `pubspec.yaml` declares whole asset directories and a
+  build-time input placed under `assets/images/` ships inside the APK. See
+  [22-play-release.md](22-play-release.md#artifact-size).
 - **Architecture recap:** Cubit-only state (`flutter_bloc`), a single `get_it`
   service locator (`sl`), declarative routing (`go_router`), feature-first Clean
   Architecture. See [01-overview-architecture.md](01-overview-architecture.md) and
@@ -39,17 +42,23 @@ runtime behaviour yet). Every "wired" claim below is grounded in a real import i
 | --- | --- | --- | --- |
 | `freezed_annotation` | `^3.1.0` | **Wired** | Annotations for immutable data classes / unions. Backs the config models (`initial_config_model`, `platform_config_model` under `lib/features/blocking/shared/data/models/`) with generated `*.freezed.dart`. |
 | `json_annotation` | `^4.12.0` | **Wired (generated)** | `@JsonSerializable` annotations consumed by the generated `*.g.dart` serializers for the same config models. No hand-written import; it lives in generated code. |
-| `flutter_gen` | (no version pin) | **Wired** | Type-safe asset accessors. Generates `lib/gen/assets.gen.dart` (`FlutterGen`), imported by `splash_screen.dart`, onboarding, and the showcase feature to reference bundled images/lottie without stringly-typed paths. |
 
 Codegen for these runs through `build_runner` + `freezed` + `json_serializable`
 (dev dependencies, §7). Regenerate with `dart run build_runner build`.
 
-`flutter_gen` is **not** a build_runner builder here — `lib/gen/assets.gen.dart`
-is produced by the standalone `fluttergen` CLI, configured by the `flutter_gen:`
-block in `pubspec.yaml` (output `lib/gen/`, `flutter_svg` integration on so SVGs
-generate as `SvgGenImage`; the Lottie integration stays **off** because we ship
-`lottie_tgs`, not `lottie`, and `Assets.lottie.*` is consumed as a `String`
-path). Regenerate with `bash tool/dev.sh assets`.
+**FlutterGen is a CLI, not a dependency.** `lib/gen/assets.gen.dart` is produced by
+the standalone `fluttergen` binary (`brew install FlutterGen/tap/fluttergen`), not
+by `build_runner`, and the generated file imports only `flutter` + `flutter_svg`.
+The `flutter_gen` *package* was therefore removed from `dependencies:` — it never
+contributed runtime code. Behaviour is configured by the `flutter_gen:` block in
+`pubspec.yaml` (output `lib/gen/`, `flutter_svg` integration on so SVGs generate as
+`SvgGenImage`; the Lottie integration stays **off** because nothing renders a Lottie
+file, so `Assets.lottie.*` is only ever a `String` path). Regenerate with
+`bash tool/dev.sh assets`.
+
+> **Re-run `fluttergen` after any asset rename.** Accessor names drop the extension,
+> so a `.png` → `.webp` swap regenerates to the same identifier and every call site
+> keeps compiling — but only once the file is regenerated.
 
 `tool/dev.sh` wraps the routine command combos (fresh build, codegen, quality,
 pre-commit, full validation, dependency refresh, reset, FlutterFire, assets,
@@ -90,7 +99,6 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 
 | Package | Version | Status | Role in Detoxo |
 | --- | --- | --- | --- |
-| `cupertino_icons` | `^1.0.8` | **Wired (font)** | Cupertino icon glyphs. |
 | `flutter_animate` | `^4.5.2` | **Wired** (5 files) | Declarative entrance/motion effects across the design system. |
 | `google_fonts` | `^8.1.0` | **Wired** | Type ramp / font families for the design system. |
 | `cupertino_native` | `^0.1.1` | **Wired** | Native-feel adaptive controls (`lib/core/design_system/adaptive/adaptive_controls.dart`). |
@@ -99,8 +107,7 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 | `sleek_circular_slider` | `^2.1.0` | **Wired** (2 files) | Circular sliders (e.g. Conscious time-bank / daily-limit dials). |
 | `showcaseview` | `^5.1.0` | **Wired** | Onboarding coach-marks / feature tour (`lib/features/additional_feature/showcase_view/`). |
 | `flutter_svg` | `^2.3.0` | **Wired** (2 files) | Renders bundled SVG art. |
-| `cached_network_image` | `^3.4.1` | **Wired** | Remote-icon fallback in `AppIconAvatar` (`app_icon_avatar.dart`, used by blocklist tiles + the reel-counter card). App icons now ship **locally** in `assets/images/social_icon_pack/`; this only handles `http…` `iconUrl`s from remote config. |
-| `lottie_tgs` | (no version pin) | **Declared, not wired** | Lottie/TGS rendering. No longer imported anywhere in `lib/`: onboarding heroes are coded from the design system and the showcase tour now uses the PNG illustrations in `assets/images/illustration/`. Kept (over stock `lottie`) for TGS support if animated art returns; otherwise a cleanup candidate along with `assets/lottie/`. |
+| `cached_network_image` | `^3.4.1` | **Wired** | Remote-icon fallback in `AppIconAvatar` (`app_icon_avatar.dart`, used by blocklist tiles + the reel-counter card). App icons ship **locally** in `assets/images/social_icon_pack/` as 160² quantised PNGs; this only handles `http…` `iconUrl`s from remote config. Note it drags `flutter_cache_manager` → `sqflite` → the `sqflite_android` native plugin. |
 | `intl` | `^0.20.2` | **Wired** (2 files) | Number/date formatting and localisation-safe strings. |
 
 ---
@@ -141,20 +148,31 @@ These packages are in `pubspec.yaml` but have **zero import sites in `lib/`**. T
 are placeholders for planned capabilities, or the responsibility is handled on the
 native side / by another package. Treat them as follow-ups, not live behaviour.
 
-| Package | Version | Why it's inert today | Correct framing |
-| --- | --- | --- | --- |
-| `drift` | `^2.33.0` | No relational DB in the Dart tree; `LocalStore` uses a Hive `Box<String>` instead. | Swap-in for a future relational store. Planned / follow-up. |
-| `sqlite3_flutter_libs` | `^0.6.0+eol` | Only meaningful with `drift`; unused. | Ships with the `drift` scaffold. Planned / follow-up. |
-| `dio` | `^5.9.2` | No HTTP client is instantiated anywhere (`Dio` appears in no file). Config is **offline-first** from bundled assets; there is no live backend. | Swap-in for the documented remote `ConfigRepository`. Planned / follow-up. |
-| `workmanager` | `^0.9.0+3` | No `Workmanager` usage in Dart. Background work is the **native accessibility foreground service** (`DetoxoAccessibilityService.kt`), not a Dart worker. | Swap-in for future Dart-side periodic tasks. Planned / follow-up. |
-| `flutter_local_notifications` | `^22.0.0` | No Dart notification code. The persistent service notification is created **natively** (channel `detoxo_protection_channel`, `NOTIF_ID 1125`). | Swap-in for future Dart-scheduled notifications. Planned / follow-up. |
-| `app_settings` | `^7.0.0` | The package (`package:app_settings`) is never imported; grep hits are the unrelated `AppSettings` domain entity. Settings screens are opened via the native MethodChannel (`openAccessibilitySettings`, `openUsageAccessSettings`, …) and `permission_handler`. | Redundant / follow-up cleanup candidate. |
-| `liquid_swipe` | `^3.1.0` | Onboarding uses `PageView`-style flow with `lottie_tgs` + `go_router`; `LiquidSwipe` is imported nowhere. | Declared for onboarding swipe transitions; not currently used. Planned / follow-up. |
-| `ms_undraw` | `^4.1.1` | No `UnDraw` usage; illustrations come from bundled assets + `flutter_svg`/`lottie_tgs`. | Unused illustration source. Follow-up cleanup candidate. |
-| `collection` | `^1.19.1` | No direct import found; available transitively. | Utility dep; not directly consumed. |
+| Package | Version | Why it's inert today | Cost of keeping it | Correct framing |
+| --- | --- | --- | --- | --- |
+| `drift` | `^2.33.0` | No relational DB in the Dart tree; `LocalStore` uses a Hive `Box<String>` instead. | **~1.63 MB per user.** Its transitive `sqlite3` compiles `libsqlite3.so` from source into every ABI. | Swap-in for a future relational store. Planned / follow-up. |
+| `sqlite3_flutter_libs` | `^0.6.0+eol` | Only meaningful with `drift`; unused. Its own README says *"Starting from version 0.6.0, this package no longer does anything."* | 0 bytes — pure noise. | Ships with the `drift` scaffold. Planned / follow-up. |
+| `flutter_local_notifications` | `^22.0.0` | No Dart notification code. The persistent service notification is created **natively** (channel `detoxo_protection_channel`, `NOTIF_ID 1125`). It is also why core-library desugaring is enabled in `build.gradle.kts`. | Registered Android plugin → native code + manifest entries merge in regardless, plus ~157 KB of `j$.time` in `classes.dex` from the desugaring it forces. | Swap-in for future Dart-scheduled notifications. Planned / follow-up. |
+| `app_settings` | `^7.0.0` | The package (`package:app_settings`) is never imported; grep hits are the unrelated `AppSettings` domain entity. Settings screens are opened via the native MethodChannel (`openAccessibilitySettings`, `openUsageAccessSettings`, …) and `permission_handler`. | Registered Android plugin. | Redundant / follow-up cleanup candidate. |
+| `collection` | `^1.19.1` | No direct import found; available transitively via `freezed_annotation`. | 0 bytes. | Utility dep; not directly consumed. |
 
 > When any of these graduates from "declared" to "wired", update this table **and**
 > the corresponding feature doc so the two stay in sync.
+
+### Removed
+
+| Package | Why it went | Reclaimed |
+| --- | --- | --- |
+| `workmanager` | Nothing in `lib/` used it, and `androidx.work` merged `FOREGROUND_SERVICE` / `WAKE_LOCK` / `RECEIVE_BOOT_COMPLETED` / `ACCESS_NETWORK_STATE` into the manifest Play reads. Background work is the native accessibility service. | manifest surface |
+| `google_mobile_ads`, `in_app_purchase` | Would declare Advertising ID + Billing to Play while the in-app FAQ promises "no ads, no ad tracking". | — |
+| `cupertino_icons` | `CupertinoIcons` is referenced zero times; it only ever shipped a font asset for an unused API. | icon font entry |
+| `dio` | No HTTP client is instantiated anywhere. This build is offline-first with no backend; `upgrader` brings its own client for the Play version check. | dex / AOT |
+| `liquid_swipe` | Onboarding uses a `PageView`-style flow; `LiquidSwipe` was imported nowhere. | dex / AOT |
+| `ms_undraw` | No `UnDraw` usage — every illustration is a local asset. | dex / AOT |
+| `lottie_tgs` | Nothing renders a Lottie file anywhere in `lib/`. `assets/lottie/` is likewise unreferenced and is a standing cleanup candidate (4.86 MB install / ~0.59 MB download). | dex / AOT |
+| `flutter_gen` | A build-time CLI mis-declared as a runtime dependency — see §2. | dex / AOT |
+
+Re-add any of these only when something actually imports them.
 
 ---
 
@@ -169,7 +187,7 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 | `build_runner` | `^2.15.0` | Code-gen driver for freezed/json/drift. |
 | `freezed` | `^3.2.6-dev.1` | Generates `*.freezed.dart` for the config models. |
 | `json_serializable` | `^6.14.0` | Generates `*.g.dart` JSON serializers. |
-| `drift_dev` | `^2.33.0` | Drift generator — inert (no drift tables defined). Pairs with the unused `drift` runtime dep. |
+| `drift_dev` | `^2.33.0` | Drift generator — inert (no drift tables defined). Pairs with the unused `drift` runtime dep. Removing all three is worth ~1.63 MB per user; see §7. |
 | `bloc_test` | `^10.0.0` | Testing utilities for Cubits. |
 | `mocktail` | `^1.0.5` | Mocking in tests (no codegen). |
 | `flutter_launcher_icons` | `^0.14.4` | Generates launcher/adaptive icons (see §9). |
@@ -185,16 +203,34 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
   `bundledInitialConfig`).
 - `assets/content/` — content-string bundles (mindful-timer quotes, pause / countdown
   emojis, curious/Conscious emojis, daily-limit emoji bands, …).
-- `assets/images/`, `assets/images/bg/` — raster art + backgrounds.
+- `assets/images/` — `detox_logo_no_bg.webp` (splash + onboarding hero).
+- `assets/images/bg/` — the 11 user-selectable background SVGs, rendered via
+  `flutter_svg`. 25 KB for the whole set; the best size/value ratio in the app.
+- `assets/images/illustration/` — 23 hero illustrations as **512² lossy WebP**
+  (~29 KB each). They render at 50–80 dp, so 512 px leaves 2× headroom on a 3× screen.
 - `assets/images/social_icon_pack/` — bundled app icons: one icon per app
   (`<base>.png`, a white glyph on the app's brand-colored tile) plus `a.png`–`z.png`
-  letter-tile fallbacks. Rendered by `AppIconAvatar` (`app_icon_avatar.dart`).
-- `assets/lottie/` — Lottie/TGS animations (rendered via `lottie_tgs`).
+  letter-tile fallbacks, all **160² quantised PNG**. Rendered by `AppIconAvatar`
+  (`app_icon_avatar.dart`).
+- `assets/lottie/` — **unreferenced.** Nothing renders a Lottie file; kept for now,
+  but it is 4.86 MB of install size for dead data. Cleanup candidate.
 
-`uses-material-design: true` bundles the Material Icons font.
+**These are all *directory* entries**, so anything dropped into one of these folders
+ships to every user forever. Keep build-time inputs (launcher-icon artwork, design
+sources) **outside** `assets/` — see §9's note on `tool/branding/`.
+
+> **Format rule.** Artwork reached only through a FlutterGen accessor → **WebP**
+> (`cwebp -q 80 -m 6 -alpha_q 100 -resize <2×max-dp> 0`), because the accessor name
+> is extension-free and no call site changes. Artwork reached by a *string* — the
+> `social_icon_pack`, whose paths appear in `platforms_config.json` `iconUrl`s and in
+> `'$_iconPackDir$letter.png'` — stays **PNG**, downscaled and quantised with
+> `pngquant`, so the wire format stays compatible with remote config.
+
+`uses-material-design: true` bundles the Material Icons font — tree-shaken to
+~16 KB in the release bundle. See [22-play-release.md](22-play-release.md#artifact-size).
 
 **Launcher icons** (`flutter_launcher_icons` block): source
-`assets/images/detoxo_app_icon.png` for both the legacy icon and the adaptive
+`tool/branding/detoxo_app_icon.png` for both the legacy icon and the adaptive
 foreground, on a `#1E4DE5` background (sampled from the artwork's outer rim, so
 the corners the adaptive/iOS mask cuts away blend instead of showing a seam).
 The foreground keeps the package default 16% inset — the artwork is full-bleed
@@ -202,6 +238,12 @@ and its glyph gets clipped inside the adaptive safe zone without it.
 `remove_alpha_ios: true` flattens iOS onto the same `#1E4DE5`. Regenerate with
 `dart run flutter_launcher_icons`. (iOS is generated but the app is **not
 supported on iOS** — see [00-index.md](00-index.md).)
+
+The source artwork lives in `tool/branding/`, **not** `assets/`. It is a build-time
+input: the generated icons land in `android/app/src/main/res/**` (which Play
+density-splits), so shipping the 1254² source inside `flutter_assets` too was
+costing every user 2.3 MB for a file no code ever loads. Any future design source
+belongs in `tool/branding/` for the same reason.
 
 ---
 

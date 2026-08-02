@@ -73,7 +73,7 @@ both required ones are on; then it becomes **Continue** and takes you home.
 |---|---|
 | **Notifications** | A heads-up if protection ever stops. |
 | **Usage access** | Powers app-usage limits. |
-| **Unrestricted battery** | Keeps the blocker alive in the background so your phone doesn't put it to sleep. |
+| **Unrestricted battery** | Keeps the blocker alive in the background so your phone doesn't put it to sleep. Opens Android's battery-optimization list — switch it to **All apps**, pick **Detoxo**, choose **Don't optimize**. |
 | **Uninstall protection** | Optional device-admin lock that makes Detoxo harder to remove on impulse. |
 
 You can skip the optional ones now and turn them on later from

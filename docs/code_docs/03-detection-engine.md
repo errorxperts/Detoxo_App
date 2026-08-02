@@ -22,11 +22,11 @@ is itself the foreground service — see [04-native-android-layer.md](04-native-
 
 | Hook | Behaviour |
 |------|-----------|
-| `onServiceConnected()` | Sets the `instance` singleton, constructs `ConfigStore`, calls `reload()`, calls `startAsForeground()`, posts `serviceStatus {running:true}`. |
+| `onServiceConnected()` | Sets the `instance` singleton, constructs `ConfigStore`, calls `reload()`, calls `showStatusNotification()`, posts `serviceStatus {running:true}`. |
 | `reload()` | Re-parses `DetectionConfig.parse(store.platformsConfigJson)`, refreshes the web blocklist + adult flag, calls `syncConscious()` **and `syncReelBubble()`** (pushes the One Reel / Unblock "reels left" count to the counter bubble — §5.3). Invoked whenever Dart pushes new config/settings. |
 | `onInterrupt()` | Posts `serviceStatus {running:false}`. |
 | `onUnbind()` / `onDestroy()` | Clears `instance`, stops the Conscious accountant, disposes the content counter, posts `serviceStatus {running:false}`. |
-| `onTaskRemoved()` | Re-calls `startAsForeground()` so the service survives the app being swiped away. |
+| `onTaskRemoved()` | Re-posts the status notification if swiping the app away cleared it. The service itself is bound by the system, so it survives regardless. |
 
 `instance` is a `@Volatile` companion singleton; `isRunning()` returns
 `instance != null`. The `CommandHandler` reaches the live service (e.g. for
@@ -35,9 +35,10 @@ is itself the foreground service — see [04-native-android-layer.md](04-native-
 Config is held as a `@Volatile var config: DetectionConfig` so the hot event path
 reads a consistent snapshot while Dart can swap it via `reload()`.
 
-Foreground notification: channel id `detoxo_protection_channel`, name
-`"Detoxo Service Status"`, `IMPORTANCE_LOW`, `NOTIF_ID = 1125`, started with
-`FOREGROUND_SERVICE_TYPE_SPECIAL_USE` on Android 14+ (`UPSIDE_DOWN_CAKE`).
+Status notification: channel id `detoxo_protection_channel`, name
+`"Detoxo Service Status"`, `IMPORTANCE_LOW`, `NOTIF_ID = 1125`, posted with
+`NotificationManager.notify()`. The service is **not** a foreground service —
+see [04-native-android-layer.md](04-native-android-layer.md) §2.
 
 ---
 

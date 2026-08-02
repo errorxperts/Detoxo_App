@@ -66,17 +66,9 @@ class $AssetsImagesGen {
   /// Directory path: assets/images/bg
   $AssetsImagesBgGen get bg => const $AssetsImagesBgGen();
 
-  /// File path: assets/images/detox_logo_no_bg.png
+  /// File path: assets/images/detox_logo_no_bg.webp
   AssetGenImage get detoxLogoNoBg =>
-      const AssetGenImage('assets/images/detox_logo_no_bg.png');
-
-  /// File path: assets/images/detoxo_app_icon.png
-  AssetGenImage get detoxoAppIcon =>
-      const AssetGenImage('assets/images/detoxo_app_icon.png');
-
-  /// File path: assets/images/detoxo_logo.png
-  AssetGenImage get detoxoLogo =>
-      const AssetGenImage('assets/images/detoxo_logo.png');
+      const AssetGenImage('assets/images/detox_logo_no_bg.webp');
 
   /// Directory path: assets/images/illustration
   $AssetsImagesIllustrationGen get illustration =>
@@ -87,7 +79,7 @@ class $AssetsImagesGen {
       const $AssetsImagesSocialIconPackGen();
 
   /// List of all assets
-  List<AssetGenImage> get values => [detoxLogoNoBg, detoxoAppIcon, detoxoLogo];
+  List<AssetGenImage> get values => [detoxLogoNoBg];
 }
 
 class $AssetsLottieGen {
@@ -258,97 +250,97 @@ class $AssetsImagesBgGen {
 class $AssetsImagesIllustrationGen {
   const $AssetsImagesIllustrationGen();
 
-  /// File path: assets/images/illustration/Daily_limit.png
+  /// File path: assets/images/illustration/Daily_limit.webp
   AssetGenImage get dailyLimit =>
-      const AssetGenImage('assets/images/illustration/Daily_limit.png');
+      const AssetGenImage('assets/images/illustration/Daily_limit.webp');
 
-  /// File path: assets/images/illustration/activity.png
+  /// File path: assets/images/illustration/activity.webp
   AssetGenImage get activity =>
-      const AssetGenImage('assets/images/illustration/activity.png');
+      const AssetGenImage('assets/images/illustration/activity.webp');
 
-  /// File path: assets/images/illustration/app_block.png
+  /// File path: assets/images/illustration/app_block.webp
   AssetGenImage get appBlock =>
-      const AssetGenImage('assets/images/illustration/app_block.png');
+      const AssetGenImage('assets/images/illustration/app_block.webp');
 
-  /// File path: assets/images/illustration/appearance.png
+  /// File path: assets/images/illustration/appearance.webp
   AssetGenImage get appearance =>
-      const AssetGenImage('assets/images/illustration/appearance.png');
+      const AssetGenImage('assets/images/illustration/appearance.webp');
 
-  /// File path: assets/images/illustration/block.png
+  /// File path: assets/images/illustration/block.webp
   AssetGenImage get block =>
-      const AssetGenImage('assets/images/illustration/block.png');
+      const AssetGenImage('assets/images/illustration/block.webp');
 
-  /// File path: assets/images/illustration/clock_circular.png
+  /// File path: assets/images/illustration/clock_circular.webp
   AssetGenImage get clockCircular =>
-      const AssetGenImage('assets/images/illustration/clock_circular.png');
+      const AssetGenImage('assets/images/illustration/clock_circular.webp');
 
-  /// File path: assets/images/illustration/clock_squre.png
+  /// File path: assets/images/illustration/clock_squre.webp
   AssetGenImage get clockSqure =>
-      const AssetGenImage('assets/images/illustration/clock_squre.png');
+      const AssetGenImage('assets/images/illustration/clock_squre.webp');
 
-  /// File path: assets/images/illustration/conscious.png
+  /// File path: assets/images/illustration/conscious.webp
   AssetGenImage get conscious =>
-      const AssetGenImage('assets/images/illustration/conscious.png');
+      const AssetGenImage('assets/images/illustration/conscious.webp');
 
-  /// File path: assets/images/illustration/countdown.png
+  /// File path: assets/images/illustration/countdown.webp
   AssetGenImage get countdown =>
-      const AssetGenImage('assets/images/illustration/countdown.png');
+      const AssetGenImage('assets/images/illustration/countdown.webp');
 
-  /// File path: assets/images/illustration/globe.png
+  /// File path: assets/images/illustration/globe.webp
   AssetGenImage get globe =>
-      const AssetGenImage('assets/images/illustration/globe.png');
+      const AssetGenImage('assets/images/illustration/globe.webp');
 
-  /// File path: assets/images/illustration/lock.png
+  /// File path: assets/images/illustration/lock.webp
   AssetGenImage get lock =>
-      const AssetGenImage('assets/images/illustration/lock.png');
+      const AssetGenImage('assets/images/illustration/lock.webp');
 
-  /// File path: assets/images/illustration/lock_pro.png
+  /// File path: assets/images/illustration/lock_pro.webp
   AssetGenImage get lockPro =>
-      const AssetGenImage('assets/images/illustration/lock_pro.png');
+      const AssetGenImage('assets/images/illustration/lock_pro.webp');
 
-  /// File path: assets/images/illustration/one_reel.png
+  /// File path: assets/images/illustration/one_reel.webp
   AssetGenImage get oneReel =>
-      const AssetGenImage('assets/images/illustration/one_reel.png');
+      const AssetGenImage('assets/images/illustration/one_reel.webp');
 
-  /// File path: assets/images/illustration/pause.png
+  /// File path: assets/images/illustration/pause.webp
   AssetGenImage get pause =>
-      const AssetGenImage('assets/images/illustration/pause.png');
+      const AssetGenImage('assets/images/illustration/pause.webp');
 
-  /// File path: assets/images/illustration/phone_lock.png
+  /// File path: assets/images/illustration/phone_lock.webp
   AssetGenImage get phoneLock =>
-      const AssetGenImage('assets/images/illustration/phone_lock.png');
+      const AssetGenImage('assets/images/illustration/phone_lock.webp');
 
-  /// File path: assets/images/illustration/phone_password.png
+  /// File path: assets/images/illustration/phone_password.webp
   AssetGenImage get phonePassword =>
-      const AssetGenImage('assets/images/illustration/phone_password.png');
+      const AssetGenImage('assets/images/illustration/phone_password.webp');
 
-  /// File path: assets/images/illustration/phone_protact.png
+  /// File path: assets/images/illustration/phone_protact.webp
   AssetGenImage get phoneProtact =>
-      const AssetGenImage('assets/images/illustration/phone_protact.png');
+      const AssetGenImage('assets/images/illustration/phone_protact.webp');
 
-  /// File path: assets/images/illustration/progess_graph.png
+  /// File path: assets/images/illustration/progess_graph.webp
   AssetGenImage get progessGraph =>
-      const AssetGenImage('assets/images/illustration/progess_graph.png');
+      const AssetGenImage('assets/images/illustration/progess_graph.webp');
 
-  /// File path: assets/images/illustration/protection_status.png
+  /// File path: assets/images/illustration/protection_status.webp
   AssetGenImage get protectionStatus =>
-      const AssetGenImage('assets/images/illustration/protection_status.png');
+      const AssetGenImage('assets/images/illustration/protection_status.webp');
 
-  /// File path: assets/images/illustration/setting.png
+  /// File path: assets/images/illustration/setting.webp
   AssetGenImage get setting =>
-      const AssetGenImage('assets/images/illustration/setting.png');
+      const AssetGenImage('assets/images/illustration/setting.webp');
 
-  /// File path: assets/images/illustration/timer.png
+  /// File path: assets/images/illustration/timer.webp
   AssetGenImage get timer =>
-      const AssetGenImage('assets/images/illustration/timer.png');
+      const AssetGenImage('assets/images/illustration/timer.webp');
 
-  /// File path: assets/images/illustration/unlock.png
+  /// File path: assets/images/illustration/unlock.webp
   AssetGenImage get unlock =>
-      const AssetGenImage('assets/images/illustration/unlock.png');
+      const AssetGenImage('assets/images/illustration/unlock.webp');
 
-  /// File path: assets/images/illustration/web_block.png
+  /// File path: assets/images/illustration/web_block.webp
   AssetGenImage get webBlock =>
-      const AssetGenImage('assets/images/illustration/web_block.png');
+      const AssetGenImage('assets/images/illustration/web_block.webp');
 
   /// List of all assets
   List<AssetGenImage> get values => [

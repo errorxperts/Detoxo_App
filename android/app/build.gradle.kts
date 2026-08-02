@@ -29,6 +29,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    androidResources {
+        // The app is English-only — no values-<lang>/, no flutter_localizations,
+        // no .arb files. Without this, resources.arsc carries androidx /
+        // play-services / glance translations for ~80 locales nobody can reach.
+        localeFilters += listOf("en")
+    }
+
     defaultConfig {
         applicationId = "com.errorxperts.detoxo"
         // minSdk 24: AccessibilityService + overlays + the plugin set are all

@@ -92,9 +92,11 @@ Detoxo watches for this. If it notices a grant isn't taking, the button on the p
 
 ## Unrestricted battery — recommended
 
-**What you'll see:** "Unrestricted battery" — *Keeps the blocker alive in the background.*
+**What you'll see:** "Unrestricted battery" — *Keeps the blocker alive. Pick Detoxo, then "Don't optimize".*
 
 **Why it's useful.** To save power, Android aggressively puts background apps to sleep. That's usually great — but a blocker that's asleep isn't blocking. Granting a **battery-optimization exemption** tells the system to leave Detoxo running so it's there the instant you open a feed.
+
+**How to grant it.** Tap **Grant** and Detoxo opens Android's **Battery optimization** list. That list often opens filtered to "Not optimized", so switch the dropdown to **All apps**, find **Detoxo**, and choose **Don't optimize**. Two taps more than a pop-up would take — Detoxo uses the list on purpose, because the one-tap version needs a permission Google Play reserves for apps that stop working without it, and Detoxo isn't one of them.
 
 **What it does not do.** It doesn't drain your battery on purpose or run extra work — Detoxo's blocking is lightweight. It just asks Android not to force-stop the protection you turned on. Highly recommended, especially on phones that are strict about background apps.
 

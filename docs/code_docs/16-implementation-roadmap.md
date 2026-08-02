@@ -168,10 +168,13 @@ release.
   short-form video and blocks it, "reads on-screen content only to find and block distracting
   feeds; it does not collect or transmit your screen content") and the permission funnel explains
   the grant. Keep the disclosure prominent, accurate, and shown **before** requesting the grant.
-- **Special-use foreground service.** The service runs in the **main process** as a
-  `FOREGROUND_SERVICE_TYPE_SPECIAL_USE` FGS with a persistent notification (channel
-  `detoxo_protection_channel`, id `1125`). The manifest declares
-  `PROPERTY_SPECIAL_USE_FGS_SUBTYPE`; Play requires a justification for the special-use subtype.
+- **No foreground service.** The service runs in the **main process** and posts a persistent
+  notification (channel `detoxo_protection_channel`, id `1125`) with
+  `NotificationManager.notify()`. It deliberately does **not** call `startForeground()`: an
+  accessibility service is already bound at foreground-service priority, so the only thing
+  `FOREGROUND_SERVICE_SPECIAL_USE` would add is a Play Console declaration and a manual review.
+  Same reasoning for `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` — the battery step opens the system
+  optimisation list instead of the policy-restricted one-tap dialog.
 - **Device admin.** `DetoxoDeviceAdminReceiver` (uninstall protection + `lockNow`) is subject to
   device-admin policy and OEM behavior; use it sparingly and disclose it.
 - **Overlays.** The content-counter bubble uses `SYSTEM_ALERT_WINDOW` (Display over apps) with a

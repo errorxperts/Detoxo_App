@@ -1,7 +1,7 @@
 # Analytics, Notifications & Resilience
 
-How Detoxo records what it blocked, keeps its engine alive as an Android
-foreground service, survives reboots/updates, and (optionally) protects itself
+How Detoxo records what it blocked, keeps its engine alive and OS-visible,
+survives reboots/updates, and (optionally) protects itself
 from being uninstalled. The `analytics` **feature** documented here is **local and
 on-device** — its block-event buffer never uploads. It is distinct from the app's
 separate **Firebase telemetry layer** (usage analytics, Crashlytics, Performance),
@@ -161,14 +161,15 @@ doc).
 
 ---
 
-## 2. Foreground-service notification
+## 2. Status notification
 
 Detoxo's engine is an `AccessibilityService`
-(`accessibility/DetoxoAccessibilityService.kt`) that **also runs as a foreground
-service in the main process** — there is no separate `:as_process`. The ongoing
-notification is what keeps that service alive and OS-visible.
+(`accessibility/DetoxoAccessibilityService.kt`) running in the main process —
+there is no separate `:as_process`, and it is **not** a foreground service (§2.2).
+The system keeps it alive because it binds it; the ongoing notification is what
+makes that visible to the user.
 
-### 2.1 Channel & notification (verbatim from `startAsForeground()`)
+### 2.1 Channel & notification (verbatim from `showStatusNotification()`)
 
 | Field | Value |
 |---|---|
@@ -187,35 +188,39 @@ The channel is created (API 26+/`O`) before the `NotificationCompat.Builder`
 notification is shown. `IMPORTANCE_LOW` + `PRIORITY_MIN` + no badge make it a
 quiet, persistent status entry rather than an alert.
 
-### 2.2 startForeground with special-use FGS type
+### 2.2 Posted as a plain ongoing notification — not a foreground service
 
 ```kotlin
-if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {  // API 34+
-    startForeground(NOTIF_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
-} else {
-    startForeground(NOTIF_ID, notification)
+try {
+    nm.notify(NOTIF_ID, notification)
+} catch (t: Throwable) {
+    Log.w(TAG, "status notification failed: ${t.message}")
 }
 ```
 
-On Android 14+ the service is promoted with
-`FOREGROUND_SERVICE_TYPE_SPECIAL_USE`; older versions use the un-typed overload.
-The whole call is wrapped in `try/catch` and only logs on failure (never
-crashes). This is mirrored in the manifest:
+The call is wrapped in `try/catch` and only logs on failure (never crashes). It
+also no-ops silently when `POST_NOTIFICATIONS` is denied — protection keeps
+running, the user just doesn't see the status entry.
 
-- `<uses-permission>` `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE`,
-  `POST_NOTIFICATIONS`.
-- The `<service>` declares `android:foregroundServiceType="specialUse"` plus a
-  `PROPERTY_SPECIAL_USE_FGS_SUBTYPE` property explaining the special use ("Blocks
-  short-form video via accessibility to support digital wellbeing.").
+**Why not a foreground service.** The system binds an AccessibilityService with
+`BIND_FOREGROUND_SERVICE`, so its process already sits at foreground-service
+priority for as long as the user has the service enabled. `startForeground()`
+therefore bought no extra survival, while `FOREGROUND_SERVICE_SPECIAL_USE` cost
+a Play Console special-use declaration and a manual review. The manifest
+consequently declares **no** `FOREGROUND_SERVICE*` permission of its own and the
+`<service>` carries no `android:foregroundServiceType` — only
+`POST_NOTIFICATIONS` remains, for the status entry itself. (`FOREGROUND_SERVICE`
+still appears in the *merged* manifest via `home_widget` → `androidx.glance` →
+`androidx.work`; that one is a normal install-time permission and is left alone.)
 
 ### 2.3 Lifecycle: when it starts, restarts, and reports status
 
-`startAsForeground()` is invoked:
+`showStatusNotification()` is invoked:
 
 - in **`onServiceConnected()`** — right after config load, the first time the OS
   binds the enabled accessibility service; and
-- in **`onTaskRemoved()`** — re-issued when the user swipes the app away, so the
-  foreground service stays alive after the task is removed.
+- in **`onTaskRemoved()`** — re-posted if swiping the app away cleared the entry.
+  The service itself is unaffected: the system, not the task, owns its lifetime.
 
 Service liveness is broadcast to Dart over the multiplexed EventChannel as
 `serviceStatus` events (via `ServiceEventBus`):

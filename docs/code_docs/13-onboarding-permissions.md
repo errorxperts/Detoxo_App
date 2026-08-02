@@ -103,7 +103,7 @@ Three things to note:
   | `overlay` | "Display over apps" | "Shows the block / PIN screen over other apps." | **yes** | ✓ |
   | `notifications` | "Notifications" | "Alerts you if protection stops." | no | — |
   | `usageAccess` | "Usage access" | "Powers app usage limits." | no | — |
-  | `batteryOptimization` | "Unrestricted battery" | "Keeps the blocker alive in the background." | no | — |
+  | `batteryOptimization` | "Unrestricted battery" | "Keeps the blocker alive. Pick Detoxo, then \"Don't optimize\"." | no | — |
   | `deviceAdmin` | "Uninstall protection" | "Optional uninstall protection." | no | ✓ |
 
   `why` lives on the enum because three surfaces render it (funnel, settings sheet, dashboard card) and the previously duplicated copies had already drifted. Icons stay in presentation — an `IconData` field would drag `flutter/material` into a domain layer that otherwise imports only `equatable`.

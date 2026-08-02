@@ -22,7 +22,7 @@ lets Detoxo:
 - and press the system Back button / kill / lock in response.
 
 See [04-native-android-layer.md](04-native-android-layer.md) for how that service is wired
-as a foreground service (`DetoxoAccessibilityService.kt`).
+(`DetoxoAccessibilityService.kt`).
 
 **iOS has no equivalent.** By design, iOS sandboxes every app: one app cannot inspect
 another app's UI hierarchy, cannot synthesize a global "back" gesture, and cannot kill or
