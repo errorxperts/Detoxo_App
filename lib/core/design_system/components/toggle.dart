@@ -4,19 +4,6 @@ import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:flutter/material.dart';
 
-/// The one on/off control in the app: a compact liquid-glass switch that
-/// matches `GlassSegmented` / `AppChip` instead of Material's oversized stock
-/// `Switch` (48×28 track vs 52×32 plus its own 48dp padding). There is no
-/// platform branch — the glass switch is the brand's switch on every target.
-///
-/// Off it is plain frosted glass; on it fills with the accent, lights its rim
-/// and casts a soft accent glow, while the thumb glides across on the fluid
-/// curve.
-///
-/// Interaction lives in [AppPressable]: press-squish, keyboard/switch-access
-/// focus ring, Enter/Space activation and a 48dp hit target. Pass a [label] for
-/// a lightweight inline row — the whole row becomes the tap target. For a full
-/// settings row (leading icon, title, subtitle) use `AppToggleTile`.
 class AppToggle extends StatelessWidget {
   const AppToggle({
     required this.value,
@@ -70,9 +57,7 @@ class AppToggle extends StatelessWidget {
               Color.lerp(glass.fillBottom, accent.withValues(alpha: 0.70), t)!,
             ],
           ),
-          border: Border.all(
-            color: Color.lerp(glass.border, accent.withValues(alpha: 0.70), t)!,
-          ),
+          border: Border.all(color: Color.lerp(glass.border, accent.withValues(alpha: 0.70), t)!),
           boxShadow: t == 0
               ? null
               : [

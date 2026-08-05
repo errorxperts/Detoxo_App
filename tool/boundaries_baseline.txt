@@ -1,0 +1,23 @@
+# Known feature-boundary violations, grandfathered when tool/check_boundaries.sh
+# was repaired (it had grepped a pre-rebrand package prefix since the rename, so
+# passed vacuously — these were never actually caught).
+#
+# Format: <importing file> <imported package uri>
+# Anything not listed here fails the build. Burn this list down; do not add.
+#
+# Most of these are the same root cause: `settings_cubit` is a cross-cutting
+# cubit that six features need but which is only reachable through
+# blocking/shared/presentation/. Exporting it from the blocking barrel (or
+# moving it to core) clears five entries at once.
+lib/features/limits/app_blocker/presentation/app_block_screen.dart package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart
+lib/features/limits/app_blocker/presentation/app_block_screen.dart package:detoxo/features/blocking/blocklist/presentation/widgets/block_app_tile.dart
+lib/features/limits/app_blocker/presentation/app_block_screen.dart package:detoxo/features/blocking/shared/presentation/settings_cubit.dart
+lib/features/additional_feature/appearance/presentation/appearance_screen.dart package:detoxo/features/blocking/shared/presentation/settings_cubit.dart
+lib/features/additional_feature/appearance/presentation/appearance_screen.dart package:detoxo/features/content_counter/content_counter_appearance/presentation/widgets/bubble_preview.dart
+lib/features/additional_feature/appearance/presentation/appearance_screen.dart package:detoxo/features/content_counter/content_counter_appearance/presentation/widgets/widget_preview.dart
+lib/features/additional_feature/app_feedback/presentation/widgets/feedback_action_button.dart package:detoxo/features/blocking/shared/presentation/settings_cubit.dart
+lib/features/onboarding/presentation/onboarding_screen.dart package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart
+lib/features/help/feature_tutorial/presentation/feature_tutorial_screen.dart package:detoxo/features/blocking/shared/presentation/settings_cubit.dart
+lib/features/help/report_issue/presentation/report_issue_dialog.dart package:detoxo/features/blocking/shared/presentation/settings_cubit.dart
+lib/features/analytics/presentation/analytics_screen.dart package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart
+lib/features/analytics/presentation/analytics_screen.dart package:detoxo/features/content_counter/content_counter_core/presentation/widgets/reel_counter_card.dart
