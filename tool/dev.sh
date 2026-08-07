@@ -10,6 +10,13 @@ cd "$(dirname "$0")/.."
 BOLD=$'\033[1m'; DIM=$'\033[2m'; GREEN=$'\033[32m'; RED=$'\033[31m'; OFF=$'\033[0m'
 
 run() { printf '%s→ %s%s\n' "$DIM" "$*" "$OFF"; "$@"; }
+
+# `dart format .` walks build/ios/SourcePackages, where the vendored Firebase
+# example packages ship an analysis_options.yaml whose `include:` resolves
+# outside the checkout — dart_style then aborts the whole run with
+# PathNotFoundException. Format the source trees we actually own instead.
+DART_SRC=(lib test integration_test test_driver)
+fmt() { run dart format "${DART_SRC[@]}"; }
 need() {
   command -v "$1" >/dev/null 2>&1 && return 0
   printf '%s%s not found.%s Install: %s\n' "$RED" "$1" "$OFF" "$2" >&2
@@ -25,6 +32,7 @@ MENU=(
   "quality|Full Code Quality Check|t_quality"
   "precommit|Pre-Commit Check|t_precommit"
   "validate|Full Validation (pre-PR)|t_validate"
+  "qa|QA Automation (needs a device)|t_qa"
   "deps|Dependency Refresh|t_deps"
   "reset|Complete Project Reset|t_reset"
   "firebase|Firebase Reconfigure|t_firebase"
@@ -37,9 +45,13 @@ t_gen()      { run dart run build_runner build --delete-conflicting-outputs; }
 t_watch()    { run dart run build_runner watch --delete-conflicting-outputs; }
 t_genclean() { run dart run build_runner clean; }
 t_fresh()    { run flutter clean; run flutter pub get; t_gen; }
-t_quality()  { run dart format .; run dart fix --apply; run flutter analyze; }
-t_precommit(){ run dart format .; run flutter analyze; run flutter test; run bash tool/check_boundaries.sh; }
-t_validate() { t_fresh; run dart format .; run flutter analyze; run flutter test; run bash tool/check_boundaries.sh; }
+t_quality()  { fmt; run dart fix --apply; run flutter analyze; }
+t_precommit(){ fmt; run flutter analyze; run flutter test; run bash tool/check_boundaries.sh; }
+t_validate() { t_fresh; fmt; run flutter analyze; run flutter test; run bash tool/check_boundaries.sh; }
+# Three QA layers on a real device. `QA_ARGS` passes through to tool/qa.sh:
+#   QA_ARGS='-d ABC123 perf' bash tool/dev.sh qa
+# See .claude/skills/detoxo-auto-test/SKILL.md.
+t_qa()       { run bash tool/qa.sh ${QA_ARGS:-all}; }
 t_deps()     { run flutter pub upgrade; run flutter pub get; t_gen; run flutter analyze; }
 t_reset()    { run flutter clean; run flutter pub cache repair; run flutter pub get; t_gen; }
 t_firebase() { need flutterfire "dart pub global activate flutterfire_cli"; run flutterfire configure; run flutter clean; run flutter pub get; }

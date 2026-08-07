@@ -158,7 +158,8 @@ class _BodyState extends State<_Body> {
             AppToggleTile(
               leading: const IconBadge(icon: Icons.schedule_rounded),
               title: 'Show time on tap',
-              subtitle: 'Tap the bubble to reveal today’s watch time '
+              subtitle:
+                  'Tap the bubble to reveal today’s watch time '
                   '(double-tap opens the app)',
               value: style.showTime,
               onChanged: (v) => _setStyle(style.copyWith(showTime: v)),
@@ -189,10 +190,7 @@ class _PreviewStage extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            context.glass.fillTop,
-            context.glass.fillBottom,
-          ],
+          colors: [context.glass.fillTop, context.glass.fillBottom],
         ),
         border: Border.all(color: context.glass.border),
       ),
@@ -294,7 +292,9 @@ class _LabeledSlider extends StatelessWidget {
               ),
               Text(
                 valueLabel,
-                style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+                style: text.bodySmall?.copyWith(
+                  color: context.glass.onGlassMuted,
+                ),
               ),
             ],
           ),

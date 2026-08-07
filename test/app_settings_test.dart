@@ -21,9 +21,10 @@ void main() {
     });
 
     test('fromJson reads the wire tokens', () {
-      final settings = AppSettings.fromJson(
-        const {'darkBackground': 'DARK5', 'lightBackground': 'LIGHT4'},
-      );
+      final settings = AppSettings.fromJson(const {
+        'darkBackground': 'DARK5',
+        'lightBackground': 'LIGHT4',
+      });
       expect(settings.darkBackground, AppBackground.dark5);
       expect(settings.lightBackground, AppBackground.light4);
     });

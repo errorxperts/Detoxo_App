@@ -59,7 +59,10 @@ class _AppBlockViewState extends State<_AppBlockView> {
       body: SafeArea(
         child: BlocBuilder<TargetsCubit, TargetsState>(
           builder: (context, targets) {
-            final enabledIds = context.watch<SettingsCubit>().state.enabledPlatformIds;
+            final enabledIds = context
+                .watch<SettingsCubit>()
+                .state
+                .enabledPlatformIds;
             final custom = context.watch<AppBlockCubit>().state;
 
             return ListView(
@@ -83,7 +86,10 @@ class _AppBlockViewState extends State<_AppBlockView> {
   }
 
   // ── Custom whole-app locks ────────────────────────────────────────────────
-  List<Widget> _customSection(BuildContext context, List<AppBlockEntry> custom) {
+  List<Widget> _customSection(
+    BuildContext context,
+    List<AppBlockEntry> custom,
+  ) {
     return [
       const SectionHeader('Custom apps'),
       if (custom.isEmpty)
@@ -151,10 +157,12 @@ class _AppBlockViewState extends State<_AppBlockView> {
     final filtered = q.isEmpty
         ? state.targets
         : state.targets
-            .where((t) =>
-                t.displayName.toLowerCase().contains(q) ||
-                t.appName.toLowerCase().contains(q))
-            .toList();
+              .where(
+                (t) =>
+                    t.displayName.toLowerCase().contains(q) ||
+                    t.appName.toLowerCase().contains(q),
+              )
+              .toList();
     final apps = filtered.where((t) => !t.isBrowser).toList();
     final browsers = filtered.where((t) => t.isBrowser).toList();
 
@@ -168,11 +176,13 @@ class _AppBlockViewState extends State<_AppBlockView> {
         const SizedBox(height: AppSpacing.md),
       ],
       if (apps.isNotEmpty)
-        for (final group in BlockAppGroup.from(apps)) _appTile(context, group, enabledIds),
+        for (final group in BlockAppGroup.from(apps))
+          _appTile(context, group, enabledIds),
       if (browsers.isNotEmpty) ...[
         const SizedBox(height: AppSpacing.sm),
         const SectionHeader('Browsers'),
-        for (final group in BlockAppGroup.from(browsers)) _appTile(context, group, enabledIds),
+        for (final group in BlockAppGroup.from(browsers))
+          _appTile(context, group, enabledIds),
       ],
       if (filtered.isEmpty)
         const Padding(
@@ -182,7 +192,11 @@ class _AppBlockViewState extends State<_AppBlockView> {
     ];
   }
 
-  Widget _appTile(BuildContext context, BlockAppGroup group, Set<String> enabledIds) {
+  Widget _appTile(
+    BuildContext context,
+    BlockAppGroup group,
+    Set<String> enabledIds,
+  ) {
     return BlockAppTile(
       group: group,
       enabledIds: enabledIds,

@@ -194,7 +194,10 @@ class AppChip extends StatelessWidget {
       minTapTarget: const Size(0, AppSizes.minTapTarget),
       child: GlassContainer(
         enableBlur: false,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
         borderRadius: AppRadius.pill,
         tintTop: selected ? accent.withValues(alpha: 0.28) : null,
         tintBottom: selected ? accent.withValues(alpha: 0.14) : null,
@@ -202,7 +205,10 @@ class AppChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[Icon(icon, size: 16), const SizedBox(width: AppSpacing.xxs)],
+            if (icon != null) ...[
+              Icon(icon, size: 16),
+              const SizedBox(width: AppSpacing.xxs),
+            ],
             Text(
               label,
               style: text.labelLarge?.copyWith(

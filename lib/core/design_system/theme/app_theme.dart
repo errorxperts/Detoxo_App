@@ -98,7 +98,8 @@ extension GlassThemeX on BuildContext {
   Color get accent => Theme.of(this).colorScheme.secondary;
   Color get onAccent => Theme.of(this).colorScheme.onSecondary;
   Color get shadow =>
-      Theme.of(this).extension<GlassTokens>()?.shadow ?? GlassTokens.dark.shadow;
+      Theme.of(this).extension<GlassTokens>()?.shadow ??
+      GlassTokens.dark.shadow;
 
   /// Background-adaptive hero-metric gradient for ShaderMask numbers. Built from
   /// the live brand roles, so it's bright on dark and deep on light — legible in
@@ -111,20 +112,23 @@ extension GlassThemeX on BuildContext {
 
 /// Per-background brand pairing. The selected background drives the app's live
 /// primary + accent so the whole UI harmonises with what's behind the glass —
-/// each pair is sampled from that background's own palette. [aurora] (the
-/// asset-less default) uses the signature pairing, resolved per brightness.
+/// each pair is sampled from that background's own palette.
+/// [AppBackgroundStyle.aurora] (the asset-less default) uses the signature
+/// pairing, resolved per brightness.
 ///
 /// Keyed by the design-system [AppBackgroundStyle] (dark* only appear in dark
-/// mode, light* only in light mode); [brightness] disambiguates [aurora].
+/// mode, light* only in light mode); [brightness] disambiguates
+/// [AppBackgroundStyle.aurora].
 ({Color primary, Color accent}) brandFor(
   AppBackgroundStyle style,
   Brightness brightness,
 ) {
   final dark = brightness == Brightness.dark;
   return switch (style) {
-    AppBackgroundStyle.aurora => dark
-        ? (primary: const Color(0xFF8B93FF), accent: const Color(0xFF35DCE8))
-        : (primary: const Color(0xFF4F46E5), accent: const Color(0xFF0B7E8C)),
+    AppBackgroundStyle.aurora =>
+      dark
+          ? (primary: const Color(0xFF8B93FF), accent: const Color(0xFF35DCE8))
+          : (primary: const Color(0xFF4F46E5), accent: const Color(0xFF0B7E8C)),
     AppBackgroundStyle.dark1 => (
       primary: const Color(0xFF5B8CFF),
       accent: const Color(0xFF38E0F0),
@@ -339,7 +343,10 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
         fillColor: isDark
             ? AppColors.glassFillTopDark
             : AppColors.glassFillTopLight,
@@ -358,7 +365,9 @@ abstract final class AppTheme {
         elevation: 0,
         indicatorColor: scheme.secondaryContainer.withValues(alpha: 0.5),
       ),
-      listTileTheme: const ListTileThemeData(contentPadding: AppInsets.listTile),
+      listTileTheme: const ListTileThemeData(
+        contentPadding: AppInsets.listTile,
+      ),
       dividerTheme: DividerThemeData(
         color: scheme.outline,
         thickness: 1,

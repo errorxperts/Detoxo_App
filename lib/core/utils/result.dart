@@ -10,15 +10,15 @@ sealed class Result<T> {
 
   /// Value if [Ok], otherwise null.
   T? get valueOrNull => switch (this) {
-        Ok<T>(:final value) => value,
-        Err<T>() => null,
-      };
+    Ok<T>(:final value) => value,
+    Err<T>() => null,
+  };
 
   /// Failure if [Err], otherwise null.
   Failure? get failureOrNull => switch (this) {
-        Ok<T>() => null,
-        Err<T>(:final failure) => failure,
-      };
+    Ok<T>() => null,
+    Err<T>(:final failure) => failure,
+  };
 
   R fold<R>(R Function(Failure failure) onErr, R Function(T value) onOk) =>
       switch (this) {

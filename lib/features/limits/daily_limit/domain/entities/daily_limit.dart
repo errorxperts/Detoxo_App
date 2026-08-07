@@ -9,10 +9,10 @@ class DailyLimit extends Equatable {
   });
 
   factory DailyLimit.fromJson(Map<String, dynamic> json) => DailyLimit(
-        limit: Duration(milliseconds: json['limitMs'] as int? ?? 0),
-        consumed: Duration(milliseconds: json['consumedMs'] as int? ?? 0),
-        dateSignature: json['dateSignature'] as String? ?? '',
-      );
+    limit: Duration(milliseconds: json['limitMs'] as int? ?? 0),
+    consumed: Duration(milliseconds: json['consumedMs'] as int? ?? 0),
+    dateSignature: json['dateSignature'] as String? ?? '',
+  );
 
   final Duration limit;
   final Duration consumed;
@@ -27,24 +27,24 @@ class DailyLimit extends Equatable {
   /// Returns a reset copy if the date changed, else this.
   DailyLimit refreshed(String todaySignature) {
     if (dateSignature == todaySignature) return this;
-    return DailyLimit(
-      limit: limit,
-      dateSignature: todaySignature,
-    );
+    return DailyLimit(limit: limit, dateSignature: todaySignature);
   }
 
-  DailyLimit copyWith({Duration? limit, Duration? consumed, String? dateSignature}) =>
-      DailyLimit(
-        limit: limit ?? this.limit,
-        consumed: consumed ?? this.consumed,
-        dateSignature: dateSignature ?? this.dateSignature,
-      );
+  DailyLimit copyWith({
+    Duration? limit,
+    Duration? consumed,
+    String? dateSignature,
+  }) => DailyLimit(
+    limit: limit ?? this.limit,
+    consumed: consumed ?? this.consumed,
+    dateSignature: dateSignature ?? this.dateSignature,
+  );
 
   Map<String, dynamic> toJson() => {
-        'limitMs': limit.inMilliseconds,
-        'consumedMs': consumed.inMilliseconds,
-        'dateSignature': dateSignature,
-      };
+    'limitMs': limit.inMilliseconds,
+    'consumedMs': consumed.inMilliseconds,
+    'dateSignature': dateSignature,
+  };
 
   @override
   List<Object?> get props => [limit, consumed, dateSignature];

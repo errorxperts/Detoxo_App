@@ -87,7 +87,8 @@ class _DashboardTabState extends State<DashboardTab> {
   Widget build(BuildContext context) {
     return BlocListener<SettingsCubit, AppSettings>(
       // Replay edge: Settings flips the flag true→false to request a fresh run.
-      listenWhen: (p, c) => p.hasSeenFeatureShowcase && !c.hasSeenFeatureShowcase,
+      listenWhen: (p, c) =>
+          p.hasSeenFeatureShowcase && !c.hasSeenFeatureShowcase,
       listener: (_, _) => _queueTour(),
       child: RefreshIndicator(
         onRefresh: () => Future.wait([
@@ -262,7 +263,11 @@ class _ModeSection extends StatelessWidget {
           DashboardMode.oneReel => 3,
           DashboardMode.unblock => 4,
         };
-        return showcaseTarget(step: featureShowcaseSteps[i], index: i, child: child);
+        return showcaseTarget(
+          step: featureShowcaseSteps[i],
+          index: i,
+          child: child,
+        );
       },
     );
   }
@@ -301,7 +306,8 @@ String _statusLabel(AppSettings settings, {required bool pauseLive}) {
   return switch (settings.activePlan) {
     BlockingPlan.blockAll => 'BLOCK ALL',
     BlockingPlan.curious => 'CONSCIOUS',
-    BlockingPlan.oneReel => settings.reelAllowance <= 1 ? 'ONE REEL' : 'UNBLOCK',
+    BlockingPlan.oneReel =>
+      settings.reelAllowance <= 1 ? 'ONE REEL' : 'UNBLOCK',
     BlockingPlan.paused => 'PAUSED',
   };
 }

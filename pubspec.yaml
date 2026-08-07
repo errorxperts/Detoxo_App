@@ -105,6 +105,11 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
+  # Host-side driver for the perf run. `integration_test` already pulls this in
+  # transitively, but test_driver/perf_driver.dart imports it directly, and
+  # `depend_on_referenced_packages` (correctly) wants that declared.
+  flutter_driver:
+    sdk: flutter
 
   # Lint rule sets. `lints` provides the Dart core/recommended rules; the
   # `flutter_lints` set builds on top with Flutter-specific rules. Both are

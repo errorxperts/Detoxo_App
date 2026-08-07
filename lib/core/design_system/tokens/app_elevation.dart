@@ -5,7 +5,11 @@ import 'package:flutter/material.dart';
 abstract final class AppShadows {
   /// Ambient lift under glass cards on dark.
   static const List<BoxShadow> card = [
-    BoxShadow(color: AppColors.shadowDark, blurRadius: 24, offset: Offset(0, 8)),
+    BoxShadow(
+      color: AppColors.shadowDark,
+      blurRadius: 24,
+      offset: Offset(0, 8),
+    ),
   ];
 
   /// Indigo glow for the active/primary CTA or "blocking active" hero.

@@ -23,7 +23,7 @@ abstract interface class CrashReportingService {
 /// [CrashReportingService] backed by Firebase Crashlytics.
 class FirebaseCrashReportingService implements CrashReportingService {
   FirebaseCrashReportingService({FirebaseCrashlytics? crashlytics})
-      : _crashlytics = crashlytics ?? FirebaseCrashlytics.instance;
+    : _crashlytics = crashlytics ?? FirebaseCrashlytics.instance;
 
   final FirebaseCrashlytics _crashlytics;
 
@@ -46,8 +46,7 @@ class FirebaseCrashReportingService implements CrashReportingService {
     StackTrace? stack, {
     String? reason,
     bool fatal = false,
-  }) =>
-      _crashlytics.recordError(error, stack, reason: reason, fatal: fatal);
+  }) => _crashlytics.recordError(error, stack, reason: reason, fatal: fatal);
 
   @override
   Future<void> setKey(String key, Object value) =>

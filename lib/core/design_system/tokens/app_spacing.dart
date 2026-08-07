@@ -59,7 +59,10 @@ abstract final class AppRadius {
   /// [pill] radius stays a true [StadiumBorder]; finite radii become a
   /// [ContinuousRectangleBorder] so corners flow smoothly instead of snapping
   /// to a circular arc. Pass a [side] to also stroke the edge.
-  static ShapeBorder continuous(double radius, {BorderSide side = BorderSide.none}) {
+  static ShapeBorder continuous(
+    double radius, {
+    BorderSide side = BorderSide.none,
+  }) {
     if (radius >= pill) return StadiumBorder(side: side);
     return RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(radius * continuousCornerScale),
@@ -71,7 +74,9 @@ abstract final class AppRadius {
 /// Common edge insets so screens stop re-declaring `EdgeInsets.all(16)`.
 abstract final class AppInsets {
   static const EdgeInsets screen = EdgeInsets.all(AppSpacing.md);
-  static const EdgeInsets screenH = EdgeInsets.symmetric(horizontal: AppSpacing.md);
+  static const EdgeInsets screenH = EdgeInsets.symmetric(
+    horizontal: AppSpacing.md,
+  );
   static const EdgeInsets card = EdgeInsets.all(AppSpacing.md);
   static const EdgeInsets cardLg = EdgeInsets.all(AppSpacing.lg);
   static const EdgeInsets listTile = EdgeInsets.symmetric(

@@ -25,8 +25,10 @@ enum BubbleVariant {
   const BubbleVariant(this.wire);
   final String wire;
 
-  static BubbleVariant fromWire(String? v) =>
-      values.firstWhere((e) => e.wire == v, orElse: () => BubbleVariant.glassOrb);
+  static BubbleVariant fromWire(String? v) => values.firstWhere(
+    (e) => e.wire == v,
+    orElse: () => BubbleVariant.glassOrb,
+  );
 }
 
 /// The glass background treatment of the home-screen widget bitmap.

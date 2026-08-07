@@ -48,7 +48,9 @@ class PrimaryButton extends StatelessWidget {
       semanticLabel: label,
       child: _PillContent(
         label: label,
-        leading: icon == null ? null : Icon(icon, size: 20, color: onLiquid(brand)),
+        leading: icon == null
+            ? null
+            : Icon(icon, size: 20, color: onLiquid(brand)),
         color: onLiquid(brand),
       ),
     );
@@ -58,8 +60,8 @@ class PrimaryButton extends StatelessWidget {
 /// Ink colour that stays legible on a [LiquidPill] of [fill].
 Color onLiquid(Color fill) =>
     ThemeData.estimateBrightnessForColor(fill) == Brightness.dark
-        ? Colors.white
-        : const Color(0xFF0A0E17);
+    ? Colors.white
+    : const Color(0xFF0A0E17);
 
 /// The hero-CTA skin: a single-hue brand sweep (lit from the top-left), a
 /// specular [LiquidGlassBorder] rim and a coloured drop-glow, squishing on
@@ -91,8 +93,12 @@ class LiquidPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final disabled = onPressed == null;
     final hsl = HSLColor.fromColor(tint);
-    final lit = hsl.withLightness((hsl.lightness + 0.09).clamp(0.0, 1.0)).toColor();
-    final shade = hsl.withLightness((hsl.lightness - 0.13).clamp(0.0, 1.0)).toColor();
+    final lit = hsl
+        .withLightness((hsl.lightness + 0.09).clamp(0.0, 1.0))
+        .toColor();
+    final shade = hsl
+        .withLightness((hsl.lightness - 0.13).clamp(0.0, 1.0))
+        .toColor();
 
     final pill = Container(
       height: expand ? _expandedHeight : AppSizes.controlHeight,
@@ -166,7 +172,10 @@ class _PillContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (leading != null) ...[leading!, const SizedBox(width: AppSpacing.xs)],
+        if (leading != null) ...[
+          leading!,
+          const SizedBox(width: AppSpacing.xs),
+        ],
         Text(
           label,
           style: (dense ? text.labelLarge : text.titleMedium)?.copyWith(
@@ -256,10 +265,10 @@ class GhostButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AdaptiveButton(
-        label: label,
-        onPressed: onPressed,
-        variant: AdaptiveButtonVariant.plain,
-      );
+    label: label,
+    onPressed: onPressed,
+    variant: AdaptiveButtonVariant.plain,
+  );
 }
 
 /// A filled CTA whose leading icon plays its morph on every press (and a

@@ -17,12 +17,11 @@ class ServiceSnapshot extends Equatable {
     ServiceStatus? status,
     int? blocksToday,
     int? blocksTotal,
-  }) =>
-      ServiceSnapshot(
-        status: status ?? this.status,
-        blocksToday: blocksToday ?? this.blocksToday,
-        blocksTotal: blocksTotal ?? this.blocksTotal,
-      );
+  }) => ServiceSnapshot(
+    status: status ?? this.status,
+    blocksToday: blocksToday ?? this.blocksToday,
+    blocksTotal: blocksTotal ?? this.blocksTotal,
+  );
 
   @override
   List<Object?> get props => [status, blocksToday, blocksTotal];

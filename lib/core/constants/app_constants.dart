@@ -12,16 +12,22 @@ abstract final class AppConstants {
   static const String appVersion = '1.0.0';
 
   // Bundled offline config (fallback when the network/remote config is absent).
-  static const String bundledPlatformsConfig = 'assets/config/platforms_config.json';
-  static const String bundledInitialConfig = 'assets/config/initial_config.json';
+  static const String bundledPlatformsConfig =
+      'assets/config/platforms_config.json';
+  static const String bundledInitialConfig =
+      'assets/config/initial_config.json';
 
   // Bundled dynamic content (quotes / emoji bands).
-  static const String mindfulQuotes = 'assets/content/mindful_timer_quotes.json';
+  static const String mindfulQuotes =
+      'assets/content/mindful_timer_quotes.json';
   static const String pauseEmojis = 'assets/content/pause_emojis.json';
-  static const String pauseCountdownEmojis = 'assets/content/pause_countdown_pause_emojis.json';
-  static const String cooldownEmojis = 'assets/content/pause_countdown_cooldown_emojis.json';
+  static const String pauseCountdownEmojis =
+      'assets/content/pause_countdown_pause_emojis.json';
+  static const String cooldownEmojis =
+      'assets/content/pause_countdown_cooldown_emojis.json';
   static const String curiousEmojis = 'assets/content/curious_emojis.json';
-  static const String dailyLimitEmojiBands = 'assets/content/daily_limit_emoji_bands.json';
+  static const String dailyLimitEmojiBands =
+      'assets/content/daily_limit_emoji_bands.json';
 }
 
 /// Support & feedback contact points. The single source of truth for where user

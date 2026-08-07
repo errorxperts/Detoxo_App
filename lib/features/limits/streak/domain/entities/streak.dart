@@ -11,10 +11,10 @@ class Streak extends Equatable {
   const Streak({this.base = 0, this.lastDay = '', this.todayFailed = true});
 
   factory Streak.fromJson(Map<String, dynamic> json) => Streak(
-        base: json['base'] as int? ?? 0,
-        lastDay: json['lastDay'] as String? ?? '',
-        todayFailed: json['todayFailed'] as bool? ?? true,
-      );
+    base: json['base'] as int? ?? 0,
+    lastDay: json['lastDay'] as String? ?? '',
+    todayFailed: json['todayFailed'] as bool? ?? true,
+  );
 
   /// Consecutive under-limit days completed before today.
   final int base;
@@ -30,16 +30,16 @@ class Streak extends Equatable {
   int get count => base + (todayFailed ? 0 : 1);
 
   Streak copyWith({int? base, String? lastDay, bool? todayFailed}) => Streak(
-        base: base ?? this.base,
-        lastDay: lastDay ?? this.lastDay,
-        todayFailed: todayFailed ?? this.todayFailed,
-      );
+    base: base ?? this.base,
+    lastDay: lastDay ?? this.lastDay,
+    todayFailed: todayFailed ?? this.todayFailed,
+  );
 
   Map<String, dynamic> toJson() => {
-        'base': base,
-        'lastDay': lastDay,
-        'todayFailed': todayFailed,
-      };
+    'base': base,
+    'lastDay': lastDay,
+    'todayFailed': todayFailed,
+  };
 
   @override
   List<Object?> get props => [base, lastDay, todayFailed];

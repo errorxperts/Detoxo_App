@@ -31,12 +31,15 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
   );
 
   static Duration _durationFor(EmojiAnimation a) => switch (a) {
-        EmojiAnimation.shake || EmojiAnimation.quaking => const Duration(milliseconds: 650),
-        EmojiAnimation.flash || EmojiAnimation.chaos => const Duration(milliseconds: 900),
-        EmojiAnimation.lumber => const Duration(milliseconds: 3200),
-        EmojiAnimation.fly || EmojiAnimation.slide => const Duration(milliseconds: 2400),
-        _ => const Duration(milliseconds: 1800),
-      };
+    EmojiAnimation.shake ||
+    EmojiAnimation.quaking => const Duration(milliseconds: 650),
+    EmojiAnimation.flash ||
+    EmojiAnimation.chaos => const Duration(milliseconds: 900),
+    EmojiAnimation.lumber => const Duration(milliseconds: 3200),
+    EmojiAnimation.fly ||
+    EmojiAnimation.slide => const Duration(milliseconds: 2400),
+    _ => const Duration(milliseconds: 1800),
+  };
 
   @override
   void dispose() {
@@ -53,22 +56,22 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
   /// Crossfades to the new glyph (keyed by the emoji itself) so a band change
   /// dissolves smoothly instead of snapping mid-motion.
   Widget _glyph() => AnimatedSwitcher(
-        duration: AppDurations.normal,
-        switchInCurve: AppCurves.standard,
-        switchOutCurve: AppCurves.standard,
-        transitionBuilder: (child, anim) => FadeTransition(
-          opacity: anim,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.85, end: 1).animate(anim),
-            child: child,
-          ),
-        ),
-        child: Text(
-          widget.emoji,
-          key: ValueKey(widget.emoji),
-          style: TextStyle(fontSize: widget.size, height: 1.1),
-        ),
-      );
+    duration: AppDurations.normal,
+    switchInCurve: AppCurves.standard,
+    switchOutCurve: AppCurves.standard,
+    transitionBuilder: (child, anim) => FadeTransition(
+      opacity: anim,
+      child: ScaleTransition(
+        scale: Tween<double>(begin: 0.85, end: 1).animate(anim),
+        child: child,
+      ),
+    ),
+    child: Text(
+      widget.emoji,
+      key: ValueKey(widget.emoji),
+      style: TextStyle(fontSize: widget.size, height: 1.1),
+    ),
+  );
 
   Widget _animated(double t, Widget child) {
     final s = widget.size;
@@ -76,7 +79,10 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
       case EmojiAnimation.breathing:
         return Transform.scale(scale: 1 + 0.08 * _pingPong(t), child: child);
       case EmojiAnimation.scanning:
-        return Transform.translate(offset: Offset(0.10 * s * _wave(t), 0), child: child);
+        return Transform.translate(
+          offset: Offset(0.10 * s * _wave(t), 0),
+          child: child,
+        );
       case EmojiAnimation.melting:
         return Opacity(
           opacity: 1 - 0.22 * _pingPong(t),
@@ -93,7 +99,10 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
           child: child,
         );
       case EmojiAnimation.waving:
-        return Transform.rotate(angle: (10 * math.pi / 180) * _wave(t), child: child);
+        return Transform.rotate(
+          angle: (10 * math.pi / 180) * _wave(t),
+          child: child,
+        );
       case EmojiAnimation.quaking:
         return Transform.translate(
           offset: Offset(
@@ -106,8 +115,10 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
         return Transform.rotate(
           angle: (8 * math.pi / 180) * math.sin(t * 2 * math.pi * 3),
           child: Transform.translate(
-            offset: Offset(0.12 * s * math.sin(t * 2 * math.pi * 2),
-                0.08 * s * math.cos(t * 2 * math.pi * 2.5)),
+            offset: Offset(
+              0.12 * s * math.sin(t * 2 * math.pi * 2),
+              0.08 * s * math.cos(t * 2 * math.pi * 2.5),
+            ),
             child: child,
           ),
         );
@@ -124,7 +135,10 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
       case EmojiAnimation.sinking:
         return Opacity(
           opacity: 1 - 0.3 * _pingPong(t),
-          child: Transform.translate(offset: Offset(0, 0.16 * s * _pingPong(t)), child: child),
+          child: Transform.translate(
+            offset: Offset(0, 0.16 * s * _pingPong(t)),
+            child: child,
+          ),
         );
       case EmojiAnimation.glow:
         return DecoratedBox(
@@ -132,10 +146,9 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context)
-                    .colorScheme
-                    .secondary
-                    .withValues(alpha: 0.25 + 0.45 * _pingPong(t)),
+                color: Theme.of(context).colorScheme.secondary.withValues(
+                  alpha: 0.25 + 0.45 * _pingPong(t),
+                ),
                 blurRadius: 8 + 22 * _pingPong(t),
                 spreadRadius: 2 * _pingPong(t),
               ),
@@ -144,7 +157,10 @@ class _AnimatedEmojiState extends State<AnimatedEmoji>
           child: child,
         );
       case EmojiAnimation.flash:
-        return Opacity(opacity: 0.3 + 0.7 * (0.5 + 0.5 * _wave(t)), child: child);
+        return Opacity(
+          opacity: 0.3 + 0.7 * (0.5 + 0.5 * _wave(t)),
+          child: child,
+        );
       case EmojiAnimation.fly:
         return Transform.translate(
           offset: Offset(0.20 * s * _wave(t), -0.05 * s * _pingPong(t)),

@@ -17,7 +17,7 @@ abstract interface class PerformanceService {
 /// [PerformanceService] backed by Firebase Performance Monitoring.
 class FirebasePerformanceService implements PerformanceService {
   FirebasePerformanceService({FirebasePerformance? performance})
-      : _performance = performance ?? FirebasePerformance.instance;
+    : _performance = performance ?? FirebasePerformance.instance;
 
   final FirebasePerformance _performance;
 

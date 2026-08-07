@@ -53,9 +53,16 @@ final String _catalogJson = jsonEncode({
   'featuredApps': {
     'com.app.bravo': _app('com.app.bravo', 'Bravo', showIfNotInstalled: false),
     'com.app.alpha': _app('com.app.alpha', 'Alpha', showIfNotInstalled: false),
-    'com.app.suggested':
-        _app('com.app.suggested', 'Suggested', showIfNotInstalled: true),
-    'com.app.hidden': _app('com.app.hidden', 'Hidden', showIfNotInstalled: false),
+    'com.app.suggested': _app(
+      'com.app.suggested',
+      'Suggested',
+      showIfNotInstalled: true,
+    ),
+    'com.app.hidden': _app(
+      'com.app.hidden',
+      'Hidden',
+      showIfNotInstalled: false,
+    ),
   },
 });
 
@@ -66,7 +73,9 @@ void main() {
 
     setUp(() {
       bundle = _MockBundle();
-      when(() => bundle.loadString(any())).thenAnswer((_) async => _catalogJson);
+      when(
+        () => bundle.loadString(any()),
+      ).thenAnswer((_) async => _catalogJson);
       repo = ConfigRepositoryImpl(bundle: bundle);
     });
 
@@ -78,23 +87,31 @@ void main() {
 
       // Hidden (uninstalled + showIfNotInstalled:false) is gone; the rest sorted
       // installed-first (Alpha, Bravo) then the greyed suggestion.
-      expect(targets.map((t) => t.displayName), ['Alpha', 'Bravo', 'Suggested']);
+      expect(targets.map((t) => t.displayName), [
+        'Alpha',
+        'Bravo',
+        'Suggested',
+      ]);
       expect(
         {for (final t in targets) t.displayName: t.isInstalled},
         {'Alpha': true, 'Bravo': true, 'Suggested': false},
       );
     });
 
-    test('null installed set => show everything as installed (off-Android)',
-        () async {
-      final targets = await repo.loadBlockTargets();
+    test(
+      'null installed set => show everything as installed (off-Android)',
+      () async {
+        final targets = await repo.loadBlockTargets();
 
-      expect(
-        targets.map((t) => t.displayName),
-        ['Alpha', 'Bravo', 'Hidden', 'Suggested'],
-      );
-      expect(targets.every((t) => t.isInstalled), isTrue);
-    });
+        expect(targets.map((t) => t.displayName), [
+          'Alpha',
+          'Bravo',
+          'Hidden',
+          'Suggested',
+        ]);
+        expect(targets.every((t) => t.isInstalled), isTrue);
+      },
+    );
 
     test('empty installed set hides every non-suggested app', () async {
       final targets = await repo.loadBlockTargets(installedPackages: const {});
@@ -126,11 +143,12 @@ void main() {
       engine = _MockEngineRepository();
       when(() => config.rawConfigJson()).thenAnswer((_) async => '{}');
       when(() => engine.pushConfig(any())).thenAnswer((_) async {});
-      when(() => engine.installedPackages())
-          .thenAnswer((_) async => {'com.x'});
-      when(() => config.loadBlockTargets(
-            installedPackages: any(named: 'installedPackages'),
-          )).thenAnswer((_) async => [target]);
+      when(() => engine.installedPackages()).thenAnswer((_) async => {'com.x'});
+      when(
+        () => config.loadBlockTargets(
+          installedPackages: any(named: 'installedPackages'),
+        ),
+      ).thenAnswer((_) async => [target]);
     });
 
     blocTest<TargetsCubit, TargetsState>(
@@ -172,19 +190,24 @@ void main() {
       isInstalled: installed,
     );
 
-    test('collapses surfaces sharing a package into one group, preserving order',
-        () {
-      final groups = BlockAppGroup.from([
-        surface('com.insta', 'Instagram', 'ig_feed'),
-        surface('com.insta', 'Instagram', 'ig_reel'),
-        surface('com.yt', 'YouTube', 'yt_shorts'),
-      ]);
+    test(
+      'collapses surfaces sharing a package into one group, preserving order',
+      () {
+        final groups = BlockAppGroup.from([
+          surface('com.insta', 'Instagram', 'ig_feed'),
+          surface('com.insta', 'Instagram', 'ig_reel'),
+          surface('com.yt', 'YouTube', 'yt_shorts'),
+        ]);
 
-      expect(groups.map((g) => g.appName), ['Instagram', 'YouTube']);
-      expect(groups.first.surfaces.map((t) => t.platformId), ['ig_feed', 'ig_reel']);
-      expect(groups.first.isSingle, isFalse);
-      expect(groups.last.isSingle, isTrue);
-    });
+        expect(groups.map((g) => g.appName), ['Instagram', 'YouTube']);
+        expect(groups.first.surfaces.map((t) => t.platformId), [
+          'ig_feed',
+          'ig_reel',
+        ]);
+        expect(groups.first.isSingle, isFalse);
+        expect(groups.last.isSingle, isTrue);
+      },
+    );
 
     test('derives install state from the grouped surfaces', () {
       final groups = BlockAppGroup.from([

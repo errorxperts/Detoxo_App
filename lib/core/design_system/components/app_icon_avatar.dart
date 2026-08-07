@@ -78,9 +78,11 @@ class AppIconAvatar extends StatelessWidget {
 
   Widget _letterOrBadge(BorderRadius radius) {
     final badge =
-        ultimateFallback ?? IconBadge(size: size, icon: Icons.smartphone_rounded);
+        ultimateFallback ??
+        IconBadge(size: size, icon: Icons.smartphone_rounded);
     final letter = appName.isEmpty ? '' : appName[0].toLowerCase();
-    final isAz = letter.length == 1 &&
+    final isAz =
+        letter.length == 1 &&
         letter.codeUnitAt(0) >= 0x61 &&
         letter.codeUnitAt(0) <= 0x7a;
     if (!isAz) return badge;

@@ -50,10 +50,12 @@ class _BlocklistTabState extends State<BlocklistTab> {
         final filtered = q.isEmpty
             ? state.targets
             : state.targets
-                .where((t) =>
-                    t.displayName.toLowerCase().contains(q) ||
-                    t.appName.toLowerCase().contains(q))
-                .toList();
+                  .where(
+                    (t) =>
+                        t.displayName.toLowerCase().contains(q) ||
+                        t.appName.toLowerCase().contains(q),
+                  )
+                  .toList();
 
         final apps = filtered.where((t) => !t.isBrowser).toList();
         final browsers = filtered.where((t) => t.isBrowser).toList();
@@ -64,7 +66,8 @@ class _BlocklistTabState extends State<BlocklistTab> {
             AppSpacing.md,
             AppSpacing.md,
             AppSpacing.md,
-            AppSpacing.floatingNavClearance + MediaQuery.viewPaddingOf(context).bottom,
+            AppSpacing.floatingNavClearance +
+                MediaQuery.viewPaddingOf(context).bottom,
           ),
           children: [
             Row(
@@ -72,7 +75,9 @@ class _BlocklistTabState extends State<BlocklistTab> {
                 Expanded(
                   child: Text(
                     'What to block',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
                 DrawerMenuButton(onTap: widget.onMenu),
@@ -113,7 +118,11 @@ class _BlocklistTabState extends State<BlocklistTab> {
     );
   }
 
-  Widget _appTile(BuildContext context, BlockAppGroup group, Set<String> enabledIds) {
+  Widget _appTile(
+    BuildContext context,
+    BlockAppGroup group,
+    Set<String> enabledIds,
+  ) {
     return BlockAppTile(
       group: group,
       enabledIds: enabledIds,
@@ -134,10 +143,10 @@ class _GroupHeader extends StatelessWidget {
       child: Text(
         label.toUpperCase(),
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-            ),
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
+        ),
       ),
     );
   }

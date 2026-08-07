@@ -57,7 +57,9 @@ class AppToggle extends StatelessWidget {
               Color.lerp(glass.fillBottom, accent.withValues(alpha: 0.70), t)!,
             ],
           ),
-          border: Border.all(color: Color.lerp(glass.border, accent.withValues(alpha: 0.70), t)!),
+          border: Border.all(
+            color: Color.lerp(glass.border, accent.withValues(alpha: 0.70), t)!,
+          ),
           boxShadow: t == 0
               ? null
               : [
@@ -79,7 +81,11 @@ class AppToggle extends StatelessWidget {
               // frosted track in both themes and against the accent fill.
               color: Color.lerp(glass.onGlassMuted, Colors.white, t),
               boxShadow: [
-                BoxShadow(color: glass.shadow, blurRadius: 4, offset: const Offset(0, 1)),
+                BoxShadow(
+                  color: glass.shadow,
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
               ],
             ),
           ),
@@ -112,7 +118,9 @@ class AppToggle extends StatelessWidget {
 
   Widget _row(BuildContext context, Widget toggle) => Row(
     children: [
-      Expanded(child: Text(label!, style: Theme.of(context).textTheme.bodyLarge)),
+      Expanded(
+        child: Text(label!, style: Theme.of(context).textTheme.bodyLarge),
+      ),
       const SizedBox(width: AppSpacing.sm),
       toggle,
     ],

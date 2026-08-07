@@ -35,7 +35,7 @@ abstract interface class AnalyticsService {
 /// default pattern used across the repos, e.g. `ConfigRepositoryImpl`).
 class FirebaseAnalyticsService implements AnalyticsService {
   FirebaseAnalyticsService({FirebaseAnalytics? analytics})
-      : _analytics = analytics ?? FirebaseAnalytics.instance;
+    : _analytics = analytics ?? FirebaseAnalytics.instance;
 
   final FirebaseAnalytics _analytics;
 
@@ -60,15 +60,15 @@ class FirebaseAnalyticsService implements AnalyticsService {
 
   @override
   Future<void> logBlockingToggled({required bool enabled}) => _log(
-        AnalyticsEvent.blockingToggled,
-        {AnalyticsParam.enabled: enabled ? 1 : 0},
-      );
+    AnalyticsEvent.blockingToggled,
+    {AnalyticsParam.enabled: enabled ? 1 : 0},
+  );
 
   @override
   Future<void> logPauseStarted(Duration duration) => _log(
-        AnalyticsEvent.pauseStarted,
-        {AnalyticsParam.durationMin: duration.inMinutes},
-      );
+    AnalyticsEvent.pauseStarted,
+    {AnalyticsParam.durationMin: duration.inMinutes},
+  );
 
   @override
   Future<void> logPauseEnded() => _log(AnalyticsEvent.pauseEnded);
@@ -77,11 +77,10 @@ class FirebaseAnalyticsService implements AnalyticsService {
   Future<void> logBlockTriggered({
     required String platform,
     required String mode,
-  }) =>
-      _log(AnalyticsEvent.blockTriggered, {
-        AnalyticsParam.platform: platform,
-        AnalyticsParam.mode: mode,
-      });
+  }) => _log(AnalyticsEvent.blockTriggered, {
+    AnalyticsParam.platform: platform,
+    AnalyticsParam.mode: mode,
+  });
 
   @override
   Future<void> logReelsCounted(int count) =>

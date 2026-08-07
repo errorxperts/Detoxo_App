@@ -68,7 +68,9 @@ class AppSettings extends Equatable {
         json['darkBackground'] as String?,
         fallback: AppBackground.dark1,
       ),
-      lightBackground: AppBackground.fromWire(json['lightBackground'] as String?),
+      lightBackground: AppBackground.fromWire(
+        json['lightBackground'] as String?,
+      ),
       blockAdultWebsites: json['blockAdultWebsites'] as bool? ?? false,
       blockWebsitesForBlockedApps:
           json['blockWebsitesForBlockedApps'] as bool? ?? false,

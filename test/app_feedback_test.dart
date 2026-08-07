@@ -71,12 +71,15 @@ void main() {
       expect(settings.toJson()['showFeedbackButton'], false);
     });
 
-    test('fromJson defaults to false when the key is missing (back-compat)', () {
-      expect(
-        AppSettings.fromJson(const <String, dynamic>{}).showFeedbackButton,
-        isFalse,
-      );
-    });
+    test(
+      'fromJson defaults to false when the key is missing (back-compat)',
+      () {
+        expect(
+          AppSettings.fromJson(const <String, dynamic>{}).showFeedbackButton,
+          isFalse,
+        );
+      },
+    );
 
     test('survives a full JSON round-trip', () {
       final original = const AppSettings().copyWith(showFeedbackButton: false);

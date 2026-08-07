@@ -14,7 +14,9 @@ FeedbackThemeData glassFeedbackTheme(Brightness brightness) {
     // Transparent, but the RGB channels are kept dark/light so the package's
     // brightness estimation (which ignores alpha) resolves the right Material
     // theme for the form's text field.
-    feedbackSheetColor: isDark ? const Color(0x00000000) : const Color(0x00FFFFFF),
+    feedbackSheetColor: isDark
+        ? const Color(0x00000000)
+        : const Color(0x00FFFFFF),
     // A compact collapsed sheet keeps a large screenshot preview above it; it
     // is draggable to expand and grows automatically when the keyboard opens.
     feedbackSheetHeight: 0.42,
@@ -26,7 +28,10 @@ FeedbackThemeData glassFeedbackTheme(Brightness brightness) {
       AppColors.danger,
       AppColors.warning,
     ],
-    bottomSheetDescriptionStyle: TextStyle(color: onSurface, fontWeight: FontWeight.w600),
+    bottomSheetDescriptionStyle: TextStyle(
+      color: onSurface,
+      fontWeight: FontWeight.w600,
+    ),
     bottomSheetTextInputStyle: TextStyle(color: onSurface),
   );
 }

@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 
 /// A row of selectable glass chips for choosing the [FeedbackCategory].
 class FeedbackCategoryChips extends StatelessWidget {
-  const FeedbackCategoryChips({required this.selected, required this.onSelected, super.key});
+  const FeedbackCategoryChips({
+    required this.selected,
+    required this.onSelected,
+    super.key,
+  });
 
   final FeedbackCategory selected;
   final ValueChanged<FeedbackCategory> onSelected;

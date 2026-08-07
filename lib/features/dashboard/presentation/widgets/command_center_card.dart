@@ -148,7 +148,9 @@ class CommandCenterCard extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 child: ShaderMask(
                   shaderCallback: (bounds) =>
-                      (overLimit ? AppGradients.overLimit : context.metricGradient)
+                      (overLimit
+                              ? AppGradients.overLimit
+                              : context.metricGradient)
                           .createShader(bounds),
                   blendMode: BlendMode.srcIn,
                   child: Text(

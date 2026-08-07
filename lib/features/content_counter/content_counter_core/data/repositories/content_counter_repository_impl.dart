@@ -45,7 +45,10 @@ class ContentCounterRepositoryImpl implements ContentCounterRepository {
   Future<void> setEnabled({required bool enabled}) =>
       _channel.setContentCounterEnabled(enabled: enabled);
 
-  ContentCount _fromMap(Map<String, dynamic> map, Map<String, BlockTarget> index) {
+  ContentCount _fromMap(
+    Map<String, dynamic> map,
+    Map<String, BlockTarget> index,
+  ) {
     return ContentCount(
       today: (map['today'] as num?)?.toInt() ?? 0,
       total: (map['total'] as num?)?.toInt() ?? 0,
@@ -53,7 +56,9 @@ class ContentCounterRepositoryImpl implements ContentCounterRepository {
       bubbleEnabled: map['bubbleEnabled'] as bool? ?? true,
       perAppToday: _toList(map['perAppToday'], index),
       perAppTotal: _toList(map['perAppTotal'], index),
-      timeToday: Duration(milliseconds: (map['timeTodayMs'] as num?)?.toInt() ?? 0),
+      timeToday: Duration(
+        milliseconds: (map['timeTodayMs'] as num?)?.toInt() ?? 0,
+      ),
     );
   }
 

@@ -74,19 +74,25 @@ class ModeSelector extends StatelessWidget {
 
   /// The live "N" remaining badge for the active One Reel / Unblock pill.
   int? _badgeFor(DashboardMode mode) {
-    final isReel = mode == DashboardMode.oneReel || mode == DashboardMode.unblock;
+    final isReel =
+        mode == DashboardMode.oneReel || mode == DashboardMode.unblock;
     if (isReel && selected == mode && reelSession.active) {
       return reelSession.remaining;
     }
     return null;
   }
 
-  Widget _decorate(DashboardMode mode, Widget cell) => showcaseBuilder?.call(mode, cell) ?? cell;
+  Widget _decorate(DashboardMode mode, Widget cell) =>
+      showcaseBuilder?.call(mode, cell) ?? cell;
 }
 
 /// Static per-mode presentation (illustration asset, label).
 class _ModeSpec {
-  const _ModeSpec({required this.mode, required this.image, required this.label});
+  const _ModeSpec({
+    required this.mode,
+    required this.image,
+    required this.label,
+  });
 
   final DashboardMode mode;
 
@@ -166,7 +172,10 @@ class _ModeCell extends StatelessWidget {
         child: AnimatedContainer(
           duration: AppDurations.fast,
           curve: AppCurves.standard,
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs, horizontal: AppSpacing.xxs),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppSpacing.xxs,
+            horizontal: AppSpacing.xxs,
+          ),
           decoration: BoxDecoration(
             gradient: selected
                 ? LinearGradient(
@@ -249,7 +258,9 @@ class _ModeArt extends StatelessWidget {
         image,
         height: _size,
         cacheWidth: _cacheWidth,
-        opacity: AlwaysStoppedAnimation(enabled ? (selected ? 1.0 : 0.72) : 0.3),
+        opacity: AlwaysStoppedAnimation(
+          enabled ? (selected ? 1.0 : 0.72) : 0.3,
+        ),
       ),
     );
 

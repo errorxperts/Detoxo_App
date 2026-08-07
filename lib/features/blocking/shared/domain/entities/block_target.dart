@@ -35,5 +35,10 @@ class BlockTarget extends Equatable {
   final bool isInstalled;
 
   @override
-  List<Object?> get props => [platformId, packageName, displayName, isInstalled];
+  List<Object?> get props => [
+    platformId,
+    packageName,
+    displayName,
+    isInstalled,
+  ];
 }

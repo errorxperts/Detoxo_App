@@ -44,6 +44,7 @@ path is native; Dart owns config, settings and UI, bridged by **one** MethodChan
 | 20 | [Help & Support](20-help-support.md) | In-app help hub: report an issue, FAQ, feature tutorials (scoped tours), share an idea |
 | 21 | [App Upgrader](21-app-upgrader.md) | In-app "update available" prompt (`upgrader` engine + custom glass dialog, force-update, auto + manual check) |
 | 22 | [Play Store Release & Policy](22-play-release.md) | Signed `.aab` build, Accessibility/FGS/device-admin declarations, data-safety answers, restricted-settings notes |
+| 23 | [Testing Runbook & IDE Run Configs](23-testing-runbook.md) | How to run every layer — terminal, Android Studio, VS Code; artifacts; troubleshooting |
 
 ## Glossary
 | Term | Meaning |

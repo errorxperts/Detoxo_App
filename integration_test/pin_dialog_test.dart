@@ -10,8 +10,9 @@ import 'package:integration_test/integration_test.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('confirm dialog (turn-off PIN) lays out and is tappable',
-      (tester) async {
+  testWidgets('confirm dialog (turn-off PIN) lays out and is tappable', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.light(),
@@ -46,13 +47,11 @@ void main() {
     expect(tester.takeException(), isNull, reason: 'tapping confirm');
   });
 
-  testWidgets('toast then pop (save PIN pattern) does not crash',
-      (tester) async {
+  testWidgets('toast then pop (save PIN pattern) does not crash', (
+    tester,
+  ) async {
     await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light(),
-        home: const _Host(),
-      ),
+      MaterialApp(theme: AppTheme.light(), home: const _Host()),
     );
     await tester.tap(find.text('go'));
     await tester.pumpAndSettle();
@@ -67,27 +66,27 @@ class _Host extends StatelessWidget {
   const _Host();
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Center(
-          child: ElevatedButton(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => Scaffold(
-                  body: Builder(
-                    builder: (inner) => Center(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          GlassToast.show(inner, 'PIN saved.');
-                          Navigator.of(inner).pop();
-                        },
-                        child: const Text('do save+pop'),
-                      ),
-                    ),
+    body: Center(
+      child: ElevatedButton(
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => Scaffold(
+              body: Builder(
+                builder: (inner) => Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      GlassToast.show(inner, 'PIN saved.');
+                      Navigator.of(inner).pop();
+                    },
+                    child: const Text('do save+pop'),
                   ),
                 ),
               ),
             ),
-            child: const Text('go'),
           ),
         ),
-      );
+        child: const Text('go'),
+      ),
+    ),
+  );
 }

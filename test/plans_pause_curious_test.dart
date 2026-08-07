@@ -32,15 +32,26 @@ void main() {
 
   group('EmojiItem / EmojiPlacement matching', () {
     const a = EmojiItem(
-      id: 'a', rangeMin: 0, rangeMax: 2, emoji: '✨', title: 'Demure',
-      description: '', animation: EmojiAnimation.breathing,
+      id: 'a',
+      rangeMin: 0,
+      rangeMax: 2,
+      emoji: '✨',
+      title: 'Demure',
+      description: '',
+      animation: EmojiAnimation.breathing,
     );
     const b = EmojiItem(
-      id: 'b', rangeMin: 3, rangeMax: 5, emoji: '👀', title: 'Side Eye',
-      description: '', animation: EmojiAnimation.scanning,
+      id: 'b',
+      rangeMin: 3,
+      rangeMax: 5,
+      emoji: '👀',
+      title: 'Side Eye',
+      description: '',
+      animation: EmojiAnimation.scanning,
     );
     const placement = EmojiPlacement(
-      placementId: 'P', enabled: true,
+      placementId: 'P',
+      enabled: true,
       set: EmojiSet(setId: 's', placementId: 'P', enabled: true, items: [a, b]),
     );
 
@@ -56,7 +67,8 @@ void main() {
     });
     test('disabled set yields nothing', () {
       const disabled = EmojiPlacement(
-        placementId: 'P', enabled: true,
+        placementId: 'P',
+        enabled: true,
         set: EmojiSet(setId: 's', placementId: 'P', enabled: false, items: [a]),
       );
       expect(disabled.itemFor(0), isNull);
@@ -71,8 +83,13 @@ void main() {
             'enabled': true,
             'emojis': [
               {
-                'emojiId': 'e1', 'rangeMin': 0, 'rangeMax': 5, 'emoji': '🎯',
-                'title': 'Stay Sharp', 'description': 'x', 'animation': 'BREATHING',
+                'emojiId': 'e1',
+                'rangeMin': 0,
+                'rangeMax': 5,
+                'emoji': '🎯',
+                'title': 'Stay Sharp',
+                'description': 'x',
+                'animation': 'BREATHING',
               },
             ],
           },
@@ -98,8 +115,14 @@ void main() {
         cooldownDuration: Duration.zero,
         planToResume: BlockingPlan.blockAll,
       );
-      expect(s.phaseAt(start.add(const Duration(minutes: 2))), SessionPhase.active);
-      expect(s.phaseAt(start.add(const Duration(minutes: 6))), SessionPhase.idle);
+      expect(
+        s.phaseAt(start.add(const Duration(minutes: 2))),
+        SessionPhase.active,
+      );
+      expect(
+        s.phaseAt(start.add(const Duration(minutes: 6))),
+        SessionPhase.idle,
+      );
     });
   });
 
@@ -135,14 +158,14 @@ void main() {
     final now = DateTime(2026, 1, 1, 12);
 
     AppSettings pause({required BlockingPlan plan}) => AppSettings(
-          activePlan: plan,
-          pauseSession: PauseSession(
-            startedAt: now,
-            pauseDuration: const Duration(minutes: 5),
-            cooldownDuration: Duration.zero,
-            planToResume: BlockingPlan.blockAll,
-          ),
-        );
+      activePlan: plan,
+      pauseSession: PauseSession(
+        startedAt: now,
+        pauseDuration: const Duration(minutes: 5),
+        cooldownDuration: Duration.zero,
+        planToResume: BlockingPlan.blockAll,
+      ),
+    );
 
     test('pause window suspends all blocking until the window end', () {
       final s = pause(plan: BlockingPlan.blockAll);
@@ -222,26 +245,25 @@ void main() {
       expect(cubit.state.pauseSession?.planToResume, BlockingPlan.curious);
     });
 
-    test('One Reel auto-reverts to the base once the allowance is spent', () async {
-      await cubit.setOneReel(count: 1); // base stays Block All
-      expect(cubit.state.activePlan, BlockingPlan.oneReel);
+    test(
+      'One Reel auto-reverts to the base once the allowance is spent',
+      () async {
+        await cubit.setOneReel(count: 1); // base stays Block All
+        expect(cubit.state.activePlan, BlockingPlan.oneReel);
 
-      // An allowed reel (blocked == false) must NOT revert.
-      engine.emitReel(
-        const ReelSessionState(consumed: 1, active: true),
-      );
-      await pumpEventQueue();
-      expect(cubit.state.activePlan, BlockingPlan.oneReel);
+        // An allowed reel (blocked == false) must NOT revert.
+        engine.emitReel(const ReelSessionState(consumed: 1, active: true));
+        await pumpEventQueue();
+        expect(cubit.state.activePlan, BlockingPlan.oneReel);
 
-      // The block past the allowance reverts to the base.
-      engine.emitReel(
-        const ReelSessionState(
-          consumed: 1, active: true, blocked: true,
-        ),
-      );
-      await pumpEventQueue();
-      expect(cubit.state.activePlan, BlockingPlan.blockAll);
-    });
+        // The block past the allowance reverts to the base.
+        engine.emitReel(
+          const ReelSessionState(consumed: 1, active: true, blocked: true),
+        );
+        await pumpEventQueue();
+        expect(cubit.state.activePlan, BlockingPlan.blockAll);
+      },
+    );
 
     test('Unblock auto-reverts to a Conscious base', () async {
       await cubit.enterConscious(); // base = Conscious
@@ -250,7 +272,10 @@ void main() {
 
       engine.emitReel(
         const ReelSessionState(
-          consumed: 5, allowance: 5, active: true, blocked: true,
+          consumed: 5,
+          allowance: 5,
+          active: true,
+          blocked: true,
         ),
       );
       await pumpEventQueue();
@@ -283,9 +308,13 @@ void main() {
   group('Mindful Countdown widgets', () {
     testWidgets('AnimatedEmoji builds for all 14 animations', (tester) async {
       for (final anim in EmojiAnimation.values) {
-        await tester.pumpWidget(MaterialApp(
-          home: Center(child: AnimatedEmoji(emoji: '🎯', animation: anim)),
-        ));
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Center(
+              child: AnimatedEmoji(emoji: '🎯', animation: anim),
+            ),
+          ),
+        );
         await tester.pump(const Duration(milliseconds: 16));
         expect(find.text('🎯'), findsOneWidget, reason: 'anim=$anim');
       }
@@ -293,40 +322,49 @@ void main() {
     });
 
     testWidgets('AnimatedDigitTimer renders mm:ss', (tester) async {
-      await tester.pumpWidget(const MaterialApp(
-        home: Scaffold(
-          body: Center(child: AnimatedDigitTimer(remaining: Duration(seconds: 125))),
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: AnimatedDigitTimer(remaining: Duration(seconds: 125)),
+            ),
+          ),
         ),
-      ));
+      );
       await tester.pump();
       expect(find.text('0'), findsWidgets); // 02:05 → has digit cells
       expect(find.text('2'), findsWidgets);
       expect(find.text(':'), findsOneWidget);
     });
 
-    testWidgets('CountdownRing renders its centred digits and emoji',
-        (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        theme: AppTheme.dark(),
-        home: const Scaffold(
-          body: Center(
-            child: CountdownRing(
-              progress: 0.8,
-              center: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedEmoji(
-                    emoji: '🎯',
-                    animation: EmojiAnimation.breathing,
-                    size: 30,
-                  ),
-                  AnimatedDigitTimer(remaining: Duration(minutes: 4, seconds: 12)),
-                ],
+    testWidgets('CountdownRing renders its centred digits and emoji', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark(),
+          home: const Scaffold(
+            body: Center(
+              child: CountdownRing(
+                progress: 0.8,
+                center: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedEmoji(
+                      emoji: '🎯',
+                      animation: EmojiAnimation.breathing,
+                      size: 30,
+                    ),
+                    AnimatedDigitTimer(
+                      remaining: Duration(minutes: 4, seconds: 12),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ));
+      );
       await tester.pump(const Duration(milliseconds: 16));
       expect(find.text('🎯'), findsOneWidget);
       expect(find.text(':'), findsOneWidget);

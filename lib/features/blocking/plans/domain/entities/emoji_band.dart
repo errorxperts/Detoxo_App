@@ -50,14 +50,14 @@ class EmojiItem {
   });
 
   factory EmojiItem.fromJson(Map<String, dynamic> j) => EmojiItem(
-        id: j['emojiId'] as String? ?? '',
-        rangeMin: (j['rangeMin'] as num?)?.toInt() ?? 0,
-        rangeMax: (j['rangeMax'] as num?)?.toInt() ?? 0,
-        emoji: j['emoji'] as String? ?? '🙂',
-        title: j['title'] as String? ?? '',
-        description: j['description'] as String? ?? '',
-        animation: EmojiAnimation.fromWire(j['animation'] as String?),
-      );
+    id: j['emojiId'] as String? ?? '',
+    rangeMin: (j['rangeMin'] as num?)?.toInt() ?? 0,
+    rangeMax: (j['rangeMax'] as num?)?.toInt() ?? 0,
+    emoji: j['emoji'] as String? ?? '🙂',
+    title: j['title'] as String? ?? '',
+    description: j['description'] as String? ?? '',
+    animation: EmojiAnimation.fromWire(j['animation'] as String?),
+  );
 
   final String id;
   final int rangeMin;
@@ -81,14 +81,14 @@ class EmojiSet {
   });
 
   factory EmojiSet.fromJson(Map<String, dynamic> j) => EmojiSet(
-        setId: j['setId'] as String? ?? '',
-        placementId: j['placementId'] as String? ?? '',
-        enabled: j['enabled'] as bool? ?? true,
-        items: ((j['emojis'] as List<dynamic>?) ?? const [])
-            .whereType<Map<String, dynamic>>()
-            .map(EmojiItem.fromJson)
-            .toList(),
-      );
+    setId: j['setId'] as String? ?? '',
+    placementId: j['placementId'] as String? ?? '',
+    enabled: j['enabled'] as bool? ?? true,
+    items: ((j['emojis'] as List<dynamic>?) ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(EmojiItem.fromJson)
+        .toList(),
+  );
 
   final String setId;
   final String placementId;

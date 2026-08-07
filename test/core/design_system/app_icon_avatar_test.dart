@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 const _dir = 'assets/images/social_icon_pack/';
 
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
-  MaterialApp(home: Scaffold(body: Center(child: child))),
+  MaterialApp(
+    home: Scaffold(body: Center(child: child)),
+  ),
 );
 
 String _assetOf(WidgetTester tester) =>

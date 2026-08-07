@@ -16,7 +16,11 @@ migrate_working_dir/
 *.iml
 *.ipr
 *.iws
-.idea/
+# `.idea/*`, not `.idea/` — a trailing slash stops git descending into the
+# directory at all, so the negation below could never re-include anything.
+# Shared run configurations are checked in; the rest of .idea/ stays local.
+.idea/*
+!.idea/runConfigurations/
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line

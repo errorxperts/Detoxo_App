@@ -39,25 +39,26 @@ class AnalyticsRepositoryImpl implements AnalyticsRepository {
     final now = DateTime.now();
     final events = await recent(limit: _maxEvents);
     return events
-        .where((e) =>
-            e.timestamp.year == now.year &&
-            e.timestamp.month == now.month &&
-            e.timestamp.day == now.day)
+        .where(
+          (e) =>
+              e.timestamp.year == now.year &&
+              e.timestamp.month == now.month &&
+              e.timestamp.day == now.day,
+        )
         .length;
   }
 
   Map<String, dynamic> _toJson(BlockEvent e) => {
-        'platformId': e.platformId,
-        'packageName': e.packageName,
-        'mode': e.mode.wire,
-        'ts': e.timestamp.millisecondsSinceEpoch,
-      };
+    'platformId': e.platformId,
+    'packageName': e.packageName,
+    'mode': e.mode.wire,
+    'ts': e.timestamp.millisecondsSinceEpoch,
+  };
 
   BlockEvent _fromJson(Map<String, dynamic> json) => BlockEvent(
-        platformId: json['platformId'] as String? ?? '',
-        packageName: json['packageName'] as String? ?? '',
-        mode: BlockingMode.fromWire(json['mode'] as String?),
-        timestamp:
-            DateTime.fromMillisecondsSinceEpoch(json['ts'] as int? ?? 0),
-      );
+    platformId: json['platformId'] as String? ?? '',
+    packageName: json['packageName'] as String? ?? '',
+    mode: BlockingMode.fromWire(json['mode'] as String?),
+    timestamp: DateTime.fromMillisecondsSinceEpoch(json['ts'] as int? ?? 0),
+  );
 }

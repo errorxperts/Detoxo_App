@@ -15,7 +15,9 @@ class AnimatedDigitTimer extends StatelessWidget {
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final text = formatCountdown(remaining);
-    final base = AppTypography.mono(style ?? Theme.of(context).textTheme.displaySmall);
+    final base = AppTypography.mono(
+      style ?? Theme.of(context).textTheme.displaySmall,
+    );
 
     return Row(
       mainAxisSize: MainAxisSize.min,

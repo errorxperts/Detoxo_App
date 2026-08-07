@@ -12,10 +12,18 @@ abstract final class AppColors {
   // Fallback/anchor values used by gradients and as the default (Aurora) brand.
   // The live brand accent/primary is background-adaptive and flows through the
   // ColorScheme — see `brandFor` + `AppTheme` and `context.accent`.
-  static const Color seed = Color(0xFF6E7BFF); // electric indigo — primary anchor + gradients
-  static const Color accent = Color(0xFF35DCE8); // aqua-cyan — accent (secondary)
-  static const Color indigoBright = Color(0xFF8B93FF); // active indigo on dark (metric)
-  static const Color tealBright = Color(0xFF3DE0EC); // active aqua on dark (metric)
+  static const Color seed = Color(
+    0xFF6E7BFF,
+  ); // electric indigo — primary anchor + gradients
+  static const Color accent = Color(
+    0xFF35DCE8,
+  ); // aqua-cyan — accent (secondary)
+  static const Color indigoBright = Color(
+    0xFF8B93FF,
+  ); // active indigo on dark (metric)
+  static const Color tealBright = Color(
+    0xFF3DE0EC,
+  ); // active aqua on dark (metric)
 
   // ── Semantic ────────────────────────────────────────────────────────────
   static const Color danger = Color(0xFFE5484D);
@@ -33,7 +41,9 @@ abstract final class AppColors {
   }
 
   // ── Dark surfaces (existing names preserved) ────────────────────────────
-  static const Color surfaceDark = Color(0xFF0B1326); // scaffold base / mesh end
+  static const Color surfaceDark = Color(
+    0xFF0B1326,
+  ); // scaffold base / mesh end
   static const Color cardDark = Color(0xFF171F33); // opaque card fallback
 
   // ── Ambient mesh stops (deep navy → near-black) ─────────────────────────
@@ -45,7 +55,9 @@ abstract final class AppColors {
 
   // ── Onboarding tones (folded in from hardcoded screen consts) ───────────
   static const Color onbTeal = Color(0xFF0F8B7E); // was OnboardingScreen._teal
-  static const Color onbViolet = Color(0xFF5B3FB8); // was OnboardingScreen._violet
+  static const Color onbViolet = Color(
+    0xFF5B3FB8,
+  ); // was OnboardingScreen._violet
 
   // ── Glass fill / border / on-glass text (dark) ──────────────────────────
   // Consumed via the GlassTokens extension; raw values live here. Fills and the
@@ -57,7 +69,9 @@ abstract final class AppColors {
   static const Color glassHighlightDark = Color(0x3DFFFFFF); // ~24% sheen
   static const Color onGlassDark = Color(0xFFF2F5FB);
   static const Color onGlassMutedDark = Color(0xC8F2F5FB); // ~78%
-  static const Color glassShadowDark = Color(0x66040812); // cool near-black depth
+  static const Color glassShadowDark = Color(
+    0x66040812,
+  ); // cool near-black depth
 
   // ── Glass fill / border / on-glass text (light) ─────────────────────────
   // Deeper (cool-black) tints than a typical glass build so surfaces, borders
@@ -66,7 +80,9 @@ abstract final class AppColors {
   static const Color glassFillTopLight = Color(0x24101625); // ~14% cool-black
   static const Color glassFillBotLight = Color(0x12101625); // ~7% cool-black
   static const Color glassBorderLight = Color(0x33101625); // ~20% hairline
-  static const Color glassHighlightLight = Color(0x4DFFFFFF); // ~30% white sheen
+  static const Color glassHighlightLight = Color(
+    0x4DFFFFFF,
+  ); // ~30% white sheen
   static const Color onGlassLight = Color(0xFF11141D);
   static const Color onGlassMutedLight = Color(0xD10F1420); // ~82% black
   static const Color glassShadowLight = Color(0x1A1B2440); // soft cool depth

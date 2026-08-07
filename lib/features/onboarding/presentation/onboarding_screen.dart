@@ -111,7 +111,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     AppHaptics.success();
     await settings.save((await settings.load()).copyWith(onboarded: true));
     await dailyLimit.setLimit(_draftLimit ?? _defaultLimit);
-    if (mounted) context.go(Routes.permissions);
+
+    // Back through the SPLASH, not straight to /permissions.
+    //
+    // The write above goes through SettingsRepository rather than SettingsCubit
+    // because tool/check_boundaries.sh forbids a feature importing another
+    // feature's presentation/ — and the cubit lives in blocking/shared. But a
+    // raw repository write leaves SettingsCubit.state stale at
+    // `onboarded: false`, and `_commit` is emit → save → pushSettings with no
+    // repo→cubit feedback: the next commit from ANY setter (the dashboard
+    // showcase Skip, picking a mode, flipping a switch) does
+    // `state.copyWith(...)` carrying that stale false and writes it back over
+    // Hive — walking the user through onboarding again on the next cold launch.
+    //
+    // Re-entering the splash re-runs SettingsCubit.bootstrap(), which reloads
+    // the flag we just persisted, so nothing can clobber it. The splash gate
+    // then routes on to /permissions by itself — and, unlike the old direct
+    // jump, correctly honours the PIN gate on the way.
+    if (mounted) context.go(Routes.splash);
   }
 
   void _next() {

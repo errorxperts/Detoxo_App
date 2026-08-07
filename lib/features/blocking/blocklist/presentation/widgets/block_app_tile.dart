@@ -77,8 +77,9 @@ class _BlockAppTileState extends State<BlockAppTile> {
           enabled: installed,
           value: _isOn(t),
           selected: _isOn(t),
-          onChanged:
-              installed ? (v) => widget.onToggle(t.platformId, enabled: v) : null,
+          onChanged: installed
+              ? (v) => widget.onToggle(t.platformId, enabled: v)
+              : null,
         ),
       );
     }
@@ -107,8 +108,10 @@ class _BlockAppTileState extends State<BlockAppTile> {
     );
   }
 
-  Widget _padded(Widget child) =>
-      Padding(padding: const EdgeInsets.only(bottom: AppSpacing.sm), child: child);
+  Widget _padded(Widget child) => Padding(
+    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+    child: child,
+  );
 
   Widget _header(BuildContext context, bool installed) {
     final text = Theme.of(context).textTheme;
@@ -118,8 +121,8 @@ class _BlockAppTileState extends State<BlockAppTile> {
     final subtitle = !installed
         ? 'Not installed'
         : on == 0
-            ? 'Tap to choose what to block'
-            : '$on of $total blocked';
+        ? 'Tap to choose what to block'
+        : '$on of $total blocked';
 
     final row = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -137,7 +140,9 @@ class _BlockAppTileState extends State<BlockAppTile> {
               children: [
                 Text(
                   widget.group.appName,
-                  style: text.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                  style: text.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 Text(
                   subtitle,

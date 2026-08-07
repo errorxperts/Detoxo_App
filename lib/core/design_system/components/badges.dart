@@ -7,17 +7,22 @@ enum AppTone { neutral, accent, success, warning, danger }
 
 /// Resolves a tone to its accent colour (context needed for `neutral`).
 Color toneColor(BuildContext context, AppTone tone) => switch (tone) {
-      AppTone.neutral => Theme.of(context).colorScheme.onSurfaceVariant,
-      AppTone.accent => Theme.of(context).colorScheme.secondary,
-      AppTone.success => AppColors.success,
-      AppTone.warning => AppColors.warning,
-      AppTone.danger => AppColors.danger,
-    };
+  AppTone.neutral => Theme.of(context).colorScheme.onSurfaceVariant,
+  AppTone.accent => Theme.of(context).colorScheme.secondary,
+  AppTone.success => AppColors.success,
+  AppTone.warning => AppColors.warning,
+  AppTone.danger => AppColors.danger,
+};
 
 /// A small rounded status chip — "Required", "Premium", "Active". Replaces the
 /// ad-hoc inline chips that were scattered across screens.
 class Pill extends StatelessWidget {
-  const Pill({required this.label, this.tone = AppTone.neutral, this.icon, super.key});
+  const Pill({
+    required this.label,
+    this.tone = AppTone.neutral,
+    this.icon,
+    super.key,
+  });
 
   final String label;
   final AppTone tone;
@@ -27,7 +32,10 @@ class Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = toneColor(context, tone);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xxs,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.16),
         borderRadius: AppRadius.brPill,
@@ -36,13 +44,16 @@ class Pill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[Icon(icon, size: 13, color: color), const SizedBox(width: 4)],
+          if (icon != null) ...[
+            Icon(icon, size: 13, color: color),
+            const SizedBox(width: 4),
+          ],
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -62,7 +73,10 @@ class AppBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = toneColor(context, tone);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: 2,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.16),
         borderRadius: AppRadius.brSm,
@@ -70,9 +84,9 @@ class AppBadge extends StatelessWidget {
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-            ),
+          color: color,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

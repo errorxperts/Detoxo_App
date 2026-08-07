@@ -53,14 +53,15 @@ void main() {
   // geometry is what catches both.
   for (final brightness in Brightness.values) {
     for (final active in [true, false]) {
-      testWidgets('lays out 4:5 — ${brightness.name}, active=$active', (
+      testWidgets('lays out 1:1 — ${brightness.name}, active=$active', (
         tester,
       ) async {
         await _pump(tester, active: active, brightness: brightness);
         // The test bundle has no assets, so a decode failure is expected noise.
         expect(tester.takeException(), anyOf(isNull, isA<FlutterError>()));
 
-        expect(tester.getSize(find.byType(BlockerTile)), const Size(180, 225));
+        // Square, per `aspectRatio: 4 / 4` in blocker_tile.dart.
+        expect(tester.getSize(find.byType(BlockerTile)), const Size(180, 180));
         expect(find.text('App Blocker'), findsOneWidget);
         expect(
           find.text(active ? '3 APPS BLOCKED' : 'NOT SET UP'),

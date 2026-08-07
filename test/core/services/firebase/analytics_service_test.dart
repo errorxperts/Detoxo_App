@@ -17,18 +17,19 @@ void main() {
         parameters: any(named: 'parameters'),
       ),
     ).thenAnswer((_) async {});
-    when(() => fa.logScreenView(screenName: any(named: 'screenName')))
-        .thenAnswer((_) async {});
+    when(
+      () => fa.logScreenView(screenName: any(named: 'screenName')),
+    ).thenAnswer((_) async {});
     service = FirebaseAnalyticsService(analytics: fa);
   });
 
   /// Captures the `(name, parameters)` of the single logged event.
   List<Object?> capturedEvent() => verify(
-        () => fa.logEvent(
-          name: captureAny(named: 'name'),
-          parameters: captureAny(named: 'parameters'),
-        ),
-      ).captured;
+    () => fa.logEvent(
+      name: captureAny(named: 'name'),
+      parameters: captureAny(named: 'parameters'),
+    ),
+  ).captured;
 
   test('logPlanChanged → plan_changed { plan }', () async {
     await service.logPlanChanged('curious');

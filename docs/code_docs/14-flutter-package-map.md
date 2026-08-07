@@ -182,6 +182,7 @@ Re-add any of these only when something actually imports them.
 | --- | --- | --- |
 | `flutter_test` (sdk) | — | Widget/unit test harness. |
 | `integration_test` (sdk) | — | End-to-end integration tests. |
+| `flutter_driver` (sdk) | — | Host side of the perf run. Pulled in transitively by `integration_test`, but declared because `test_driver/perf_driver.dart` imports it directly (`depend_on_referenced_packages`). Only `flutter drive` can read `binding.reportData`, which is why the frame timeline cannot come from `flutter test`. |
 | `lints` | `^6.1.0` | Dart core/recommended lint set (extended in `analysis_options.yaml`). |
 | `flutter_lints` | `^6.0.0` | Flutter-specific lints layered on `lints`. |
 | `build_runner` | `^2.15.0` | Code-gen driver for freezed/json/drift. |

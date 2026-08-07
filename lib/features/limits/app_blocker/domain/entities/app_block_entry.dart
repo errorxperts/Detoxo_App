@@ -12,12 +12,12 @@ class AppBlockEntry extends Equatable {
   });
 
   factory AppBlockEntry.fromJson(Map<String, dynamic> json) => AppBlockEntry(
-        packageName: json['packageName'] as String? ?? '',
-        appName: json['appName'] as String? ?? '',
-        enabled: json['enabled'] as bool? ?? true,
-        lockAction: AppLockAction.fromWire(json['lockAction'] as String?),
-        dailyLimitMinutes: json['dailyLimitMinutes'] as int? ?? 0,
-      );
+    packageName: json['packageName'] as String? ?? '',
+    appName: json['appName'] as String? ?? '',
+    enabled: json['enabled'] as bool? ?? true,
+    lockAction: AppLockAction.fromWire(json['lockAction'] as String?),
+    dailyLimitMinutes: json['dailyLimitMinutes'] as int? ?? 0,
+  );
 
   final String packageName;
   final String appName;
@@ -29,24 +29,28 @@ class AppBlockEntry extends Equatable {
     bool? enabled,
     AppLockAction? lockAction,
     int? dailyLimitMinutes,
-  }) =>
-      AppBlockEntry(
-        packageName: packageName,
-        appName: appName,
-        enabled: enabled ?? this.enabled,
-        lockAction: lockAction ?? this.lockAction,
-        dailyLimitMinutes: dailyLimitMinutes ?? this.dailyLimitMinutes,
-      );
+  }) => AppBlockEntry(
+    packageName: packageName,
+    appName: appName,
+    enabled: enabled ?? this.enabled,
+    lockAction: lockAction ?? this.lockAction,
+    dailyLimitMinutes: dailyLimitMinutes ?? this.dailyLimitMinutes,
+  );
 
   Map<String, dynamic> toJson() => {
-        'packageName': packageName,
-        'appName': appName,
-        'enabled': enabled,
-        'lockAction': lockAction.wire,
-        'dailyLimitMinutes': dailyLimitMinutes,
-      };
+    'packageName': packageName,
+    'appName': appName,
+    'enabled': enabled,
+    'lockAction': lockAction.wire,
+    'dailyLimitMinutes': dailyLimitMinutes,
+  };
 
   @override
-  List<Object?> get props =>
-      [packageName, appName, enabled, lockAction, dailyLimitMinutes];
+  List<Object?> get props => [
+    packageName,
+    appName,
+    enabled,
+    lockAction,
+    dailyLimitMinutes,
+  ];
 }

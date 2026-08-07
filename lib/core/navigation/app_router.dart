@@ -45,10 +45,7 @@ GoRouter buildRouter() => GoRouter(
     GoRoute(path: Routes.pinLock, builder: (_, _) => const PinLockScreen()),
     GoRoute(path: Routes.settings, builder: (_, _) => const SettingsScreen()),
     GoRoute(path: Routes.webBlock, builder: (_, _) => const WebBlockScreen()),
-    GoRoute(
-      path: Routes.appBlock,
-      builder: (_, _) => const AppBlockScreen(),
-    ),
+    GoRoute(path: Routes.appBlock, builder: (_, _) => const AppBlockScreen()),
     GoRoute(
       path: Routes.dailyLimit,
       builder: (_, _) => const DailyLimitScreen(),

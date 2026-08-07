@@ -5,7 +5,8 @@ import 'package:not_static_icons/not_static_icons.dart';
 // Re-export the controller so screens can drive animations without importing
 // the package directly — this file is the project's ONLY `not_static_icons`
 // import surface (mirrors how adaptive_controls.dart owns `cupertino_native`).
-export 'package:not_static_icons/not_static_icons.dart' show AnimatedIconController;
+export 'package:not_static_icons/not_static_icons.dart'
+    show AnimatedIconController;
 
 /// Semantic catalogue of the app's animated icons, decoupled from the concrete
 /// `not_static_icons` (Lucide) class names. Call sites reference these names;
@@ -36,17 +37,18 @@ enum AppIcon {
 /// Every `not_static_icons` widget extends `AnimatedSVGIcon` and shares this
 /// constructor shape, so the catalogue is a plain lookup of constructor
 /// tear-offs rather than a 20-arm switch.
-typedef _IconCtor = AnimatedSVGIcon Function({
-  double size,
-  Color? color,
-  Color? hoverColor,
-  Duration animationDuration,
-  double strokeWidth,
-  bool infiniteLoop,
-  bool interactive,
-  AnimatedIconController? controller,
-  VoidCallback? onTap,
-});
+typedef _IconCtor =
+    AnimatedSVGIcon Function({
+      double size,
+      Color? color,
+      Color? hoverColor,
+      Duration animationDuration,
+      double strokeWidth,
+      bool infiniteLoop,
+      bool interactive,
+      AnimatedIconController? controller,
+      VoidCallback? onTap,
+    });
 
 final Map<AppIcon, _IconCtor> _iconBuilders = {
   AppIcon.dashboard: CircleGaugeIcon.new,

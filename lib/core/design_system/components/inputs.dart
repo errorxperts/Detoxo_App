@@ -63,7 +63,9 @@ class _AppSearchFieldState extends State<AppSearchField> {
               style: Theme.of(context).textTheme.bodyMedium,
               decoration: InputDecoration.collapsed(
                 hintText: widget.hintText,
-                hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(color: muted),
+                hintStyle: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: muted),
               ),
             ),
           ),

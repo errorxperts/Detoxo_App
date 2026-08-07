@@ -9,8 +9,8 @@ import 'package:flutter/services.dart';
 /// EventChannel. Repositories build on top of this; it owns no domain logic.
 class EngineChannel {
   EngineChannel()
-      : _commands = const MethodChannel(Channels.commands),
-        _events = const EventChannel(Channels.events);
+    : _commands = const MethodChannel(Channels.commands),
+      _events = const EventChannel(Channels.events);
 
   final MethodChannel _commands;
   final EventChannel _events;
@@ -136,15 +136,11 @@ class EngineChannel {
   Future<Map<String, dynamic>> contentCounterSnapshot() =>
       invokeMap(ChannelMethods.contentCounterSnapshot);
 
-  Future<void> setContentCounterEnabled({required bool enabled}) => invokeVoid(
-        ChannelMethods.setContentCounterEnabled,
-        {'enabled': enabled},
-      );
+  Future<void> setContentCounterEnabled({required bool enabled}) =>
+      invokeVoid(ChannelMethods.setContentCounterEnabled, {'enabled': enabled});
 
-  Future<void> setContentBubbleEnabled({required bool enabled}) => invokeVoid(
-        ChannelMethods.setContentBubbleEnabled,
-        {'enabled': enabled},
-      );
+  Future<void> setContentBubbleEnabled({required bool enabled}) =>
+      invokeVoid(ChannelMethods.setContentBubbleEnabled, {'enabled': enabled});
 
   /// Requests the launcher pin the reel counter widget. Returns false if the
   /// launcher doesn't support pinning (or off-Android).

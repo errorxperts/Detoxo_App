@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// the app has no paid tier.
 class TargetsCubit extends Cubit<TargetsState> {
   TargetsCubit(this._config, this._engine, {this._performance})
-      : super(const TargetsState());
+    : super(const TargetsState());
 
   final ConfigRepository _config;
   final EngineRepository _engine;
@@ -58,12 +58,11 @@ class TargetsState extends Equatable {
     bool? isLoading,
     List<BlockTarget>? targets,
     String? error,
-  }) =>
-      TargetsState(
-        isLoading: isLoading ?? this.isLoading,
-        targets: targets ?? this.targets,
-        error: error ?? this.error,
-      );
+  }) => TargetsState(
+    isLoading: isLoading ?? this.isLoading,
+    targets: targets ?? this.targets,
+    error: error ?? this.error,
+  );
 
   @override
   List<Object?> get props => [isLoading, targets, error];

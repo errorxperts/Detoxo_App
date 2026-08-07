@@ -111,8 +111,7 @@ class _BubblePainter extends CustomPainter {
         ..color = const Color(0x22FFFFFF),
     );
     if (count > 0) {
-      final sweep =
-          count.clamp(0, kUsageCap) / kUsageCap * math.pi * 2;
+      final sweep = count.clamp(0, kUsageCap) / kUsageCap * math.pi * 2;
       canvas.drawArc(
         rect,
         -math.pi / 2,

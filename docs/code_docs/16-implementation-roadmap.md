@@ -118,26 +118,104 @@ than a swap of existing wiring. See [11-monetization.md](11-monetization.md).
 
 ## 5. Testing strategy
 
-### Dart (runs today: `flutter test`)
-Twelve domain/logic unit tests under `test/` — pure Dart, no device needed. They cover the exact
-places business rules live:
+Three layers, one driver: **`tool/qa.sh`**. Layer 1 is host-only; layers 2–3 need an attached
+Android device. The agent-facing runbook is `.claude/skills/detoxo-auto-test/SKILL.md`
+(run **`/detoxo-auto-test`**).
 
-| Test | Covers |
+| Layer | Command | What it gates |
+|---|---|---|
+| 1 — static + unit | `bash tool/qa.sh functional` | `dart format`, `flutter analyze`, `flutter test`, `check_boundaries.sh` |
+| 2 — real-boot E2E | `bash tool/qa.sh -d <serial> e2e` | `integration_test/app_e2e_test.dart` + screenshots |
+| 2b — engine smoke | `bash tool/qa.sh -d <serial> blocking` | service bound; real block is half-manual |
+| 3 — performance | `bash tool/qa.sh -d <serial> perf` | `build/qa/metrics.json` vs `baseline.json` |
+
+Artifacts land in `build/qa/` (gitignored via `/build/`).
+
+### Layer 1 — Dart (runs today: `flutter test`)
+**25 test files / 188 tests** under `test/` — pure Dart + widget tests, no device needed. Grouped
+by where business rules live:
+
+| Area | Tests |
 |---|---|
-| `test/domain_test.dart` | Core enums / domain invariants |
-| `test/app_settings_test.dart` | `AppSettings` model |
-| `test/plans_pause_curious_test.dart` | Pause-window math + `curious`/Conscious plan logic |
-| `test/usage_ladder_test.dart` | PIN retry-lockout ladder |
-| `test/access_protection_test.dart` | PIN setup / verify flow |
-| `test/web_blocker_test.dart` | Web blocklist wildcard matching |
-| `test/blocklist_install_filter_test.dart` | Installed-app filtering of the blocklist |
-| `test/counter_style_test.dart` | Content-counter appearance/style |
-| `test/app_feedback_test.dart` | Feedback report building |
-| `test/core/services/firebase/firebase_bloc_observer_test.dart` | Cubit-state → analytics events + Crashlytics keys |
-| `test/core/services/firebase/native_event_reporter_test.dart` | Native events → analytics + reel batching + host omission |
-| `test/core/services/firebase/analytics_service_test.dart` | Semantic analytics API → Firebase event mapping |
+| Domain / settings | `domain_test.dart`, `app_settings_test.dart` |
+| Plans & sessions | `plans_pause_curious_test.dart` (pause math + `curious`/Conscious) |
+| Access protection | `access_protection_test.dart`, `usage_ladder_test.dart` (retry-lockout ladder) |
+| Blocking & limits | `web_blocker_test.dart`, `blocklist_install_filter_test.dart`, `streak_test.dart` |
+| Permissions | `permissions_restricted_settings_test.dart` (ECM / non-Play install path) |
+| Content counter | `counter_style_test.dart` |
+| Help & upgrade | `help_test.dart`, `app_upgrader_test.dart`, `legal_web_view_test.dart` |
+| Dashboard widgets | `blocker_tile_test.dart`, `mode_selector_test.dart` |
+| Feedback | `app_feedback_test.dart` |
+| Design system | `test/core/design_system/*` (6 files: toggle, glass container, segmented, buttons, avatar, liquid border) |
+| Firebase | `test/core/services/firebase/*` (3 files: bloc observer, native event reporter, analytics service) |
 
 `flutter analyze` is clean.
+
+> **`dart format .` was aborting the whole gate (fixed Aug 2026).** It walked
+> `build/ios/SourcePackages/`, where the vendored Firebase example packages ship an
+> `analysis_options.yaml` whose `include:` resolves outside the checkout; `dart_style` then died
+> with `PathNotFoundException`. Because `t_precommit` runs under `set -e`, the gate aborted at
+> step 1 and **never reached `flutter analyze` or `flutter test`** — so 83 files of format drift
+> and 4 failing `blocker_tile_test.dart` cases accumulated unnoticed. `tool/dev.sh` now formats
+> the source trees it owns (`lib test integration_test test_driver`) instead of `.`.
+
+### Layer 2 — on-device integration
+`integration_test/` holds four tests plus the shared `qa_walk.dart` helper, all requiring a real
+engine (never plain `flutter test`):
+
+| File | Boots app? | Purpose |
+|---|---|---|
+| `pin_dialog_test.dart` | no — widget subtree + fakes | native `cupertino_native` platform-view layout |
+| `pin_setup_flow_test.dart` | no — widget subtree + fakes | PIN setup / turn-off flow on a real engine |
+| `app_e2e_test.dart` | **yes — `app.main()`** | splash → onboarding → permissions → home → showcase → drawer walk, theme flip |
+| `app_perf_test.dart` | **yes — `app.main()`** | frame timeline over a dashboard scroll (`flutter drive` only) |
+
+`app_e2e_test.dart` is the only thing that exercises the real boot path — `Firebase.initializeApp`,
+`configureDependencies()`, Hive, go_router gating and the native MethodChannel. It branches on
+whichever screen it lands on, so it is safe against a device that already holds real user data.
+
+Both booting tests share `integration_test/qa_walk.dart` — `settle` / `waitFor` / `waitForAny`,
+the screen-marker constants, and `bootApp()`. It sits outside `lib/`, so `package:` cannot reach
+it and `always_use_package_imports` forbids the relative import; both files carry a documented
+`// ignore:`, which beats two divergent copies of `bootApp()`.
+
+Constraints that shape every on-device test:
+- **`pumpAndSettle` never converges.** `GlassScaffold`'s ambient background repeats forever, so
+  settle by pumping fixed frames instead (`settle()`).
+- **Only one test per file may call `app.main()`.** `configureDependencies()` uses
+  `registerSingleton` with no `allowReassignment` and nothing calls `sl.reset()`.
+- **`app.main()` hijacks the harness's error handling.** `installGlobalHandlers()` replaces
+  `FlutterError.onError` and `PlatformDispatcher.instance.onError` with Crashlytics', and the run
+  dies on *"A test overrode FlutterError.onError…"*. `bootApp()` restores both — any new
+  real-boot test must use it.
+- **`flutter test -d` uninstalls the app when it finishes**, wiping Hive and the accessibility
+  grant. Every run therefore starts from a fresh install, which is why the walk branches on the
+  screen it lands on and why `perf` re-runs `prep`.
+- **`find.text` matches the rendered string** — `SectionHeader` uppercases (`'THEME'`), the nav
+  pill is `Semantics(label:)`-only (the dashboard marker is `'Block All'`), and widgets below a
+  lazy sliver are never built at all.
+
+### Layer 3 — performance
+`bash tool/qa.sh perf` measures cold start (`am start -W`), Dart startup
+(`--trace-startup`), the frame timeline (`flutter drive` + `traceAction`), memory
+(`dumpsys meminfo`) and release APK size, then diffs `build/qa/metrics.json` against
+`baseline.json` via `tool/qa_metrics.py`. All measurement is **profile** builds — debug numbers
+are 3–10× off and the ratio is not stable across changes (APK size is the exception and must be
+**release**, the only build type that minifies/shrinks). A gate trips only when a delta breaches
+**both** a percentage and an absolute floor, so device jitter alone cannot flap it.
+
+Three things the frame-timeline leg requires, each found the hard way:
+- **`--no-dds`** — `traceAction` → `enableTimeline` opens its own websocket to the VM Service and
+  DDS holds that port, so the run dies with *"Failed to connect to VM Service"* **after** the walk
+  has already succeeded.
+- **`--keep-app-running`** — `flutter drive`'s exit-time uninstall raced a spawning process and
+  took the Android runtime down with it (`JNI FatalError: Failed to mount /data_mirror/…`),
+  soft-rebooting the phone mid-suite.
+- **`dumpsys meminfo` runs after the drive.** It measures whichever screen the app landed on, and
+  that follows stored state — a fresh install sits on `/onboarding`, an onboarded one builds the
+  whole dashboard. Reading it earlier made the metric a function of install history: a baseline
+  taken on `/onboarding` scored the next run on `/home` as +28.9% memory from a byte-identical
+  APK. Re-baseline after any change to this ordering.
 
 ### Boundary / architecture check
 `tool/check_boundaries.sh` enforces the feature-isolation rule (a feature may import another
@@ -149,10 +227,18 @@ the rule. Repairing it surfaced 12 pre-existing violations, grandfathered in
 
 ### Native (Kotlin)
 - **No instrumented/unit tests are bundled** for the engine. The detection/block hot path is
-  validated manually on a device.
+  validated on a device via `bash tool/qa.sh blocking`, which splits honestly in two:
+  - **automated** — `dumpsys accessibility` proves the service is bound and receiving events;
+    `pm list packages` proves a target app is present.
+  - **manual** — reaching an actual reel needs a logged-in account and a real scroll inside a
+    third-party UI that changes weekly, so the script watches `logcat -s DetoxoService:I` for 60 s
+    while a human scrolls. Outcomes are `blocked` / `inconclusive` / `skipped` / `unbound`;
+    **`inconclusive` is never reported as a pass.**
 - **Real reel/short blocking requires a physical device with the target apps installed**
   (Instagram, YouTube, …). On a bare emulator you can verify the service starts, status/config
   parsing, plans, and navigation — but not live blocking, since those apps aren't present.
+- `ServiceEventBus.post` drops events when no Flutter engine is attached, so the EventChannel is
+  **not** usable as an out-of-process probe — logcat is the only cross-process signal.
 
 ---
 

@@ -76,13 +76,27 @@ final dailyLimit = context.read<DailyLimitCubit>();
 AppHaptics.success(); // completion pulse
 await settings.save((await settings.load()).copyWith(onboarded: true));
 await dailyLimit.setLimit(_draftLimit ?? _defaultLimit);
-if (mounted) context.go(Routes.permissions);
+if (mounted) context.go(Routes.splash);   // NOT /permissions — see note 2
 ```
 
 Three things to note:
 
-1. It persists `onboarded: true` **directly through `SettingsRepository`** (resolved from `sl`), not through `SettingsCubit`. The flag is durable for the next launch's splash gate; the in-memory `SettingsCubit.state` is not updated here, which is harmless because…
-2. …it navigates **straight to `/permissions`**, bypassing the splash re-check (and therefore the PIN gate — which is a no-op on first run anyway, since no PIN exists yet). On subsequent launches the splash gate takes over normally.
+1. It persists `onboarded: true` **directly through `SettingsRepository`** (resolved from `sl`),
+   not through `SettingsCubit` — because `tool/check_boundaries.sh` forbids a feature importing
+   another feature's `presentation/`, and the cubit lives in `blocking/shared/presentation/`.
+   The domain contract is the only legal handle onboarding has on settings.
+2. **It navigates back to the splash (`/`), not straight to `/permissions`.** This is load-bearing,
+   not cosmetic. A raw repository write persists the flag but leaves `SettingsCubit.state` stale at
+   `onboarded: false`, and `_commit` is `emit → save → pushSettings` with no repo→cubit feedback —
+   so the next `_commit` from *any* setter (the dashboard showcase Skip, picking a mode, flipping a
+   switch) does `state.copyWith(...)` carrying that stale `false` and writes it **straight back over
+   Hive**, walking the user through onboarding again on the next cold launch. Re-entering the splash
+   re-runs `SettingsCubit.bootstrap()`, which reloads the flag that was just persisted, so nothing
+   can clobber it; the splash gate then routes on to `/permissions` itself — and, unlike the old
+   direct jump, honours the PIN gate on the way. This was a real defect, caught on a physical device
+   by `integration_test/app_e2e_test.dart` (see `.claude/skills/detoxo-auto-test/SKILL.md`). The
+   general rule: **an `AppSettings` field written behind the cubit's back must be followed by a
+   cubit reload**, or it will be silently reverted.
 3. It **seeds the daily limit** through the **app-wide `DailyLimitCubit`** (`context.read<DailyLimitCubit>().setLimit(...)`, the quick-pick choice or the 90-minute default) — not a direct `DailyLimitRepository.save`, so the value re-emits to the dashboard's screen-time ring **live**. This is the value the ring reads as its max (the ring's fill comes from native usage time, not `DailyLimit.consumed`). See [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).
 
 ---
@@ -276,7 +290,7 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 ## 5. End-to-end sequence (first run, Android)
 
 1. Cold launch → `/` splash → `_bootstrap()` loads settings/targets/permissions/pin, seeds the enabled set from installed defaults, refreshes the counter widget.
-2. `onboarded == false` → `/onboarding`. User swipes/skips the 5-page value-first intro (five problem→solution beats, incl. the reel count-up + daily-limit dial on page 3); finishing persists `onboarded: true`, seeds the daily limit (dialled value or 90 min default), and goes to `/permissions`.
+2. `onboarded == false` → `/onboarding`. User swipes/skips the 5-page value-first intro (five problem→solution beats, incl. the reel count-up + daily-limit dial on page 3); finishing persists `onboarded: true`, seeds the daily limit (dialled value or 90 min default), and returns to the **splash** (`/`), which re-bootstraps `SettingsCubit` from the freshly written flag and re-runs the gate — landing on `/permissions`.
 3. `/permissions` funnel. User grants **Accessibility** and **Display over apps** (required) via system screens; returning each time re-checks on resume. Optional permissions (notifications, usage, battery, device-admin) offered but not blocking.
 4. Once both required are granted, **Continue** → `/home`.
 5. Next launch: splash finds `onboarded == true`, no app-scope PIN (unless the user set one), required permissions granted → routes straight to `/home`. If an app-scope PIN was later configured, step 2 of the gate diverts to `/pin/lock` first.

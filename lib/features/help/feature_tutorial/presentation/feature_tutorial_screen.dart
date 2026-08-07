@@ -18,7 +18,9 @@ const String _kFeedbackTourScope = 'feedbackHelp';
 /// A single, long-lived key for the feedback showcase target (mirrors
 /// `FeatureShowcaseKeys` — recreating it per build would trip Flutter's
 /// duplicate-GlobalKey assertion).
-final GlobalKey _feedbackHelpKey = GlobalKey(debugLabel: 'showcase.help.feedback');
+final GlobalKey _feedbackHelpKey = GlobalKey(
+  debugLabel: 'showcase.help.feedback',
+);
 
 /// Replayable guided tours: the dashboard walkthrough (moved here from Settings)
 /// and a self-contained showcase of the real feedback button in the top bar.
@@ -146,7 +148,9 @@ class _Hint extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: muted),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: muted),
             ),
           ),
         ],

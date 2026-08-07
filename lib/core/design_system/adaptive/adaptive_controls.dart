@@ -87,7 +87,9 @@ class AdaptiveSlider extends StatelessWidget {
     final on = enabled && onChanged != null;
     final tint = color ?? Theme.of(context).colorScheme.secondary;
     if (PlatformAdaptive.useCupertino) {
-      final step = divisions != null && divisions! > 0 ? (max - min) / divisions! : null;
+      final step = divisions != null && divisions! > 0
+          ? (max - min) / divisions!
+          : null;
       return CNSlider(
         value: value.clamp(min, max),
         min: min,
@@ -156,36 +158,39 @@ class AdaptiveButton extends StatelessWidget {
       // dialog actions Row). Full-width is expressed via `expand` below, not here.
       const minSize = Size(64, AppSizes.controlHeight);
       button = switch (variant) {
-        AdaptiveButtonVariant.filled => icon == null
-            ? FilledButton(
-                onPressed: onPressed,
-                style: FilledButton.styleFrom(
-                  backgroundColor: tint,
-                  minimumSize: minSize,
+        AdaptiveButtonVariant.filled =>
+          icon == null
+              ? FilledButton(
+                  onPressed: onPressed,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: tint,
+                    minimumSize: minSize,
+                  ),
+                  child: Text(label),
+                )
+              : FilledButton.icon(
+                  onPressed: onPressed,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: tint,
+                    minimumSize: minSize,
+                  ),
+                  icon: Icon(icon),
+                  label: Text(label),
                 ),
-                child: Text(label),
-              )
-            : FilledButton.icon(
-                onPressed: onPressed,
-                style: FilledButton.styleFrom(
-                  backgroundColor: tint,
-                  minimumSize: minSize,
-                ),
-                icon: Icon(icon),
-                label: Text(label),
-              ),
         AdaptiveButtonVariant.tinted => FilledButton.tonal(
-            onPressed: onPressed,
-            style: FilledButton.styleFrom(minimumSize: minSize),
-            child: child ?? Text(label),
-          ),
+          onPressed: onPressed,
+          style: FilledButton.styleFrom(minimumSize: minSize),
+          child: child ?? Text(label),
+        ),
         AdaptiveButtonVariant.plain => TextButton(
-            onPressed: onPressed,
-            child: child ?? Text(label),
-          ),
+          onPressed: onPressed,
+          child: child ?? Text(label),
+        ),
       };
     }
-    final sized = expand ? SizedBox(width: double.infinity, child: button) : button;
+    final sized = expand
+        ? SizedBox(width: double.infinity, child: button)
+        : button;
     // iOS CNButton animates natively; add a Material press-squish on Android.
     return PlatformAdaptive.useCupertino ? sized : PressScale(child: sized);
   }
@@ -194,7 +199,13 @@ class AdaptiveButton extends StatelessWidget {
 /// Always a Material `Icon` — `CNIcon` has no Android fallback. [sfSymbol] is
 /// reserved for a future native-icon path and currently ignored.
 class AdaptiveIcon extends StatelessWidget {
-  const AdaptiveIcon({required this.icon, this.sfSymbol, this.size, this.color, super.key});
+  const AdaptiveIcon({
+    required this.icon,
+    this.sfSymbol,
+    this.size,
+    this.color,
+    super.key,
+  });
 
   final IconData icon;
   final String? sfSymbol;

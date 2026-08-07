@@ -78,9 +78,7 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<DailyLimitRepository>(
       () => DailyLimitRepositoryImpl(sl()),
     )
-    ..registerLazySingleton<StreakRepository>(
-      () => StreakRepositoryImpl(sl()),
-    )
+    ..registerLazySingleton<StreakRepository>(() => StreakRepositoryImpl(sl()))
     ..registerLazySingleton<AnalyticsRepository>(
       () => AnalyticsRepositoryImpl(sl()),
     )

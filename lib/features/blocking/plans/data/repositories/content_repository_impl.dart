@@ -26,13 +26,13 @@ class ContentRepositoryImpl implements ContentRepository {
 
   /// Maps a placement id to its bundled asset (null where no bundle exists).
   String? _assetFor(EmojiPlacementId id) => switch (id) {
-        EmojiPlacementId.planPause => AppConstants.pauseEmojis,
-        EmojiPlacementId.curiousPlan => AppConstants.curiousEmojis,
-        EmojiPlacementId.dailyLimitHero => AppConstants.dailyLimitEmojiBands,
-        EmojiPlacementId.pauseCountdown => AppConstants.pauseCountdownEmojis,
-        EmojiPlacementId.pauseCountdownCooldown => AppConstants.cooldownEmojis,
-        EmojiPlacementId.appLockSession => null,
-      };
+    EmojiPlacementId.planPause => AppConstants.pauseEmojis,
+    EmojiPlacementId.curiousPlan => AppConstants.curiousEmojis,
+    EmojiPlacementId.dailyLimitHero => AppConstants.dailyLimitEmojiBands,
+    EmojiPlacementId.pauseCountdown => AppConstants.pauseCountdownEmojis,
+    EmojiPlacementId.pauseCountdownCooldown => AppConstants.cooldownEmojis,
+    EmojiPlacementId.appLockSession => null,
+  };
 
   @override
   Future<List<MindfulQuote>> mindfulQuotes() async {
@@ -42,13 +42,16 @@ class ContentRepositoryImpl implements ContentRepository {
       final map = jsonDecode(raw) as Map<String, dynamic>;
       // Keep both sources (doc §6.2): the 52 timer quotes + the paired set.
       final quotes = <MindfulQuote>[
-        ...(map['quotes'] as List<dynamic>? ?? const [])
-            .map((e) => MindfulQuote(e as String)),
+        ...(map['quotes'] as List<dynamic>? ?? const []).map(
+          (e) => MindfulQuote(e as String),
+        ),
         ..._pairedQuotes.map(MindfulQuote.new),
       ];
       return _quoteCache = quotes;
     } on Exception {
-      return _quoteCache = const [MindfulQuote('Stay focused. The feed can wait.')];
+      return _quoteCache = const [
+        MindfulQuote('Stay focused. The feed can wait.'),
+      ];
     }
   }
 

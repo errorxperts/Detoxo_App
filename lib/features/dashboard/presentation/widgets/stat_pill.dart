@@ -38,8 +38,9 @@ class StatStrip extends StatelessWidget {
               child: Text(
                 '·',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
               ),
             ),

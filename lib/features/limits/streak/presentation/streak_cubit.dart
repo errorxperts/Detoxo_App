@@ -20,7 +20,10 @@ class StreakCubit extends Cubit<Streak> {
 
   /// Reconciles the streak for [now] given whether today is under the limit.
   /// A cheap no-op when nothing changes (bloc skips equal states).
-  Future<void> observe({required DateTime now, required bool underLimit}) async {
+  Future<void> observe({
+    required DateTime now,
+    required bool underLimit,
+  }) async {
     final today = DateTime(now.year, now.month, now.day);
     final next = advance(
       state,

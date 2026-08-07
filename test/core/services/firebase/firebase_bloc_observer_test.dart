@@ -33,8 +33,9 @@ void main() {
     analytics = _MockAnalytics();
     crash = _MockCrash();
     when(() => analytics.logPlanChanged(any())).thenAnswer((_) async {});
-    when(() => analytics.logBlockingToggled(enabled: any(named: 'enabled')))
-        .thenAnswer((_) async {});
+    when(
+      () => analytics.logBlockingToggled(enabled: any(named: 'enabled')),
+    ).thenAnswer((_) async {});
     when(() => analytics.logPauseStarted(any())).thenAnswer((_) async {});
     when(() => analytics.logPauseEnded()).thenAnswer((_) async {});
     when(() => crash.setKey(any(), any())).thenAnswer((_) async {});
@@ -45,9 +46,9 @@ void main() {
   tearDown(() => bloc.close());
 
   void change(AppSettings prev, AppSettings next) => observer.onChange(
-        bloc,
-        Change<AppSettings>(currentState: prev, nextState: next),
-      );
+    bloc,
+    Change<AppSettings>(currentState: prev, nextState: next),
+  );
 
   test('plan change logs plan_changed and sets the crash key', () {
     change(
@@ -59,10 +60,7 @@ void main() {
   });
 
   test('master toggle logs blocking_toggled and sets the crash key', () {
-    change(
-      const AppSettings(),
-      const AppSettings(masterEnabled: false),
-    );
+    change(const AppSettings(), const AppSettings(masterEnabled: false));
     verify(() => analytics.logBlockingToggled(enabled: false)).called(1);
     verify(() => crash.setKey('master_enabled', false)).called(1);
   });
@@ -77,18 +75,16 @@ void main() {
       ),
     );
     change(const AppSettings(), paused);
-    verify(() => analytics.logPauseStarted(const Duration(minutes: 15)))
-        .called(1);
+    verify(
+      () => analytics.logPauseStarted(const Duration(minutes: 15)),
+    ).called(1);
 
     change(paused, const AppSettings());
     verify(() => analytics.logPauseEnded()).called(1);
   });
 
   test('an unrelated change logs nothing', () {
-    change(
-      const AppSettings(),
-      const AppSettings(vibrationEnabled: false),
-    );
+    change(const AppSettings(), const AppSettings(vibrationEnabled: false));
     verifyNever(() => analytics.logPlanChanged(any()));
     verifyNever(
       () => analytics.logBlockingToggled(enabled: any(named: 'enabled')),
@@ -99,12 +95,14 @@ void main() {
   test('onError forwards the error to crash reporting', () {
     final error = StateError('boom');
     final stack = StackTrace.current;
-    when(() => crash.recordError(error, stack, reason: any(named: 'reason')))
-        .thenAnswer((_) async {});
+    when(
+      () => crash.recordError(error, stack, reason: any(named: 'reason')),
+    ).thenAnswer((_) async {});
 
     observer.onError(bloc, error, stack);
 
-    verify(() => crash.recordError(error, stack, reason: any(named: 'reason')))
-        .called(1);
+    verify(
+      () => crash.recordError(error, stack, reason: any(named: 'reason')),
+    ).called(1);
   });
 }

@@ -15,12 +15,12 @@ class ConsciousState extends Equatable {
   });
 
   factory ConsciousState.fromMap(Map<String, dynamic> map) => ConsciousState(
-        bankMs: (map['bankMs'] as num?)?.toInt() ?? 0,
-        maxBankMs: (map['maxBankMs'] as num?)?.toInt() ?? 600000,
-        watching: map['watching'] as bool? ?? false,
-        blocked: map['blocked'] as bool? ?? false,
-        active: map['active'] as bool? ?? false,
-      );
+    bankMs: (map['bankMs'] as num?)?.toInt() ?? 0,
+    maxBankMs: (map['maxBankMs'] as num?)?.toInt() ?? 600000,
+    watching: map['watching'] as bool? ?? false,
+    blocked: map['blocked'] as bool? ?? false,
+    active: map['active'] as bool? ?? false,
+  );
 
   /// Currently banked allowance, in millis.
   final int bankMs;

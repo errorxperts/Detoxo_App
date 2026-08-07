@@ -13,13 +13,14 @@ class PauseSession extends Equatable {
   });
 
   factory PauseSession.fromJson(Map<String, dynamic> json) => PauseSession(
-        startedAt:
-            DateTime.fromMillisecondsSinceEpoch(json['startedAt'] as int? ?? 0),
-        pauseDuration: Duration(milliseconds: json['pauseMs'] as int? ?? 0),
-        cooldownDuration: Duration(milliseconds: json['cooldownMs'] as int? ?? 0),
-        planToResume: BlockingPlan.fromWire(json['planToResume'] as String?),
-        allowInCooldown: json['allowInCooldown'] as bool? ?? true,
-      );
+    startedAt: DateTime.fromMillisecondsSinceEpoch(
+      json['startedAt'] as int? ?? 0,
+    ),
+    pauseDuration: Duration(milliseconds: json['pauseMs'] as int? ?? 0),
+    cooldownDuration: Duration(milliseconds: json['cooldownMs'] as int? ?? 0),
+    planToResume: BlockingPlan.fromWire(json['planToResume'] as String?),
+    allowInCooldown: json['allowInCooldown'] as bool? ?? true,
+  );
 
   final DateTime startedAt;
   final Duration pauseDuration;
@@ -56,14 +57,19 @@ class PauseSession extends Equatable {
   }
 
   Map<String, dynamic> toJson() => {
-        'startedAt': startedAt.millisecondsSinceEpoch,
-        'pauseMs': pauseDuration.inMilliseconds,
-        'cooldownMs': cooldownDuration.inMilliseconds,
-        'planToResume': planToResume.wire,
-        'allowInCooldown': allowInCooldown,
-      };
+    'startedAt': startedAt.millisecondsSinceEpoch,
+    'pauseMs': pauseDuration.inMilliseconds,
+    'cooldownMs': cooldownDuration.inMilliseconds,
+    'planToResume': planToResume.wire,
+    'allowInCooldown': allowInCooldown,
+  };
 
   @override
-  List<Object?> get props =>
-      [startedAt, pauseDuration, cooldownDuration, planToResume, allowInCooldown];
+  List<Object?> get props => [
+    startedAt,
+    pauseDuration,
+    cooldownDuration,
+    planToResume,
+    allowInCooldown,
+  ];
 }

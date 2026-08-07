@@ -16,13 +16,13 @@ class ContentCount extends Equatable {
 
   /// A safe zero-state used before the first pull and off-Android.
   const ContentCount.empty()
-      : today = 0,
-        total = 0,
-        enabled = true,
-        bubbleEnabled = true,
-        perAppToday = const [],
-        perAppTotal = const [],
-        timeToday = Duration.zero;
+    : today = 0,
+      total = 0,
+      enabled = true,
+      bubbleEnabled = true,
+      perAppToday = const [],
+      perAppTotal = const [],
+      timeToday = Duration.zero;
 
   final int today;
   final int total;
@@ -38,6 +38,13 @@ class ContentCount extends Equatable {
   bool get isEmpty => today == 0 && total == 0;
 
   @override
-  List<Object?> get props =>
-      [today, total, enabled, bubbleEnabled, perAppToday, perAppTotal, timeToday];
+  List<Object?> get props => [
+    today,
+    total,
+    enabled,
+    bubbleEnabled,
+    perAppToday,
+    perAppTotal,
+    timeToday,
+  ];
 }

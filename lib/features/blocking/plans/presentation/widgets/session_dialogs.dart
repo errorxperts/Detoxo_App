@@ -91,7 +91,11 @@ class _UnblockDialogState extends State<_UnblockDialog> {
           style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
         ),
         const SizedBox(height: AppSpacing.lg),
-        PrimaryButton(label: 'Unlock $_count reels', expand: true, onPressed: _unlock),
+        PrimaryButton(
+          label: 'Unlock $_count reels',
+          expand: true,
+          onPressed: _unlock,
+        ),
       ],
     );
   }
@@ -110,7 +114,10 @@ class _UnblockDialogState extends State<_UnblockDialog> {
         const SizedBox(height: AppSpacing.xs),
         Text(
           '$_count',
-          style: text.displaySmall?.copyWith(fontWeight: FontWeight.w800, height: 1),
+          style: text.displaySmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            height: 1,
+          ),
         ),
         Text(
           _count == 1 ? 'reel' : 'reels',
@@ -137,7 +144,9 @@ class _PauseDialogState extends State<_PauseDialog> {
   int _minutes = SessionDefaults.pauseDefaultMinutes;
 
   void _start() {
-    context.read<SettingsCubit>().startPause(pause: Duration(minutes: _minutes));
+    context.read<SettingsCubit>().startPause(
+      pause: Duration(minutes: _minutes),
+    );
     Navigator.of(context).pop();
   }
 
@@ -149,8 +158,9 @@ class _PauseDialogState extends State<_PauseDialog> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, AppSettings>(
-      builder: (context, settings) =>
-          settings.isPauseContractLive() ? _liveView(context) : _pickerView(context),
+      builder: (context, settings) => settings.isPauseContractLive()
+          ? _liveView(context)
+          : _pickerView(context),
     );
   }
 
@@ -213,11 +223,17 @@ class _PauseDialogState extends State<_PauseDialog> {
         const SizedBox(height: AppSpacing.xs),
         Text(
           '$_minutes',
-          style: text.displaySmall?.copyWith(fontWeight: FontWeight.w800, height: 1),
+          style: text.displaySmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            height: 1,
+          ),
         ),
         Text(
           'min',
-          style: text.labelSmall?.copyWith(color: context.glass.onGlassMuted, letterSpacing: 2),
+          style: text.labelSmall?.copyWith(
+            color: context.glass.onGlassMuted,
+            letterSpacing: 2,
+          ),
         ),
       ],
     );
@@ -229,7 +245,11 @@ class _PauseDialogState extends State<_PauseDialog> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Icon(Icons.pause_circle_outline, size: 44, color: AppColors.warning),
+        const Icon(
+          Icons.pause_circle_outline,
+          size: 44,
+          color: AppColors.warning,
+        ),
         const SizedBox(height: AppSpacing.md),
         Text(
           'Pause active',
@@ -244,7 +264,11 @@ class _PauseDialogState extends State<_PauseDialog> {
           style: text.bodyMedium?.copyWith(color: context.glass.onGlassMuted),
         ),
         const SizedBox(height: AppSpacing.lg),
-        SecondaryButton(label: 'Resume blocking now', expand: true, onPressed: _resume),
+        SecondaryButton(
+          label: 'Resume blocking now',
+          expand: true,
+          onPressed: _resume,
+        ),
       ],
     );
   }
@@ -279,7 +303,13 @@ class _ConsciousIntro extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: Icon(Icons.self_improvement, size: 44, color: Theme.of(context).colorScheme.secondary)),
+        Center(
+          child: Icon(
+            Icons.self_improvement,
+            size: 44,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+        ),
         const SizedBox(height: AppSpacing.md),
         Text(
           'Conscious mode',
@@ -358,7 +388,13 @@ class _ConsciousLive extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(child: Icon(Icons.shield_outlined, size: 44, color: Theme.of(context).colorScheme.secondary)),
+            Center(
+              child: Icon(
+                Icons.shield_outlined,
+                size: 44,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(
               headline,
@@ -369,13 +405,17 @@ class _ConsciousLive extends StatelessWidget {
             Text(
               '${formatCountdown(state.banked)} banked · cap $cap:00',
               textAlign: TextAlign.center,
-              style: text.bodyMedium?.copyWith(color: context.glass.onGlassMuted),
+              style: text.bodyMedium?.copyWith(
+                color: context.glass.onGlassMuted,
+              ),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               hint,
               textAlign: TextAlign.center,
-              style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+              style: text.bodySmall?.copyWith(
+                color: context.glass.onGlassMuted,
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
             GhostButton(
@@ -405,9 +445,15 @@ class _Bullet extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 6, right: AppSpacing.sm),
-            child: Icon(Icons.circle, size: 6, color: Theme.of(context).colorScheme.secondary),
+            child: Icon(
+              Icons.circle,
+              size: 6,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
           ),
-          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
+          Expanded(
+            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+          ),
         ],
       ),
     );

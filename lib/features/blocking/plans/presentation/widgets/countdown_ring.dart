@@ -25,11 +25,7 @@ CircularSliderAppearance pauseSliderAppearance(
     ),
     customColors: CustomSliderColors(
       trackColor: context.glass.border,
-      progressBarColors: [
-        accent,
-        AppColors.seed,
-        accent,
-      ],
+      progressBarColors: [accent, AppColors.seed, accent],
       dotColor: interactive ? Colors.white : Colors.transparent,
       hideShadow: true,
     ),
@@ -57,7 +53,11 @@ class CountdownRing extends StatelessWidget {
     return SleekCircularSlider(
       max: 1,
       initialValue: progress.clamp(0.0, 1.0),
-      appearance: pauseSliderAppearance(context, interactive: false, size: size),
+      appearance: pauseSliderAppearance(
+        context,
+        interactive: false,
+        size: size,
+      ),
       innerWidget: (_) => Center(child: center),
     );
   }

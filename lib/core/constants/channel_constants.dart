@@ -29,8 +29,10 @@ abstract final class ChannelMethods {
   static const String requestOverlayPermission = 'requestOverlayPermission';
   static const String hasUsageAccess = 'hasUsageAccess';
   static const String openUsageAccessSettings = 'openUsageAccessSettings';
-  static const String isIgnoringBatteryOptimizations = 'isIgnoringBatteryOptimizations';
-  static const String requestIgnoreBatteryOptimizations = 'requestIgnoreBatteryOptimizations';
+  static const String isIgnoringBatteryOptimizations =
+      'isIgnoringBatteryOptimizations';
+  static const String requestIgnoreBatteryOptimizations =
+      'requestIgnoreBatteryOptimizations';
   static const String isDeviceAdminActive = 'isDeviceAdminActive';
   static const String requestDeviceAdmin = 'requestDeviceAdmin';
   static const String removeDeviceAdmin = 'removeDeviceAdmin';

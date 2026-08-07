@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 /// fill (no per-row blur) so a long list stays smooth.
 class GlassListTile extends StatelessWidget {
   const GlassListTile({
-    required this.title, this.leading,
+    required this.title,
+    this.leading,
     this.subtitle,
     this.trailing,
     this.onTap,
@@ -35,18 +36,34 @@ class GlassListTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
-          if (leading != null) ...[leading!, const SizedBox(width: AppSpacing.sm)],
+          if (leading != null) ...[
+            leading!,
+            const SizedBox(width: AppSpacing.sm),
+          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: text.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  title,
+                  style: text.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 if (subtitle != null)
-                  Text(subtitle!, style: text.bodySmall, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(
+                    subtitle!,
+                    style: text.bodySmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
               ],
             ),
           ),
-          if (trailing != null) ...[const SizedBox(width: AppSpacing.sm), trailing!],
+          if (trailing != null) ...[
+            const SizedBox(width: AppSpacing.sm),
+            trailing!,
+          ],
         ],
       ),
     );
@@ -65,7 +82,9 @@ class GlassListTile extends StatelessWidget {
 class AppToggleTile extends StatelessWidget {
   const AppToggleTile({
     required this.title,
-    required this.value, required this.onChanged, this.subtitle,
+    required this.value,
+    required this.onChanged,
+    this.subtitle,
     this.leading,
     this.enabled = true,
     this.locked = false,
@@ -89,7 +108,11 @@ class AppToggleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final trailing = locked
-        ? const Pill(label: 'Premium', tone: AppTone.warning, icon: Icons.lock_outline)
+        ? const Pill(
+            label: 'Premium',
+            tone: AppTone.warning,
+            icon: Icons.lock_outline,
+          )
         : AppToggle(value: value, onChanged: onChanged, enabled: enabled);
     return GlassListTile(
       leading: leading,

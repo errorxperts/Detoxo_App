@@ -97,17 +97,32 @@ class _WidgetFacePainter extends CustomPainter {
     final painters = <TextPainter>[];
     if (style.showToday) {
       painters.add(
-        _line('$today', unit * (cozy ? 0.34 : 0.30), FontWeight.w700, todayColor),
+        _line(
+          '$today',
+          unit * (cozy ? 0.34 : 0.30),
+          FontWeight.w700,
+          todayColor,
+        ),
       );
     }
     if (style.showLabel) {
       painters.add(
-        _line('reels today', unit * (cozy ? 0.105 : 0.095), FontWeight.w500, p.label),
+        _line(
+          'reels today',
+          unit * (cozy ? 0.105 : 0.095),
+          FontWeight.w500,
+          p.label,
+        ),
       );
     }
     if (style.showTotal) {
       painters.add(
-        _line('All time · $total', unit * (cozy ? 0.088 : 0.080), FontWeight.w500, p.total),
+        _line(
+          'All time · $total',
+          unit * (cozy ? 0.088 : 0.080),
+          FontWeight.w500,
+          p.total,
+        ),
       );
     }
     if (painters.isEmpty) return;
@@ -123,7 +138,12 @@ class _WidgetFacePainter extends CustomPainter {
     }
   }
 
-  TextPainter _line(String text, double fontSize, FontWeight weight, Color color) {
+  TextPainter _line(
+    String text,
+    double fontSize,
+    FontWeight weight,
+    Color color,
+  ) {
     return TextPainter(
       text: TextSpan(
         text: text,
@@ -139,7 +159,9 @@ class _WidgetFacePainter extends CustomPainter {
   }
 
   _Palette _palette() {
-    final textPrimary = dark ? const Color(0xFFFFFFFF) : const Color(0xFF14151A);
+    final textPrimary = dark
+        ? const Color(0xFFFFFFFF)
+        : const Color(0xFF14151A);
     final textAccent = dark ? const Color(0xFF44E2CD) : const Color(0xFF12A594);
     final textMuted = dark ? const Color(0xFFB8C0D9) : const Color(0xFF5A6072);
     final band = bandColorFor(today);

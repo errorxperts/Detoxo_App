@@ -51,8 +51,14 @@ abstract final class AppTypography {
         fontWeight: FontWeight.w700,
         letterSpacing: -0.15,
       ),
-      titleMedium: GoogleFonts.manrope(textStyle: body.titleMedium, fontWeight: FontWeight.w600),
-      labelLarge: GoogleFonts.manrope(textStyle: body.labelLarge, fontWeight: FontWeight.w600),
+      titleMedium: GoogleFonts.manrope(
+        textStyle: body.titleMedium,
+        fontWeight: FontWeight.w600,
+      ),
+      labelLarge: GoogleFonts.manrope(
+        textStyle: body.labelLarge,
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 

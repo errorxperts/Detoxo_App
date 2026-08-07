@@ -25,7 +25,12 @@ class CommitmentHero extends StatelessWidget {
       // The lock settles shut once when the hero builds.
       lock = lock
           .animate()
-          .scaleXY(begin: 1.35, end: 1, duration: AppDurations.medium, curve: AppCurves.emphasized)
+          .scaleXY(
+            begin: 1.35,
+            end: 1,
+            duration: AppDurations.medium,
+            curve: AppCurves.emphasized,
+          )
           .fadeIn(duration: AppDurations.normal);
     }
 
@@ -42,7 +47,10 @@ class CommitmentHero extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
-                colors: [accent.withValues(alpha: 0.30), accent.withValues(alpha: 0)],
+                colors: [
+                  accent.withValues(alpha: 0.30),
+                  accent.withValues(alpha: 0),
+                ],
               ),
             ),
           ),

@@ -31,7 +31,9 @@ class PlatformFailure extends Failure {
 }
 
 class PermissionFailure extends Failure {
-  const PermissionFailure([super.message = 'A required permission is missing.']);
+  const PermissionFailure([
+    super.message = 'A required permission is missing.',
+  ]);
 }
 
 class ValidationFailure extends Failure {

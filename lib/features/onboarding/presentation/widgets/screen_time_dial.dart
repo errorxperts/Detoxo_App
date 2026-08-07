@@ -114,7 +114,9 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
                   size: Size.square(widget.size),
                   painter: _DialPainter(
                     fraction: f,
-                    accent: widget.accent ?? Theme.of(context).colorScheme.secondary,
+                    accent:
+                        widget.accent ??
+                        Theme.of(context).colorScheme.secondary,
                     trackColor: context.glass.border,
                   ),
                 ),

@@ -16,7 +16,11 @@ import 'package:flutter/material.dart';
 /// whole sheet directly above the keyboard, so no manual inset handling is
 /// needed here.
 class GlassFeedbackForm extends StatefulWidget {
-  const GlassFeedbackForm({required this.onSubmit, this.scrollController, super.key});
+  const GlassFeedbackForm({
+    required this.onSubmit,
+    this.scrollController,
+    super.key,
+  });
 
   final OnSubmit onSubmit;
 
@@ -94,7 +98,11 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.rate_review_outlined, color: accent, size: 20),
+                        Icon(
+                          Icons.rate_review_outlined,
+                          color: accent,
+                          size: 20,
+                        ),
                         const SizedBox(width: AppSpacing.xs),
                         Expanded(
                           child: Text(
@@ -126,12 +134,15 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
                         children: [
                           Text(
                             'Rate us',
-                            style: text.bodyMedium?.copyWith(color: glass.onGlassMuted),
+                            style: text.bodyMedium?.copyWith(
+                              color: glass.onGlassMuted,
+                            ),
                           ),
                           const Spacer(),
                           FeedbackRatingSelector(
                             rating: _rating,
-                            onChanged: (rating) => setState(() => _rating = rating),
+                            onChanged: (rating) =>
+                                setState(() => _rating = rating),
                           ),
                         ],
                       ),
@@ -148,7 +159,9 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
                         hintText: 'What went well, or what could be better?',
                         hintStyle: TextStyle(color: glass.onGlassMuted),
                         helperText: 'A screenshot is attached automatically.',
-                        helperStyle: text.bodySmall?.copyWith(color: glass.onGlassMuted),
+                        helperStyle: text.bodySmall?.copyWith(
+                          color: glass.onGlassMuted,
+                        ),
                         filled: true,
                         fillColor: glass.fillTop,
                         border: OutlineInputBorder(

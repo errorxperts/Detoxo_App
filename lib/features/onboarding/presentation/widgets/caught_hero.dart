@@ -35,7 +35,10 @@ class CaughtHero extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           for (var i = 0; i < _icons.length; i++)
-            Align(alignment: _alignments[i], child: _appIcon(_icons[i], i, reduceMotion)),
+            Align(
+              alignment: _alignments[i],
+              child: _appIcon(_icons[i], i, reduceMotion),
+            ),
           if (reduceMotion) _shield(sealed: true) else _animatedCatch(),
         ],
       ),
@@ -72,7 +75,13 @@ class CaughtHero extends StatelessWidget {
     final shield = _shield(sealed: false)
         .animate(onPlay: (c) => c.repeat())
         .fadeIn(delay: 1150.ms, duration: 180.ms)
-        .scaleXY(begin: 0.5, end: 1, delay: 1150.ms, duration: 320.ms, curve: AppCurves.emphasized)
+        .scaleXY(
+          begin: 0.5,
+          end: 1,
+          delay: 1150.ms,
+          duration: 320.ms,
+          curve: AppCurves.emphasized,
+        )
         .then(delay: 250.ms)
         .fadeOut(duration: 350.ms);
 
@@ -92,7 +101,10 @@ class CaughtHero extends StatelessWidget {
           children: [
             Icon(Icons.play_circle_fill, size: 40, color: accent),
             const SizedBox(height: AppSpacing.xs),
-            Text('Reels', style: TextStyle(color: accent, fontWeight: FontWeight.w700)),
+            Text(
+              'Reels',
+              style: TextStyle(color: accent, fontWeight: FontWeight.w700),
+            ),
           ],
         ),
       ),
@@ -100,11 +112,11 @@ class CaughtHero extends StatelessWidget {
   }
 
   Widget _shield({required bool sealed}) => IconBadge(
-        icon: Icons.shield_rounded,
-        size: sealed ? 72 : 64,
-        color: accent,
-        bordered: true,
-        fillAlpha: 0.22,
-        semanticLabel: 'Reel blocked',
-      );
+    icon: Icons.shield_rounded,
+    size: sealed ? 72 : 64,
+    color: accent,
+    bordered: true,
+    fillAlpha: 0.22,
+    semanticLabel: 'Reel blocked',
+  );
 }

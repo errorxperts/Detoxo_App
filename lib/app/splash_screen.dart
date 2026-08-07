@@ -40,7 +40,11 @@ class _SplashScreenState extends State<SplashScreen> {
     // Only what the routing decision below reads. `targets.load()` is the slow
     // leg (native config push + installed-package scan) and nothing here needs
     // it after first run, so it stays off the critical path.
-    await Future.wait([settings.bootstrap(), permissions.refresh(), pin.load()]);
+    await Future.wait([
+      settings.bootstrap(),
+      permissions.refresh(),
+      pin.load(),
+    ]);
 
     // First run: seed the enabled set from each installed target's default
     // status — don't pre-enable apps the user doesn't have. Needs the scan.
@@ -107,9 +111,17 @@ class _SplashScreenState extends State<SplashScreen> {
                 .fadeIn(duration: AppDurations.fast)
                 .scaleXY(begin: 0.85, end: 1, curve: Curves.easeOutBack),
             const SizedBox(height: AppSpacing.xl),
-            Text('Detoxo', style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w800))
+            Text(
+                  'Detoxo',
+                  style: text.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                )
                 .animate()
-                .fadeIn(delay: AppDurations.stagger, duration: AppDurations.fast)
+                .fadeIn(
+                  delay: AppDurations.stagger,
+                  duration: AppDurations.fast,
+                )
                 .slideY(begin: 0.2, end: 0),
             const SizedBox(height: AppSpacing.xs),
             Text(

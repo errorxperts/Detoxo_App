@@ -27,8 +27,8 @@ class ConfigRepositoryImpl implements ConfigRepository {
   }
 
   @override
-  Future<String> rawConfigJson() async =>
-      _cachedRaw ??= await _bundle.loadString(AppConstants.bundledPlatformsConfig);
+  Future<String> rawConfigJson() async => _cachedRaw ??= await _bundle
+      .loadString(AppConstants.bundledPlatformsConfig);
 
   @override
   Future<List<BlockTarget>> loadBlockTargets({
@@ -38,13 +38,16 @@ class ConfigRepositoryImpl implements ConfigRepository {
     final targets = <BlockTarget>[];
     for (final app in config.featuredApps.values) {
       for (final platform in app.platforms) {
-        if (!platform.showInDashboard && !platform.showAlwaysInBlockList) continue;
+        if (!platform.showInDashboard && !platform.showAlwaysInBlockList) {
+          continue;
+        }
         final packageName = platform.packageName.isNotEmpty
             ? platform.packageName
             : app.packageName;
         // Unknown install state (null) => treat as installed and show all.
         final isInstalled =
-            installedPackages == null || installedPackages.contains(packageName);
+            installedPackages == null ||
+            installedPackages.contains(packageName);
         // Hide uninstalled apps unless flagged as a suggestion to surface.
         if (!isInstalled && !app.showIfNotInstalled) continue;
         targets.add(_toTarget(app, platform, isInstalled: isInstalled));

@@ -78,9 +78,26 @@ notification confirms the service is alive.
 
 ### Tests / analysis
 ```bash
-flutter analyze     # clean
-flutter test        # domain unit tests (enums, pause math, lockout ladder, daily reset)
+bash tool/dev.sh precommit   # format + analyze + test + boundaries — the whole gate
+flutter analyze              # clean
+flutter test                 # 188 unit/widget tests across 25 files
 ```
+
+### QA automation
+Three layers behind one driver. Layer 1 is host-only; the rest need an attached Android device.
+```bash
+bash tool/qa.sh functional          # = dev.sh precommit
+bash tool/qa.sh -d <serial> e2e     # real-boot walk (app.main()) + screenshots -> build/qa/shots/
+bash tool/qa.sh -d <serial> perf    # cold start + frame timeline + memory + apk size, vs a baseline
+bash tool/qa.sh -d <serial> blocking # accessibility-engine smoke (half manual)
+bash tool/qa.sh restore             # put accessibility + stay-awake back as they were
+```
+Artifacts land in `build/qa/`. Run configurations for **Android Studio**
+(`.idea/runConfigurations/`) and **VS Code** (`.vscode/launch.json` + `tasks.json`) are checked in
+and drive the same script.
+
+Runbooks: [`docs/code_docs/23-testing-runbook.md`](docs/code_docs/23-testing-runbook.md) (human) ·
+`.claude/skills/detoxo-auto-test/SKILL.md` (agent, `/detoxo-auto-test`).
 
 ---
 

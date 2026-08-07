@@ -28,15 +28,31 @@ class PlanPreview extends StatefulWidget {
 class _PlanPreviewState extends State<PlanPreview> {
   // Copy mirrors the dashboard showcase one-liners (kept short for onboarding).
   static const _plans = <_Plan>[
-    _Plan('Block All', Icons.block, 'Total focus. Every reel closes the moment it appears.'),
-    _Plan('Conscious', Icons.self_improvement,
-        'Earn your scroll. Bank time by staying off, then spend it mindfully.'),
-    _Plan('One Reel', Icons.looks_one_outlined,
-        'One and done. Watch a single clip, then it locks straight back.'),
-    _Plan('Unblock', Icons.lock_open_rounded,
-        'Pick a number. Release a small batch — 2 to 20 reels — then it reverts.'),
-    _Plan('Pause', Icons.pause_circle_outline,
-        'Take a breather. Pause for a set window; blocking resumes on its own.'),
+    _Plan(
+      'Block All',
+      Icons.block,
+      'Total focus. Every reel closes the moment it appears.',
+    ),
+    _Plan(
+      'Conscious',
+      Icons.self_improvement,
+      'Earn your scroll. Bank time by staying off, then spend it mindfully.',
+    ),
+    _Plan(
+      'One Reel',
+      Icons.looks_one_outlined,
+      'One and done. Watch a single clip, then it locks straight back.',
+    ),
+    _Plan(
+      'Unblock',
+      Icons.lock_open_rounded,
+      'Pick a number. Release a small batch — 2 to 20 reels — then it reverts.',
+    ),
+    _Plan(
+      'Pause',
+      Icons.pause_circle_outline,
+      'Take a breather. Pause for a set window; blocking resumes on its own.',
+    ),
   ];
 
   int _selected = 1; // Conscious
@@ -55,13 +71,15 @@ class _PlanPreviewState extends State<PlanPreview> {
       mainAxisSize: MainAxisSize.min,
       children: [
         IconBadge(
-          key: ValueKey('badge$_selected'),
-          icon: plan.icon,
-          size: 72,
-          color: widget.accent,
-          bordered: true,
-          fillAlpha: 0.20,
-        ).animate(key: ValueKey('badgeAnim$_selected')).scaleXY(
+              key: ValueKey('badge$_selected'),
+              icon: plan.icon,
+              size: 72,
+              color: widget.accent,
+              bordered: true,
+              fillAlpha: 0.20,
+            )
+            .animate(key: ValueKey('badgeAnim$_selected'))
+            .scaleXY(
               begin: 0.85,
               end: 1,
               duration: AppDurations.fast,

@@ -21,10 +21,7 @@ class DailyLimitCubit extends Cubit<DailyLimit> {
   }
 
   Future<void> setLimit(Duration limit) async {
-    final next = state.copyWith(
-      limit: limit,
-      dateSignature: todaySignature(),
-    );
+    final next = state.copyWith(limit: limit, dateSignature: todaySignature());
     await _repo.save(next);
     emit(next);
   }

@@ -7,7 +7,7 @@ abstract final class AppLogger {
   /// `FirebaseServices.start`). A bare callback so this core utility keeps no
   /// dependency on Firebase; null until wired (and in tests).
   static void Function(String message, Object? error, StackTrace? stack)?
-      onError;
+  onError;
 
   static void d(String message, [String tag = 'Detoxo']) {
     if (kDebugMode) debugPrint('[$tag] $message');

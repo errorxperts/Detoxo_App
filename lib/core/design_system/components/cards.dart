@@ -167,12 +167,18 @@ class IconBadge extends StatelessWidget {
         shape: shape,
         gradient: gradient,
         color: gradient == null ? tint.withValues(alpha: fillAlpha) : null,
-        borderRadius: isCircle ? null : BorderRadius.circular(radius ?? AppRadius.md),
+        borderRadius: isCircle
+            ? null
+            : BorderRadius.circular(radius ?? AppRadius.md),
         border: bordered
-            ? Border.all(color: tint.withValues(alpha: 0.25), width: borderWidth)
+            ? Border.all(
+                color: tint.withValues(alpha: 0.25),
+                width: borderWidth,
+              )
             : null,
       ),
-      child: child ??
+      child:
+          child ??
           Icon(
             icon,
             size: size * 0.5,
@@ -229,7 +235,10 @@ class AppCard extends StatelessWidget {
           if (hasHeader)
             Row(
               children: [
-                if (leading != null) ...[leading!, const SizedBox(width: AppSpacing.sm)],
+                if (leading != null) ...[
+                  leading!,
+                  const SizedBox(width: AppSpacing.sm),
+                ],
                 Expanded(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -238,19 +247,26 @@ class AppCard extends StatelessWidget {
                       if (title != null)
                         Text(
                           title!,
-                          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                          style: text.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 2),
                         Text(
                           subtitle!,
-                          style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+                          style: text.bodySmall?.copyWith(
+                            color: context.glass.onGlassMuted,
+                          ),
                         ),
                       ],
                     ],
                   ),
                 ),
-                if (trailing != null) ...[const SizedBox(width: AppSpacing.sm), trailing!],
+                if (trailing != null) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  trailing!,
+                ],
               ],
             ),
           if (child != null) ...[

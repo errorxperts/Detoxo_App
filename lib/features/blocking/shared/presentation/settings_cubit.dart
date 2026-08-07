@@ -122,7 +122,8 @@ class SettingsCubit extends Cubit<AppSettings> {
     final session = PauseSession(
       startedAt: DateTime.now(),
       pauseDuration: pause,
-      cooldownDuration: Duration.zero, // no wind-down: straight to the base mode
+      cooldownDuration:
+          Duration.zero, // no wind-down: straight to the base mode
       planToResume: state.baseMode,
     );
     return _commit(
@@ -134,10 +135,7 @@ class SettingsCubit extends Cubit<AppSettings> {
   Future<void> resumeNow() {
     if (state.pauseSession == null) return Future.value();
     return _commit(
-      state.copyWith(
-        activePlan: state.baseMode,
-        clearPauseSession: true,
-      ),
+      state.copyWith(activePlan: state.baseMode, clearPauseSession: true),
     );
   }
 
@@ -204,7 +202,9 @@ class SettingsCubit extends Cubit<AppSettings> {
   void _onReelSession(ReelSessionState rs) {
     if (state.activePlan == BlockingPlan.oneReel && rs.active && rs.blocked) {
       unawaited(
-        _commit(state.copyWith(activePlan: state.baseMode, clearPauseSession: true)),
+        _commit(
+          state.copyWith(activePlan: state.baseMode, clearPauseSession: true),
+        ),
       );
     }
   }

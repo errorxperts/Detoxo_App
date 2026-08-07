@@ -80,7 +80,10 @@ class GlassContainer extends StatelessWidget {
     var bottom = tintBottom ?? glass.fillBottom;
     if (selected) {
       top = Color.alphaBlend(scheme.primary.withValues(alpha: 0.12), top);
-      bottom = Color.alphaBlend(scheme.secondary.withValues(alpha: 0.06), bottom);
+      bottom = Color.alphaBlend(
+        scheme.secondary.withValues(alpha: 0.06),
+        bottom,
+      );
     }
 
     // Hairline edge — simulates glass thickness; selected brightens it with a
@@ -88,17 +91,23 @@ class GlassContainer extends StatelessWidget {
     final edge =
         borderColor ??
         (selected
-            ? Color.alphaBlend(scheme.primary.withValues(alpha: 0.45), glass.border)
+            ? Color.alphaBlend(
+                scheme.primary.withValues(alpha: 0.45),
+                glass.border,
+              )
             : glass.border);
     final side = BorderSide(color: edge, width: borderWidth);
     final shape = circle
         ? CircleBorder(side: side)
         : AppRadius.continuous(borderRadius, side: side);
-    final clipShape = circle ? const CircleBorder() : AppRadius.continuous(borderRadius);
+    final clipShape = circle
+        ? const CircleBorder()
+        : AppRadius.continuous(borderRadius);
 
     // Inner highlight: a top-weighted sheen = Fresnel edge light + internal
     // reflection. Softer on dense list rows, stronger when selected.
-    final sheenAlpha = glass.highlight.a * (selected ? 1.0 : (enableBlur ? 0.7 : 0.4));
+    final sheenAlpha =
+        glass.highlight.a * (selected ? 1.0 : (enableBlur ? 0.7 : 0.4));
     final content = DecoratedBox(
       decoration: ShapeDecoration(
         shape: clipShape,

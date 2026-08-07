@@ -36,8 +36,9 @@ void main() {
       ),
     ).thenAnswer((_) async {});
     when(() => analytics.logReelsCounted(any())).thenAnswer((_) async {});
-    when(() => analytics.logWebBlocked(mode: any(named: 'mode')))
-        .thenAnswer((_) async {});
+    when(
+      () => analytics.logWebBlocked(mode: any(named: 'mode')),
+    ).thenAnswer((_) async {});
     when(() => crash.setKey(any(), any())).thenAnswer((_) async {});
     reporter = FirebaseNativeEventReporter(engine, analytics, crash)..start();
   });
@@ -61,7 +62,8 @@ void main() {
     await pump();
 
     verify(
-      () => analytics.logBlockTriggered(platform: 'youtube', mode: 'PRESS_BACK'),
+      () =>
+          analytics.logBlockTriggered(platform: 'youtube', mode: 'PRESS_BACK'),
     ).called(1);
     verify(() => crash.setKey('blocks_today', 3)).called(1);
     verify(() => crash.setKey('blocks_total', 10)).called(1);
@@ -77,10 +79,12 @@ void main() {
 
     verify(() => analytics.logWebBlocked(mode: 'PRESS_BACK')).called(1);
     // The host is never forwarded.
-    verifyNever(() => analytics.logBlockTriggered(
-          platform: any(named: 'platform'),
-          mode: any(named: 'mode'),
-        ));
+    verifyNever(
+      () => analytics.logBlockTriggered(
+        platform: any(named: 'platform'),
+        mode: any(named: 'mode'),
+      ),
+    );
   });
 
   test('reels are batched and flushed once the threshold is reached', () async {

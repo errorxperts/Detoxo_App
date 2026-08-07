@@ -100,11 +100,13 @@ class _WebBlockView extends StatelessWidget {
       ),
     );
   }
-
 }
 
 /// Add / edit sheet, shared by the FAB, the "Add website" chip and row edit.
-Future<void> _showSiteSheet(BuildContext context, {WebBlockEntry? entry}) async {
+Future<void> _showSiteSheet(
+  BuildContext context, {
+  WebBlockEntry? entry,
+}) async {
   final cubit = context.read<WebBlockCubit>();
   final host = await GlassBottomSheet.show<String>(
     context: context,
@@ -292,7 +294,10 @@ class _Blocklist extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<WebBlockCubit>();
     if (!state.hasEntries) {
-      return const InlineHint(icon: Icons.public_off, text: 'No sites blocked yet.');
+      return const InlineHint(
+        icon: Icons.public_off,
+        text: 'No sites blocked yet.',
+      );
     }
     final entries = state.visibleEntries;
     return Column(
@@ -367,7 +372,6 @@ class _BlocklistRow extends StatelessWidget {
       ),
     );
   }
-
 }
 
 /// Add / edit bottom-sheet body with inline domain validation.

@@ -35,7 +35,8 @@ class ShowcaseTooltipCard extends StatelessWidget {
 
   bool get _isLast => index == total - 1;
 
-  ShowcaseView get _view => scope != null ? ShowcaseView.getNamed(scope!) : ShowcaseView.get();
+  ShowcaseView get _view =>
+      scope != null ? ShowcaseView.getNamed(scope!) : ShowcaseView.get();
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +62,9 @@ class ShowcaseTooltipCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     step.title,
-                    style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                    style: text.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ),
               ],
@@ -69,7 +72,10 @@ class ShowcaseTooltipCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               step.body,
-              style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted, height: 1.35),
+              style: text.bodySmall?.copyWith(
+                color: context.glass.onGlassMuted,
+                height: 1.35,
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             Row(
@@ -80,7 +86,11 @@ class ShowcaseTooltipCard extends StatelessWidget {
                   children: [
                     _SkipButton(onTap: _dismiss),
                     const SizedBox(width: AppSpacing.xs),
-                    _NextButton(label: _isLast ? 'Done' : 'Next', isLast: _isLast, onTap: _next),
+                    _NextButton(
+                      label: _isLast ? 'Done' : 'Next',
+                      isLast: _isLast,
+                      onTap: _next,
+                    ),
                   ],
                 ),
               ],
@@ -152,7 +162,11 @@ class _StepBadge extends StatelessWidget {
 /// "N of M" progress: a widening accent dot for the active step, muted pills for
 /// the rest.
 class _StepDots extends StatelessWidget {
-  const _StepDots({required this.index, required this.total, required this.color});
+  const _StepDots({
+    required this.index,
+    required this.total,
+    required this.color,
+  });
 
   final int index;
   final int total;
@@ -193,7 +207,10 @@ class _SkipButton extends StatelessWidget {
       onTap: onTap,
       haptic: false,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
         child: Text(
           'Skip',
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -209,7 +226,11 @@ class _SkipButton extends StatelessWidget {
 /// Primary CTA — advances the tour (or finishes it on the last step). Mirrors
 /// the brand gradient pill used by the dashboard's selected mode cell.
 class _NextButton extends StatelessWidget {
-  const _NextButton({required this.label, required this.isLast, required this.onTap});
+  const _NextButton({
+    required this.label,
+    required this.isLast,
+    required this.onTap,
+  });
 
   final String label;
   final bool isLast;
@@ -222,7 +243,10 @@ class _NextButton extends StatelessWidget {
       onTap: onTap,
       haptic: false,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs + 2),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs + 2,
+        ),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
