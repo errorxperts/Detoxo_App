@@ -102,4 +102,25 @@ void main() {
       reason: 'labels are decorative; the hit layer carries the semantics',
     );
   });
+
+  // The track is one horizontal drag surface: sliding a finger across it
+  // selects the segment under the finger without lifting (iOS-style).
+  testWidgets(
+    'dragging across the track selects the segment under the finger',
+    (tester) async {
+      await _pump(tester);
+      final before = _pillLeft(tester);
+
+      // `drag` starts at the control's centre — the Today | All seam — and its
+      // first 20 px move already clears the 18 px touch slop, so the remainder
+      // lands as the drag update that picks the segment.
+      await tester.drag(find.byType(GlassSegmented), const Offset(120, 0));
+      await tester.pumpAndSettle();
+      expect(_pillLeft(tester), greaterThan(before));
+
+      await tester.drag(find.byType(GlassSegmented), const Offset(-120, 0));
+      await tester.pumpAndSettle();
+      expect(_pillLeft(tester), before);
+    },
+  );
 }

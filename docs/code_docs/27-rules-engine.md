@@ -28,7 +28,7 @@ lib/features/limits/rules/
 ├── domain/rule_sync.dart                syncRules(): THE push path
 ├── data/repositories/rule_repository_impl.dart
 ├── presentation/{rules_cubit, rules_screen, rule_editor_screen}.dart
-└── presentation/widgets/{rule_kind_icon, reel_feed_sheet, website_sheet, override_tile}.dart
+└── presentation/widgets/{rule_kind_icon, reel_feed_sheet, website_sheet, removable_chips, override_tile}.dart
 
 android/.../engine/RuleEngine.kt         Android-free: snapshot + now → blocking Entry?  (JVM-tested)
 lib/features/dashboard/presentation/widgets/rules_card.dart   the dashboard entry point
@@ -429,7 +429,7 @@ section, whose "Cover every distracting app" toggle renders for schedules only (
 widens a limit) — last, so the escalation comes after the rule says what it covers. The editor
 consumes its own refusal toasts (see `RulesScreen`). Validation: ≥ 1 target; ≥ 1 day and
 `start ≠ end` for a schedule; a limit's budget > 0. Delete via
-`AppDialog.confirm(destructive: true)`. The sheets, the override tile and `ruleKindIcon` live in
+`AppDialog.confirm(destructive: true)`. The sheets, the override tile, `RemovableChips` and `ruleKindIcon` live in
 `presentation/widgets/`; counts and the open-limit headline read `RuleSummary.count`.
 
 **Dashboard** — `RulesCard` (tinted `GlassCard` status row, `AppIcon.rules` = Lucide
@@ -515,7 +515,7 @@ document and the wire.
 - `lib/features/limits/rules/domain/rule_sync.dart`
 - `lib/features/limits/rules/data/repositories/rule_repository_impl.dart`
 - `lib/features/limits/rules/presentation/{rules_cubit,rules_screen,rule_editor_screen}.dart`
-- `lib/features/limits/rules/presentation/widgets/{rule_kind_icon,reel_feed_sheet,website_sheet,override_tile}.dart`
+- `lib/features/limits/rules/presentation/widgets/{rule_kind_icon,reel_feed_sheet,website_sheet,removable_chips,override_tile}.dart`
 - `lib/features/limits/web_blocker/domain/entities/popular_site.dart` (`aliasesFor`, read by the resolver)
 - `lib/features/catalog/domain/entities/catalog.dart` (`categoriesWithBehavior`)
 - `lib/features/limits/limits.dart`

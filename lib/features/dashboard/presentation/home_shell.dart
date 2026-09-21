@@ -51,7 +51,7 @@ class _HomeShellState extends State<HomeShell> {
     // stays a compact centered capsule instead of stretching to the screen width.
     const slot = AppSizes.minTapTarget;
     final screenMax = MediaQuery.sizeOf(context).width - AppSpacing.xl;
-    final contentWidth = _items.length * slot + AppSpacing.xxl;
+    final contentWidth = _items.length * slot + AppSpacing.xxs;
     final barWidth = contentWidth > screenMax ? screenMax : contentWidth;
     // The scaffold opts out of safe area, so lift the floating bar above the
     // gesture home indicator ourselves.
@@ -80,16 +80,15 @@ class _HomeShellState extends State<HomeShell> {
           showIcon: false,
           body: (context, controller) => buildFeatureShowcaseScope(
             // Persist on finish AND dismiss so a skipped tour is remembered too.
-            onSeen: () =>
-                context.read<SettingsCubit>().setShowcaseSeen(value: true),
+            onSeen: () => context.read<SettingsCubit>().setShowcaseSeen(value: true),
             child: SafeArea(bottom: false, child: _tab(controller)),
           ),
           child: GlassContainer(
             borderRadius: AppRadius.pill,
             blurSigma: AppBlur.bar,
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+            padding: const EdgeInsets.symmetric(vertical: 0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 for (var i = 0; i < _items.length; i++)
                   _NavPillItem(
@@ -136,8 +135,7 @@ class _NavPillItem extends StatefulWidget {
 class _NavPillItemState extends State<_NavPillItem> {
   final AnimatedIconController _controller = AnimatedIconController();
 
-  bool get _reduceMotion =>
-      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+  bool get _reduceMotion => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
   @override
   void initState() {
@@ -168,9 +166,7 @@ class _NavPillItemState extends State<_NavPillItem> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final iconColor = widget.selected
-        ? scheme.onPrimary
-        : scheme.onSurfaceVariant;
+    final iconColor = widget.selected ? scheme.onPrimary : scheme.onSurfaceVariant;
     return Semantics(
       button: true,
       selected: widget.selected,
@@ -186,10 +182,10 @@ class _NavPillItemState extends State<_NavPillItem> {
           child: Center(
             child: PressScale(
               child: AnimatedContainer(
-                duration: AppDurations.fast,
+                duration: AppDurations.instant,
                 curve: AppCurves.standard,
-                width: widget.selected ? 40 : 32,
-                height: widget.selected ? 40 : 32,
+                width: widget.selected ? 36 : 28,
+                height: widget.selected ? 36 : 28,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,

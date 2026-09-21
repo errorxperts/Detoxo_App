@@ -731,3 +731,8 @@ Cross-feature (the migrated counter hub; theme + background live here too):
   `GlassSegmented` (design system, `components/selection.dart`) is the shared
   liquid-glass segmented control — frosted stadium track with a depth shadow and an
   accent-lit sliding pill; also used for the Reels-seen today/all-time selector.
+  A tap selects on release, a horizontal drag anywhere on the track scrubs the
+  selection live under the finger (`onChanged` fires as each segment is crossed —
+  a theme picker previews live), the pill swells and brightens while a finger is
+  down, and the label colour/weight tween on the pill's clock; reduce-motion
+  collapses all of it to `Duration.zero`.

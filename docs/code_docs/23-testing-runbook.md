@@ -53,8 +53,13 @@ onboarding/permission gates — so you can run them individually, in any order.
 ## Everyday loop
 
 ```bash
+flutter test test/<feature>_test.dart   # while iterating on one feature — seconds, not minutes
 bash tool/dev.sh precommit     # before every commit — format, analyze, test, native tests (JDK 17), boundaries
 ```
+
+`/detoxo-auto-test` scopes itself to the feature named in the chat (targeted tests first, the
+full gate once at the end) and only runs the whole suite for "ready to ship" style asks — see
+`.claude/skills/detoxo-auto-test/SKILL.md`.
 
 `tool/qa.sh functional` delegates to exactly this, and additionally tees the output to
 `build/qa/functional.log` and the exit code to `build/qa/functional.rc` so the report can score
@@ -170,8 +175,10 @@ cannot reach it. Then:
 - Boot with **`bootApp()`**, never a bare `app.main()`.
 - Never `pumpAndSettle` — the ambient background repeats forever. Use `settle()` / `waitFor()`.
 - **One** `app.main()` per file; `configureDependencies()` cannot be re-registered.
-- `find.text` matches the *rendered* string: `SectionHeader` uppercases, the nav pill is
-  `Semantics`-only, and widgets below a lazy sliver are never built at all.
+- `find.text` matches the *rendered* string: `SectionHeader` uppercases, the nav bar renders
+  every tab name as a clipped `Text` (so `'Activity'` matches even while that tab is inactive —
+  scope such finders to the `Drawer` / `GlassAppBar`), and widgets below a lazy sliver are
+  never built at all.
 
 ## Source files
 

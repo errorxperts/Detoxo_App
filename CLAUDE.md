@@ -45,5 +45,8 @@ Or run the whole gate at once: **`bash tool/dev.sh precommit`**.
 **QA automation** lives in `tool/qa.sh` — three layers (static+unit, real-boot E2E on a device,
 performance vs a baseline) plus the report format and its computed quality score. The runbook is
 `.claude/skills/detoxo-auto-test/SKILL.md` (run **`/detoxo-auto-test`**).
+**Architecture / code-quality review** of one module (layering, boundaries, SOLID, reuse, lint,
+rebuild hygiene, measured scorecard) is `.claude/skills/detoxo-code-quality/SKILL.md`
+(run **`/detoxo-code-quality`**).
 This build is **offline-first**: no backend, premium is a local dev-unlock, analytics is local,
 AdMob uses Google test ids, iOS shows an "unsupported" screen. See `docs/code_docs/16-implementation-roadmap.md`.

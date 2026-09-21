@@ -11,6 +11,7 @@ import 'package:detoxo/features/limits/rules/domain/usecases/rule_summary.dart';
 import 'package:detoxo/features/limits/rules/presentation/rules_cubit.dart';
 import 'package:detoxo/features/limits/rules/presentation/widgets/override_tile.dart';
 import 'package:detoxo/features/limits/rules/presentation/widgets/reel_feed_sheet.dart';
+import 'package:detoxo/features/limits/rules/presentation/widgets/removable_chips.dart';
 import 'package:detoxo/features/limits/rules/presentation/widgets/rule_kind_icon.dart';
 import 'package:detoxo/features/limits/rules/presentation/widgets/website_sheet.dart';
 import 'package:detoxo/features/protected_apps/protected_apps.dart';
@@ -33,7 +34,9 @@ const List<String> _weekdayNames = [
 
 /// The catalog's distracting categories — what the one-tap quick-pick toggles.
 /// The catalog owns the set: `LockScope.distracting` widens to the same one.
-final List<String> _distracting = Catalog.bundled.categoriesWithBehavior(AppBehavior.distracting);
+final List<String> _distracting = Catalog.bundled.categoriesWithBehavior(
+  AppBehavior.distracting,
+);
 
 /// Create / edit one rule. Draft state lives here until Save; the app-wide
 /// [RulesCubit] persists and pushes.
@@ -117,7 +120,9 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
   void initState() {
     super.initState();
     final r = _existing;
-    _isEdit = r != null && context.read<RulesCubit>().state.rules.any((x) => x.id == r.id);
+    _isEdit =
+        r != null &&
+        context.read<RulesCubit>().state.rules.any((x) => x.id == r.id);
     _kind = r?.kind ?? widget.args.kind;
     _name = TextEditingController(text: r?.name ?? '');
     final s = r?.schedule;
@@ -157,7 +162,9 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return GlassScaffold(
-      appBar: GlassAppBar(title: Text(_isEdit ? 'Edit rule' : 'New ${_kind.label.toLowerCase()}')),
+      appBar: GlassAppBar(
+        title: Text(_isEdit ? 'Edit rule' : 'New ${_kind.label.toLowerCase()}'),
+      ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
           AppSpacing.md,
@@ -217,16 +224,18 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
           GlassListTile(
             leading: const Icon(Icons.apps),
             title: 'Apps',
-            subtitle: _apps.isEmpty ? 'None selected' : _count(_apps.length, 'app'),
+            subtitle: _apps.isEmpty
+                ? 'None selected'
+                : _count(_apps.length, 'app'),
             trailing: const Icon(Icons.add_circle_outline),
             onTap: _pickApps,
           ),
           if (_apps.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xs),
-            _removableChips(
-              _apps,
-              (pkg) => _appLabels[pkg] ?? pkg,
-              (pkg) => setState(() => _apps.remove(pkg)),
+            RemovableChips(
+              items: _apps,
+              label: (pkg) => _appLabels[pkg] ?? pkg,
+              onRemove: (pkg) => setState(() => _apps.remove(pkg)),
             ),
           ],
           if (_kind == RuleKind.schedule) ...[
@@ -234,7 +243,9 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
             GlassListTile(
               leading: const Icon(Icons.play_circle_outline),
               title: 'Reel feeds',
-              subtitle: _platforms.isEmpty ? 'None selected' : _count(_platforms.length, 'feed'),
+              subtitle: _platforms.isEmpty
+                  ? 'None selected'
+                  : _count(_platforms.length, 'feed'),
               trailing: const Icon(Icons.add_circle_outline),
               onTap: _pickPlatforms,
             ),
@@ -242,13 +253,18 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
             GlassListTile(
               leading: const Icon(Icons.public),
               title: 'Websites',
-              subtitle: _websites.isEmpty ? 'None selected' : _count(_websites.length, 'site'),
+              subtitle: _websites.isEmpty
+                  ? 'None selected'
+                  : _count(_websites.length, 'site'),
               trailing: const Icon(Icons.add_circle_outline),
               onTap: _pickWebsites,
             ),
             if (_websites.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.xs),
-              _removableChips(_websites, (h) => h, (h) => setState(() => _websites.remove(h))),
+              RemovableChips(
+                items: _websites,
+                onRemove: (h) => setState(() => _websites.remove(h)),
+              ),
             ],
           ] else
             const InlineHint(
@@ -260,7 +276,10 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
           const SizedBox(height: AppSpacing.md),
           // A heading, like every other group label on this screen, so
           // heading navigation lands on it and the quick-pick has context.
-          Semantics(header: true, child: Text('Categories', style: text.labelLarge)),
+          Semantics(
+            header: true,
+            child: Text('Categories', style: text.labelLarge),
+          ),
           const SizedBox(height: AppSpacing.xs),
           // Seed order is behaviour order (distracting first), so the top row
           // is the usual suspects and the quick-pick that opens it covers them.
@@ -273,7 +292,10 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
               icon: Icons.bolt_outlined,
               selected: _distracting.every(_categories.contains),
               onSelected: () => setState(
-                () => _categories = RuleEditorScreen.toggleAll(_categories, _distracting),
+                () => _categories = RuleEditorScreen.toggleAll(
+                  _categories,
+                  _distracting,
+                ),
               ),
             ),
             chips: [
@@ -283,7 +305,9 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
                   icon: RuleEditorScreen.categoryIcons[c.id],
                   selected: _categories.contains(c.id),
                   onSelected: () => setState(() {
-                    _categories.contains(c.id) ? _categories.remove(c.id) : _categories.add(c.id);
+                    _categories.contains(c.id)
+                        ? _categories.remove(c.id)
+                        : _categories.add(c.id);
                   }),
                 ),
             ],
@@ -301,9 +325,8 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
               value: _strict,
               onChanged: (v) => setState(() => _strict = v),
             ),
-          SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.xs),
           if (_strict && !_locked) ...[
-            const SizedBox(height: AppSpacing.xs),
             const InlineHint(
               icon: Icons.info_outline,
               text:
@@ -311,6 +334,7 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
                   'even while Detoxo is paused. Turn this on for the rules you '
                   'set because you know future-you will want to skip them.',
             ),
+            const SizedBox(height: AppSpacing.xs),
           ],
           ..._lockSection(context),
           const SizedBox(height: AppSpacing.xl),
@@ -385,7 +409,8 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
         else if (overnight)
           const InlineHint(
             icon: Icons.nightlight_round,
-            text: 'Ends the next morning — the whole night counts as the start day.',
+            text:
+                'Ends the next morning — the whole night counts as the start day.',
           ),
       ],
     );
@@ -403,27 +428,6 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
       Text(headline, style: text.headlineSmall),
       slider,
       InlineHint(icon: Icons.info_outline, text: hint),
-    ],
-  );
-
-  Widget _removableChips(
-    List<String> items,
-    String Function(String) label,
-    void Function(String) onRemove,
-  ) => Wrap(
-    spacing: AppSpacing.xs,
-    runSpacing: AppSpacing.xs,
-    children: [
-      for (final item in items)
-        AppChip(
-          label: label(item),
-          // The chip LOOKS selected but activating it deletes the target —
-          // "Instagram, selected" would be a trap for a screen reader user.
-          semanticLabel: 'Remove ${label(item)}',
-          selected: true,
-          icon: Icons.close,
-          onSelected: () => onRemove(item),
-        ),
     ],
   );
 
@@ -458,7 +462,8 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
       refreshApps: () => sl<EngineRepository>().installedApps(refresh: true),
       unavailable: {
         for (final p in _apps) p: 'Added',
-        for (final a in ProtectedAppCatalog.apps) a.packageName: 'Auto-protected',
+        for (final a in ProtectedAppCatalog.apps)
+          a.packageName: 'Auto-protected',
         for (final a in protected) a.packageName: 'Protected',
       },
     );
@@ -479,7 +484,8 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
     if (!mounted) return;
     final options = [
       for (final t in targets)
-        if (!t.isBrowser && (t.isInstalled || _platforms.contains(t.platformId)))
+        if (!t.isBrowser &&
+            (t.isInstalled || _platforms.contains(t.platformId)))
           (id: t.platformId, label: t.displayName),
     ];
     final picked = await ReelFeedSheet.show(
@@ -489,7 +495,10 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
       selected: _platforms.toSet(),
     );
     if (picked == null || !mounted) return;
-    setState(() => _platforms = options.map((o) => o.id).where(picked.contains).toList());
+    setState(
+      () =>
+          _platforms = options.map((o) => o.id).where(picked.contains).toList(),
+    );
   }
 
   Future<void> _pickWebsites() async {
@@ -576,7 +585,9 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
           // picked apart, and `LockGuard` refuses that anyway.
           onChanged: _lockScope == LockScope.distracting
               ? null
-              : (v) => setState(() => _lockScope = v ? LockScope.distracting : _lockScope),
+              : (v) => setState(
+                  () => _lockScope = v ? LockScope.distracting : _lockScope,
+                ),
         ),
       ],
       // The STORED rule, not the draft: ticking "Lock this rule" and then
@@ -638,7 +649,11 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
       GlassToast.show(context, message, tone: AppTone.warning);
       return;
     }
-    GlassToast.show(context, _isEdit ? 'Rule saved.' : 'Rule created.', tone: AppTone.success);
+    GlassToast.show(
+      context,
+      _isEdit ? 'Rule saved.' : 'Rule created.',
+      tone: AppTone.success,
+    );
     context.pop();
   }
 
@@ -667,5 +682,6 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
     }
   }
 
-  static String _count(int n, String noun) => '${RuleSummary.count(n, noun, '${noun}s')} selected';
+  static String _count(int n, String noun) =>
+      '${RuleSummary.count(n, noun, '${noun}s')} selected';
 }

@@ -190,6 +190,16 @@ class $AssetsLottieGen {
   ];
 }
 
+class $AssetsSvgGen {
+  const $AssetsSvgGen();
+
+  /// File path: assets/svg/sidebar.svg
+  SvgGenImage get sidebar => const SvgGenImage('assets/svg/sidebar.svg');
+
+  /// List of all assets
+  List<SvgGenImage> get values => [sidebar];
+}
+
 class $AssetsImagesBgGen {
   const $AssetsImagesBgGen();
 
@@ -819,6 +829,7 @@ class Assets {
   static const $AssetsContentGen content = $AssetsContentGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
   static const $AssetsLottieGen lottie = $AssetsLottieGen();
+  static const $AssetsSvgGen svg = $AssetsSvgGen();
 }
 
 class AssetGenImage {

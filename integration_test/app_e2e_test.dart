@@ -15,6 +15,7 @@
 // onboarded and holding real user data. It never assumes a fresh install and
 // never taps "Reset app data".
 //
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:flutter/material.dart';
@@ -122,13 +123,24 @@ void main() {
     await settle(tester, frames: 12);
 
     await openDrawer(tester);
-    await tester.tap(find.text('Activity'));
+    // Scoped to the drawer: the bottom nav renders every tab name as a Text
+    // (clipped to 0 px while inactive), so a bare find.text('Activity') is
+    // ambiguous on the home screen.
+    await tester.tap(
+      find.descendant(of: find.byType(Drawer), matching: find.text('Activity')),
+    );
     await settle(tester, frames: 16);
     // Prove we navigated rather than screenshotting a stale dashboard: the home
-    // marker is gone, and the one surviving 'Activity' is the GlassAppBar title
-    // (the drawer item that shared the string went with the drawer).
+    // marker is gone, and the pushed route's GlassAppBar titles itself
+    // 'Activity' (the drawer item that shared the string went with the drawer).
     expect(home, findsNothing, reason: 'still on the dashboard');
-    expect(find.text('Activity'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(GlassAppBar),
+        matching: find.text('Activity'),
+      ),
+      findsOneWidget,
+    );
     await step(tester, 'analytics');
 
     await tester.pageBack();

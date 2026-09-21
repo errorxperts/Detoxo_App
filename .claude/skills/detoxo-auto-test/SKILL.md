@@ -1,11 +1,111 @@
 ---
 name: detoxo-auto-test
-description: Run Detoxo's three-layer QA automation and report on it — static analysis + unit/widget tests, a real-boot end-to-end walk on an attached Android device with screenshots, and performance (cold start, frame timeline, memory, APK size) gated against a saved baseline. Use when asked to test, QA, verify, validate, benchmark, profile, smoke-test, check for regressions, measure startup or frame performance, screenshot the app, or judge production readiness. Triggers: "run the QA suite", "test everything", "is this ready to ship", "did I regress performance", "take screenshots of the app", "/detoxo-auto-test".
+description: Feature-first QA for Detoxo — scope testing to the feature in the chat, inspect only its code, generate and automate feature-specific tests, run them targeted, root-cause and fix failures, then targeted regression — or run the full three-layer suite (static + unit/widget, real-boot E2E with screenshots on an Android device, performance gated against a baseline) and score it. Use when asked to test, QA, verify, validate, benchmark, profile, smoke-test, check for regressions, measure startup or frame performance, screenshot the app, or judge production readiness. Triggers: "test this feature", "I added / changed X, test it", "check my latest changes", "verify this module", "test the current build", "run the QA suite", "test everything", "is this ready to ship", "did I regress performance", "take screenshots of the app", "/detoxo-auto-test".
 ---
 
-# detoxo-auto-test — prove it on real hardware
+# detoxo-auto-test — test the feature first, prove it on real hardware
 
-Everything runs through one driver, `tool/qa.sh`. Paths are relative to the repo root.
+Everything device-side runs through one driver, `tool/qa.sh`. Paths are relative to the repo root.
+The app is **offline-first**: no API, backend or network tests unless the feature itself has them.
+
+## Mode: feature-scoped or full
+
+Pick the mode before reading any code.
+
+| Mode | When | Workflow | Report |
+|---|---|---|---|
+| **Feature-scoped** (default) | The chat names a feature, screen, module or change — or `git status` shows an uncommitted feature | *Feature-scoped workflow* below | *Feature Report* |
+| **Full** | `all`, "ready to ship", "test everything", nothing feature-shaped in the chat | Layers 1 → 2 → 3 → 2b → `restore` as documented below | 13-section scored report |
+
+Never widen a feature-scoped run to the whole suite unless a dependency or a risk finding
+justifies it — and say why when you do. Both modes obey the same *Never* list and the same
+"report only what actually ran" rule.
+
+## Feature-scoped workflow
+
+Working memory is the compact blocks below, not the codebase. Fill them, keep them updated, and
+drop everything else.
+
+**1. Scope from the chat.** Changed files come from `git status --porcelain` and `git diff --stat`,
+never from reading the tree. Map feature → code paths with the table in
+`.claude/skills/docs-sync/SKILL.md`. Fill:
+
+```text
+CURRENT FEATURE SCOPE
+Feature:            Module:            Screens:
+User flow:
+Changed components:                    Related state:
+Related local data:                    Relevant code:
+Required tests:
+```
+
+When the user names a new feature later in the chat, replace this block; do not keep the old one.
+
+**2. Read only what the scope names**, in this order: entry point → screen → cubit → domain logic
+→ model → Hive / secure storage → routing → existing `test/<feature>_test.dart`. Go one dependency
+deeper only when a test needs it. Never quote whole files, whole logs, or unchanged modules.
+
+**3. Understand before testing.** Answer for the feature: what the user does, what must and must
+not happen, valid / invalid states, boundaries, repeat, cancel, back, background → resume,
+restart → reopen. From the code: lifecycle, validation, error handling, persistence, navigation.
+While there, note (feature code only): rebuild hot spots, undisposed controllers / streams /
+listeners, large Hive reads, coupling that blocks a test. Those go in the report, not in a refactor.
+
+**4. Generate tests from the feature**, never from a fixed list. Priority: new feature → critical
+user flow → new logic → new state → new data → edge cases → direct regression. Tag each
+`AUTOMATE / MANUAL / ALREADY COVERED / NOT REQUIRED`, and grep `test/` and `integration_test/`
+for equivalent coverage before writing any. Depth follows risk: small UI change → widget test +
+direct regression; new logic → unit + widget + regression; new module → add exploratory + perf.
+
+**5. Automate in the existing shape.** Unit / widget tests go in `test/<feature>_test.dart`
+(extend the file when it exists; flat layout, `test/core/` for design-system and services).
+On-device flows go in a new `integration_test/<feature>_e2e_test.dart` built from
+`bootApp` / `reachHome` / `settle` / `waitFor` in `qa_walk.dart`, one booting `testWidgets` per
+file, `QA_SHOT:<name>` markers for screenshots — every constraint in *Gotchas* applies. When a
+widget cannot be found, add the `Key` or `Semantics` label; testability fixes are part of the
+deliverable.
+
+**6. Run targeted, then widen only as far as the change reaches:**
+
+```bash
+flutter test test/<feature>_test.dart                 # the feature
+flutter test test/<dependency>_test.dart …            # direct dependencies
+flutter test                                          # only when the change crosses features
+bash tool/qa.sh -d <serial> e2e|blockers|blocking     # only the device layer the change touches
+```
+
+Pick device layers with the *When to run* table. `bash tool/qa.sh functional` is the full gate;
+run it once at the end, not after every edit.
+
+**7. Fail → classify → fix.** Keep only this from a failure, discard the rest of the log:
+
+```text
+Test:           Failed step:
+Expected:       Actual:
+Relevant error / stack (≤ 10 lines):
+Affected file:  Root cause:
+Fix:            Verification:
+```
+
+Classify `APPLICATION BUG / AUTOMATION BUG / FLAKY / TEST DATA / ENVIRONMENT / EXPECTED / UNKNOWN`.
+A dropped USB link or an OEM permission wall is ENVIRONMENT, not a code failure. Both automation
+and application bugs are fixed without asking: grep every caller first, make the smallest
+root-cause change, add or update the regression test, then re-run the failed test → the feature's
+tests → its dependencies' tests. Never change app behaviour to make a test pass.
+
+**8. Exploratory pass, then compress.** Try only what applies: rapid taps, repeated actions,
+back or cancel mid-operation, navigate away and return, restart and reopen, empty → populate →
+clear, boundary and unexpected input. A scenario that finds a bug becomes automation. After each
+major step rewrite the state block and carry nothing else forward:
+
+```text
+CURRENT FEATURE:   CHANGED AREA:
+TESTS:             RESULT:
+KNOWN ISSUE:       ROOT CAUSE:
+FIX:               NEXT ACTION:
+```
+
+## The driver (both modes)
 
 ```bash
 bash tool/qa.sh [-d <serial>] [--reset] [--baseline] \
@@ -261,10 +361,29 @@ bare `grep allow` also matches the `Default mode: allow` trailer printed when th
 Accessibility is different: `settings put secure enabled_accessibility_services` works here, but
 the value is a **`:`-separated list** — append, never clobber whatever else the owner relies on.
 
-## Report format
+## Feature Report (feature-scoped mode)
 
-Report all thirteen sections. Do not collapse them, and do not report a layer that did not run as
-though it passed.
+Compact, feature-only. If a device layer ran, quote its `build/qa/*.status` verdict verbatim; if
+none ran, say so under REGRESSION rather than leaving it blank.
+
+```text
+FEATURE            [name]
+CHANGED MODULE     [module / files]
+TESTS              Generated: X  Automated: X  Executed: X  Passed: X  Failed: X  Skipped: X
+BUGS               [confirmed bugs, classified]
+FIXES              [each fix + root cause]
+REGRESSION         [what ran, result]
+PERFORMANCE        [feature-relevant findings or "not assessed"]
+CODE QUALITY       [feature-relevant findings]
+AUTOMATION IMPROVEMENTS  [tests / keys / helpers added]
+COVERAGE GAPS      [MANUAL-only and untested paths]
+FINAL STATUS       PASS / PASS WITH WARNINGS / FAIL / BLOCKED / NEEDS INVESTIGATION
+```
+
+## Report format (full mode)
+
+Full mode only; feature-scoped runs use the Feature Report above. Report all thirteen sections.
+Do not collapse them, and do not report a layer that did not run as though it passed.
 
 1. Summary of changes analysed
 2. Architecture & code-quality assessment
@@ -308,3 +427,8 @@ layer never ran, not that the engine is broken.
 - Never tap *Reset app data*, and never run `--reset` on a phone holding real user data without
   explicit confirmation.
 - Never leave the device modified — finish with `bash tool/qa.sh restore`.
+- Never widen a feature-scoped run to the whole suite without stating the dependency or risk
+  that requires it.
+- Never quote whole files or whole logs into the context — keep the minimal failure block.
+- Never test API, backend or network paths the feature does not have; the app is offline-first.
+- Never change app behaviour to make a test pass; fix the root cause or classify the failure.

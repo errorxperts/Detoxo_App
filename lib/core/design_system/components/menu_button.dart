@@ -1,4 +1,6 @@
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 /// identical: a primary-tinted circle with a [Icons.menu_rounded] glyph.
 ///
@@ -17,25 +19,16 @@ class DrawerMenuButton extends StatelessWidget {
       button: true,
       label: 'Menu',
       child: GestureDetector(
-        // child: FenceIcon(
-        //   size: 20.0, // Icon size
-        //   color: Colors.white, // Default color
-        //   hoverColor: Colors.blue, // Hover color
-        //   animationDuration: Duration(milliseconds: 600), // Animation duration
-        //   strokeWidth: 2.0, // Stroke width
-        //   reverseOnExit: true, // Reverse animation on exit
-        //   enableTouchInteraction: true, // Enable touch interaction
-        //   infiniteLoop: false, // Enable infinite loop
-        //   onTap: onTap == null
-        //       ? null
-        //       : () {
-        //           AppHaptics.selection();
-        //           onTap!();
-        //         }, // Tap callback
-        //   interactive: true, // Enable/disable internal gestures
-        //   controller: AnimatedIconController(), // External animation controller
-        // ),
-        child: Icon(Icons.view_sidebar_rounded, size: 22, color: scheme.primary),
+        onTap: onTap == null
+            ? null
+            : () {
+                onTap!();
+              },
+        child: SvgPicture.asset(
+          Assets.svg.sidebar.path,
+          colorFilter: ColorFilter.mode(scheme.primary, BlendMode.srcIn),
+          width: 22,
+        ),
       ),
     );
   }

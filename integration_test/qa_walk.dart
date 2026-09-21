@@ -89,8 +89,10 @@ Future<void> bootApp() async {
 /// Screen markers. No screen in this app has a test key, so every handle is a
 /// proven text string. Note `find.text` matches the RENDERED string:
 /// `SectionHeader` uppercases (`'THEME'`, not `'Theme'`), and the bottom nav
-/// pill carries `Semantics(label:)` only — `find.text('Dashboard')` finds
-/// nothing, the real dashboard marker is `'Block All'`.
+/// renders every tab name as a `Text` (clipped to 0 px while inactive), so
+/// `find.text('Dashboard')` / `('Activity')` match the nav bar on every home
+/// screen and tab names are never screen markers — the real dashboard marker
+/// is `'Block All'`.
 const kOnboardingMarker = 'Take your time back';
 const kPermissionsMarker = 'Set up protection';
 const kPinLockMarker = 'Enter your PIN';
