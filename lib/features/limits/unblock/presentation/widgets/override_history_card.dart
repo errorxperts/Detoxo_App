@@ -4,19 +4,6 @@ import 'package:detoxo/features/limits/unblock/presentation/unblock_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// EVO-052 — the ledger, said back.
-///
-/// M8 asks the user to *name a reason* before it lifts a locked rule; that
-/// friction is the whole mechanism. The reason was then written to disk and
-/// shown to nobody, including them — a diary nobody keeps.
-///
-/// Deliberately a plain sentence, not a chart or a streak: a count of lapses
-/// rendered as a score is the shame-chart pattern the product overview
-/// explicitly rejects. The reasons are the user's own words about their own
-/// week, which is a different thing.
-///
-/// Hidden entirely when the count is 0, so nothing appears until there is
-/// something true to say.
 class OverrideHistoryCard extends StatelessWidget {
   const OverrideHistoryCard({super.key});
 
