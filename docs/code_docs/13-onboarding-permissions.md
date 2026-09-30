@@ -49,10 +49,10 @@ Six walked steps, `OnboardingStepId` (stable wire tokens), plus a terminal `comp
 | Step | Purpose |
 |---|---|
 | `welcome` | What Detoxo is, in one screen (`CaughtHero` + "Blocks the reels, not the app") |
-| `survey` | Name (optional), screen-time band, what matters most |
-| `projection` | The five-year cost, computed from the band |
-| `selection` | Pick the feeds to protect — **requires ≥ 1** |
-| `commitment` | The promise, keyed to `mattersMost`, plus the daily-limit dial |
+| `survey` | Name (optional), screen-time band, what matters most — chips, with a live "About N days a year" hint under the band |
+| `projection` | The cost of the band as a waking-hours ring (`ProgressRing`) around a day count, over a 1 / 5 / 10-year horizon the user scrubs (`GlassSegmented`; view state, never persisted) |
+| `selection` | Pick the feeds to protect — **requires ≥ 1**; a live "N feeds guarded" pill |
+| `commitment` | The promise, keyed to `mattersMost`, as a `SectionHeader` + `GlassCard` (icon keyed to the preset), plus the daily-limit dial under its own header |
 | `permissions` | Hands off to the real `/permissions` screen — the hard gate |
 
 Persisted under `StoreKeys.onboardingProgress` (`'onboarding_progress'`) by `OnboardingRepositoryImpl`, as JSON with enums as **stable name strings**:
@@ -113,15 +113,17 @@ So **no upgrading user ever gets a rule they did not ask for**. Two paths delibe
 
 ### 2.5 The walker and its chrome
 
-`presentation/onboarding_screen.dart` provides `OnboardingCubit` for the `/onboarding` route only (cubits are never registered in `sl` in this repo; the *repository* is) and renders whatever step the cubit is on through an `AnimatedSwitcher`. Existing chrome is kept verbatim: the segmented `_ProgressBar` (`Semantics(label: 'Step N of M')`), the top-left **Back** and top-right **Skip** ghost buttons, and the accent-tinted full-width `PrimaryButton`.
+`presentation/onboarding_screen.dart` provides `OnboardingCubit` for the `/onboarding` route only (cubits are never registered in `sl` in this repo; the *repository* is) and renders whatever step the cubit is on. The chrome is **layout, not overlay**: a `Column` of a header row (top-left **Back** ghost button, the design-system `ProgressBar` carrying `Semantics(label: 'Step N of M')`, top-right **Skip**), an `Expanded` body, and the accent-tinted full-width `PrimaryButton` pinned in the permissions screen's idiom. Both ghost buttons stay mounted at opacity 0 / 1, so the bar never jumps and the walker renders exactly one `Skip` (the on-device tests' finder). The body is a reduce-motion-gated, fade-only `AnimatedSwitcher` over a private `_StepBody` — `LayoutBuilder` → `SingleChildScrollView` → min-height box — that centres short steps (welcome, projection) and scrolls long ones (large text, many apps, the keyboard), so no step carries an inset constant to dodge the chrome. Every step is an `EntranceList` (the staggered rise), which is why the switcher adds no second axis. `_next` drops keyboard focus before advancing, so the survey's field never fades out under an open keyboard.
 
 - **Next** is gated only where it must be: `survey` needs its required answers, `selection` needs ≥ 1 feed — *unless there is nothing to pick*. A device with none of the supported apps installed would otherwise be a permanent dead end: Next disabled, Skip already gone, so onboarding could never be completed and `onboarded` never flipped, returning the user to the same screen on every future launch.
 - **`permissions` is terminal for the walker.** Reaching it — or resuming onto it after a crash between `advance` and `setOnboarded` — re-runs the hand-off. Without that the resumed state rendered an enabled button that did nothing, on a screen the user could not tell they had already passed.
 - **Skip** jumps to `selection` and disappears from there on — neither the picks nor the permissions are skippable, because without them onboarding has protected nothing.
 - **Back** walks the machine backwards and never erases an answer. A `PopScope` routes the system back button through the same path, so it cannot drop the user out of the app mid-onboarding.
 - The **selection** step renders through the blocklist's own `BlockAppGroup` / `BlockAppTile`, so Instagram's Feed / Reels / Stories collapse under one tile exactly as they do on the blocklist screen and the two cannot drift. Only installed apps are listed — offering feeds the user cannot open would make the "pick at least one" gate answerable with something that blocks nothing.
-- The **commitment** step keeps the interactive `ScreenTimeDial` (270° radial gauge, **15 min – 5 h**, **15-minute** steps, default **90 min**) that used to be page 3, and its promise copy is keyed to the same `mattersMost` answer that picks the starter rule — so what the user reads is what the rule will actually do.
-- All motion is guarded by `MediaQuery.maybeDisableAnimationsOf` and degrades to a static end-state under reduce-motion. Heroes remain coded illustrations built from design-system primitives — no Lottie or illustration assets.
+- The **survey** keeps its answer labels at chip length (`ScreenTimeBand` 'Under 1h' … 'Not sure', `MattersMost` 'Focus' … 'Something else' — labels only, wire tokens untouched), gives the `MattersMost` chips icons keyed by wire token (a map local to the step, so the script stays Flutter-free), and shows "About N days a year" under the band the moment one lands — the number the next step counts up. `AppChip`'s selection cross-fades (a shared design-system change: 180 ms, gated, rest state pixel-identical).
+- The **projection** counts the days inside a `ProgressRing` whose arc is the band's share of a 16-hour waking day, and lets the user scrub a 1 / 5 / 10-year horizon with `GlassSegmented`. The horizon is widget state, never persisted; the count-up retargets from the value on screen. Its sentence is built from `hoursPerDay` ("about 3 hours" for 'Not sure'), never from the chip label.
+- The **commitment** step keeps the interactive `ScreenTimeDial` (270° radial gauge, **15 min – 5 h**, **15-minute** steps, default **90 min**) that used to be page 3, and its promise copy is keyed to the same `mattersMost` answer that picks the starter rule — so what the user reads is what the rule will actually do. The promise renders as a `SectionHeader` + one `GlassCard` (nothing glass-in-glass); the card's icon is keyed to the preset's shape (every-day schedule → bedtime, weekdays → work, budget → hourglass) in the same getter that builds the text. The old lock hero is gone — the 40 dp `IconBadge` in the card carries the meaning.
+- All motion is guarded by `MediaQuery.maybeDisableAnimationsOf` and degrades to a static end-state under reduce-motion — including the dial's arc tween and its "Drag to set" hint. `CaughtHero` remains a coded illustration built from design-system primitives — no Lottie or illustration assets.
 - A funnel event (`AnalyticsEvent.onboardingStep`) fires per step change with `step` and `direction` (`ENTER` / `FORWARD` / `BACK`). Only those two tokens are sent — never a name, a band or a picked feed. `ENTER` fires from `load()`, so the first step has a denominator; the direction separates a Back tap from a Next tap, which are the same `advance` call and would otherwise inflate every step total (EVO-040).
 
 ### 2.6 Finishing
@@ -348,7 +350,6 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 ## Source files
 
 - `lib/app/splash_screen.dart`
-- `lib/features/onboarding/presentation/widgets/screen_time_dial.dart` (`ScreenTimeDial` — the draggable daily-limit gauge)
 - `lib/features/onboarding/onboarding.dart` (barrel: screen + progress record + starter rule)
 - `lib/features/onboarding/domain/entities/onboarding_progress.dart` (`OnboardingStepId`, `ScreenTimeBand`, `MattersMost`, `OnboardingProgress`)
 - `lib/features/onboarding/domain/onboarding_script.dart` (`surveyQuestions` — the survey as data)
@@ -359,7 +360,6 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 - `lib/features/onboarding/presentation/onboarding_screen.dart` (the walker + chrome)
 - `lib/features/onboarding/presentation/steps/{survey,projection,selection}_step.dart`
 - `lib/features/onboarding/presentation/widgets/caught_hero.dart` (`CaughtHero` — the welcome hero)
-- `lib/features/onboarding/presentation/widgets/commitment_hero.dart` (`CommitmentHero` — the commitment hero)
 - `lib/features/onboarding/presentation/widgets/screen_time_dial.dart` (`ScreenTimeDial` — the daily-limit dial)
 - `lib/features/limits/rules/domain/entities/rule_preset.dart` (`RulePreset.sleep` / `.workHours` / `.doomscrollBudget`)
 - `lib/app/bootstrap.dart` (`runBootstrap` — ordered, individually-guarded app-start work)

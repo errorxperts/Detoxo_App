@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/routes.dart';
@@ -12,7 +14,6 @@ import 'package:detoxo/features/onboarding/presentation/steps/projection_step.da
 import 'package:detoxo/features/onboarding/presentation/steps/selection_step.dart';
 import 'package:detoxo/features/onboarding/presentation/steps/survey_step.dart';
 import 'package:detoxo/features/onboarding/presentation/widgets/caught_hero.dart';
-import 'package:detoxo/features/onboarding/presentation/widgets/commitment_hero.dart';
 import 'package:detoxo/features/onboarding/presentation/widgets/screen_time_dial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -78,7 +79,24 @@ class _OnboardingWalker extends StatelessWidget {
   static bool _canSkip(OnboardingStepId step) =>
       step.index < OnboardingStepId.selection.index;
 
+  /// Where the header bar stands. The permissions step is walked on its own
+  /// screen and `completed` is terminal; both mean "the last rendered step".
+  /// `indexOf(completed)` is -1, which a bare clamp would report as "Step 1 of
+  /// 5" while the last step is on screen.
+  static ({int index, int count}) _position(OnboardingStepId step) {
+    const steps = OnboardingStepId.visible;
+    final count = steps.length - 1;
+    final index = switch (step) {
+      OnboardingStepId.permissions || OnboardingStepId.completed => count - 1,
+      _ => steps.indexOf(step).clamp(0, count - 1),
+    };
+    return (index: index, count: count);
+  }
+
   Future<void> _next(BuildContext context, OnboardingProgress p) async {
+    // The survey's keyboard must be down before the switcher fades a
+    // soon-disposed field out from under it.
+    FocusManager.instance.primaryFocus?.unfocus();
     final cubit = context.read<OnboardingCubit>();
     AppHaptics.selection();
 
@@ -144,6 +162,10 @@ class _OnboardingWalker extends StatelessWidget {
         // scan comes back empty, so the CTA has to rebuild when it lands.
         final targets = context.watch<TargetsCubit>().state;
         final isLast = p.step.index >= OnboardingStepId.commitment.index;
+        final canSkip = _canSkip(p.step);
+        final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+        final fade = reduce ? Duration.zero : AppDurations.fast;
+        final (:index, :count) = _position(p.step);
         return PopScope(
           // Back at the first step must not drop the user out of the app
           // mid-onboarding; elsewhere it walks the machine backwards.
@@ -152,73 +174,88 @@ class _OnboardingWalker extends StatelessWidget {
             if (!didPop && back != null) cubit.advance(back);
           },
           child: GlassScaffold(
-            safeArea: false,
-            body: Stack(
+            // Chrome is layout, not overlay: a header row and a pinned CTA
+            // bound the body, so no step carries an inset to dodge them.
+            body: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                AnimatedSwitcher(
-                  duration: AppDurations.normal,
-                  switchInCurve: AppCurves.decelerate,
-                  child: KeyedSubtree(
-                    key: ValueKey(p.step),
-                    child: _step(p, accent),
+                // Back | progress | Skip. Both ghost buttons stay mounted at
+                // opacity 0/1 so the bar never jumps — and so the walker shows
+                // exactly one 'Skip' (the on-device tests' finder) at a time.
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
                   ),
-                ),
-                SafeArea(
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: AnimatedOpacity(
-                      duration: AppDurations.fast,
-                      opacity: _canSkip(p.step) ? 1 : 0,
-                      child: GhostButton(
-                        label: 'Skip',
-                        onPressed: _canSkip(p.step)
-                            ? () => cubit.advance(OnboardingStepId.selection)
-                            : null,
+                  child: Row(
+                    children: [
+                      AnimatedOpacity(
+                        duration: fade,
+                        opacity: back == null ? 0 : 1,
+                        child: GhostButton(
+                          label: 'Back',
+                          onPressed: back == null
+                              ? null
+                              : () => cubit.advance(back),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-                SafeArea(
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: AnimatedOpacity(
-                      duration: AppDurations.fast,
-                      opacity: back == null ? 0 : 1,
-                      child: GhostButton(
-                        label: 'Back',
-                        onPressed: back == null
-                            ? null
-                            : () => cubit.advance(back),
-                      ),
-                    ),
-                  ),
-                ),
-                SafeArea(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.xl,
-                        0,
-                        AppSpacing.xl,
-                        AppSpacing.xl,
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _ProgressBar(step: p.step, accent: accent),
-                          const SizedBox(height: AppSpacing.lg),
-                          PrimaryButton(
-                            label: isLast ? 'Get started' : 'Next',
-                            tint: accent,
-                            expand: true,
-                            onPressed: _canAdvance(p, targets)
-                                ? () => _next(context, p)
-                                : null,
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
                           ),
-                        ],
+                          child: ProgressBar(
+                            progress: (index + 1) / count,
+                            height: 6,
+                            animate: true,
+                            semanticLabel: 'Step ${index + 1} of $count',
+                          ),
+                        ),
+                      ),
+                      AnimatedOpacity(
+                        duration: fade,
+                        opacity: canSkip ? 1 : 0,
+                        child: GhostButton(
+                          label: 'Skip',
+                          onPressed: canSkip
+                              ? () => cubit.advance(OnboardingStepId.selection)
+                              : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  // A cross-fade only: each step carries its own staggered
+                  // rise (`EntranceList`), so a second axis here would fight it.
+                  child: AnimatedSwitcher(
+                    duration: reduce ? Duration.zero : AppDurations.normal,
+                    switchInCurve: AppCurves.decelerate,
+                    switchOutCurve: AppCurves.standard,
+                    child: KeyedSubtree(
+                      key: ValueKey(p.step),
+                      child: _StepBody(
+                        center:
+                            p.step == OnboardingStepId.welcome ||
+                            p.step == OnboardingStepId.projection,
+                        child: _step(p, accent),
                       ),
                     ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.xs,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
+                  child: PrimaryButton(
+                    label: isLast ? 'Get started' : 'Next',
+                    tint: accent,
+                    expand: true,
+                    onPressed: _canAdvance(p, targets)
+                        ? () => _next(context, p)
+                        : null,
                   ),
                 ),
               ],
@@ -230,26 +267,9 @@ class _OnboardingWalker extends StatelessWidget {
   }
 
   Widget _step(OnboardingProgress p, Color accent) => switch (p.step) {
-    OnboardingStepId.welcome => _HeroStep(
-      accent: accent,
-      hero: CaughtHero(accent: accent),
-      title: 'Take your time back',
-      body:
-          'You didn’t decide to watch 80 reels — the feed did. Detoxo spots '
-          'them the second they play and pulls you back out, right inside the '
-          'apps you already use.',
-      footer: const Padding(
-        padding: EdgeInsets.only(top: AppSpacing.lg),
-        child: Center(
-          child: Pill(
-            label: 'Blocks the reels, not the app',
-            tone: AppTone.accent,
-          ),
-        ),
-      ),
-    ),
+    OnboardingStepId.welcome => _WelcomeStep(accent: accent),
     OnboardingStepId.survey => SurveyStep(progress: p),
-    OnboardingStepId.projection => ProjectionStep(progress: p, accent: accent),
+    OnboardingStepId.projection => ProjectionStep(progress: p),
     OnboardingStepId.selection => SelectionStep(progress: p),
     // `permissions` and `completed` are hand-off states, not screens — but the
     // record advances to `permissions` a beat before the redirect fires, so
@@ -258,98 +278,79 @@ class _OnboardingWalker extends StatelessWidget {
   };
 }
 
-/// Segmented filling progress bar — clearer completion cue than dots.
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({required this.step, required this.accent});
+/// The scroll frame every step renders inside. Short content sits centred
+/// ([center]) or at the top; long content — large text, many apps, a keyboard
+/// — scrolls. The padding lives here, so no step carries an inset of its own.
+class _StepBody extends StatelessWidget {
+  const _StepBody({required this.child, this.center = false});
 
-  final OnboardingStepId step;
-  final Color accent;
+  final Widget child;
+  final bool center;
+
+  static const _pad = EdgeInsets.fromLTRB(
+    AppSpacing.lg,
+    AppSpacing.sm,
+    AppSpacing.lg,
+    AppSpacing.md,
+  );
 
   @override
   Widget build(BuildContext context) {
-    // The permissions step is walked on its own screen, so the bar counts the
-    // steps this walker actually renders.
-    const steps = OnboardingStepId.visible;
-    final count = steps.length - 1;
-    // `permissions` is walked on its own screen and `completed` is terminal;
-    // both mean "the last rendered step". `indexOf(completed)` is -1, which a
-    // bare clamp would report as "Step 1 of 5" while the last step is on screen.
-    final index = switch (step) {
-      OnboardingStepId.permissions || OnboardingStepId.completed => count - 1,
-      _ => steps.indexOf(step).clamp(0, count - 1),
-    };
-    return Semantics(
-      container: true,
-      label: 'Step ${index + 1} of $count',
-      child: Row(
-        children: List.generate(count, (i) {
-          return Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(
-                right: i == count - 1 ? 0 : AppSpacing.xs,
-              ),
-              child: AnimatedContainer(
-                duration: AppDurations.normal,
-                curve: AppCurves.standard,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: i <= index ? accent : context.glass.border,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-            ),
-          );
-        }),
+    return LayoutBuilder(
+      builder: (context, c) => SingleChildScrollView(
+        padding: _pad,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: c.hasBoundedHeight
+                ? math.max(0, c.maxHeight - _pad.vertical)
+                : 0,
+          ),
+          child: center ? Center(child: child) : child,
+        ),
       ),
     );
   }
 }
 
-/// A coded hero, headline and body — the shape the informational steps share.
-class _HeroStep extends StatelessWidget {
-  const _HeroStep({
-    required this.accent,
-    required this.hero,
-    required this.title,
-    required this.body,
-    this.footer,
-  });
+/// The first step: the coded hero, the headline and one line of promise.
+class _WelcomeStep extends StatelessWidget {
+  const _WelcomeStep({required this.accent});
 
   final Color accent;
-  final Widget hero;
-  final String title;
-  final String body;
-  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 96, AppSpacing.xl, 168),
-      child: ListView(
-        children: [
-          hero,
-          const SizedBox(height: AppSpacing.xxl),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-          ).animate().fadeIn(delay: 80.ms).slideY(begin: 0.15, end: 0),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            body,
-            textAlign: TextAlign.center,
-            style: text.bodyLarge?.copyWith(color: context.glass.onGlass),
-          ).animate().fadeIn(delay: 160.ms).slideY(begin: 0.15, end: 0),
-          ?footer,
-        ],
-      ),
+    return EntranceList(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        CaughtHero(accent: accent),
+        const SizedBox(height: AppSpacing.xl),
+        Text(
+          'Take your time back',
+          textAlign: TextAlign.center,
+          style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          'You didn’t decide to watch 80 reels — the feed did. Detoxo spots '
+          'them the second they play and pulls you back out, right inside the '
+          'apps you already use.',
+          textAlign: TextAlign.center,
+          style: text.bodyLarge?.copyWith(color: context.glass.onGlass),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        const Pill(
+          label: 'Blocks the reels, not the app',
+          tone: AppTone.accent,
+        ),
+      ],
     );
   }
 }
 
-/// The last walked step: what the user is committing to, in their own terms,
-/// plus the daily-limit dial (kept from the old page-four step).
+/// The last walked step: what the user is committing to, in their own terms
+/// (one header + one panel), and the daily-limit dial under its own header.
 class _CommitmentStep extends StatelessWidget {
   const _CommitmentStep({required this.progress, required this.accent});
 
@@ -360,58 +361,72 @@ class _CommitmentStep extends StatelessWidget {
   /// stamp — not restated in prose. The hours already live in `RulePreset`, and
   /// `starter_rule.dart` exists precisely so there is one copy of them; writing
   /// "22:00" here again would be a third, in the one place no test asserts it.
-  String get _promise {
+  /// The icon is keyed off the same shape, so the card reads at a glance.
+  ({IconData icon, String text}) get _rule {
     final template = starterPreset(progress.mattersMost).template;
     final schedule = template.schedule;
     if (schedule == null) {
       final minutes = template.thresholdMs ~/ 60000;
-      return '$minutes minutes of feed a day. After that the feeds you picked '
-          'stop opening until tomorrow.';
+      return (
+        icon: Icons.hourglass_bottom_rounded,
+        text:
+            '$minutes minutes of feed a day. After that the feeds you picked '
+            'stop opening until tomorrow.',
+      );
     }
-    final when = schedule.days.length == 7 ? 'Every day' : 'Weekdays';
-    return '$when from ${RuleSchedule.formatHHmm(schedule.startMin)}, the '
-        'feeds you picked stop opening — until '
-        '${RuleSchedule.formatHHmm(schedule.endMin)}.';
+    final daily = schedule.days.length == 7;
+    return (
+      icon: daily ? Icons.bedtime_rounded : Icons.work_rounded,
+      text:
+          '${daily ? 'Every day' : 'Weekdays'} from '
+          '${RuleSchedule.formatHHmm(schedule.startMin)}, the feeds you picked '
+          'stop opening — until ${RuleSchedule.formatHHmm(schedule.endMin)}.',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final name = progress.name;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 72, AppSpacing.lg, 158),
-      child: ListView(
-        children: [
-          CommitmentHero(accent: accent),
-          const SizedBox(height: AppSpacing.xl),
-          Text(
-            name == null ? 'Here’s the deal' : 'Here’s the deal, $name',
-            textAlign: TextAlign.center,
-            style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+    final rule = _rule;
+    return EntranceList(
+      children: [
+        Text(
+          name == null ? 'Here’s the deal' : 'Here’s the deal, $name',
+          style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SectionHeader('Your first rule'),
+        GlassCard(
+          child: Row(
+            children: [
+              IconBadge(
+                icon: rule.icon,
+                color: accent,
+                bordered: true,
+                fillAlpha: 0.20,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  rule.text,
+                  style: text.bodyMedium?.copyWith(
+                    color: context.glass.onGlass,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            _promise,
-            textAlign: TextAlign.center,
-            style: text.bodyMedium?.copyWith(color: context.glass.onGlass),
+        ),
+        const SectionHeader('Daily ceiling'),
+        Center(
+          child: ScreenTimeDial(
+            value: Duration(minutes: progress.dailyLimitMinutes),
+            onChanged: context.read<OnboardingCubit>().setDailyLimit,
+            accent: accent,
+            size: 240,
           ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'And a daily ceiling for everything else:',
-            textAlign: TextAlign.center,
-            style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Center(
-            child: ScreenTimeDial(
-              value: Duration(minutes: progress.dailyLimitMinutes),
-              onChanged: context.read<OnboardingCubit>().setDailyLimit,
-              accent: accent,
-              size: 220,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

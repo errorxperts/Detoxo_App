@@ -290,23 +290,24 @@ class AppChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final glass = context.glass;
     final accent = Theme.of(context).colorScheme.secondary;
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return AppPressable(
       onTap: onSelected,
       pressedScale: 0.94,
       selected: momentary ? null : selected,
       semanticLabel: semanticLabel,
       minTapTarget: const Size(0, AppSizes.minTapTarget),
-      child: GlassContainer(
-        enableBlur: false,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
-        ),
-        borderRadius: AppRadius.pill,
-        tintTop: selected ? accent.withValues(alpha: 0.28) : null,
-        tintBottom: selected ? accent.withValues(alpha: 0.14) : null,
-        borderColor: selected ? accent.withValues(alpha: 0.6) : null,
+      // Selection cross-fades on the same clock as `AppToggle` instead of
+      // snapping. The tween has no `begin`, so a chip mounted already-selected
+      // renders its end state with no first-frame fade. The `null` tints at
+      // rest are load-bearing: `GlassContainer` takes any explicit tint over
+      // its frost, so only a lerp in flight may replace it.
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(end: selected ? 1.0 : 0.0),
+        duration: reduce ? Duration.zero : AppDurations.fast,
+        curve: AppCurves.standard,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -321,6 +322,22 @@ class AppChip extends StatelessWidget {
               ),
             ),
           ],
+        ),
+        builder: (context, t, child) => GlassContainer(
+          enableBlur: false,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          borderRadius: AppRadius.pill,
+          tintTop: t == 0
+              ? null
+              : Color.lerp(glass.fillTop, accent.withValues(alpha: 0.28), t),
+          tintBottom: t == 0
+              ? null
+              : Color.lerp(glass.fillBottom, accent.withValues(alpha: 0.14), t),
+          borderColor: selected ? accent.withValues(alpha: 0.6) : null,
+          child: child!,
         ),
       ),
     );

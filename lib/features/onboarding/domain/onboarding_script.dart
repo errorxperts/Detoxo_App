@@ -48,7 +48,7 @@ final List<OnboardingQuestion> surveyQuestions = [
     field: fieldName,
     prompt: 'What should we call you?',
     kind: QuestionKind.text,
-    hint: 'Your first name',
+    hint: 'First name (optional)',
     optional: true,
   ),
   OnboardingQuestion(

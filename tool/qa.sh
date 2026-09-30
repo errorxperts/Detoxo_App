@@ -3,6 +3,7 @@
 #
 #   bash tool/qa.sh functional          # format + analyze + unit tests + boundaries (no device)
 #   bash tool/qa.sh e2e                 # real-boot walk on a device + screenshots
+#   E2E_TEST=integration_test/<x>_e2e_test.dart bash tool/qa.sh e2e   # a feature walk
 #   bash tool/qa.sh perf                # cold start + frame timeline + memory + apk size
 #   bash tool/qa.sh blocking            # accessibility-engine smoke (half manual — see SKILL.md)
 #   bash tool/qa.sh blockers            # App/Web Blocker walk + real block probes (needs YouTube + Chrome)
@@ -294,8 +295,10 @@ t_e2e() {
   # shellcheck disable=SC2064
   trap "kill $rg 2>/dev/null || true" RETURN
 
+  # A feature walk (integration_test/<feature>_e2e_test.dart) runs through the
+  # same install/prep/screenshot plumbing: E2E_TEST=<file> [SHOTS=<dir>].
   if flutter test -d "$SERIAL" --reporter expanded \
-       integration_test/app_e2e_test.dart 2>&1 \
+       "${E2E_TEST:-integration_test/app_e2e_test.dart}" 2>&1 \
        | tee "$OUT/e2e.log" | shots_pump; then
     printf 'pass\n' > "$OUT/e2e.status"; ok 'e2e passed'
   else

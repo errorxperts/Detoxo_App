@@ -40,14 +40,14 @@ enum OnboardingStepId {
 /// Self-reported daily short-form time. [hoursPerDay] is the projection's only
 /// input, so a band is a number with a label rather than a bare enum.
 enum ScreenTimeBand {
-  lessThan1h('LESS_THAN_1H', 0.5, 'Under 1 hour'),
-  between1And2h('BETWEEN_1_AND_2H', 1.5, '1–2 hours'),
-  between2And3h('BETWEEN_2_AND_3H', 2.5, '2–3 hours'),
-  between3And4h('BETWEEN_3_AND_4H', 3.5, '3–4 hours'),
-  between4And5h('BETWEEN_4_AND_5H', 4.5, '4–5 hours'),
-  between5And7h('BETWEEN_5_AND_7H', 6, '5–7 hours'),
-  over7h('OVER_7H', 8, 'More than 7 hours'),
-  dontKnow('DONT_KNOW', 3, 'I honestly don’t know');
+  lessThan1h('LESS_THAN_1H', 0.5, 'Under 1h'),
+  between1And2h('BETWEEN_1_AND_2H', 1.5, '1–2h'),
+  between2And3h('BETWEEN_2_AND_3H', 2.5, '2–3h'),
+  between3And4h('BETWEEN_3_AND_4H', 3.5, '3–4h'),
+  between4And5h('BETWEEN_4_AND_5H', 4.5, '4–5h'),
+  between5And7h('BETWEEN_5_AND_7H', 6, '5–7h'),
+  over7h('OVER_7H', 8, 'Over 7h'),
+  dontKnow('DONT_KNOW', 3, 'Not sure');
 
   const ScreenTimeBand(this.wire, this.hoursPerDay, this.label);
 
@@ -68,10 +68,10 @@ enum ScreenTimeBand {
 
 /// Why the user is here. Chooses the starter rule — see `starter_rule.dart`.
 enum MattersMost {
-  focus('FOCUS', 'Focus and getting things done'),
-  sleep('SLEEP', 'Sleeping properly'),
-  present('PRESENT', 'Being present with people'),
-  mental('MENTAL', 'How scrolling makes me feel'),
+  focus('FOCUS', 'Focus'),
+  sleep('SLEEP', 'Sleep'),
+  present('PRESENT', 'Being present'),
+  mental('MENTAL', 'How I feel'),
   other('OTHER', 'Something else');
 
   const MattersMost(this.wire, this.label);

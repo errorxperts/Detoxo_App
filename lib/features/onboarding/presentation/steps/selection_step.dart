@@ -93,17 +93,30 @@ class _SelectionStepState extends State<SelectionStep> {
         }
         _seed(installed);
         final picked = widget.progress.platforms;
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.lg,
-            96,
-            AppSpacing.lg,
-            168,
-          ),
+        final n = picked.length;
+        return EntranceList(
           children: [
-            Text(
-              'What should Detoxo guard?',
-              style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    'What should Detoxo guard?',
+                    style: text.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                // Flips on the same rebuild the toggle triggers — and says why
+                // Next is dark while nothing is picked.
+                Pill(
+                  label: n == 0
+                      ? 'Pick at least one'
+                      : '$n feed${n == 1 ? '' : 's'} guarded',
+                  tone: n == 0 ? AppTone.neutral : AppTone.accent,
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(

@@ -26,6 +26,7 @@ decide what Detoxo sets up for you.
    else).
 3. **The maths** — at the rate you just gave, how many days of your next five
    years that adds up to. It's arithmetic on your own answer, not a judgement.
+   Tap **1 year**, **5 years** or **10 years** to see the horizon change.
 4. **What should Detoxo guard?** — pick the feeds to protect from the apps you
    actually have installed. Instagram's Feed, Reels and Stories collapse under
    one tile, so you can be as broad or as picky as you like. You need to pick at
@@ -50,9 +51,9 @@ you**, based on what you said matters most:
 
 | You picked | Detoxo sets up |
 |---|---|
-| Sleeping properly | Feeds blocked every night, 22:00–07:00 |
-| Focus and getting things done | Feeds blocked weekdays, 09:00–17:00 |
-| Being present · How scrolling feels · Something else | 30 minutes of feed a day, then blocked until tomorrow |
+| Sleep | Feeds blocked every night, 22:00–07:00 |
+| Focus | Feeds blocked weekdays, 09:00–17:00 |
+| Being present · How I feel · Something else | 30 minutes of feed a day, then blocked until tomorrow |
 
 It's an ordinary rule like any other — open **Rules** to change the hours, the
 apps, or delete it entirely.

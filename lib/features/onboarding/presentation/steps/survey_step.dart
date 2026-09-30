@@ -27,12 +27,22 @@ class SurveyStep extends StatelessWidget {
         _ => null,
       };
 
+  /// Leading glyphs for chip answers, keyed by wire token so the script stays
+  /// Flutter-free. A token with no entry renders a plain chip.
+  static const _icons = <String, IconData>{
+    'FOCUS': Icons.center_focus_strong_rounded,
+    'SLEEP': Icons.bedtime_rounded,
+    'PRESENT': Icons.people_rounded,
+    'MENTAL': Icons.favorite_rounded,
+    'OTHER': Icons.more_horiz_rounded,
+  };
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final cubit = context.read<OnboardingCubit>();
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.xl, 96, AppSpacing.xl, 168),
+    final days = progress.daysPerYear;
+    return EntranceList(
       children: [
         Text(
           'A few quick things',
@@ -40,24 +50,32 @@ class SurveyStep extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Your answers stay on this device. They shape what Detoxo sets up '
-          'for you.',
+          'Stays on this device. Shapes what Detoxo sets up for you.',
           style: text.bodyMedium?.copyWith(color: context.glass.onGlassMuted),
         ),
-        const SizedBox(height: AppSpacing.xl),
-        EntranceList(
-          children: [
-            for (final q in surveyQuestions)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-                child: _Question(
-                  question: q,
-                  value: _valueOf(progress, q.field),
-                  onAnswer: (v) => cubit.answer(q.field, v),
-                ),
-              ),
-          ],
-        ),
+        const SizedBox(height: AppSpacing.md),
+        for (final q in surveyQuestions)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+            child: _Question(
+              question: q,
+              value: _valueOf(progress, q.field),
+              onAnswer: (v) => cubit.answer(q.field, v),
+              // The number the projection will count up, the moment a band
+              // lands. Keyed by band so a re-pick replays the entrance.
+              footer: q.field == fieldBand && days != null
+                  ? KeyedSubtree(
+                      key: ValueKey(progress.band),
+                      child: Text(
+                        'About $days days a year',
+                        style: text.labelMedium?.copyWith(
+                          color: context.accent,
+                        ),
+                      ).entrance(),
+                    )
+                  : null,
+            ),
+          ),
       ],
     );
   }
@@ -68,11 +86,15 @@ class _Question extends StatelessWidget {
     required this.question,
     required this.value,
     required this.onAnswer,
+    this.footer,
   });
 
   final OnboardingQuestion question;
   final String? value;
   final ValueChanged<String?> onAnswer;
+
+  /// Live feedback under the answer (never part of the answer itself).
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -80,11 +102,15 @@ class _Question extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          question.prompt,
-          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: AppSpacing.md),
+        // A text field already names itself with the prompt (its Semantics
+        // label and hint); a second visible copy is a row of nothing.
+        if (question.kind != QuestionKind.text) ...[
+          Text(
+            question.prompt,
+            style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+        ],
         switch (question.kind) {
           QuestionKind.text => _TextAnswer(
             hint: question.hint,
@@ -92,13 +118,15 @@ class _Question extends StatelessWidget {
             initial: value,
             onAnswer: onAnswer,
           ),
+          // No run spacing: `AppChip` already pads itself to the 48 dp target,
+          // so rows pitch at 48 with a visual gap between the pills.
           QuestionKind.chips => Wrap(
             spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
             children: [
               for (final o in question.options)
                 AppChip(
                   label: o.label,
+                  icon: SurveyStep._icons[o.wire],
                   selected: value == o.wire,
                   // Single-select and never deselectable: a required question
                   // with nothing chosen is a dead Next button the user cannot
@@ -108,6 +136,11 @@ class _Question extends StatelessWidget {
             ],
           ),
         },
+        if (footer != null)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: footer,
+          ),
       ],
     );
   }
@@ -145,9 +178,9 @@ class _TextAnswerState extends State<_TextAnswer> {
 
   @override
   Widget build(BuildContext context) {
-    // The prompt is a sibling Text, and a collapsed decoration's hintText is
-    // only announced while the field is empty — so once the user types, the
-    // field would have no label at all. Name it explicitly.
+    // The prompt is no longer a sibling Text, and a collapsed decoration's
+    // hintText is only announced while the field is empty — so once the user
+    // types, the field would have no label at all. Name it explicitly.
     return Semantics(
       textField: true,
       label: widget.label,

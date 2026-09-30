@@ -83,6 +83,7 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return Semantics(
       slider: true,
       label: 'Daily limit',
@@ -109,7 +110,7 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
               // updates immediately.
               TweenAnimationBuilder<double>(
                 tween: Tween<double>(end: _fraction),
-                duration: AppDurations.fast,
+                duration: reduce ? Duration.zero : AppDurations.fast,
                 curve: AppCurves.standard,
                 builder: (context, f, _) => CustomPaint(
                   size: Size.square(widget.size),
@@ -122,7 +123,7 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
                   ),
                 ),
               ),
-              _center(context, text),
+              _center(context, text, reduce: reduce),
             ],
           ),
         ),
@@ -130,7 +131,7 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
     );
   }
 
-  Widget _center(BuildContext context, TextTheme text) {
+  Widget _center(BuildContext context, TextTheme text, {required bool reduce}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -157,7 +158,7 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
         ),
         const SizedBox(height: AppSpacing.sm),
         AnimatedOpacity(
-          duration: AppDurations.normal,
+          duration: reduce ? Duration.zero : AppDurations.normal,
           opacity: _interacted ? 0 : 1,
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -270,5 +271,7 @@ class _DialPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DialPainter old) =>
-      old.fraction != fraction || old.accent != accent;
+      old.fraction != fraction ||
+      old.accent != accent ||
+      old.trackColor != trackColor;
 }
