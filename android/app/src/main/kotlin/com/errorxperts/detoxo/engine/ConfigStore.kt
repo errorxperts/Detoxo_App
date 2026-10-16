@@ -325,6 +325,16 @@ class ConfigStore(context: Context) {
         get() = prefs.getString(KEY_BLOCK_SCREEN_STYLE, "") ?: ""
         set(value) = prefs.edit().putString(KEY_BLOCK_SCREEN_STYLE, value).apply()
 
+    /**
+     * The app's own theme choice (`SYSTEM | LIGHT | DARK`, Dart `AppThemeMode`),
+     * pushed with the settings: the block screen's light/dark look follows it
+     * (`wallIsDark`).
+     * "" = never pushed → the device's night mode.
+     */
+    var appThemeMode: String
+        get() = prefs.getString(KEY_APP_THEME_MODE, "") ?: ""
+        set(value) = prefs.edit().putString(KEY_APP_THEME_MODE, value).apply()
+
     // ── Rules (schedules / daily limits) ────────────────────────────────────
 
     /**
@@ -493,6 +503,7 @@ class ConfigStore(context: Context) {
         private const val KEY_WEB_BLOCK_TODAY = "web_block_today"
         private const val KEY_WEB_BLOCK_TOTAL = "web_block_total"
         private const val KEY_BLOCK_SCREEN_STYLE = "block_screen_style"
+        private const val KEY_APP_THEME_MODE = "app_theme_mode"
         private const val KEY_RULES = "rules_json"
         private const val KEY_NEXT_BOUNDARY = "next_boundary_ms"
         private const val KEY_NUDGE_ENABLED = "nudge_enabled"

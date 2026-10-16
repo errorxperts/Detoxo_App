@@ -129,13 +129,13 @@ class SettingsCubit extends Cubit<AppSettings> {
   Future<void> setShowFeedbackButton({required bool enabled}) =>
       _commit((s) => s.copyWith(showFeedbackButton: enabled));
 
-  /// Appearance preference. UI-only; pushing to native is harmless (the engine
-  /// ignores the field) and keeps a single persistence path.
+  /// Appearance preference. Pushed natively with the settings: the block
+  /// screen's look (Face Down light, Spotlight dark) follows it.
   Future<void> setThemeMode(AppThemeMode mode) =>
       _commit((s) => s.copyWith(themeMode: mode));
 
-  /// Animated background choice for one theme. UI-only (like [setThemeMode]);
-  /// the native engine ignores it and persistence flows through [_commit]. Pass
+  /// Animated background choice for one theme. UI-only: the native engine
+  /// ignores it and persistence flows through [_commit]. Pass
   /// [dark] for the mode being edited so each theme keeps its own pick.
   Future<void> setBackground(AppBackground background, {required bool dark}) =>
       _commit(

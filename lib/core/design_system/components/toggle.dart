@@ -98,7 +98,12 @@ class AppToggle extends StatelessWidget {
         ),
       ),
     );
-    if (!live) visual = Opacity(opacity: 0.45, child: visual);
+    // Always wrapped, so going disabled fades rather than snapping.
+    visual = AnimatedOpacity(
+      opacity: live ? 1 : 0.45,
+      duration: AppDurations.fast,
+      child: visual,
+    );
 
     final hasLabel = label != null;
     return MergeSemantics(

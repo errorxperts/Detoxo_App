@@ -11,25 +11,35 @@ import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Live-preview customisation for the block screen: background, theme, which
-/// lines to show and the back-button countdown, plus "Try it on your phone",
-/// which raises the real wall over this screen. Reads the app-wide
-/// `BlockScreenStyleCubit` (shared with the Appearance hub); the preview
-/// reflects the user's current plan.
+/// The block screen's editor: one big live preview of the look the app theme
+/// gives it (Face Down when light, Spotlight when dark), "Try it on your
+/// phone", which raises the real wall over this screen, and one panel of
+/// options. Reads the app-wide `BlockScreenStyleCubit` (shared with the
+/// Appearance hub); the preview reflects the user's current plan.
 class BlockScreenStyleScreen extends StatelessWidget {
   const BlockScreenStyleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const GlassScaffold(
-      appBar: GlassAppBar(title: Text('Block screen')),
+      appBar: GlassAppBar(
+        title: Text('Block screen'),
+        actions: [
+          InfoButton(
+            'Each block shows one of 100 built-in quotes, a new one every '
+            'time. The look follows your app theme — Face Down when it’s '
+            'light, Spotlight when it’s dark. Change the theme under '
+            'Appearance.\n\nSwitched off, app and website blocks show a '
+            'short toast instead. Daily limits, schedules, an empty '
+            'Conscious bank and the Block screen mode for reels still '
+            'show it.',
+          ),
+        ],
+      ),
       body: SafeArea(child: _Body()),
     );
   }
 }
-
-/// Explicit control order — decoupled from enum declaration order.
-const _themes = [WidgetTheme.system, WidgetTheme.light, WidgetTheme.dark];
 
 class _Body extends StatelessWidget {
   const _Body();
@@ -52,9 +62,18 @@ class _Body extends StatelessWidget {
       todayCount: today,
     );
     final cubit = context.read<BlockScreenStyleCubit>();
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final text = Theme.of(context).textTheme;
+
+    final hairline = Divider(
+      height: 1,
+      thickness: 1,
+      color: context.glass.border,
+    );
 
     return BlocBuilder<BlockScreenStyleCubit, BlockScreenStyle>(
       builder: (context, style) {
+        final on = style.enabled;
         return ListView(
           padding: EdgeInsets.fromLTRB(
             AppSpacing.md,
@@ -63,82 +82,80 @@ class _Body extends StatelessWidget {
             AppSpacing.md + MediaQuery.viewPaddingOf(context).bottom,
           ),
           children: [
+            // The same switch as the Appearance card's, so the screen that
+            // shows the wall can also turn it off and on.
+            GlassCard(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: _SwitchRow(
+                icon: Icons.front_hand_rounded,
+                title: 'Show block screen',
+                caption: 'For app & website blocks',
+                value: on,
+                onChanged: (v) => cubit.setEnabled(enabled: v),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
             _PreviewStage(style: style, payload: payload),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              '${dark ? 'Spotlight' : 'Face Down'} · follows your app theme',
+              textAlign: TextAlign.center,
+              style: text.bodySmall?.copyWith(
+                color: context.glass.onGlassMuted,
+              ),
+            ),
             const SizedBox(height: AppSpacing.sm),
+            // Waits for the switch, and for the overlay grant the line under
+            // it asks for — a tap that can only fail is not offered.
             SecondaryButton(
               label: 'Try it on your phone',
               icon: Icons.fullscreen_rounded,
               expand: true,
-              onPressed: () => unawaited(
-                _tryIt(context, payload, overlayGranted: overlayGranted),
-              ),
+              onPressed: on && overlayGranted != false
+                  ? () => unawaited(_tryIt(context, payload))
+                  : null,
             ),
-            const SizedBox(height: AppSpacing.lg),
-            const SectionHeader('Background'),
-            VariantCarousel(
-              height: 132,
-              cardWidth: 104,
-              options: [
-                for (final b in WidgetBackground.values)
-                  VariantOption(
-                    label: _bgLabel(b),
-                    selected: style.background == b,
-                    onTap: () => cubit.setBackground(b),
-                    preview: BlockScreenPreview(
-                      style: style.copyWith(background: b),
-                      payload: payload,
-                      height: 88,
-                      compact: true,
-                    ),
+            AppReveal(
+              child: on && overlayGranted == false
+                  ? NoticeLine(
+                      'Needs “Display over other apps” — tap to allow',
+                      onTap: () => unawaited(
+                        context.read<ContentCounterCubit>().requestOverlay(),
+                      ),
+                    )
+                  : null,
+            ),
+            const SectionHeader('Options'),
+            GlassCard(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Column(
+                children: [
+                  _SwitchRow(
+                    icon: Icons.movie_filter_rounded,
+                    title: 'Reel count today',
+                    value: style.showCount,
+                    enabled: on,
+                    onChanged: (v) => cubit.setShowCount(show: v),
                   ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const SectionHeader('Theme'),
-            GlassSegmented(
-              segments: const [
-                (label: 'System', icon: null),
-                (label: 'Light', icon: null),
-                (label: 'Dark', icon: null),
-              ],
-              selectedIndex: _themes.indexOf(style.theme),
-              onChanged: (i) => cubit.setTheme(_themes[i]),
-              height: AppSizes.controlHeight,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const SectionHeader('Show'),
-            AppToggleTile(
-              leading: const IconBadge(icon: Icons.movie_filter_rounded),
-              title: 'Today’s reel count',
-              subtitle: 'How many reels you’ve watched today',
-              value: style.showCount,
-              onChanged: (v) => cubit.setShowCount(show: v),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppToggleTile(
-              leading: const IconBadge(icon: Icons.repeat_rounded),
-              title: 'Times opened today',
-              subtitle:
-                  'How often you’ve opened the app today (needs Usage access)',
-              value: style.showOpens,
-              onChanged: (v) => cubit.setShowOpens(show: v),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            AppToggleTile(
-              leading: const IconBadge(icon: Icons.palette_outlined),
-              title: 'Color by usage',
-              subtitle: 'Tint the accent green→red as you watch more',
-              value: style.accentByUsage,
-              onChanged: (v) => cubit.setAccentByUsage(on: v),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const SectionHeader('Friction'),
-            AppToggleTile(
-              leading: const IconBadge(icon: Icons.hourglass_bottom_rounded),
-              title: 'Wait before going back',
-              subtitle: 'The way back into the app unlocks after 5 seconds',
-              value: style.backDelaySec > 0,
-              onChanged: (v) => cubit.setBackDelay(on: v),
+                  hairline,
+                  _SwitchRow(
+                    icon: Icons.repeat_rounded,
+                    title: 'Times opened today',
+                    caption: 'Needs Usage access',
+                    value: style.showOpens,
+                    enabled: on,
+                    onChanged: (v) => cubit.setShowOpens(show: v),
+                  ),
+                  hairline,
+                  _SwitchRow(
+                    icon: Icons.hourglass_bottom_rounded,
+                    title: 'Wait 5 seconds to go back',
+                    value: style.backDelaySec > 0,
+                    enabled: on,
+                    onChanged: (v) => cubit.setBackDelay(on: v),
+                  ),
+                ],
+              ),
             ),
           ],
         );
@@ -147,31 +164,22 @@ class _Body extends StatelessWidget {
   }
 }
 
-/// Raises the real wall. The overlay grant is read from the tri-state the app
-/// already holds (`ContentCount.overlayGranted`): a definite `false` gets the
-/// permission hint; anything else that fails gets a neutral message, because
-/// `showBlockScreen`'s false cannot tell "off" from "no native side".
-Future<void> _tryIt(
-  BuildContext context,
-  BlockScreenPayload payload, {
-  required bool? overlayGranted,
-}) async {
-  if (overlayGranted == false) {
-    GlassToast.show(
-      context,
-      'Needs “Display over other apps” — allow it from Appearance.',
-      tone: AppTone.warning,
-    );
-    return;
-  }
+/// Raises the real wall. Only offered while switched on and not known to lack
+/// the overlay grant (the tri-state `ContentCount.overlayGranted`), so a
+/// `false` back means the grant was never read, or there is no native side.
+Future<void> _tryIt(BuildContext context, BlockScreenPayload payload) async {
   final shown = await context.read<BlockScreenStyleCubit>().preview(payload);
   if (!context.mounted || shown) return;
   GlassToast.show(
     context,
-    'Couldn’t show the preview. Is the block screen switched on?',
+    'Couldn’t show the preview — check “Display over other apps” under '
+    'Appearance.',
   );
 }
 
+/// The glass stage under the big preview. Each look is pinned to the theme it
+/// was drawn in, so when the app theme flips the old one cross-fades into the
+/// new instead of snapping.
 class _PreviewStage extends StatelessWidget {
   const _PreviewStage({required this.style, required this.payload});
 
@@ -180,6 +188,7 @@ class _PreviewStage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       decoration: BoxDecoration(
@@ -192,15 +201,92 @@ class _PreviewStage extends StatelessWidget {
         border: Border.all(color: context.glass.border),
       ),
       child: Center(
-        child: BlockScreenPreview(style: style, payload: payload, height: 320),
+        child: AnimatedSwitcher(
+          duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero
+              : AppDurations.normal,
+          child: Theme(
+            key: ValueKey(theme.brightness),
+            data: theme,
+            child: BlockScreenPreview(
+              style: style,
+              payload: payload,
+              height: 360,
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-String _bgLabel(WidgetBackground b) => switch (b) {
-  WidgetBackground.glassDark => 'Glass',
-  WidgetBackground.glassBrand => 'Brand',
-  WidgetBackground.solid => 'Solid',
-  WidgetBackground.usageTint => 'Usage',
-};
+/// One option in a panel: a flat row (the panel is the surface), not an
+/// `AppToggleTile`, which brings its own glass. Not [enabled] (the block
+/// screen switched off), it fades and its switch announces as disabled.
+class _SwitchRow extends StatelessWidget {
+  const _SwitchRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onChanged,
+    this.caption,
+    this.enabled = true,
+  });
+
+  final IconData icon;
+  final String title;
+  final String? caption;
+  final bool value;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    // One TalkBack node per row — title, caption and switch — so a caption is
+    // read with its own switch, not lumped into the panel's text.
+    return MergeSemantics(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Row(
+          children: [
+            Expanded(
+              child: AnimatedOpacity(
+                opacity: enabled ? 1 : 0.45,
+                duration: AppDurations.fast,
+                child: Row(
+                  children: [
+                    IconBadge(icon: icon),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: text.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (caption != null)
+                            Text(
+                              caption!,
+                              style: text.bodySmall?.copyWith(
+                                color: context.glass.onGlassMuted,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            AppToggle(value: value, enabled: enabled, onChanged: onChanged),
+          ],
+        ),
+      ),
+    );
+  }
+}

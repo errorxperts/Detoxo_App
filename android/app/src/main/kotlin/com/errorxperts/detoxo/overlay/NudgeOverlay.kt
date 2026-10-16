@@ -234,7 +234,7 @@ object NudgeOverlay {
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
                 gravity = Gravity.CENTER
                 // 48 dp is Android's minimum touch target — the wall's buttons
-                // take the same floor (BlockScreenRenderer.button).
+                // take the same floor (WallButtons).
                 val min = dp(context, 48f)
                 minWidth = min
                 minHeight = min

@@ -1,7 +1,15 @@
+import 'dart:math' as math;
+
+import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/core/platform_channels/engine_channel.dart';
 import 'package:detoxo/features/blocking/blocking.dart';
+import 'package:detoxo/features/blocking/shared/data/repositories/engine_repository_impl.dart';
 import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+
+class _MockChannel extends Mock implements EngineChannel {}
 
 /// The block screen's wire shapes and copy. Two invariants live here: an
 /// adult hit is never named (EVO-018), and the wire token `CURIOUS` never
@@ -76,7 +84,7 @@ void main() {
       expect(s.plan, isNull);
     });
 
-    test('only a plan block keeps its plan chip', () {
+    test('only a plan block keeps its plan', () {
       const app = BlockScreenPayload(
         referenceType: BlockReferenceType.app,
         referenceId: 'com.a',
@@ -122,7 +130,6 @@ void main() {
         BlockScreenPayload.preview(plan: BlockingPlan.curious, todayCount: 7),
         style,
       );
-      expect(copy.chip, 'Conscious');
       expect(copy.headline, 'Instagram Reels is blocked by Detoxo');
       expect(copy.reason, 'Your Conscious time bank is empty');
       expect(copy.stats, [
@@ -130,13 +137,29 @@ void main() {
         '0:00 left in your bank',
         'Instagram opened 7 times today',
       ]);
-      expect(copy.buttons.map((b) => b.label), [
-        'Go home',
-        'Open Detoxo',
-        'Back to Instagram · 5',
-      ]);
       expect(copy.semanticsLabel.toLowerCase(), isNot(contains('curious')));
+      expect(copy.meta.toLowerCase(), isNot(contains('curious')));
     });
+
+    test(
+      'a reel wall: Home icon, Open Detoxo filled, the way back counted',
+      () {
+        final copy = BlockScreenCopy.from(BlockScreenPayload.preview(), style);
+        expect(copy.buttons.map((b) => b.label), [
+          'Go home',
+          'Open Detoxo',
+          'Back to Instagram · 5',
+        ]);
+        expect(copy.buttons.map((b) => b.action), [
+          'GO_HOME',
+          'OPEN_APP',
+          'DISMISS',
+        ]);
+        expect(copy.buttons[0].icon, isTrue);
+        expect(copy.buttons[1].primary, isTrue);
+        expect(copy.buttons[2].ghost && copy.buttons[2].locked, isTrue);
+      },
+    );
 
     test(
       'the ghost exit is locked while its countdown runs, instant when off',
@@ -184,19 +207,17 @@ void main() {
         BlockScreenPayload.preview(plan: BlockingPlan.oneReel, allowance: 5),
         style,
       );
-      expect(copy.chip, 'Unblock');
       expect(copy.reason, 'You’ve watched your 5 reels');
       expect(copy.stats[1], '0 reels left');
       final one = BlockScreenCopy.from(
         BlockScreenPayload.preview(plan: BlockingPlan.oneReel, todayCount: 1),
         style,
       );
-      expect(one.chip, 'One Reel');
       expect(one.reason, 'You’ve watched your reel');
       expect(one.stats.first, '1 reel today');
     });
 
-    test('an app block says Got it and never Go home', () {
+    test('an app wall keeps Home and Open Detoxo but has no way back in', () {
       const p = BlockScreenPayload(
         referenceType: BlockReferenceType.app,
         referenceId: 'com.instagram.android',
@@ -206,12 +227,21 @@ void main() {
         plan: BlockingPlan.blockAll,
       );
       final copy = BlockScreenCopy.from(p.sanitised(), style);
-      expect(copy.chip, '');
       expect(copy.reason, 'Locked in your App blocker');
       expect(copy.stats, isEmpty);
-      expect(copy.buttons.first.label, 'Got it');
-      expect(copy.buttons.first.action, 'DISMISS');
-      expect(copy.buttons.map((b) => b.label), isNot(contains('Go home')));
+      expect(copy.meta, 'Locked in your App blocker');
+      expect(copy.buttons.map((b) => b.label), ['Go home', 'Open Detoxo']);
+      final allow = BlockScreenCopy.from(
+        p.copyWith(offersUnblock: true).sanitised(),
+        style,
+      );
+      expect(allow.buttons.map((b) => b.label), [
+        'Go home',
+        'Open Detoxo',
+        'Allow for a while',
+      ]);
+      expect(allow.buttons.last.action, 'UNBLOCK');
+      expect(allow.buttons.last.ghost, isTrue);
     });
 
     test('an adult web block is unnamed and offers the browser back', () {
@@ -227,11 +257,31 @@ void main() {
       expect(copy.headline, 'Adult site blocked by Detoxo');
       expect(copy.headline, isNot(contains('example.test')));
       expect(copy.reason, 'Adult content (18+)');
+      expect(copy.meta, 'Adult content (18+)');
       expect(copy.buttons.map((b) => b.label), [
         'Go home',
         'Open Detoxo',
         'Back to Chrome · 5',
       ]);
+      expect(
+        copy.spotlightLine,
+        'Chrome is resting. Move your finger to find the light.',
+      );
+      expect(copy.faceDownLine, isNot(contains('example.test')));
+    });
+
+    test('a website wall names the host', () {
+      const web = BlockScreenPayload(
+        referenceType: BlockReferenceType.website,
+        referenceId: 'reddit.com',
+        displayName: 'reddit.com',
+        appLabel: 'Chrome',
+        blockReason: BlockReason.webRule,
+      );
+      expect(
+        BlockScreenCopy.from(web, style).faceDownLine,
+        'reddit.com can wait. Your peace can’t.',
+      );
     });
 
     test('showCount off drops the count line only', () {
@@ -244,46 +294,168 @@ void main() {
         'Instagram opened 7 times today',
       ]);
     });
+
+    test('meta is the reason and every stat on one line', () {
+      final copy = BlockScreenCopy.from(BlockScreenPayload.preview(), style);
+      expect(
+        copy.meta,
+        'Block All is on · 12 reels today · Instagram opened 7 times today',
+      );
+      expect(copy.faceDownLine, 'Instagram can wait. Your peace can’t.');
+      expect(
+        copy.spotlightLine,
+        'Instagram is resting. Move your finger to find the light.',
+      );
+    });
+  });
+
+  group('the wall palette', () {
+    double contrast(Color a, Color b) {
+      final la = a.computeLuminance();
+      final lb = b.computeLuminance();
+      return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
+    }
+
+    const fallback = Color(0xFF1C3D78); // BrandTint.FALLBACK
+    final primaries = {
+      for (final style in AppBackgroundStyle.values)
+        for (final b in Brightness.values) brandFor(style, b).primary,
+      fallback,
+    };
+
+    test('ink, muted and the accent as a label read on both grounds', () {
+      for (final accent in primaries) {
+        for (final dark in [false, true]) {
+          final p = wallPaletteFor(dark: dark, accent: accent);
+          final at = '$accent, dark: $dark';
+          expect(
+            contrast(p.ink, p.ground),
+            greaterThanOrEqualTo(7),
+            reason: at,
+          );
+          expect(
+            contrast(p.muted, p.ground),
+            greaterThanOrEqualTo(4.5),
+            reason: at,
+          );
+          final label = legibleOn(accent, ground: p.ground, ink: p.ink);
+          expect(
+            contrast(label, p.ground),
+            greaterThanOrEqualTo(4.5),
+            reason: at,
+          );
+        }
+      }
+    });
+
+    test('Face Down is the board ground; Spotlight carries the accent', () {
+      final light = wallPaletteFor(dark: false, accent: fallback);
+      expect(light.ground, const Color(0xFFECEFF4));
+      expect(light.ink, const Color(0xFF12151B));
+      expect(light.muted, const Color(0xFF5A6170));
+      final mint = wallPaletteFor(dark: true, accent: const Color(0xFF37DFA0));
+      final pink = wallPaletteFor(dark: true, accent: const Color(0xFFFF6FB0));
+      expect(mint.ground, isNot(pink.ground));
+      // The dark wall's ink and muted, for every primary a dark app uses.
+      for (final style in AppBackgroundStyle.values) {
+        final accent = brandFor(style, Brightness.dark).primary;
+        final p = wallPaletteFor(dark: true, accent: accent);
+        expect(contrast(p.ink, p.ground), greaterThanOrEqualTo(17));
+        expect(contrast(p.muted, p.ground), greaterThanOrEqualTo(7.8));
+      }
+    });
+
+    test('legibleOn darkens Sky on the light wall, leaves ink alone', () {
+      const sky = Color(0xFF2F6BFF);
+      final p = wallPaletteFor(dark: false, accent: sky);
+      expect(contrast(sky, p.ground), lessThan(4.5)); // 3.9:1
+      final label = legibleOn(sky, ground: p.ground, ink: p.ink);
+      expect(label, isNot(sky));
+      expect(contrast(label, p.ground), greaterThanOrEqualTo(4.5));
+      expect(legibleOn(p.ink, ground: p.ground, ink: p.ink), p.ink);
+    });
+
+    test('every theme primary gives the primary button legible text', () {
+      for (final style in AppBackgroundStyle.values) {
+        for (final b in Brightness.values) {
+          final primary = brandFor(style, b).primary;
+          final fill = legibleFill(primary);
+          expect(
+            contrast(onColorFor(fill), fill),
+            greaterThanOrEqualTo(4.5),
+            reason: '$style/$b',
+          );
+          // Only Sky (light1) needed darkening: white was 4.499:1 there.
+          if (primary != const Color(0xFF2F6BFF)) {
+            expect(fill, primary, reason: '$style/$b');
+          }
+        }
+      }
+    });
+
+    test('the native fallback brand is already legible', () {
+      expect(legibleFill(fallback), fallback);
+    });
   });
 
   group('onColorFor', () {
-    test('navy on the accent, white on a deep-red usage band', () {
+    test('navy on a light fill, white on a deep one', () {
       const navy = Color(0xFF0B1326);
-      expect(onColorFor(const Color(0xFF12A594)), navy); // light accent
-      expect(onColorFor(const Color(0xFF44E2CD)), navy); // dark accent
-      expect(onColorFor(bandColorFor(0)), navy); // green band
-      expect(onColorFor(bandColorFor(400)), Colors.white); // deep red band
+      expect(onColorFor(const Color(0xFF12A594)), navy);
+      expect(onColorFor(const Color(0xFF44E2CD)), navy);
+      expect(onColorFor(const Color(0xFF30A46C)), navy); // green
+      expect(onColorFor(const Color(0xFFC63A3E)), Colors.white); // deep red
     });
   });
 
   group('BlockScreenStyle', () {
-    test('defaults are on, system theme, glass, count + opens shown, 5 s', () {
+    test('defaults are on, count + opens shown, 5 s', () {
       const s = BlockScreenStyle.defaults();
       expect(s.enabled, isTrue);
-      expect(s.theme, WidgetTheme.system);
-      expect(s.background, WidgetBackground.glassDark);
       expect(s.showCount, isTrue);
       expect(s.showOpens, isTrue);
-      expect(s.accentByUsage, isFalse);
       expect(s.backDelaySec, 5);
     });
 
-    test('survives a wire round-trip and keeps enabled=false', () {
+    test('survives a wire round-trip, writing its four keys only', () {
       const s = BlockScreenStyle(
         enabled: false,
-        theme: WidgetTheme.dark,
-        background: WidgetBackground.usageTint,
         showCount: false,
         showOpens: false,
-        accentByUsage: true,
         backDelaySec: 0,
       );
       final w = s.toWire();
-      expect(w['enabled'], isFalse);
-      expect(w['background'], 'USAGE_TINT');
-      expect(w['backDelaySec'], 0);
+      expect(w, {
+        'enabled': false,
+        'showCount': false,
+        'showOpens': false,
+        'backDelaySec': 0,
+      });
       expect(BlockScreenStyle.fromWire(w), s);
     });
+
+    test(
+      'an older build’s style still parses; its removed keys are ignored',
+      () {
+        final s = BlockScreenStyle.fromWire(const {
+          'enabled': false,
+          'theme': 'DARK',
+          'background': 'USAGE_TINT',
+          'design': 'QUOTES',
+          'accentByUsage': true,
+          'showCount': false,
+          'showOpens': true,
+          'backDelaySec': 5,
+        });
+        expect(s, const BlockScreenStyle(enabled: false, showCount: false));
+        expect(s.toWire().keys, [
+          'enabled',
+          'showCount',
+          'showOpens',
+          'backDelaySec',
+        ]);
+      },
+    );
 
     test('backDelaySec is clamped and tolerant', () {
       expect(
@@ -309,12 +481,29 @@ void main() {
         BlockScreenStyle.fromWire(const {}),
         const BlockScreenStyle.defaults(),
       );
-      final s = BlockScreenStyle.fromWire(const {
-        'enabled': 'x',
-        'theme': 'weird',
-      });
-      expect(s.enabled, isTrue);
-      expect(s.theme, WidgetTheme.system);
+      expect(
+        BlockScreenStyle.fromWire(const {
+          'enabled': 'x',
+          'showCount': 3,
+          'showOpens': null,
+          'theme': 'weird',
+        }),
+        const BlockScreenStyle.defaults(),
+      );
+    });
+  });
+
+  group('the wall follows the app theme', () {
+    test('the settings push carries the app theme for the wall', () async {
+      final channel = _MockChannel();
+      when(() => channel.pushSettings(any())).thenAnswer((_) async {});
+      await EngineRepositoryImpl(channel).pushSettings(
+        const AppSettings().copyWith(themeMode: AppThemeMode.light),
+      );
+      final pushed =
+          verify(() => channel.pushSettings(captureAny())).captured.single
+              as Map<String, dynamic>;
+      expect(pushed['themeMode'], 'LIGHT');
     });
   });
 }

@@ -34,8 +34,9 @@ there is more than one. Artifacts land in `build/qa/` (gitignored).
 The Android-free engine logic has plain JVM tests too (`engine/ReelTracker`, the reel
 counter's identity + dwell state machine; `engine/UsageQuery`, the usage-stats filters, local
 midnight and the opens-today transition count; `overlay/BlockScreenGeometry`, the block screen's
-flags, strip math, button-text contrast pick, text-block placement, plan labels and payload
-sanitiser). `dev.sh precommit` (and so
+flags, strip math, button-text contrast pick, plan labels, payload sanitiser, style parsing (old
+keys ignored), the `wallIsDark` table and the wall palette / `legibleOn` / `legibleFill` contrast;
+`overlay/QuoteWall` and `overlay/QuoteBook`, the Quotes wall's motion maths and quote picking). `dev.sh precommit` (and so
 `qa.sh functional`) runs them through `native_tests()` when it can find a JDK 17+
 (`$JAVA_HOME`, macOS `java_home -v 17+`, or the Homebrew `openjdk@17` keg) and
 **warns and skips** otherwise — a host without a JDK never fails the gate, it just

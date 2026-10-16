@@ -517,4 +517,5 @@ The dashboard (`lib/features/dashboard/presentation/dashboard_tab.dart` + `widge
 - `assets/content/pause_countdown_pause_emojis.json` — `EMOJI_PLAN_PAUSE_COUNTDOWN` band.
 - `assets/content/pause_countdown_cooldown_emojis.json` — `EMOJI_PAUSE_COUNTDOWN_COOLDOWN` band (percent).
 - `assets/content/mindful_timer_quotes.json` — mindful quotes.
+- `assets/content/motivational_quotes.json` — the block screen's Quotes design (100 quotes with writers, `{quotes: [{quote, writer, category}]}`); read **natively** by `overlay/QuoteBook.kt`, not by Dart ([25](25-block-screen.md) §5b).
 - `assets/content/daily_limit_emoji_bands.json` — `DAILY_LIMIT_HERO` band (consumed by daily-limit feature).

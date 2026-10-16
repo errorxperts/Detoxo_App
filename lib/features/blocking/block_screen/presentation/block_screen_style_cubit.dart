@@ -4,7 +4,6 @@ import 'package:detoxo/core/utils/app_logger.dart';
 import 'package:detoxo/features/blocking/block_screen/domain/entities/block_screen_payload.dart';
 import 'package:detoxo/features/blocking/block_screen/domain/entities/block_screen_style.dart';
 import 'package:detoxo/features/blocking/block_screen/domain/repositories/block_screen_repository.dart';
-import 'package:detoxo/features/content_counter/content_counter_core/domain/entities/counter_style_enums.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Owns the live-edited block-screen style (the `CounterAppearanceCubit`
@@ -48,21 +47,24 @@ class BlockScreenStyleCubit extends Cubit<BlockScreenStyle> {
 
   void setEnabled({required bool enabled}) =>
       setStyle(state.copyWith(enabled: enabled));
-  void setTheme(WidgetTheme theme) => setStyle(state.copyWith(theme: theme));
-  void setBackground(WidgetBackground background) =>
-      setStyle(state.copyWith(background: background));
   void setShowCount({required bool show}) =>
       setStyle(state.copyWith(showCount: show));
   void setShowOpens({required bool show}) =>
       setStyle(state.copyWith(showOpens: show));
-  void setAccentByUsage({required bool on}) =>
-      setStyle(state.copyWith(accentByUsage: on));
   void setBackDelay({required bool on}) =>
       setStyle(state.copyWith(backDelaySec: on ? 5 : 0));
 
   /// Raises the real wall over the editor ("Try it on your phone"). False when
-  /// the wall is switched off or there is no native side.
-  Future<bool> preview(BlockScreenPayload payload) => _repo.preview(payload);
+  /// the wall is switched off or there is no native side. An edit still in
+  /// the debounce is pushed first: native gates the preview on the stored
+  /// switch, so "on" then Try it at once would otherwise read the old "off".
+  Future<bool> preview(BlockScreenPayload payload) async {
+    if (_debounce?.isActive ?? false) {
+      _debounce!.cancel();
+      await _repo.setStyle(state);
+    }
+    return _repo.preview(payload);
+  }
 
   @override
   Future<void> close() {

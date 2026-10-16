@@ -88,6 +88,7 @@ the unit the engine iterates.
 | `showAlwaysInBlockList` | `bool` `false` | Pin into the block list regardless of install state. |
 | `premiumExclusive` | `bool` `false` | Premium-gated surface. |
 | `pagerViewId` | `String` (absent) | **Native-only, EVO-024.** The reel pager's view id (`":id/name"`, qualified with the app package at parse time, or a full `pkg:id/name`). When present, the awareness counter takes page indices only from scroll events whose *source* is this view, so a one-or-two-item inner list (single-comment sheet, one-item carousel) can never pass as a reel page. Absent = classify every indexed scroll (the pre-EVO-024 behaviour). Values come from device calibration (`adb logcat -s DetoxoService:D`, the `scroll … cls=` lines); none are shipped yet. Ignored by the Dart model. |
+| `homeTabId` | `String` (absent) | **Native-only.** The app's home-feed tab (`":id/name"`, qualified like `pagerViewId`, or a full `pkg:id/name`). On a reel wall over this surface, "Back to {app}" taps it — or restarts the app at its root when it is not on screen (`DetoxoAccessibilityService.openAppHome`, [25](25-block-screen.md) §2). Absent = the wall just closes. Shipped on Instagram's `ig_reel`, `ig_reel_by_friend` and `ig_stories` (`":id/feed_tab"`); never on a surface that is itself the feed (`ig_feed`). Ignored by the Dart model. |
 
 ### 1.4 Detector level (`DetectorModel`)
 
@@ -232,7 +233,7 @@ The parser is deliberately lenient (`org.json`, `opt*` everywhere; any throw yie
 `DetectionConfig.EMPTY`). It flattens the schema into **`Map<String, List<PlatformRule>>` keyed by package**:
 
 - Iterate `featuredApps`; for each app take `packageName` (**falling back to the map key** if absent), skip apps with no `platforms` array.
-- For each platform build a `PlatformRule` { `platformId`, `detectionType`, `premiumExclusive`, `defaultStatus`, `detectors`, `pagerViewId` (optional; `":id/x"` → `"<pkg>:id/x"`, a value with its own package verbatim, blank → `null`) }.
+- For each platform build a `PlatformRule` { `platformId`, `detectionType`, `premiumExclusive`, `defaultStatus`, `detectors`, `pagerViewId` and `homeTabId` (optional; `":id/x"` → `"<pkg>:id/x"`, a value with its own package verbatim, blank → `null`) }.
 - For each entry in `detectors`, the **map key becomes `viewDetector`** (`FINDBYID`, `VIEWID_RES_NAME`, …) and the value becomes a `DetectorRule` { `viewDetector`, `identifiers`, `supportedBlockModes`, `defaultBlockMode` (default `PRESS_BACK`), `priority` (default `0`), `haltOnDetect` (default `true`), `childNodeLimit` (default `-1`), `qualifiedIds` (the `identifiers` prefixed with the package for `FINDBYID`, verbatim for `VIEWID_RES_NAME` — precomputed here so `matches()` never concatenates on the hot path) }.
 - `detectors.sortBy { it.priority }` — ascending priority ordering is applied at parse time.
 
@@ -258,6 +259,7 @@ data class PlatformRule(
     val defaultStatus: Boolean,
     val detectors: List<DetectorRule>,
     val pagerViewId: String?,        // EVO-024: the reel pager's qualified view id, or null
+    val homeTabId: String? = null,   // the app's home-feed tab: "Back to {app}" on a wall taps it
 )
 ```
 

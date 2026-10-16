@@ -150,7 +150,9 @@ and disclosed.
 > when the user has chosen the "Block screen" mode or a limit or schedule they set has run out,
 > show Detoxo's own full-screen block screen, drawn with the user-granted "Display over other
 > apps" permission, which names what was blocked and offers "Go home", "Open Detoxo" and
-> "Back to the app". The second is to measure how long the user has been in an app they asked
+> "Back to the app" — which, only when the user taps it, returns them to that app's home feed by
+> tapping the app's own Home tab (or reopening the app). The second is to measure how long the
+> user has been in an app they asked
 > to be reminded about, and show a small dismissible card saying so. That second use closes
 > nothing and blocks nothing; it is off by default and reads no screen content at all — only
 > which app is in the foreground.

@@ -23,7 +23,7 @@ enum BlockingPlan {
 /// The plan's user-facing name — the one place a wire token becomes a label.
 /// `BlockingPlan.curious` is the legacy wire for **Conscious** and must never
 /// be shown; `oneReel` is "One Reel" for an allowance of 1 and "Unblock" for
-/// more (the dashboard's rule). Null → '' (no chip on the block screen).
+/// more (the dashboard's rule). Null → '' (no label).
 String planLabel(BlockingPlan? plan, {int allowance = 1}) => switch (plan) {
   null => '',
   BlockingPlan.curious => 'Conscious',

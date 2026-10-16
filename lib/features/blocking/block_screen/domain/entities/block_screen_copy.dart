@@ -10,6 +10,7 @@ class BlockScreenButton {
     this.primary = false,
     this.ghost = false,
     this.locked = false,
+    this.icon = false,
   });
 
   final String label;
@@ -21,20 +22,23 @@ class BlockScreenButton {
 
   /// Disabled while its countdown runs (EVO-025) — drawn dimmed.
   final bool locked;
+
+  /// Drawn as an icon (Home); [label] is what it says.
+  final bool icon;
 }
 
 /// MIRROR CONTRACT: every string here reproduces the native wall's copy
 /// (`res/values/strings.xml` + `WallCopy` in `overlay/BlockScreenRenderer.kt`),
 /// so the Flutter preview reads exactly like the real thing. Edit the Kotlin
 /// and the resources first, then mirror here — `block_screen_test.dart` pins
-/// the plan labels and that the wire token `curious` never surfaces.
+/// the reasons, the buttons and that the wire token `curious` never surfaces.
 class BlockScreenCopy {
   const BlockScreenCopy({
-    required this.chip,
     required this.headline,
     required this.reason,
     required this.stats,
     required this.buttons,
+    required this.name,
   });
 
   factory BlockScreenCopy.from(BlockScreenPayload p, BlockScreenStyle style) {
@@ -69,7 +73,6 @@ class BlockScreenCopy {
       if (style.showOpens && p.opensToday >= 0 && p.appLabel.isNotEmpty)
         '${p.appLabel} opened ${_plural(p.opensToday, 'time today', 'times today')}',
     ];
-    final isApp = p.referenceType == BlockReferenceType.app;
     final backTo = p.appLabel.isNotEmpty
         ? p.appLabel
         : p.displayName.isNotEmpty
@@ -78,13 +81,13 @@ class BlockScreenCopy {
     // The ghost exit counts down before it unlocks (EVO-025): the preview
     // shows it as the wall first appears, "Back to Instagram · 5", dimmed.
     final delay = style.backDelaySec;
+    // Home as an icon beside Open Detoxo (the filled one), then the ghosts.
+    // An app wall has no way back in.
     final buttons = <BlockScreenButton>[
-      if (isApp)
-        const BlockScreenButton('Got it', 'DISMISS', primary: true)
-      else
-        const BlockScreenButton('Go home', 'GO_HOME', primary: true),
-      if (p.offersOpenApp) const BlockScreenButton('Open Detoxo', 'OPEN_APP'),
-      if (!isApp)
+      const BlockScreenButton('Go home', 'GO_HOME', icon: true),
+      if (p.offersOpenApp)
+        const BlockScreenButton('Open Detoxo', 'OPEN_APP', primary: true),
+      if (p.referenceType != BlockReferenceType.app)
         BlockScreenButton(
           delay > 0 ? 'Back to $backTo · $delay' : 'Back to $backTo',
           'DISMISS',
@@ -94,24 +97,47 @@ class BlockScreenCopy {
       if (p.offersUnblock)
         const BlockScreenButton('Allow for a while', 'UNBLOCK', ghost: true),
     ];
+    // Who the lines name: the app for reel and app walls, the host for a
+    // website — and the browser for an adult hit, which is never named.
+    final subject = p.isAdult
+        ? p.appLabel
+        : p.referenceType == BlockReferenceType.website
+        ? p.displayName
+        : p.appLabel.isNotEmpty
+        ? p.appLabel
+        : p.displayName;
     return BlockScreenCopy(
-      chip: planLabel(p.plan, allowance: p.allowance),
       headline: headline,
       reason: reason,
       stats: stats,
       buttons: buttons,
+      name: subject.isEmpty ? 'This app' : subject,
     );
   }
 
-  final String chip;
   final String headline;
   final String reason;
   final List<String> stats;
   final List<BlockScreenButton> buttons;
 
+  /// Who the wall's lines name ("Instagram can wait").
+  final String name;
+
+  /// The title on a light wall (Face Down).
+  static const faceDownTitle = 'Put it face down.';
+
+  /// The line under the quote on Face Down…
+  String get faceDownLine => '$name can wait. Your peace can’t.';
+
+  /// …and on Spotlight.
+  String get spotlightLine =>
+      '$name is resting. Move your finger to find the light.';
+
+  /// The reason and every stat as one muted line, under the sub-line.
+  String get meta => [reason, ...stats].where((s) => s.isNotEmpty).join(' · ');
+
   /// Everything a screen reader would say, in reading order.
   String get semanticsLabel => [
-    chip,
     headline,
     reason,
     ...stats,

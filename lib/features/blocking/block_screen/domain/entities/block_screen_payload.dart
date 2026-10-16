@@ -118,8 +118,8 @@ class BlockScreenPayload extends Equatable {
   final String packageName;
   final BlockReason blockReason;
 
-  /// The plan that blocked, or null when no plan chip should render (app /
-  /// web / adult rules fire regardless of plan).
+  /// The plan that blocked, which picks the wall's reason line; null for app /
+  /// web / adult rules, which fire regardless of plan.
   final BlockingPlan? plan;
 
   /// The armed One Reel / Unblock count — decides "One Reel" vs "Unblock".
@@ -137,7 +137,7 @@ class BlockScreenPayload extends Equatable {
   bool get isAdult => blockReason == BlockReason.adult;
 
   /// EVO-018: an adult hit is never named and never one tap from being lifted;
-  /// a plan chip belongs only to a plan block. Native applies the same rules.
+  /// a plan belongs only to a plan block. Native applies the same rules.
   BlockScreenPayload sanitised() {
     var p = this;
     if (p.isAdult) {

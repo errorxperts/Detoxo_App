@@ -149,6 +149,8 @@ class EngineRepositoryImpl implements EngineRepository {
       'blockAdultWebsites': settings.blockAdultWebsites,
       'blockWebsitesForBlockedApps': settings.blockWebsitesForBlockedApps,
       'suppressNotifications': settings.suppressNotifications,
+      // The block screen's light/dark look follows the app's theme, not the phone's.
+      'themeMode': settings.themeMode.wire,
     });
   }
 

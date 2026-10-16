@@ -2,8 +2,10 @@ import 'dart:math' as math;
 
 import 'package:detoxo/core/design_system/foundations/animated_icons.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
+import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_blur.dart';
+import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:flutter/material.dart';
@@ -375,4 +377,65 @@ class EmptyState extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Grows an optional line in and out — size and fade together — so a hint or
+/// a warning appearing under a control slides the layout instead of popping
+/// it. A null [child] collapses to nothing; give a child whose text can
+/// change while shown a key, so the change cross-fades.
+class AppReveal extends StatelessWidget {
+  const AppReveal({required this.child, super.key});
+
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) => AnimatedSwitcher(
+    duration: MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : AppDurations.fast,
+    switchInCurve: AppCurves.standard,
+    switchOutCurve: AppCurves.standard,
+    transitionBuilder: (child, animation) => SizeTransition(
+      sizeFactor: animation,
+      alignment: Alignment.topCenter,
+      child: FadeTransition(opacity: animation, child: child),
+    ),
+    child: child ?? const SizedBox.shrink(),
+  );
+}
+
+/// A warning line for something switched on that cannot work yet — "Needs
+/// “Display over other apps” — tap to allow": the tap is the fix. 48 dp tall
+/// to tap, the line centred in it.
+class NoticeLine extends StatelessWidget {
+  const NoticeLine(this.text, {required this.onTap, super.key});
+
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => AppPressable(
+    onTap: onTap,
+    semanticLabel: text,
+    minTapTarget: const Size(0, AppSizes.minTapTarget),
+    child: Row(
+      children: [
+        const Icon(
+          Icons.warning_amber_rounded,
+          size: 14,
+          color: AppColors.warning,
+        ),
+        const SizedBox(width: AppSpacing.xxs),
+        Expanded(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.warning,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }

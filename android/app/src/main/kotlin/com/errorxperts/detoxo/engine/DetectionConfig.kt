@@ -37,6 +37,13 @@ data class PlatformRule(
      * Filled per app from device calibration (`pagerViewId` in the config).
      */
     val pagerViewId: String?,
+    /**
+     * Fully-qualified id of the app's home-feed tab (Instagram's `feed_tab`):
+     * "Back to {app}" on a wall over this surface taps it, so the user lands on
+     * the feed rather than wherever the engine's BACK left them. Null = the
+     * wall just closes. Never set on a surface that is itself the feed.
+     */
+    val homeTabId: String? = null,
 )
 
 /**
@@ -105,7 +112,7 @@ class DetectionConfig private constructor(
             detectors.sortBy { it.priority }
             // Same qualification rule as FINDBYID ids: ":id/x" → "<pkg>:id/x";
             // a value that already carries its package is used verbatim.
-            val pager = p.optString("pagerViewId").takeIf { it.isNotBlank() }?.let {
+            fun qualified(key: String): String? = p.optString(key).takeIf { it.isNotBlank() }?.let {
                 if (it.startsWith(":")) "$pkg$it" else it
             }
             return PlatformRule(
@@ -115,7 +122,8 @@ class DetectionConfig private constructor(
                 premiumExclusive = p.optBoolean("premiumExclusive", false),
                 defaultStatus = p.optBoolean("defaultStatus", true),
                 detectors = detectors,
-                pagerViewId = pager,
+                pagerViewId = qualified("pagerViewId"),
+                homeTabId = qualified("homeTabId"),
             )
         }
 

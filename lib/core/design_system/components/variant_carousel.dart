@@ -31,12 +31,18 @@ class VariantCarousel extends StatelessWidget {
     required this.options,
     this.height = 104,
     this.cardWidth = 96,
+    this.inset = 0,
     super.key,
   });
 
   final List<VariantOption> options;
   final double height;
   final double cardWidth;
+
+  /// Space before the first card and after the last. A carousel laid edge to
+  /// edge passes the page gutter, so it rests aligned with the page and
+  /// scrolls out to the screen edge.
+  final double inset;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +51,10 @@ class VariantCarousel extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         clipBehavior: Clip.none,
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+        padding: EdgeInsets.symmetric(
+          horizontal: inset,
+          vertical: AppSpacing.xxs,
+        ),
         itemCount: options.length,
         separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
         itemBuilder: (context, i) {

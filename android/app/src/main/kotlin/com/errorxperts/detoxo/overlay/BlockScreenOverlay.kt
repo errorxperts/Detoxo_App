@@ -75,6 +75,9 @@ object BlockScreenOverlay {
     /** The ghost exit's countdown cadence. */
     private const val TICK_MS = 1000L
 
+    /** Try it's wall fading out; the entrance fades in over 220. */
+    private const val FADE_OUT_MS = 150L
+
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
     /** EVO-027's usage query: one idle thread, created on first use. */
@@ -90,6 +93,14 @@ object BlockScreenOverlay {
     private var preview = false
     private var warnedNoOverlay = false
     private var overlayDeniedAtMs = 0L
+
+    /**
+     * The standing wall's quote. An in-place rebuild of the same block (a
+     * newer payload, a style change) keeps it — and, carrying it, skips the
+     * entrance so nothing flashes; any other way the wall comes down clears
+     * it, so the next wall draws a fresh one and eases in.
+     */
+    private var quote: Quote? = null
 
     // The ghost exit ("Back to Instagram"): counted down after the add and
     // relabelled "Dismiss" once the foreground has left the app it names.
@@ -140,8 +151,13 @@ object BlockScreenOverlay {
                 over = over + staysOver
                 return true
             }
-            detach()
+            // A newer payload for the same block (a fresh count, a drained bank)
+            // keeps its quote; a different block draws a new one.
+            detach(keepQuote = current?.referenceId == payload.referenceId)
         }
+        // Taken now, so a refused or failed add below never leaks it into a later wall.
+        val carried = quote
+        quote = null
         val store = storeFor(ctx)
         val spec = BlockScreenStyleSpec.fromJson(store.blockScreenStyleJson)
         if (!spec.enabled &&
@@ -162,7 +178,12 @@ object BlockScreenOverlay {
         }
         overlayDeniedAtMs = 0L
 
-        val view = BlockScreenRenderer.build(ctx, payload, spec) { action -> onAction(ctx, action) }
+        val wallQuote = carried ?: QuoteBook.next(ctx)
+        val view = BlockScreenRenderer.build(
+            ctx, payload, spec, store.appThemeMode, wallQuote, animateIn = carried == null,
+        ) { action ->
+            onAction(ctx, action)
+        }
         view.isClickable = true
         view.setOnTouchListener { _, _ -> true } // swallow every stray touch
         val lp = WindowManager.LayoutParams(
@@ -198,6 +219,7 @@ object BlockScreenOverlay {
         }
         mainView = view
         current = payload
+        quote = wallQuote
         over = staysOver
         this.raisedOver = raisedOver
         this.preview = preview
@@ -233,7 +255,7 @@ object BlockScreenOverlay {
         val o = over
         val pv = preview
         val r = raisedOver
-        detach()
+        detach(keepQuote = true)
         show(context, p, o, pv, r)
     }
 
@@ -269,14 +291,23 @@ object BlockScreenOverlay {
         )
         when (action) {
             BlockScreenRenderer.ACTION_GO_HOME -> {
-                detach()
+                close()
                 goHome(context)
             }
             BlockScreenRenderer.ACTION_OPEN_APP -> {
-                detach()
+                close()
                 launchDetoxo(context)
             }
-            BlockScreenRenderer.ACTION_DISMISS -> detach()
+            BlockScreenRenderer.ACTION_DISMISS -> {
+                // On a reel wall the ghost exit is the only DISMISS: "Back to
+                // Instagram" lands on Instagram's feed. Read before close()
+                // clears the state; relabelled "Dismiss" (the user already left
+                // the app) or a preview → the wall just closes.
+                val home = !preview && p.referenceType == BlockScreenPayload.TYPE_REEL &&
+                    backLabel != context.getString(R.string.wall_dismiss)
+                close()
+                if (home) DetoxoAccessibilityService.instance?.openAppHome(p.packageName, p.referenceId)
+            }
             // EVO-050: the trigger only reveals the duration row (the renderer
             // does that itself). Nothing is written and the wall stays up —
             // this arm exists so the *intent* is still posted for analytics,
@@ -310,7 +341,7 @@ object BlockScreenOverlay {
     ) {
         val minutes = action.removePrefix(BlockScreenRenderer.ACTION_UNBLOCK_PREFIX).toIntOrNull()
         if (preview || p.referenceId.isEmpty() || minutes == null || minutes <= 0) {
-            detach()
+            close()
             return
         }
         val store = storeFor(context)
@@ -381,7 +412,7 @@ object BlockScreenOverlay {
             add(WallCopy.opensLine(ctx, payload.appLabel, opens))
             if (timeMs >= 60000L) add(WallCopy.timeTodayLine(ctx, payload.appLabel, timeMs))
         }
-        mainView?.findViewWithTag<WallView>(BlockScreenRenderer.TAG_WALL)?.extraStats = lines
+        (mainView?.findViewWithTag<View>(BlockScreenRenderer.TAG_WALL) as? QuoteWallView)?.extraStats = lines
     }
 
     // ── Gesture defence ──────────────────────────────────────────────────────
@@ -437,7 +468,40 @@ object BlockScreenOverlay {
         view.systemGestureExclusionRects = listOf(Rect(0, 0, view.width, view.height))
     }
 
-    private fun detach() {
+    /**
+     * The user's own exit. A real wall goes at once, so the app beneath takes
+     * the very next touch; Try it's wall leaves as it came — a short fade over
+     * the editor — instead of vanishing.
+     */
+    private fun close() = if (preview) fadeOutPreview() else detach()
+
+    /**
+     * Clears the state now (a new wall can rise at once) and stops the window
+     * taking touches, so only the picture lingers while it fades; the view is
+     * removed when the fade ends ("Remove animations" ends it at once).
+     */
+    private fun fadeOutPreview() {
+        val v = mainView
+        val lp = v?.layoutParams as? WindowManager.LayoutParams
+        val wm = app?.let { wm(it) }
+        if (v == null || lp == null || wm == null) return detach()
+        mainView = null // so detach() leaves the view to the fade
+        detach()
+        lp.flags = lp.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        try {
+            wm.updateViewLayout(v, lp)
+        } catch (_: IllegalArgumentException) {
+        }
+        v.animate().alpha(0f).setDuration(FADE_OUT_MS).withEndAction {
+            try {
+                wm.removeView(v)
+            } catch (_: IllegalArgumentException) {
+            }
+        }
+    }
+
+    private fun detach(keepQuote: Boolean = false) {
+        if (!keepQuote) quote = null
         mainHandler.removeCallbacks(countdownTick)
         backButton = null
         backLabel = ""
