@@ -239,6 +239,11 @@ resume** — previously every sync ran only on a cold start through the splash,
 so an app kept in recents for days never re-checked permissions and showed
 yesterday's counts after midnight. On each resume (all fire-and-forget):
 
+- **On `paused`** (before the resume-only early return): one guarded
+  `HomeWidgetRepository.push(reason: background)` — leaving Detoxo catches the
+  home widgets up with the counts their 10-reel budget skipped
+  ([17](17-content-counter.md) §2.5).
+
 - **Cheap leg, every resume:** `PermissionsCubit.refresh()` (keeps the
   persisted granted set fresh), `ServiceCubit.refresh()` (un-sticks the
   "Protection off" card after a rebind), `ContentCounterCubit.refresh()` (the

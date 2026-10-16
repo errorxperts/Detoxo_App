@@ -1,37 +1,33 @@
-// Appearance enums for the reel-counter bubble and home-screen widget.
+// Appearance enums for the reel-counter bubble and home-screen widgets.
 //
 // Each enum carries its wire token (the string persisted natively in
-// `ContentCounterStore` and sent over the command channel) so (de)serialization
+// `ContentCounterStore` or sent over the command channel) so (de)serialization
 // is explicit and order-independent — mirroring the pattern in `enums.dart`.
 
-/// The visual style of the floating counter bubble. Every variant is drawn
-/// natively (Canvas) and mirrored by a Flutter preview; two variants react to
-/// today's count via the shared usage ladder.
+/// The visual style of the floating counter bubble: one of six board designs.
+/// Each is a shell (the circle's chrome) plus a face (what it shows), drawn
+/// natively and mirrored by a Flutter preview; the colour always follows
+/// today's DS-01 tier (`BubbleModel.tier`). A stored style that is no longer
+/// offered (NEON, STEPS, WEATHER, OUTLINE) reads back as [mascot].
 enum BubbleVariant {
-  /// Refined dark-glass circle: seed→accent gradient ring, mint glow, centered
-  /// count. The default, brand-forward look.
-  glassOrb('GLASS_ORB'),
+  mascot('MASCOT', 'Mascot'),
+  ring('RING', 'Ring'),
+  liquid('LIQUID', 'Liquid'),
+  hourglass('HOURGLASS', 'Hourglass'),
+  bezel('BEZEL', 'Bezel'),
+  drop('DROP', 'Drop');
 
-  /// Glass bubble whose ring/fill color follows today's count (green→brown).
-  usageRing('USAGE_RING'),
-
-  /// Glass bubble showing an emoji that degrades happy→worst as the count grows,
-  /// with a small count.
-  emojiMood('EMOJI_MOOD'),
-
-  /// Compact glass capsule: count text plus a small usage-colored dot.
-  minimalPill('MINIMAL_PILL');
-
-  const BubbleVariant(this.wire);
+  const BubbleVariant(this.wire, this.label);
   final String wire;
 
-  static BubbleVariant fromWire(String? v) => values.firstWhere(
-    (e) => e.wire == v,
-    orElse: () => BubbleVariant.glassOrb,
-  );
+  /// Display name in the app.
+  final String label;
+
+  static BubbleVariant fromWire(String? v) =>
+      values.firstWhere((e) => e.wire == v, orElse: () => BubbleVariant.mascot);
 }
 
-/// The glass background treatment of the home-screen widget bitmap.
+/// The glass background treatment of the block screen (`BlockScreenStyle`).
 enum WidgetBackground {
   /// Current dark glass: 0xFF171F33→0xFF0B1326 with a mint hairline.
   glassDark('GLASS_DARK'),
@@ -68,14 +64,68 @@ enum WidgetTheme {
       values.firstWhere((e) => e.wire == v, orElse: () => WidgetTheme.system);
 }
 
-/// The widget's information density (font scale + padding in the bitmap).
-enum WidgetDensity {
-  cozy('COZY'),
-  compact('COMPACT');
+/// The seven home-screen widget families (Widget Rules DS-10). Each is one
+/// native provider plus one face per language; [wire] names it on the channel,
+/// in the widget tap and in analytics.
+enum WidgetFamily {
+  count('COUNT', 'Count', 'Today at a glance. The tile colour is the tier.'),
+  nextColour(
+    'NEXT_COLOUR',
+    'Next colour',
+    'The ring fills over each block of 100 reels, then the tile changes colour.',
+  ),
+  timeLimit(
+    'TIME_LIMIT',
+    'Time limit',
+    "Watch time left in today's limit, in twelve segments.",
+  ),
+  rhythm(
+    'RHYTHM',
+    'Rhythm',
+    "When today's scrolling happened, hour by hour, with the peak hour called out.",
+  ),
+  bonsai(
+    'BONSAI',
+    'Bonsai',
+    'A living tree on a neutral tile. It loses a stage every 100 reels, from Blooming to Leafless.',
+  ),
+  bento(
+    'BENTO',
+    'Bento',
+    'A neutral shell with modules. The count module carries the tier colour; the rest stay calm.',
+  ),
+  plan(
+    'PLAN',
+    'Plan',
+    'Whether blocking is on right now, and which plan is running. A pause counts down.',
+  );
 
-  const WidgetDensity(this.wire);
+  const WidgetFamily(this.wire, this.label, this.blurb);
   final String wire;
 
-  static WidgetDensity fromWire(String? v) =>
-      values.firstWhere((e) => e.wire == v, orElse: () => WidgetDensity.cozy);
+  /// Display name in the app (the rail). The Android picker's names are
+  /// native, `res/values/strings.xml` `widget_label_*`.
+  final String label;
+
+  /// The one muted line describing the family in the app.
+  final String blurb;
+
+  static WidgetFamily fromWire(String? v) =>
+      values.firstWhere((e) => e.wire == v, orElse: () => WidgetFamily.count);
+}
+
+/// A home-widget size class (DS-04). Native picks it per instance from the
+/// launcher cell; in the app it is the preview's size switch. Its design box
+/// lives with the drawing code (`WidgetSizeGeometry`).
+enum WidgetSize {
+  small('SMALL', 'Small'),
+  medium('MEDIUM', 'Medium'),
+  large('LARGE', 'Large');
+
+  const WidgetSize(this.wire, this.label);
+  final String wire;
+  final String label;
+
+  static WidgetSize fromWire(String? v) =>
+      values.firstWhere((e) => e.wire == v, orElse: () => WidgetSize.small);
 }

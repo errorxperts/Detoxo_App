@@ -58,6 +58,8 @@ class AppearanceScreen extends StatelessWidget {
 /// The wall as one full-width card: a live landscape preview you tap to edit,
 /// its own on/off switch, and the truthful overlay-permission notice (the same
 /// tri-state read the bubble card uses — a wall can only appear with the grant).
+/// Switched off it still opens the editor, which carries the same switch; the
+/// preview itself shows "Off" and a line says what off means.
 class _BlockScreenSection extends StatelessWidget {
   const _BlockScreenSection();
 
@@ -87,15 +89,16 @@ class _BlockScreenSection extends StatelessWidget {
         height: 150,
         compact: true,
       ),
-      editable: style.enabled,
+      editable: true,
       onEdit: () => unawaited(context.push(Routes.blockScreenStyle)),
       trailing: AppToggle(
         value: style.enabled,
         semanticLabel: 'Block screen',
         onChanged: (on) => cubit.setEnabled(enabled: on),
       ),
-      disabledHint:
-          'Block screen off — app & website blocks fall back to a short toast',
+      hint: style.enabled
+          ? null
+          : 'Off — app & website blocks fall back to a short toast',
       notice: style.enabled && overlayGranted == false
           ? 'Needs “Display over other apps” — tap to allow'
           : null,
@@ -119,19 +122,18 @@ class _CounterSection extends StatelessWidget {
     final count = context.watch<ContentCounterCubit>().state;
     final appearance = context.watch<CounterAppearanceCubit>().state;
     final cubit = context.read<ContentCounterCubit>();
-    // Representative figures so the previews read at a legible number even
+    // A representative count so the bubble reads at a legible number even
     // before anything is counted today.
     final today = count.today > 0 ? count.today : 137;
-    final total = count.total > 0 ? count.total : 1240;
     final counterOn = count.enabled;
     final bubbleOn = count.bubbleEnabled;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AppToggleTile(
-          leading: const IconBadge(icon: Icons.movie_filter_rounded),
-          title: 'Count short videos',
+        _FlatToggleRow(
+          icon: Icons.movie_filter_rounded,
+          label: 'Count short videos',
           value: counterOn,
           onChanged: (on) => unawaited(cubit.setEnabled(enabled: on)),
         ),
@@ -146,6 +148,7 @@ class _CounterSection extends StatelessWidget {
                   preview: BubblePreview(
                     style: appearance.bubble,
                     count: today,
+                    watch: count.timeToday,
                     area: 88,
                   ),
                   editable: counterOn && bubbleOn,
@@ -156,7 +159,9 @@ class _CounterSection extends StatelessWidget {
                     onChanged: (on) =>
                         unawaited(cubit.setBubbleEnabled(enabled: on)),
                   ),
-                  disabledHint: !counterOn ? 'Counting off' : 'Bubble off',
+                  hint: counterOn && bubbleOn
+                      ? null
+                      : (counterOn ? 'Bubble off' : 'Counting off'),
                   // Truthful state: the switch is on but the overlay grant is
                   // missing, so no bubble can appear — say so, offer the fix.
                   notice: count.bubbleBlocked
@@ -169,15 +174,30 @@ class _CounterSection extends StatelessWidget {
               Expanded(
                 child: _SurfaceCard(
                   title: 'Widget',
+                  // The demo, so the card reads as a real widget rather
+                  // than the grey empty tile. Its clock is floored to the
+                  // minute so a rebuild hands the preview an equal payload;
+                  // its numbers are made up, so a screen reader hears only
+                  // the card.
                   preview: WidgetPreview(
-                    style: appearance.widget,
-                    today: today,
-                    total: total,
-                    size: 88,
+                    family: WidgetFamily.count,
+                    size: WidgetSize.small,
+                    payload: WidgetPayload.demo(
+                      limitMinutes: 120,
+                      theme: appearance.widget.theme.name,
+                      reduceMotion: false,
+                      nowMs:
+                          DateTime.now().millisecondsSinceEpoch ~/
+                          Duration.millisecondsPerMinute *
+                          Duration.millisecondsPerMinute,
+                    ),
+                    width: 88,
+                    animate: false,
+                    excludeFromSemantics: true,
                   ),
                   editable: counterOn,
                   onEdit: () => unawaited(context.push(Routes.homeWidget)),
-                  disabledHint: 'Counting off',
+                  hint: counterOn ? null : 'Counting off',
                 ),
               ),
             ],
@@ -213,7 +233,6 @@ class _ThemeControl extends StatelessWidget {
           AppThemeMode.system => dark ? 1 : 0,
         };
         final cubit = context.read<SettingsCubit>();
-        final text = Theme.of(context).textTheme;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -233,33 +252,17 @@ class _ThemeControl extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Icon(
-                  Icons.brightness_auto_rounded,
-                  size: 20,
-                  color: context.glass.onGlassMuted,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    'Match system',
-                    style: text.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                AppToggle(
-                  value: system,
-                  onChanged: (on) => cubit.setThemeMode(
-                    on
-                        ? AppThemeMode.system
-                        : dark
-                        ? AppThemeMode.dark
-                        : AppThemeMode.light,
-                  ),
-                ),
-              ],
+            _FlatToggleRow(
+              icon: Icons.brightness_auto_rounded,
+              label: 'Match system',
+              value: system,
+              onChanged: (on) => cubit.setThemeMode(
+                on
+                    ? AppThemeMode.system
+                    : dark
+                    ? AppThemeMode.dark
+                    : AppThemeMode.light,
+              ),
             ),
           ],
         );
@@ -268,14 +271,50 @@ class _ThemeControl extends StatelessWidget {
   }
 }
 
+/// A flat (no card) toggle row: muted icon, semibold label, switch. Shared by
+/// **Match system** and the reel counter master so the two read alike.
+class _FlatToggleRow extends StatelessWidget {
+  const _FlatToggleRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: context.glass.onGlassMuted),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+        AppToggle(value: value, semanticLabel: label, onChanged: onChanged),
+      ],
+    );
+  }
+}
+
 // ── Surface card (bubble / home widget) ─────────────────────────────────────────
 
 /// A card whose hero is a large live preview of the surface's current style.
 /// Tapping the preview opens the editor — but only when [editable]; otherwise the
-/// preview dims and a one-line hint explains what to switch on. [trailing] holds
-/// the surface's own on/off switch (the bubble) or is null (the widget, gated by
-/// the counting master). [notice] is a warning line (with a tap action) for a
-/// surface that is switched on but cannot actually appear.
+/// preview dims. [hint] is a muted line under it (what is off, what to switch
+/// on). [trailing] holds the surface's own on/off switch (the bubble, the block
+/// screen) or is null (the widget, gated by the counting master). [notice] is a
+/// warning line (with a tap action) for a surface that is switched on but cannot
+/// actually appear. Both lines slide in and out rather than pop the card.
 class _SurfaceCard extends StatelessWidget {
   const _SurfaceCard({
     required this.title,
@@ -283,7 +322,7 @@ class _SurfaceCard extends StatelessWidget {
     required this.editable,
     required this.onEdit,
     this.trailing,
-    this.disabledHint,
+    this.hint,
     this.notice,
     this.onNotice,
     this.previewHeight = 96,
@@ -294,7 +333,7 @@ class _SurfaceCard extends StatelessWidget {
   final bool editable;
   final VoidCallback onEdit;
   final Widget? trailing;
-  final String? disabledHint;
+  final String? hint;
   final String? notice;
   final VoidCallback? onNotice;
 
@@ -340,75 +379,33 @@ class _SurfaceCard extends StatelessWidget {
               opacity: editable ? 1 : 0.4,
               child: SizedBox(
                 height: previewHeight,
-                child: Stack(
-                  children: [
-                    Center(child: preview),
-                    if (editable)
-                      const Positioned(top: 0, right: 0, child: _EditBadge()),
-                  ],
-                ),
+                child: Center(child: preview),
               ),
             ),
           ),
-          if (!editable && disabledHint != null) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Center(
-              child: Text(
-                disabledHint!,
-                style: text.bodySmall?.copyWith(
-                  color: context.glass.onGlassMuted,
-                ),
-              ),
-            ),
-          ],
-          if (notice != null) ...[
-            const SizedBox(height: AppSpacing.xs),
-            AppPressable(
-              onTap: onNotice ?? () {},
-              semanticLabel: notice,
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    size: 14,
-                    color: AppColors.warning,
-                  ),
-                  const SizedBox(width: AppSpacing.xxs),
-                  Expanded(
-                    child: Text(
-                      notice!,
-                      style: text.bodySmall?.copyWith(
-                        color: AppColors.warning,
-                        fontWeight: FontWeight.w600,
+          AppReveal(
+            child: hint == null
+                ? null
+                : Padding(
+                    // Keyed, so "Counting off" ↔ "Bubble off" cross-fades.
+                    key: ValueKey(hint),
+                    padding: const EdgeInsets.only(top: AppSpacing.xs),
+                    child: Center(
+                      child: Text(
+                        hint!,
+                        style: text.bodySmall?.copyWith(
+                          color: context.glass.onGlassMuted,
+                        ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-          ],
+          ),
+          AppReveal(
+            child: notice == null
+                ? null
+                : NoticeLine(notice!, onTap: onNotice ?? () {}),
+          ),
         ],
-      ),
-    );
-  }
-}
-
-/// The little accent "edit" affordance pinned to a tappable preview.
-class _EditBadge extends StatelessWidget {
-  const _EditBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(7),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.secondary,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        Icons.tune_rounded,
-        size: 16,
-        color: Theme.of(context).colorScheme.onSecondary,
       ),
     );
   }
@@ -417,7 +414,7 @@ class _EditBadge extends StatelessWidget {
 // ── Background carousel ─────────────────────────────────────────────────────────
 
 /// The animated-background picker: a horizontally-scrolling row of real SVG
-/// previews with the chosen background's name below. The options are
+/// previews; the selected one carries its name. The options are
 /// theme-specific — dark mode shows the `dark*` backgrounds, light mode shows
 /// Aurora + the `light*` backgrounds — and each theme keeps its own pick.
 /// Selecting a card updates the app background live behind this screen.
@@ -427,7 +424,6 @@ class _BackgroundSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final text = Theme.of(context).textTheme;
     final options = dark ? _darkBackgrounds : _lightBackgrounds;
     return BlocBuilder<SettingsCubit, AppSettings>(
       buildWhen: (a, b) =>
@@ -437,45 +433,28 @@ class _BackgroundSection extends StatelessWidget {
         final selected = dark
             ? settings.darkBackground
             : settings.lightBackground;
-        final current = options.firstWhere(
-          (e) => e.$1 == selected,
-          orElse: () => options.first,
-        );
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: 84,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                clipBehavior: Clip.none,
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
-                itemCount: options.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(width: AppSpacing.sm),
-                itemBuilder: (context, i) {
-                  final b = options[i];
-                  return _BgCard(
-                    style: b.$1,
-                    dark: dark,
-                    selected: b.$1 == selected,
-                    onTap: () => context.read<SettingsCubit>().setBackground(
-                      b.$1,
-                      dark: dark,
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              current.$2,
-              style: text.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: context.glass.onGlass,
-              ),
-            ),
-          ],
+        return SizedBox(
+          height: 84,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+            itemCount: options.length,
+            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+            itemBuilder: (context, i) {
+              final b = options[i];
+              return _BgCard(
+                style: b.$1,
+                label: b.$2,
+                dark: dark,
+                selected: b.$1 == selected,
+                onTap: () => context.read<SettingsCubit>().setBackground(
+                  b.$1,
+                  dark: dark,
+                ),
+              );
+            },
+          ),
         );
       },
     );
@@ -485,19 +464,21 @@ class _BackgroundSection extends StatelessWidget {
 /// One background preview card (real SVG, or a gradient for the asset-less
 /// Aurora). The SVG is blurred to mirror the full-screen ambient background —
 /// which blurs its SVG heavily — so the swatch reads like what actually renders.
-/// The selected card animates to an accent ring + glow with a check badge.
-/// Same shape as the design system's `VariantCarousel` card, minus the per-card
-/// label (the name is shown once below the row) — fold into it if the two
-/// ever need to move together.
+/// The selected card animates to an accent ring + glow with a check badge and
+/// shows its [label]; every card announces its name to screen readers.
+/// Same shape as the design system's `VariantCarousel` card — fold into it if
+/// the two ever need to move together.
 class _BgCard extends StatelessWidget {
   const _BgCard({
     required this.style,
+    required this.label,
     required this.dark,
     required this.selected,
     required this.onTap,
   });
 
   final AppBackground style;
+  final String label;
   final bool dark;
   final bool selected;
   final VoidCallback onTap;
@@ -516,51 +497,75 @@ class _BgCard extends StatelessWidget {
             imageFilter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: SvgPicture.asset(asset, fit: BoxFit.cover),
           );
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: AppDurations.fast,
-        curve: AppCurves.standard,
-        width: 116,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(
-            color: selected ? accent : context.glass.border,
-            width: borderWidth,
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: AppDurations.fast,
+          curve: AppCurves.standard,
+          width: 116,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(
+              color: selected ? accent : context.glass.border,
+              width: borderWidth,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.35),
+                      blurRadius: 12,
+                    ),
+                  ]
+                : null,
           ),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: accent.withValues(alpha: 0.35),
-                    blurRadius: 12,
-                  ),
-                ]
-              : null,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.md - borderWidth),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              preview,
-              if (selected)
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: accent,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.check,
-                      size: 14,
-                      color: Theme.of(context).colorScheme.onSecondary,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.md - borderWidth),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                preview,
+                if (selected)
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: accent,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.check,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.onSecondary,
+                      ),
                     ),
                   ),
-                ),
-            ],
+                // The swatches follow the theme (dark swatches in dark mode),
+                // so the on-glass text colour reads on all of them.
+                if (selected)
+                  Positioned(
+                    left: AppSpacing.sm,
+                    right: AppSpacing.sm,
+                    bottom: AppSpacing.xs,
+                    child: ExcludeSemantics(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: context.glass.onGlass,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:detoxo/core/design_system/foundations/animated_icons.dart';
 import 'package:detoxo/core/design_system/foundations/liquid_glass_border.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
+import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:flutter/material.dart';
 
@@ -139,15 +140,18 @@ class LiquidPill extends StatelessWidget {
       child: pill,
     );
     if (expand) content = SizedBox(width: double.infinity, child: content);
+    // An explicit label is the whole announcement. Without this the child's
+    // own Text merges into the same node and TalkBack reads both ("Continue
+    // Continue"); with no label that merge is what names the button.
+    if (semanticLabel != null) content = ExcludeSemantics(child: content);
     // A disabled button skips AppPressable, and with it AppPressable's
     // Semantics — so without this the control is announced as plain static
     // text, and a switch-access user cannot even focus it to learn that it is
     // disabled. Onboarding's sole forward control is disabled by default on two
     // of its steps, which is how this surfaced.
     if (disabled) {
-      // `container: true` and no explicit label: the pill's own Text merges up
-      // into this node, so the announcement keeps the visible wording instead
-      // of needing it restated here.
+      // `container: true` so the label — explicit, or the merged-up Text — is
+      // this node's, not the parent's.
       return Semantics(
         button: true,
         enabled: false,
@@ -192,12 +196,18 @@ class _PillContent extends StatelessWidget {
           leading!,
           const SizedBox(width: AppSpacing.xs),
         ],
-        Text(
-          label,
-          style: (dense ? text.labelLarge : text.titleMedium)?.copyWith(
-            color: color,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.2,
+        // Flexible: at the largest font sizes a long label ("Add to home
+        // screen" at 2.0x) is wider than the pill. It ellipsizes; the icon stays.
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: (dense ? text.labelLarge : text.titleMedium)?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.2,
+            ),
           ),
         ),
       ],
@@ -262,22 +272,22 @@ class SecondaryButton extends StatelessWidget {
       ),
     );
     if (expand) content = SizedBox(width: double.infinity, child: content);
-    // Same reasoning as PrimaryButton: the disabled path must still announce
-    // itself as a disabled button, not as decorative text.
-    if (disabled) {
-      return Semantics(
-        button: true,
-        enabled: false,
-        container: true,
-        label: label,
-        child: ExcludeSemantics(child: Opacity(opacity: 0.45, child: content)),
-      );
-    }
+    // [label] is announced explicitly on both paths, so the visible Text must
+    // not merge in as a second read (see LiquidPill).
+    content = ExcludeSemantics(child: content);
+    // One tree for both states: going disabled fades instead of swapping
+    // widgets, keeps the 48 dp tap floor (no layout jump), and — as with
+    // PrimaryButton — still announces a (disabled) button, not decorative text.
     return AppPressable(
-      onTap: onPressed!,
+      onTap: onPressed ?? () {},
+      enabled: !disabled,
       semanticLabel: label,
       minTapTarget: AppSizes.minTapTargetSquare,
-      child: content,
+      child: AnimatedOpacity(
+        opacity: disabled ? 0.45 : 1,
+        duration: AppDurations.fast,
+        child: content,
+      ),
     );
   }
 }

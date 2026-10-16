@@ -186,6 +186,20 @@ flutter:
     - assets/images/social_icon_pack/
     - assets/lottie/
     - assets/svg/
+    # Manrope's OFL licence ships with the font (registered in the licence page).
+    - assets/fonts/OFL.txt
+  # Manrope 700/800 — the home-widget type ramp (Widget Rules DS-03). ONE copy
+  # serves both renderers: Flutter draws the in-app previews with family
+  # `Manrope`, and the native widget reads the same files from
+  # `flutter_assets/assets/fonts/` (widget/WidgetPainter.kt). google_fonts also
+  # resolves these two weights offline, since bundled files win over its fetch.
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Manrope-ExtraBold.ttf
+          weight: 800
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a

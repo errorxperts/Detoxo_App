@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One of seven provider infos, one per widget family (EVO-071), alike but
+     for previewImage (and Plan's description): that family's picture in the
+     widget picker before Android 15 (res/drawable-xhdpi, dark in
+     drawable-night-xhdpi, rendered by
+     test/home_widget_picker_previews_test.dart, which also keeps the seven
+     alike). Android 15+ shows the face HomeWidgets.publishPickerPreviews
+     publishes instead. The picker name is each receiver's android:label. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="110dp"
     android:minHeight="110dp"
@@ -6,6 +13,7 @@
     android:targetCellHeight="2"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/content_counter_widget"
-    android:previewLayout="@layout/content_counter_widget_preview"
+    android:previewImage="@drawable/cc_widget_preview_count"
+    android:description="@string/cc_widget_description"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"/>

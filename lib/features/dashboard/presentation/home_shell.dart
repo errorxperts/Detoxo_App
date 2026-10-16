@@ -18,7 +18,12 @@ import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 /// tab's header menu button. (All blocking management now lives in the App
 /// Blocker screen, reached from the dashboard capsule.)
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key});
+  const HomeShell({this.dashboardRequest, super.key});
+
+  /// Changes each time something asks for the Dashboard tab (a Plan widget
+  /// tap, EVO-073, via `/home?dashboard=<n>`): the shell switches to it even
+  /// when it is already showing, on another tab.
+  final String? dashboardRequest;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -26,6 +31,13 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
+
+  @override
+  void didUpdateWidget(HomeShell old) {
+    super.didUpdateWidget(old);
+    final request = widget.dashboardRequest;
+    if (request != null && request != old.dashboardRequest) _index = 0;
+  }
 
   // Drives the end-drawer (the former "More" tab) via the inner Scaffold.
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -80,7 +92,8 @@ class _HomeShellState extends State<HomeShell> {
           showIcon: false,
           body: (context, controller) => buildFeatureShowcaseScope(
             // Persist on finish AND dismiss so a skipped tour is remembered too.
-            onSeen: () => context.read<SettingsCubit>().setShowcaseSeen(value: true),
+            onSeen: () =>
+                context.read<SettingsCubit>().setShowcaseSeen(value: true),
             child: SafeArea(bottom: false, child: _tab(controller)),
           ),
           child: GlassContainer(
@@ -135,7 +148,8 @@ class _NavPillItem extends StatefulWidget {
 class _NavPillItemState extends State<_NavPillItem> {
   final AnimatedIconController _controller = AnimatedIconController();
 
-  bool get _reduceMotion => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+  bool get _reduceMotion =>
+      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
   @override
   void initState() {
@@ -166,7 +180,9 @@ class _NavPillItemState extends State<_NavPillItem> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final iconColor = widget.selected ? scheme.onPrimary : scheme.onSurfaceVariant;
+    final iconColor = widget.selected
+        ? scheme.onPrimary
+        : scheme.onSurfaceVariant;
     return Semantics(
       button: true,
       selected: widget.selected,

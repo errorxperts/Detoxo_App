@@ -25,6 +25,10 @@ abstract final class AnalyticsEvent {
   /// A soft-nudge card was shown (`duration_min` = the threshold that was
   /// crossed). The package is never sent — which apps a user has is theirs.
   static const String nudgeShown = 'nudge_shown';
+
+  /// A home-screen widget was tapped open (`family` / `size` = their wire
+  /// tokens). Nothing it shows (the count, the time) is sent.
+  static const String widgetOpened = 'widget_opened';
 }
 
 /// Parameter keys for [AnalyticsEvent]s. Firebase only accepts `String` or `num`
@@ -43,4 +47,6 @@ abstract final class AnalyticsParam {
   static const String action = 'action';
   static const String step = 'step';
   static const String direction = 'direction';
+  static const String family = 'family';
+  static const String size = 'size';
 }

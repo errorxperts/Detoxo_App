@@ -19,4 +19,8 @@ abstract interface class CounterAppearanceRepository {
 
   /// Persists + live-pushes the home-widget style.
   Future<void> setWidgetStyle(WidgetStyle style);
+
+  /// Persists + live-pushes the app theme's primary (ARGB) in each
+  /// brightness: the bubble and the widgets take the one of theirs.
+  Future<void> setBrands({required int light, required int dark});
 }

@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Runtime widget layout: a single ImageView filled with a Canvas-rendered
-  bitmap (see WidgetBitmapRenderer) so the widget can honour any glass
-  background / theme / density and match the in-app preview pixel-for-pixel.
-  The picker uses content_counter_widget_preview.xml instead.
+  Runtime widget layout: one ImageView showing the family's Canvas-rendered
+  face (see WidgetBitmapRenderer), fitted without distortion. The TalkBack
+  line and the tap are set per instance (HomeWidgets.render), since they
+  depend on the family, the size and today's numbers. The widget picker
+  shows each family's picture instead (android:previewImage, EVO-071).
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cc_widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -14,7 +16,7 @@
         android:id="@+id/cc_widget_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="fitXY"
-        android:contentDescription="@string/cc_widget_description"/>
+        android:scaleType="fitCenter"
+        tools:ignore="ContentDescription"/>
 
 </FrameLayout>

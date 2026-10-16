@@ -16,6 +16,14 @@ import 'package:flutter/foundation.dart';
 /// ponytail: a single flat gate order. A sixth gate, or one that depends on
 /// another's outcome, is the point to extract a policy object.
 class AppGate extends ChangeNotifier {
+  AppGate() {
+    // [redirect] held the permissions gate while the lock was up; notifying on
+    // the drop is what makes the router run it now.
+    relocking.addListener(() {
+      if (!relocking.value) notifyListeners();
+    });
+  }
+
   /// Bootstrap has finished, so the other flags mean something. Until then the
   /// splash is the only legal screen — a redirect decided from unloaded state
   /// would flash the wrong destination on every cold start.
@@ -38,6 +46,29 @@ class AppGate extends ChangeNotifier {
 
   bool get permissionsOk => _permissionsOk;
   bool _permissionsOk = false;
+
+  /// True from a resume until `PinAutoRelock` has decided whether to re-lock,
+  /// and while its lock is up. That lock is a PAGELESS route on whatever page
+  /// is showing, so it skips the PIN two ways: a route pushed now lands above
+  /// it (hence [screensMayOpen]), and a redirect that replaces the page under
+  /// it removes it with that page (hence [redirect] holding the permissions
+  /// gate — the one gate that re-fires post-boot — until this drops, which
+  /// notifies the router).
+  final ValueNotifier<bool> relocking = ValueNotifier(false);
+
+  /// Whether a screen may open on its own right now (a home-widget tap, an
+  /// "Allow for a while" tap): past the splash, onboarding and the launch PIN,
+  /// and no re-lock pending or up. The one copy of that check.
+  bool get screensMayOpen =>
+      _ready && _onboarded && !_pinLocked && !relocking.value;
+
+  /// Fires whenever [screensMayOpen] may have changed: any gate flag, or
+  /// [relocking]. A [relocking] drop reaches a listener twice (it also
+  /// notifies the gate), so listeners must be idempotent.
+  late final Listenable screensMayOpenChanged = Listenable.merge([
+    this,
+    relocking,
+  ]);
 
   /// Screens that exist only to be passed through. Reaching one with every gate
   /// satisfied means the reason it was shown is gone, so the router moves on.
@@ -78,7 +109,11 @@ class AppGate extends ChangeNotifier {
     if (!_supported) return to(Routes.unsupported);
     if (!_onboarded) return to(Routes.onboarding);
     if (_pinLocked) return to(Routes.pinLock);
-    if (!_permissionsOk && _permissionsGateApplies.contains(location)) {
+    // Not while a re-lock is up: PermissionsCubit re-emits on every resume, and
+    // leaving /home for /permissions would drop the pageless lock with it.
+    if (!_permissionsOk &&
+        !relocking.value &&
+        _permissionsGateApplies.contains(location)) {
       return to(Routes.permissions);
     }
     return _passThrough.contains(location) ? Routes.home : null;

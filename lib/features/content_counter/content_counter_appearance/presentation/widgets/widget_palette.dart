@@ -1,95 +1,77 @@
 import 'dart:math' as math;
 
-import 'package:detoxo/features/content_counter/content_counter_core/domain/entities/counter_style_enums.dart';
-import 'package:detoxo/features/content_counter/content_counter_core/domain/usage_ladder.dart';
 import 'package:flutter/material.dart';
 
-/// One surface's colours. MIRROR CONTRACT: every literal reproduces the native
-/// `Palette` / `paletteFor` in `widget/WidgetBitmapRenderer.kt` — the declared
-/// source of truth for the home widget AND the block screen. Edit the Kotlin
-/// first, then mirror here.
+/// The block screen's colours, for its in-app preview. MIRROR CONTRACT: every
+/// literal reproduces the native `Palette` / `wallPalette` in
+/// `overlay/BlockScreenPalette.kt`, the source of truth. Edit the Kotlin
+/// first, then mirror here. Kotlin's `blend(a, b, t)` is `Color.lerp(b, a, t)`.
 ///
-/// Contrast: `today` on `bgTop` ≥ 16:1 in both themes; `total` ≥ 9:1 dark and
-/// ≥ 5.5:1 light; `label` (the accent) is ≈ 3.1:1 on the light glass and is
-/// therefore used only as a fill / for large bold text, never for body copy.
-class WidgetPalette {
-  const WidgetPalette({
-    required this.bgTop,
-    required this.bgBottom,
-    required this.stroke,
-    required this.today,
-    required this.label,
-    required this.total,
+/// The ground is flat. The accent is not here: it is the app theme's primary
+/// (`brandFor`), a fill and a tint only; [legibleOn] makes it readable as a
+/// label.
+class WallPalette {
+  const WallPalette({
+    required this.ground,
+    required this.ink,
+    required this.muted,
   });
 
-  final Color bgTop;
-  final Color bgBottom;
-  final Color stroke;
-  final Color today;
-  final Color label;
-  final Color total;
+  final Color ground;
+  final Color ink;
+  final Color muted;
 }
 
-WidgetPalette widgetPaletteFor(
-  WidgetBackground background, {
-  required bool dark,
-  required int today,
-}) {
-  final textPrimary = dark ? const Color(0xFFFFFFFF) : const Color(0xFF14151A);
-  final textAccent = dark ? const Color(0xFF44E2CD) : const Color(0xFF12A594);
-  final textMuted = dark ? const Color(0xFFB8C0D9) : const Color(0xFF5A6072);
-  final band = bandColorFor(today);
+/// Face Down (light) is the board's `#ECEFF4`, with ink at 15.9:1 and muted at
+/// 5.4:1. Spotlight (dark) carries a breath of [accent], as the board's
+/// mint-black `#0B1510` does, and keeps ink ≥ 17:1 and muted ≥ 7.8:1 for every
+/// theme primary.
+WallPalette wallPaletteFor({required bool dark, required Color accent}) => dark
+    ? WallPalette(
+        ground: Color.lerp(const Color(0xFF07090E), accent, 0.07)!,
+        ink: Color.lerp(const Color(0xFFFFFFFF), accent, 0.06)!,
+        muted: Color.lerp(const Color(0xFFAEB6C6), accent, 0.14)!,
+      )
+    : const WallPalette(
+        ground: Color(0xFFECEFF4),
+        ink: Color(0xFF12151B),
+        muted: Color(0xFF5A6170),
+      );
 
-  switch (background) {
-    case WidgetBackground.glassBrand:
-      return WidgetPalette(
-        bgTop: dark ? const Color(0xFF2E2470) : const Color(0xFFEDE7FF),
-        bgBottom: dark ? const Color(0xFF10233A) : const Color(0xFFDFF6F1),
-        stroke: dark ? const Color(0x5544E2CD) : const Color(0x3344E2CD),
-        today: textPrimary,
-        label: textAccent,
-        total: textMuted,
-      );
-    case WidgetBackground.solid:
-      return WidgetPalette(
-        bgTop: dark ? const Color(0xFF141B2E) : const Color(0xFFF3F5FC),
-        bgBottom: dark ? const Color(0xFF141B2E) : const Color(0xFFF3F5FC),
-        stroke: dark ? const Color(0x1FFFFFFF) : const Color(0x1A101012),
-        today: textPrimary,
-        label: textAccent,
-        total: textMuted,
-      );
-    case WidgetBackground.usageTint:
-      final base = dark ? const Color(0xFF0B1326) : const Color(0xFFFFFFFF);
-      return WidgetPalette(
-        bgTop: Color.lerp(base, band, dark ? 0.30 : 0.20)!,
-        bgBottom: Color.lerp(base, band, dark ? 0.14 : 0.34)!,
-        stroke: band.withValues(alpha: 0.4),
-        today: textPrimary,
-        label: textAccent,
-        total: textMuted,
-      );
-    case WidgetBackground.glassDark:
-      return WidgetPalette(
-        bgTop: dark ? const Color(0xFF171F33) : const Color(0xFFFFFFFF),
-        bgBottom: dark ? const Color(0xFF0B1326) : const Color(0xFFEDF0FA),
-        stroke: dark ? const Color(0x33FFFFFF) : const Color(0x22101012),
-        today: textPrimary,
-        label: textAccent,
-        total: textMuted,
-      );
+/// [color], blended toward [ink] in 3 % steps (at most 40) until it reads at
+/// ≥ 4.5:1 on [ground] — the accent as a label (Home's icon, the ghost exits).
+/// On the light wall it deepens Sky, Teal and Rose a little; on the dark one
+/// it lifts only the never-pushed fallback navy. A colour that already reads
+/// comes back unchanged. Mirrors `legibleOn` in
+/// `overlay/BlockScreenRenderer.kt`.
+Color legibleOn(Color color, {required Color ground, required Color ink}) {
+  var c = color;
+  for (var i = 0; i < 40 && _contrast(c, ground) < 4.5; i++) {
+    c = Color.lerp(c, ink, 0.03)!;
   }
+  return c;
 }
+
+const _navy = Color(0xFF0B1326);
 
 /// Text colour for a control filled with [fill]: navy where it reads best,
-/// white otherwise. The accent takes navy at ≥ 6:1; "Colour by usage" swaps
-/// the accent for the usage band, whose deep red drops navy to 3.6:1 while
-/// white is 5.2:1. Mirrors `onColorFor` in `overlay/BlockScreenRenderer.kt`.
-Color onColorFor(Color fill) {
-  const navy = Color(0xFF0B1326);
-  return _contrast(navy, fill) >= _contrast(Colors.white, fill)
-      ? navy
-      : Colors.white;
+/// white otherwise — the theme's deep primaries (Magenta, Rose, Indigo) take
+/// white. Mirrors `onColorFor` in `overlay/BlockScreenRenderer.kt`.
+Color onColorFor(Color fill) =>
+    _contrast(_navy, fill) >= _contrast(Colors.white, fill)
+    ? _navy
+    : Colors.white;
+
+/// [fill], darkened toward navy in 3 % steps until [onColorFor] reads at
+/// ≥ 4.5:1 — the primary button's fill. Only one theme primary needs it (Sky,
+/// whose white text sits at 4.499:1); every other one comes back unchanged.
+/// Mirrors `legibleFill` in `overlay/BlockScreenRenderer.kt`.
+Color legibleFill(Color fill) {
+  var f = fill;
+  for (var i = 0; i < 40 && _contrast(onColorFor(f), f) < 4.5; i++) {
+    f = Color.lerp(f, _navy, 0.03)!;
+  }
+  return f;
 }
 
 double _contrast(Color a, Color b) {

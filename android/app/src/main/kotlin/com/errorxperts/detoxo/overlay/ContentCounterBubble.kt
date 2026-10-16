@@ -4,46 +4,48 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.LinearGradient
-import android.graphics.Paint
 import android.graphics.PixelFormat
-import android.graphics.RectF
-import android.graphics.Shader
-import android.graphics.Typeface
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
-import android.view.GestureDetector
 import android.view.Gravity
 import android.view.MotionEvent
-import android.view.View
 import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import com.errorxperts.detoxo.engine.ContentCounterStore
-import com.errorxperts.detoxo.engine.DateKeys
-import com.errorxperts.detoxo.engine.UsageLadder
+import com.errorxperts.detoxo.overlay.bubble.BubbleEnvelope
+import com.errorxperts.detoxo.overlay.bubble.BubbleFace
+import com.errorxperts.detoxo.overlay.bubble.BubbleGeometry
+import com.errorxperts.detoxo.overlay.bubble.BubbleStyleSpec
+import com.errorxperts.detoxo.overlay.bubble.BubbleTokens
+import com.errorxperts.detoxo.overlay.bubble.BubbleView
+import com.errorxperts.detoxo.widget.WidgetBitmapRenderer
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.roundToInt
-import org.json.JSONObject
 
 /**
- * Floating bubble showing the live "reels seen today" count.
+ * The window host of the floating reel bubble ([BubbleView] draws it; spec §6.1).
  *
- *  - On-brand glass badge: dark glass fill, seed→accent gradient ring, soft mint
- *    glow, white count — matching the app's glassmorphism.
- *  - Interactive: press-scale feedback, tap opens the app, drag moves it and it
- *    springs to the nearest horizontal edge; position is clamped on-screen and
- *    persisted across shows / restarts.
- *  - Silently no-ops without overlay permission. Lives in the existing
- *    accessibility FGS — no new service. All view ops run on the main Looper.
+ *  - Persists an *anchor*: the collapsed body's top-left in px (`cc_bubble_x/y`; unset → the
+ *    right dock at 30 % height). The window is the body plus the view's envelope outsets
+ *    ([BubbleEnvelope.window]), so the body never moves when the pill, pulse or timer capsule
+ *    change the window; every envelope change is one [relayout].
+ *  - Touch: a press on the body scales it to .9; a move past slop (from anywhere in the window)
+ *    drags the anchor; release snaps to the nearer edge (12 dp, Drop 0) with Y clamped to
+ *    20–70 %; an open timer folds as the drag starts. A tap (no drag) on the body — not the
+ *    outsets — is the view's click, as TalkBack's is: it toggles the timer, which ticks once a
+ *    second while open. Nothing here launches the app.
+ *  - Silently no-ops without overlay permission. Lives in the existing accessibility FGS — no
+ *    new service. All view ops run on the main Looper.
+ *
+ * [watchMs] is today's watch time including the counter's unflushed tail.
  */
-class ContentCounterBubble(private val context: Context) {
+class ContentCounterBubble(private val context: Context, private val watchMs: () -> Long) {
 
     private val wm by lazy {
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -58,18 +60,36 @@ class ContentCounterBubble(private val context: Context) {
     private var overlayDeniedAtMs = 0L
     private var snapAnimator: ValueAnimator? = null
 
+    /** The collapsed body's top-left, px, and its docked side (see the class KDoc). */
+    private var anchorX = 0
+    private var anchorY = 0
+    private var dockedRight = true
+
     /** Last count shown — replayed when the view is rebuilt on a style change. */
     private var lastCount = 0
 
     /**
      * One Reel / Unblock "reels left" override. Non-null → the bubble shows this
-     * remaining count as a teal unlock badge instead of the today total; null →
+     * remaining count with a `left` caption instead of the today total; null →
      * the normal count. Replayed when the view is rebuilt.
      */
     private var lastRemaining: Int? = null
 
-    /** Ends a tap-revealed time, redrawing the (possibly updated) live count. */
-    private val revertRunnable = Runnable { view?.clearTime() }
+    /** The open timer's shown seconds (see [BubbleGeometry.nextShownSeconds]). */
+    private var shownSec = 0
+
+    // ponytail: the store accrues only between events < 12 s apart, so quiet playback stalls it;
+    // the display leads it by at most 12 s and follows a drop (midnight) at once. Upgrade = the
+    // 1 Hz foreground ticker in ContentCounter, then the display is the store.
+    private val tick = object : Runnable {
+        override fun run() {
+            val v = view ?: return
+            if (!v.isOpen) return
+            shownSec = BubbleGeometry.nextShownSeconds(shownSec, watchSeconds())
+            v.setWatchSeconds(shownSec)
+            mainHandler.postDelayed(this, TICK_MS)
+        }
+    }
 
     // ── Public API (called by ContentCounter on the main thread) ───────────────
 
@@ -81,7 +101,7 @@ class ContentCounterBubble(private val context: Context) {
         // a detached view forever.
         val existing = view
         if (shown && existing != null && existing.isAttachedToWindow) {
-            existing.setCount(count)
+            existing.setCount(count, pop = false)
             return@runOnMain
         }
         if (view != null) detach() // OS tore the window down — reset for re-add
@@ -101,12 +121,7 @@ class ContentCounterBubble(private val context: Context) {
             return@runOnMain
         }
         overlayDeniedAtMs = 0L
-        val spec = BubbleStyleSpec.fromJson(store.bubbleStyleJson)
-        val bubbleShowTime = spec.showTime
-        val v = BubbleView(context, spec).apply {
-            setCount(count)
-            setRemaining(lastRemaining)
-        }
+        val v = newView()
         val lp = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -115,26 +130,16 @@ class ContentCounterBubble(private val context: Context) {
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            val (px, py) = restorePosition()
-            x = px
-            y = py
-        }
-        attachTouch(v, lp, bubbleShowTime)
+        ).apply { gravity = Gravity.TOP or Gravity.START }
+        place(v, lp)
+        attachTouch(v)
         try {
             wm.addView(v, lp)
             view = v
             params = lp
             shown = true
-            v.scaleX = 0.5f
-            v.scaleY = 0.5f
-            v.alpha = 0f
-            v.animate()
-                .scaleX(1f).scaleY(1f).alpha(1f)
-                .setInterpolator(OvershootInterpolator())
-                .setDuration(220)
-                .start()
+            appear(v)
+            v.showPill()
         } catch (t: Throwable) {
             Log.w(TAG, "addView failed: ${t.message}")
         }
@@ -149,26 +154,23 @@ class ContentCounterBubble(private val context: Context) {
         view?.setRemaining(n)
     }
 
-    /** A reel was counted: refresh the number with a springy pop. */
+    /** A reel was counted: refresh the watch time, then the number (pop, or the tier change). */
     fun onCounted(count: Int) = runOnMain {
         lastCount = count
         val v = view ?: return@runOnMain
-        v.setCount(count)
-        if (v.isRevealing) return@runOnMain // keep the time steady; skip the pop
-        v.animate().scaleX(1.22f).scaleY(1.22f).setDuration(120).withEndAction {
-            v.animate().scaleX(1f).scaleY(1f)
-                .setInterpolator(OvershootInterpolator())
-                .setDuration(170).start()
-        }.start()
+        shownSec = if (v.isOpen) max(shownSec, watchSeconds()) else watchSeconds()
+        v.setWatchSeconds(shownSec)
+        v.setCount(count, pop = true)
     }
 
     fun hide() = runOnMain { detach() }
 
     /** Synchronous teardown (main thread only) — shared by [hide] and [show]. */
     private fun detach() {
-        snapAnimator?.cancel()
-        mainHandler.removeCallbacks(revertRunnable)
+        snapAnimator?.end() // lands and saves an in-flight snap
+        mainHandler.removeCallbacks(tick)
         val v = view ?: return
+        v.stopLoops()
         try {
             wm.removeView(v)
         } catch (_: Throwable) {
@@ -180,24 +182,21 @@ class ContentCounterBubble(private val context: Context) {
 
     /**
      * Appearance changed while shown: rebuild the view from the freshly-persisted
-     * style at the same position (any variant/size can change its measured bounds,
-     * so a rebuild is simpler and safer than an in-place re-measure). No-op when
-     * hidden — the next [show] picks up the new style.
+     * style, collapsed, at the stored anchor (the dock side is recomputed and a new
+     * edge — Drop clings at 0 — re-snaps without animation). No pill, no appear.
+     * No-op when hidden — the next [show] picks up the new style.
      */
     fun onStyleChanged() = runOnMain {
         if (!shown) return@runOnMain
         val lp = params ?: return@runOnMain
-        // A live edge-snap animator captured the OLD view and mutates the
-        // shared LayoutParams — left running it would fight the rebuilt view
-        // and desync the persisted x from the visible position.
-        snapAnimator?.cancel()
-        val spec = BubbleStyleSpec.fromJson(store.bubbleStyleJson)
+        // Land a live snap first: it saves the anchor the rebuild restores from.
+        snapAnimator?.end()
+        mainHandler.removeCallbacks(tick)
         val old = view
-        val v = BubbleView(context, spec).apply {
-            setCount(lastCount)
-            setRemaining(lastRemaining)
-        }
-        attachTouch(v, lp, spec.showTime)
+        old?.stopLoops()
+        val v = newView()
+        place(v, lp)
+        attachTouch(v)
         try {
             if (old != null) wm.removeView(old)
             wm.addView(v, lp)
@@ -207,46 +206,83 @@ class ContentCounterBubble(private val context: Context) {
         }
     }
 
-    // ── Drag + press + edge snap ───────────────────────────────────────────────
+    // ── View + window ──────────────────────────────────────────────────────────
 
-    private fun attachTouch(v: View, lp: WindowManager.LayoutParams, showTime: Boolean) {
+    /** A collapsed view for the persisted style at the stored anchor (sets [anchorX]/[anchorY]/[dockedRight]). */
+    private fun newView(): BubbleView {
+        val spec = BubbleStyleSpec.fromJson(store.bubbleStyleJson)
+        val a = BubbleGeometry.restoreAnchor(
+            store.bubbleX, store.bubbleY, sizePx(spec), screenWidth(), screenHeight(), edgePx(BubbleFace.of(spec.variant)),
+        )
+        anchorX = a.x
+        anchorY = a.y
+        dockedRight = a.dockedRight
+        // The bubble has no theme of its own: it takes the device's brightness, like a
+        // System-theme widget.
+        val brand = store.brand(WidgetBitmapRenderer.isSystemDark(context))
+        return BubbleView(context, spec, brand, a.dockedRight, reduceMotion(), { view?.let(::toggleTimer) }) {
+            relayout()
+        }.apply {
+            setCount(lastCount, pop = false)
+            setWatchSeconds(watchSeconds())
+            setRemaining(lastRemaining)
+        }
+    }
+
+    /** Writes the window rect for the anchor + [v]'s envelope into [lp]. */
+    private fun place(v: BubbleView, lp: WindowManager.LayoutParams) {
+        val box = BubbleEnvelope.window(anchorX, anchorY, sizePx(v.spec), dockedRight, v.envelope, density())
+        lp.x = box.x
+        lp.y = box.y
+        lp.width = box.w
+        lp.height = box.h
+    }
+
+    /** Re-places the live window (one `updateViewLayout`). */
+    private fun relayout() {
+        val v = view ?: return
+        val lp = params ?: return
+        place(v, lp)
+        try {
+            wm.updateViewLayout(v, lp)
+        } catch (_: Throwable) {
+        }
+    }
+
+    /** The 500 ms appear spring (scale .6 → 1 + fade in). */
+    private fun appear(v: BubbleView) {
+        v.scaleX = 0.6f
+        v.scaleY = 0.6f
+        v.alpha = 0f
+        v.animate()
+            .scaleX(1f).scaleY(1f).alpha(1f)
+            .setInterpolator(OvershootInterpolator())
+            .setDuration(if (v.reduceMotion) 0L else BubbleTokens.MS_APPEAR.toLong())
+            .start()
+    }
+
+    // ── Drag + press + tap + edge snap ─────────────────────────────────────────
+
+    private fun attachTouch(v: BubbleView) {
         val slop = ViewConfiguration.get(context).scaledTouchSlop
         var startX = 0
         var startY = 0
         var downRawX = 0f
         var downRawY = 0f
         var dragging = false
-
-        // Tap discrimination: single tap reveals today's watch time (or opens the
-        // app when the readout is off); double tap always opens the app. Dragging
-        // is handled manually below — the detector suppresses taps once it sees a
-        // move past slop, so drag and tap stay mutually exclusive.
-        val detector = GestureDetector(
-            context,
-            object : GestureDetector.SimpleOnGestureListener() {
-                override fun onDoubleTap(e: MotionEvent): Boolean {
-                    launchApp()
-                    return true
-                }
-
-                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                    if (showTime) revealTime() else launchApp()
-                    return true
-                }
-            },
-        )
+        var downInBody = false
 
         v.setOnTouchListener { _, e ->
-            detector.onTouchEvent(e)
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
-                    snapAnimator?.cancel()
-                    startX = lp.x
-                    startY = lp.y
+                    snapAnimator?.end()
+                    startX = anchorX
+                    startY = anchorY
                     downRawX = e.rawX
                     downRawY = e.rawY
                     dragging = false
-                    v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(90).start()
+                    downInBody = v.inBody(e.x, e.y)
+                    if (downInBody) v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(90).start()
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
@@ -255,24 +291,25 @@ class ContentCounterBubble(private val context: Context) {
                     if (!dragging && (abs(dx) > slop || abs(dy) > slop)) {
                         dragging = true
                         v.animate().scaleX(1f).scaleY(1f).setDuration(90).start()
+                        // Fold first: the capsule never changes sides while open.
+                        if (v.isOpen) toggleTimer(v)
                     }
                     if (dragging) {
-                        lp.x = startX + dx.roundToInt()
-                        lp.y = clampY(startY + dy.roundToInt())
-                        updateLayout(v, lp)
+                        anchorX = startX + dx.roundToInt()
+                        anchorY = startY + dy.roundToInt()
+                        relayout()
                     }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
                     v.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
-                    // Taps are resolved by the GestureDetector above; only handle
-                    // the drag release here.
-                    if (dragging) snapToEdge(v, lp)
+                    // The tap is the view's click (as TalkBack's): it alone toggles.
+                    if (dragging) snapToEdge(v) else if (downInBody) v.performClick()
                     true
                 }
                 MotionEvent.ACTION_CANCEL -> {
                     v.animate().scaleX(1f).scaleY(1f).setDuration(120).start()
-                    if (dragging) snapToEdge(v, lp)
+                    if (dragging) snapToEdge(v)
                     true
                 }
                 else -> false
@@ -280,81 +317,67 @@ class ContentCounterBubble(private val context: Context) {
         }
     }
 
-    private fun snapToEdge(v: View, lp: WindowManager.LayoutParams) {
-        val screenW = screenWidth()
-        val bubble = if (v.width > 0) v.width else dp(BUBBLE_DP)
-        val margin = dp(MARGIN_DP)
-        val targetX =
-            if (lp.x + bubble / 2 < screenW / 2) margin else screenW - bubble - margin
-        snapAnimator?.cancel()
-        snapAnimator = ValueAnimator.ofInt(lp.x, targetX).apply {
-            duration = 240
+    /** The click (and a drag's fold): open (fresh seconds, ticking) or fold the timer. */
+    private fun toggleTimer(v: BubbleView) {
+        if (!v.isOpen) {
+            shownSec = watchSeconds()
+            v.setWatchSeconds(shownSec)
+        }
+        v.toggleTimer()
+        mainHandler.removeCallbacks(tick)
+        if (v.isOpen) mainHandler.postDelayed(tick, TICK_MS)
+    }
+
+    private fun snapToEdge(v: BubbleView) {
+        val target = BubbleGeometry.snap(
+            anchorX, anchorY, sizePx(v.spec), screenWidth(), screenHeight(), edgePx(v.face),
+        )
+        val fromX = anchorX
+        val fromY = anchorY
+        snapAnimator?.end()
+        snapAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = if (v.reduceMotion) 0L else SNAP_MS
             interpolator = DecelerateInterpolator()
             addUpdateListener {
-                lp.x = it.animatedValue as Int
-                updateLayout(v, lp)
+                val t = it.animatedValue as Float
+                anchorX = (fromX + (target.x - fromX) * t).roundToInt()
+                anchorY = (fromY + (target.y - fromY) * t).roundToInt()
+                relayout()
             }
             addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) = savePosition(lp.x, lp.y)
+                override fun onAnimationEnd(animation: Animator) {
+                    snapAnimator = null
+                    anchorX = target.x
+                    anchorY = target.y
+                    dockedRight = target.dockedRight
+                    view?.setDockedRight(target.dockedRight)
+                    relayout()
+                    savePosition(anchorX, anchorY)
+                }
             })
             start()
         }
     }
 
-    private fun launchApp() = launchDetoxo(context)
+    // ── Helpers ────────────────────────────────────────────────────────────────
 
-    /** Briefly reveal today's watch time on the bubble, then revert to the count. */
-    private fun revealTime() = runOnMain {
-        val v = view ?: return@runOnMain
-        v.showTime(store.timeTodayMs(dateKey()))
-        mainHandler.removeCallbacks(revertRunnable)
-        mainHandler.postDelayed(revertRunnable, REVEAL_MS)
-    }
+    private fun watchSeconds(): Int = (watchMs() / 1000L).toInt()
 
-    private fun dateKey(): String = DateKeys.today()
-
-    // ── Geometry helpers ───────────────────────────────────────────────────────
-
-    private fun restorePosition(): Pair<Int, Int> {
-        val w = screenWidth()
-        val bubble = dp(BUBBLE_DP)
-        val margin = dp(MARGIN_DP)
-        val sx = store.bubbleX
-        val sy = store.bubbleY
-        val x = if (sx < 0) {
-            w - bubble - margin
-        } else {
-            sx.coerceIn(margin, (w - bubble - margin).coerceAtLeast(margin))
-        }
-        val y = if (sy < 0) (screenHeight() * 0.3f).roundToInt() else clampY(sy)
-        return x to y
-    }
-
-    private fun clampY(y: Int): Int {
-        val bubble = dp(BUBBLE_DP)
-        val top = dp(24f)
-        val bottom = (screenHeight() - bubble - dp(40f)).coerceAtLeast(top)
-        return y.coerceIn(top, bottom)
-    }
+    private fun reduceMotion(): Boolean =
+        Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
 
     private fun savePosition(x: Int, y: Int) {
         store.bubbleX = x
         store.bubbleY = y
     }
 
-    private fun updateLayout(v: View, lp: WindowManager.LayoutParams) {
-        try {
-            wm.updateViewLayout(v, lp)
-        } catch (_: Throwable) {
-        }
-    }
-
+    private fun sizePx(spec: BubbleStyleSpec) = spec.sizeDp * density()
+    private fun edgePx(face: BubbleFace) = face.edgeDp * density()
+    private fun density() = context.resources.displayMetrics.density
     private fun screenWidth() = context.resources.displayMetrics.widthPixels
     private fun screenHeight() = context.resources.displayMetrics.heightPixels
-    private fun dp(v: Float) = (v * context.resources.displayMetrics.density).roundToInt()
 
-    // overlayType() / launchDetoxo() are shared with the block screen — see
-    // OverlayWindows.kt in this package.
+    // overlayType() is shared with the block screen — see OverlayWindows.kt in this package.
 
     private fun runOnMain(block: () -> Unit) {
         if (Looper.myLooper() == Looper.getMainLooper()) block() else mainHandler.post(block)
@@ -363,376 +386,13 @@ class ContentCounterBubble(private val context: Context) {
     private companion object {
         const val TAG = "CounterBubble"
 
-        /** Full view size incl. the transparent glow margin (see [BubbleView]). */
-        const val BUBBLE_DP = 64f
-        const val MARGIN_DP = 4f
+        /** The open timer's tick. */
+        const val TICK_MS = 1000L
 
-        /** How long a tap-revealed time stays up before reverting to the count. */
-        const val REVEAL_MS = 3000L
+        /** The edge snap after a drag. */
+        const val SNAP_MS = 240L
 
         /** After a denied overlay check, skip the binder re-check for this long. */
         const val OVERLAY_RECHECK_MS = 5000L
-    }
-}
-
-/**
- * Immutable appearance for the bubble, parsed from the JSON persisted by the
- * Dart `BubbleStyle`. Fields are re-clamped here so a malformed payload can
- * never produce an unusable bubble.
- */
-data class BubbleStyleSpec(
-    val variant: String = GLASS_ORB,
-    val sizeDp: Float = 48f,
-    val textScale: Float = 1f,
-    val spacing: Float = 1f,
-    val opacity: Float = 0.95f,
-    val showLabel: Boolean = false,
-    val showTime: Boolean = true,
-) {
-    companion object {
-        const val GLASS_ORB = "GLASS_ORB"
-        const val USAGE_RING = "USAGE_RING"
-        const val EMOJI_MOOD = "EMOJI_MOOD"
-        const val MINIMAL_PILL = "MINIMAL_PILL"
-
-        fun fromJson(json: String?): BubbleStyleSpec {
-            if (json.isNullOrEmpty()) return BubbleStyleSpec()
-            return try {
-                val o = JSONObject(json)
-                BubbleStyleSpec(
-                    variant = o.optString("variant", GLASS_ORB),
-                    sizeDp = o.optDouble("size", 48.0).toFloat().coerceIn(40f, 72f),
-                    textScale = o.optDouble("textScale", 1.0).toFloat().coerceIn(0.8f, 1.4f),
-                    spacing = o.optDouble("spacing", 1.0).toFloat().coerceIn(0.8f, 1.3f),
-                    opacity = o.optDouble("opacity", 0.95).toFloat().coerceIn(0.5f, 1f),
-                    showLabel = o.optBoolean("showLabel", false),
-                    showTime = o.optBoolean("showTime", true),
-                )
-            } catch (_: Throwable) {
-                BubbleStyleSpec()
-            }
-        }
-    }
-}
-
-/**
- * The bubble face. Renders one of four glass variants from a [BubbleStyleSpec]:
- *  - GLASS_ORB   dark glass circle, seed→accent ring, mint glow, centered count.
- *  - USAGE_RING  dark glass disc with a usage-colored progress ring (green→brown).
- *  - EMOJI_MOOD  a mood emoji (happy→worst per 50 reels) over a small count.
- *  - MINIMAL_PILL compact capsule: count + a usage-colored dot; width wraps text.
- *
- * The color/emoji ladders come from [UsageLadder] (shared with the widget and
- * the Flutter previews). Hardware-light: redraws only when the count changes.
- */
-private class BubbleView(
-    context: Context,
-    private val spec: BubbleStyleSpec,
-) : View(context) {
-
-    private val density = resources.displayMetrics.density
-    private val glowMargin = 8f * density
-    private val diameter = spec.sizeDp * density // circle diameter / pill height
-    private val contentRadius = diameter / 2f
-    private val borderStroke = 2f * density
-    private val isPill = spec.variant == BubbleStyleSpec.MINIMAL_PILL
-    private val hasGlow =
-        spec.variant == BubbleStyleSpec.GLASS_ORB || spec.variant == BubbleStyleSpec.EMOJI_MOOD
-
-    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = borderStroke
-    }
-    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        color = 0x22FFFFFF
-    }
-    private val arcPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeCap = Paint.Cap.ROUND
-    }
-    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0xFFFFFFFF.toInt()
-        textAlign = Paint.Align.CENTER
-        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-    }
-    private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = 0xB3FFFFFF.toInt()
-        textAlign = Paint.Align.CENTER
-    }
-    private val emojiPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textAlign = Paint.Align.CENTER
-    }
-
-    private var count = 0
-
-    /** Transient tap-revealed time; when non-null it replaces the count. */
-    private var timeText: String? = null
-
-    /**
-     * One Reel / Unblock "reels left" override. When non-null the bubble renders
-     * a distinct teal unlock badge (remaining + "left") instead of any variant.
-     */
-    private var remaining: Int? = null
-
-    init {
-        // Software layer so the mint glow (shadow layer) renders; the view only
-        // redraws on count change, so there's no per-frame cost.
-        setLayerType(LAYER_TYPE_SOFTWARE, null)
-        if (hasGlow) {
-            fillPaint.setShadowLayer(6f * density, 0f, 1.5f * density, 0x8044E2CD.toInt())
-        }
-    }
-
-    fun setCount(value: Int) {
-        // Don't clobber an active time reveal: the frequent reel-surface
-        // refreshes call this every ~150ms, so keep the time on screen for its
-        // full duration and just remember the latest count for the revert.
-        if (timeText != null) {
-            count = value
-            return
-        }
-        if (value == count) return
-        count = value
-        if (isPill) requestLayout() // pill width depends on the number of digits
-        invalidate()
-    }
-
-    /** Temporarily render today's watch time in place of the count. */
-    fun showTime(ms: Long) {
-        timeText = formatMs(ms)
-        if (isPill) requestLayout() // width depends on the text
-        invalidate()
-    }
-
-    /** Ends a time reveal, redrawing the latest count. No-op if not revealing. */
-    fun clearTime() {
-        if (timeText == null) return
-        timeText = null
-        if (isPill) requestLayout()
-        invalidate()
-    }
-
-    /** True while a tap-revealed time is on screen. */
-    val isRevealing: Boolean get() = timeText != null
-
-    /** Set the "reels left" override (null → back to the styled variant + count). */
-    fun setRemaining(value: Int?) {
-        if (value == remaining) return
-        remaining = value
-        requestLayout() // measured shape switches to the circular unlock badge
-        invalidate()
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        // The unlock badge is always a circle, regardless of the styled variant.
-        if (remaining != null) {
-            val s = ((contentRadius + glowMargin) * 2f).roundToInt()
-            setMeasuredDimension(s, s)
-            return
-        }
-        if (isPill) {
-            setMeasuredDimension(
-                (pillContentWidth() + glowMargin * 2f).roundToInt(),
-                (pillHeight() + glowMargin * 2f).roundToInt(),
-            )
-        } else {
-            val s = ((contentRadius + glowMargin) * 2f).roundToInt()
-            setMeasuredDimension(s, s)
-        }
-    }
-
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        fillPaint.shader = LinearGradient(
-            0f, 0f, 0f, h.toFloat(),
-            withOpacity(0xF21C2544.toInt()), withOpacity(0xF20B1326.toInt()),
-            Shader.TileMode.CLAMP,
-        )
-        borderPaint.shader = LinearGradient(
-            0f, 0f, w.toFloat(), h.toFloat(),
-            0xFF6D3BD7.toInt(), 0xFF44E2CD.toInt(),
-            Shader.TileMode.CLAMP,
-        )
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        if (remaining != null) {
-            drawRemaining(canvas)
-            return
-        }
-        when (spec.variant) {
-            BubbleStyleSpec.USAGE_RING -> drawUsageRing(canvas)
-            BubbleStyleSpec.EMOJI_MOOD -> drawEmoji(canvas)
-            BubbleStyleSpec.MINIMAL_PILL -> drawPill(canvas)
-            else -> drawOrb(canvas)
-        }
-    }
-
-    /**
-     * The One Reel / Unblock unlock badge: the orb background with the remaining
-     * count (big) over a small "left" caption, both in the teal accent — visibly
-     * distinct from the white today-total. All paints reset on the next normal
-     * draw, so this leaves no shared-paint state behind.
-     */
-    private fun drawRemaining(canvas: Canvas) {
-        val cx = width / 2f
-        val cy = height / 2f
-        canvas.drawCircle(cx, cy, contentRadius, fillPaint)
-        canvas.drawCircle(cx, cy, contentRadius - borderStroke / 2f, borderPaint)
-        val n = (remaining ?: 0).toString()
-        textPaint.color = 0xFF3CDDC7.toInt() // teal accent (AppColors.tealBright)
-        textPaint.textAlign = Paint.Align.CENTER
-        textPaint.textSize = baseTextSize(n) * spec.textScale
-        val fm = textPaint.fontMetrics
-        canvas.drawText(
-            n,
-            cx,
-            cy - (fm.ascent + fm.descent) / 2f - contentRadius * 0.16f,
-            textPaint,
-        )
-        textPaint.textSize = contentRadius * 0.26f
-        canvas.drawText("left", cx, cy + contentRadius * 0.52f, textPaint)
-    }
-
-    // ── Variants ────────────────────────────────────────────────────────────────
-
-    private fun drawOrb(canvas: Canvas) {
-        val cx = width / 2f
-        val cy = height / 2f
-        canvas.drawCircle(cx, cy, contentRadius, fillPaint)
-        canvas.drawCircle(cx, cy, contentRadius - borderStroke / 2f, borderPaint)
-        drawCount(canvas, cx, cy)
-    }
-
-    private fun drawUsageRing(canvas: Canvas) {
-        val cx = width / 2f
-        val cy = height / 2f
-        val ringStroke = contentRadius * 0.16f
-        canvas.drawCircle(cx, cy, contentRadius, fillPaint)
-        val r = contentRadius - ringStroke
-        val rect = RectF(cx - r, cy - r, cx + r, cy + r)
-        trackPaint.strokeWidth = ringStroke
-        canvas.drawArc(rect, 0f, 360f, false, trackPaint)
-        arcPaint.strokeWidth = ringStroke
-        arcPaint.color = UsageLadder.color(count)
-        val sweep = count.coerceIn(0, UsageLadder.CAP).toFloat() / UsageLadder.CAP * 360f
-        if (count > 0) canvas.drawArc(rect, -90f, sweep.coerceAtLeast(8f), false, arcPaint)
-        drawCount(canvas, cx, cy)
-    }
-
-    private fun drawEmoji(canvas: Canvas) {
-        val cx = width / 2f
-        val cy = height / 2f
-        canvas.drawCircle(cx, cy, contentRadius, fillPaint)
-        canvas.drawCircle(cx, cy, contentRadius - borderStroke / 2f, borderPaint)
-        if (timeText != null) { drawCount(canvas, cx, cy); return } // time reveal
-        emojiPaint.textSize = contentRadius * 0.78f
-        val efm = emojiPaint.fontMetrics
-        canvas.drawText(
-            UsageLadder.emoji(count),
-            cx,
-            cy - contentRadius * 0.12f - (efm.ascent + efm.descent) / 2f,
-            emojiPaint,
-        )
-        textPaint.color = 0xFFFFFFFF.toInt()
-        textPaint.textSize = contentRadius * 0.30f * spec.textScale
-        val tfm = textPaint.fontMetrics
-        canvas.drawText(
-            count.toString(),
-            cx,
-            cy + contentRadius * 0.52f - (tfm.ascent + tfm.descent) / 2f,
-            textPaint,
-        )
-    }
-
-    private fun drawPill(canvas: Canvas) {
-        val cy = height / 2f
-        val rect = RectF(glowMargin, glowMargin, width - glowMargin, height - glowMargin)
-        val radius = pillHeight() / 2f
-        canvas.drawRoundRect(rect, radius, radius, fillPaint)
-        canvas.drawRoundRect(rect, radius, radius, borderPaint)
-
-        val dotR = pillDotRadius()
-        val dotCx = rect.left + pillPadH() + dotR
-        dotPaint.color = UsageLadder.color(count)
-        canvas.drawCircle(dotCx, cy, dotR, dotPaint)
-
-        textPaint.color = 0xFFFFFFFF.toInt()
-        textPaint.textAlign = Paint.Align.LEFT
-        textPaint.textSize = pillTextSize()
-        val tfm = textPaint.fontMetrics
-        canvas.drawText(timeText ?: count.toString(), dotCx + dotR + pillGap(), cy - (tfm.ascent + tfm.descent) / 2f, textPaint)
-    }
-
-    // ── Shared count drawing (orb / ring), with optional caption ─────────────────
-
-    private fun drawCount(canvas: Canvas, cx: Float, cy: Float) {
-        val time = timeText
-        val label = time ?: count.toString()
-        textPaint.color = 0xFFFFFFFF.toInt()
-        textPaint.textAlign = Paint.Align.CENTER
-        textPaint.textSize = baseTextSize(label) * spec.textScale
-        // Two-line layout for the "reels" caption or the tap-revealed time.
-        if (spec.showLabel || time != null) {
-            val fm = textPaint.fontMetrics
-            canvas.drawText(
-                label,
-                cx,
-                cy - (fm.ascent + fm.descent) / 2f - contentRadius * 0.16f,
-                textPaint,
-            )
-            labelPaint.textSize = contentRadius * 0.26f
-            canvas.drawText(
-                if (time != null) "today" else "reels",
-                cx,
-                cy + contentRadius * 0.52f,
-                labelPaint,
-            )
-        } else {
-            val fm = textPaint.fontMetrics
-            canvas.drawText(label, cx, cy - (fm.ascent + fm.descent) / 2f, textPaint)
-        }
-    }
-
-    /** Base count size proportional to the radius (preserves the old 48dp ladder). */
-    private fun baseTextSize(label: String): Float = contentRadius * when {
-        label.length >= 4 -> 0.52f
-        label.length == 3 -> 0.62f
-        else -> 0.75f
-    }
-
-    // ── Pill metrics ─────────────────────────────────────────────────────────────
-
-    private fun pillHeight() = diameter * 0.66f
-    private fun pillTextSize() = pillHeight() * 0.42f * spec.textScale
-    private fun pillDotRadius() = pillHeight() * 0.15f
-    private fun pillPadH() = pillHeight() * 0.32f * spec.spacing
-    private fun pillGap() = pillHeight() * 0.20f * spec.spacing
-
-    private fun pillContentWidth(): Float {
-        textPaint.textSize = pillTextSize()
-        val tw = textPaint.measureText(timeText ?: count.toString())
-        return pillPadH() + pillDotRadius() * 2f + pillGap() + tw + pillPadH()
-    }
-
-    /** Stopwatch label for the tap-revealed time: `45s` / `3:05` / `1:23:45`. */
-    private fun formatMs(ms: Long): String {
-        val totalSec = ms / 1000L
-        val h = totalSec / 3600L
-        val m = (totalSec % 3600L) / 60L
-        val s = totalSec % 60L
-        return when {
-            h > 0L -> "%d:%02d:%02d".format(h, m, s)
-            m > 0L -> "%d:%02d".format(m, s)
-            else -> "%ds".format(s)
-        }
-    }
-
-    /** Scales a color's alpha by the style opacity (fills only; borders stay solid). */
-    private fun withOpacity(color: Int): Int {
-        val a = (((color ushr 24) and 0xFF) * spec.opacity).roundToInt().coerceIn(0, 255)
-        return (a shl 24) or (color and 0x00FFFFFF)
     }
 }

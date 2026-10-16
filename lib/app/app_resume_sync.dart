@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:detoxo/app/engine_sync.dart';
+import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
+import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:detoxo/features/limits/limits.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:flutter/widgets.dart';
@@ -56,6 +57,18 @@ class _AppResumeSyncState extends State<AppResumeSync>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // IM-03: leaving the app is a widget push point, so the home screen
+      // shows what was just scrolled, not the last 10-reel step. Inside the
+      // closure so a failed lookup is guarded too.
+      unawaited(
+        guardedSync('widget', () async {
+          await sl<HomeWidgetRepository>().push(
+            reason: WidgetPushReason.background,
+          );
+        }()),
+      );
+    }
     if (state != AppLifecycleState.resumed) return;
     // Cheap, idempotent, every resume. Permission refresh keeps the persisted
     // granted-set fresh; the counter refresh is also the day-rollover repair

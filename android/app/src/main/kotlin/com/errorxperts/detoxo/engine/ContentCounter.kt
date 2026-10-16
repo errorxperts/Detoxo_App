@@ -6,7 +6,9 @@ import android.os.Looper
 import android.os.PowerManager
 import android.os.SystemClock
 import com.errorxperts.detoxo.overlay.ContentCounterBubble
-import com.errorxperts.detoxo.widget.ContentCounterWidgetProvider
+import com.errorxperts.detoxo.widget.ReelWidgetSync
+import com.errorxperts.detoxo.widget.WidgetPayload
+import java.util.Calendar
 
 /**
  * Decides WHEN a distinct short video is counted, persists via
@@ -46,7 +48,7 @@ import com.errorxperts.detoxo.widget.ContentCounterWidgetProvider
 class ContentCounter(private val context: Context) {
 
     private val store = ContentCounterStore(context)
-    private val bubble by lazy { ContentCounterBubble(context) }
+    private val bubble by lazy { ContentCounterBubble(context) { store.timeTodayMs(dateKey()) + pendingUsageMs } }
     private val power by lazy {
         context.getSystemService(Context.POWER_SERVICE) as PowerManager
     }
@@ -61,16 +63,14 @@ class ContentCounter(private val context: Context) {
         tracker.leave(mono())
         syncTimer()
     }
-    private val widgetRunnable = Runnable { pushWidgetNow(store.snapshot(dateKey())) }
 
     private var lastReelSurfaceAtMs = 0L
     private var lastForegroundPkg: String? = null
     private var bubbleVisible = false
     private var hidePending = false
-    private var lastWidgetPushMs = 0L
 
     // Whole-app foreground usage-time accumulation (drives the dashboard
-    // screen-time ring + the bubble tap-to-reveal). Advances only between events
+    // screen-time ring + the bubble's tap timer). Advances only between events
     // that are close together, so screen-off / idle gaps (no events) start a
     // fresh window and aren't counted.
     private var usageActivePkg: String? = null
@@ -212,7 +212,7 @@ class ContentCounter(private val context: Context) {
     /** Writes the accumulated usage time through to the store. */
     private fun flushUsage() {
         if (pendingUsageMs <= 0L) return
-        store.recordUsage(pendingUsageMs, dateKey())
+        store.recordUsage(pendingUsageMs, dateKey(), hour())
         pendingUsageMs = 0L
     }
 
@@ -281,7 +281,6 @@ class ContentCounter(private val context: Context) {
         flushUsage()
         handler.removeCallbacks(tickRunnable)
         handler.removeCallbacks(hideRunnable)
-        handler.removeCallbacks(widgetRunnable)
         bubble.hide()
         bubbleVisible = false
         hidePending = false
@@ -316,7 +315,7 @@ class ContentCounter(private val context: Context) {
         // One prefs edit for the count AND the pending usage window (the
         // event's timeTodayMs must include it); the snapshot comes back from
         // the maps that edit already parsed.
-        val snap = store.recordCount(pkg, dateKey(), pendingUsageMs)
+        val snap = store.recordCount(pkg, dateKey(), hour(), pendingUsageMs)
         pendingUsageMs = 0L
         val today = snap["today"] as? Int ?: 0
         ServiceEventBus.post(
@@ -334,45 +333,30 @@ class ContentCounter(private val context: Context) {
                 "bubbleEnabled" to (snap["bubbleEnabled"] as? Boolean ?: true),
             ),
         )
-        pushWidget(snap)
+        // IM-03's budget: the widget redraws on every 10th reel and on a tier
+        // change, not per reel (each push is a build + write off this thread).
+        // ponytail: the widget lags the bubble by up to 9 reels; leaving
+        // Detoxo (BACKGROUND) and the watchdog (HEARTBEAT) catch it up.
+        if (WidgetPayload.shouldPushOnCount(today - 1, today)) {
+            ReelWidgetSync.push(context, ReelWidgetSync.Reason.COUNT)
+        }
         if (store.bubbleEnabled && bubbleVisible) bubble.onCounted(today)
     }
 
     /**
-     * Throttled widget push with a trailing flush: a push inside the window is
-     * deferred to the window's end (with a fresh snapshot), never dropped —
-     * two counts <1 s apart are routine (belt-and-braces at settle + the next
-     * dwell), and a dropped last push left the widget one reel behind for hours.
-     */
-    private fun pushWidget(snapshot: Map<String, Any?>) {
-        handler.removeCallbacks(widgetRunnable)
-        val wait = WIDGET_MIN_INTERVAL_MS - (mono() - lastWidgetPushMs)
-        if (wait > 0L) {
-            handler.postDelayed(widgetRunnable, wait)
-            return
-        }
-        pushWidgetNow(snapshot)
-    }
-
-    private fun pushWidgetNow(snapshot: Map<String, Any?>) {
-        lastWidgetPushMs = mono()
-        try {
-            ContentCounterWidgetProvider.pushUpdate(context, snapshot)
-        } catch (_: Throwable) {
-        }
-    }
-
-    /**
      * The one clock in here — reel dwell, scroll settling, usage-time deltas
-     * and the widget/bubble throttles. `uptimeMillis` is monotonic (immune to
+     * and the bubble's hide grace. `uptimeMillis` is monotonic (immune to
      * time changes) and, unlike `elapsedRealtime`, STOPS in deep sleep: it is
      * the clock the Handler timer runs on, so a phone that slept for hours
      * mid-reel can't wake up owing a dwell it never showed. Wall time is only
-     * ever read through [dateKey].
+     * ever read through [dateKey] and [hour].
      */
     private fun mono() = SystemClock.uptimeMillis()
 
     private fun dateKey(): String = DateKeys.today()
+
+    /** The local hour (0..23) usage time is filed under. */
+    private fun hour(): Int = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
 
     private companion object {
         /**
@@ -390,9 +374,6 @@ class ContentCounter(private val context: Context) {
          * on a non-reel screen.
          */
         const val HIDE_GRACE_MS = 1500L
-
-        /** Throttle native widget pushes (trailing flush) so a count can't hammer the launcher. */
-        const val WIDGET_MIN_INTERVAL_MS = 1000L
 
         /**
          * Consecutive events from one monitored app within this gap accrue as

@@ -5,7 +5,7 @@ import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart'
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
+import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:detoxo/features/limits/limits.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:detoxo/features/protected_apps/protected_apps.dart';
@@ -35,6 +35,8 @@ class _MockSettingsRepo extends Mock implements SettingsRepository {}
 class _MockProtected extends Mock implements ProtectedAppsRepository {}
 
 class _MockRules extends Mock implements RulesCubit {}
+
+class _MockWidgets extends Mock implements HomeWidgetRepository {}
 
 void main() {
   late _MockPermissions permissions;
@@ -152,6 +154,25 @@ void main() {
     verify(() => engineRepo.pushWebBlocklist(any())).called(1);
     verify(() => engineRepo.pushAppBlocklist(any())).called(1);
     verify(() => engineRepo.pushProtectedApps(any())).called(1);
+  });
+
+  testWidgets('going to the background pushes the home widgets', (
+    tester,
+  ) async {
+    // IM-03: leaving the app is a widget push point.
+    final widgets = _MockWidgets();
+    when(
+      () => widgets.push(reason: WidgetPushReason.background),
+    ).thenAnswer((_) async {});
+    sl.registerSingleton<HomeWidgetRepository>(widgets);
+    addTearDown(sl.reset);
+
+    await pump(tester);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+
+    verify(() => widgets.push(reason: WidgetPushReason.background)).called(1);
+    verifyNever(() => permissions.refresh());
   });
 
   testWidgets('non-resume transitions do nothing', (tester) async {

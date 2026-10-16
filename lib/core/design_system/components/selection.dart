@@ -163,26 +163,32 @@ class _GlassSegmentedState extends State<GlassSegmented> {
                                 Icon(segments[i].icon, size: 18, color: color),
                                 const SizedBox(width: AppSpacing.xs),
                               ],
-                              Padding(
-                                // Breathing room so a label never touches the
-                                // pill's rim when the control hugs its content.
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.md,
-                                ),
-                                child: Text(
-                                  segments[i].label,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style:
-                                      (compact
-                                              ? text.labelMedium
-                                              : text.labelLarge)
-                                          ?.copyWith(
-                                            fontWeight: t > 0.5
-                                                ? FontWeight.w700
-                                                : FontWeight.w500,
-                                            color: color,
-                                          ),
+                              // Flexible, so the ellipsis below can engage:
+                              // at 2.0x text a 360 dp screen's third of the
+                              // track is narrower than "Medium".
+                              Flexible(
+                                child: Padding(
+                                  // Breathing room so a label never touches
+                                  // the pill's rim when the control hugs its
+                                  // content.
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.md,
+                                  ),
+                                  child: Text(
+                                    segments[i].label,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style:
+                                        (compact
+                                                ? text.labelMedium
+                                                : text.labelLarge)
+                                            ?.copyWith(
+                                              fontWeight: t > 0.5
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                              color: color,
+                                            ),
+                                  ),
                                 ),
                               ),
                             ],

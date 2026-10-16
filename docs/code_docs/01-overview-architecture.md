@@ -222,6 +222,11 @@ Two details that are load-bearing rather than cosmetic:
 - `pinLocked` is a **session** flag, not a derived one: armed once by the
   bootstrap, cleared by a successful unlock. Re-locking on resume is
   `PinAutoRelock`'s job and does not route.
+- `relocking` is a separate `ValueNotifier<bool>`, **not** a routing input
+  (the redirect never reads it, and it doesn't refresh the router): raised by
+  `PinAutoRelock` from a resume until its lock is decided or dismissed, so the
+  builder-mounted listeners that open a screen on resume (`PendingUnblockListener`,
+  `WidgetTapListener`) don't push above the pageless lock ([08](08-pin-lock-recovery.md)).
 
 ### 4. Bootstrap and gating order — `lib/app/bootstrap.dart`
 
@@ -487,9 +492,10 @@ engine/
   ConfigStore.kt                SharedPreferences "detoxo_engine_prefs"
   ContentCounter.kt · ContentCounterStore.kt   decoupled counting + persistence
   WebBlockEngine.kt · BrowserUrlExtractor.kt    address-bar host blocking
-  ServiceEventBus.kt · UsageLadder.kt
+  ServiceEventBus.kt · UsageLadder.kt   (UsageLadder: block screen only)
 overlay/
-  ContentCounterBubble.kt       WindowManager overlay bubble (draggable, edge-snap)
+  ContentCounterBubble.kt       WindowManager overlay bubble host (anchor, drag, edge-snap, tap = timer)
+  bubble/                       BubbleView shell + model/envelope/look + six faces/*Face.kt
 widget/
   ContentCounterWidgetProvider.kt · WidgetBitmapRenderer.kt   home-screen widget
 admin/

@@ -448,7 +448,9 @@ stale target on the next engine attach, and double-log the analytics event.
 Drained from the bootstrap's background phase **and** from `AppResumeSync`'s cheap leg (the tap
 foregrounds Detoxo, so a resume is the delivery path when the process was already alive).
 `PendingUnblockListener` is mounted inside `MaterialApp.router`'s `builder`, so the sheet can never
-float over the PIN lock or the splash.
+float over the PIN lock or the splash. It also waits out a resume's re-lock (`AppGate.relocking`,
+[08](08-pin-lock-recovery.md)): that lock is a pageless route, and a sheet opened during it would sit
+above the PIN and grant an unblock without it.
 
 > `ponytail:` the upgrade path is rendering the chips on the wall itself and skipping the app switch
 > entirely — at the cost of a second duration UI in Canvas and a native→Dart reconcile.

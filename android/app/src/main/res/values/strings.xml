@@ -8,7 +8,16 @@
     <string name="notification_listener_label">Detoxo Notification Silence</string>
     <string name="device_admin_label">Detoxo Uninstall Protection</string>
     <string name="device_admin_description">Prevents the app from being removed while protection is active.</string>
-    <string name="cc_widget_description">Reel counter</string>
+    <!-- Home widgets: the picker's seven family names; the six reel families share one description, Plan has its own. -->
+    <string name="widget_label_count">Count</string>
+    <string name="widget_label_next_colour">Next colour</string>
+    <string name="widget_label_time_limit">Time limit</string>
+    <string name="widget_label_rhythm">Rhythm</string>
+    <string name="widget_label_bonsai">Bonsai</string>
+    <string name="widget_label_bento">Bento</string>
+    <string name="widget_label_plan">Plan</string>
+    <string name="cc_widget_description">Today\'s reels at a glance</string>
+    <string name="plan_widget_description">Whether blocking is on right now</string>
 
     <!-- Engine surfaces (toasts + notifications). One shared block toast so the
          web and whole-app copy can never drift apart again. -->
@@ -63,7 +72,6 @@
         <item quantity="other">%d reels left</item>
     </plurals>
     <string name="wall_go_home">Go home</string>
-    <string name="wall_got_it">Got it</string>
     <string name="wall_open_app">Open Detoxo</string>
     <string name="wall_back_to">Back to %1$s</string>
     <!-- EVO-025: the ghost exit while its countdown runs ("Back to Instagram · 5"). -->
@@ -83,6 +91,11 @@
     </plurals>
     <!-- EVO-034: what the reach cost, beside how often it happened. -->
     <string name="wall_time_today">%1$s today in %2$s</string>
+    <!-- The Quotes design (Face Down on a light wall, Spotlight on a dark one):
+         its title, and the line under the quote. %1$s = the app, host or browser. -->
+    <string name="wall_facedown_title">Put it face down.</string>
+    <string name="wall_facedown_line">%1$s can wait. Your peace can’t.</string>
+    <string name="wall_spotlight_line">%1$s is resting. Move your finger to find the light.</string>
     <string name="fgs_channel_name">Detoxo Service Status</string>
     <string name="fgs_channel_description">Focus protection active</string>
     <string name="fgs_title">Detoxo is active</string>

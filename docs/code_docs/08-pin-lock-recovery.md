@@ -447,6 +447,13 @@ background time against the timeout.
   counter incremented only by forced app-scope gates — the launch gate and the
   relock) is checked before and after the async gap; backgrounding at the lock
   itself pushes nothing new.
+- **Holds `AppGate.relocking`** (injected as `PinAutoRelock(gate:)`) from the
+  resume — raised synchronously, before any other resume observer runs — until
+  the decision is "no", or the pushed lock pops. The relock is a *pageless*
+  route, so a GoRouter push made meanwhile would land **above** it and skip the
+  PIN; the two listeners that open a screen on resume (`WidgetTapListener` —
+  [17](17-content-counter.md) §6.3 — and `PendingUnblockListener` —
+  [31](31-locked-rules-and-unblock.md) §5) wait for the flag to drop.
 
 **Recents privacy** — the `secureScreen` flag drives the `setSecureScreen`
 channel command (`CommandHandler.kt` → `FLAG_SECURE` on the activity window).
@@ -477,7 +484,7 @@ gate.
   PinRepositoryImpl(sl(), sl()))` (resolving `LocalStore` + `EngineChannel`).
 - **Provider** (`lib/main.dart`): `BlocProvider(create: (_) =>
   PinCubit(sl<PinRepository>()))` — one app-wide cubit. `_RouterState` wraps
-  `MaterialApp.router` in `PinAutoRelock(router: _router, ...)` (§10).
+  `MaterialApp.router` in `PinAutoRelock(router: _router, gate: sl<AppGate>(), ...)` (§10).
 - **Routes** (`lib/core/navigation/routes.dart` + `app_router.dart`):
   `pinSetup = '/pin/setup'` → `PinGuard(scope: settings, child: PinSetupScreen())`
   — the route itself is gated, so every entry point (settings tile, drawer

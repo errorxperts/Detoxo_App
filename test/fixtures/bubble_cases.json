@@ -1,0 +1,353 @@
+{
+ "cases": [
+  {
+   "name": "zero_mascot",
+   "count": 0,
+   "seconds": 0,
+   "variant": "MASCOT",
+   "expected": {
+    "tier": 0,
+    "countText": "0",
+    "shortTime": "0m",
+    "clock": "00:00",
+    "pct": 0,
+    "toNext": 100,
+    "nextLine": "First reel turns it green.",
+    "isDial": false,
+    "timerWidth": 136,
+    "collapsedLabel": "0 reels today, 0m watched. Tap to show the timer.",
+    "openLabel": "Watch time today 00:00. Tap to show the reel count.",
+    "bezelLit": 0,
+    "sandTop": 13.0,
+    "sandBottom": 53.0,
+    "mascotLine": "Glass · happy to see you"
+   }
+  },
+  {
+   "name": "tier1_liquid",
+   "count": 47,
+   "seconds": 1316,
+   "variant": "LIQUID",
+   "expected": {
+    "tier": 1,
+    "countText": "47",
+    "shortTime": "21m",
+    "clock": "21:56",
+    "pct": 47,
+    "toNext": 53,
+    "nextLine": "53 reels to the next colour.",
+    "isDial": true,
+    "timerWidth": 136,
+    "collapsedLabel": "47 reels today, 53 to the next colour. Tap to show the timer.",
+    "openLabel": "Watch time today 21:56. Tap to show the reel count.",
+    "bezelLit": 4,
+    "sandTop": 22.4,
+    "sandBottom": 42.66,
+    "mascotLine": "Green · big smile"
+   }
+  },
+  {
+   "name": "tier2_ring",
+   "count": 152,
+   "seconds": 4328,
+   "variant": "RING",
+   "expected": {
+    "tier": 2,
+    "countText": "152",
+    "shortTime": "1h 12m",
+    "clock": "1:12:08",
+    "pct": 52,
+    "toNext": 48,
+    "nextLine": "48 reels to the next colour.",
+    "isDial": true,
+    "timerWidth": 176,
+    "collapsedLabel": "152 reels today, 48 to the next colour. Tap to show the timer.",
+    "openLabel": "Watch time today 1:12:08. Tap to show the reel count.",
+    "bezelLit": 5,
+    "sandTop": 23.4,
+    "sandBottom": 41.56,
+    "mascotLine": "Lime · surprised, that many already?"
+   }
+  },
+  {
+   "name": "tier3_mascot",
+   "count": 238,
+   "seconds": 7200,
+   "variant": "MASCOT",
+   "expected": {
+    "tier": 3,
+    "countText": "238",
+    "shortTime": "2h",
+    "clock": "2:00:00",
+    "pct": 38,
+    "toNext": 62,
+    "nextLine": "62 reels to the next colour.",
+    "isDial": false,
+    "timerWidth": 156,
+    "collapsedLabel": "238 reels today, 2h watched. Tap to show the timer.",
+    "openLabel": "Watch time today 2:00:00. Tap to show the reel count.",
+    "bezelLit": 3,
+    "sandTop": 20.6,
+    "sandBottom": 44.64,
+    "mascotLine": "Amber · worried"
+   }
+  },
+  {
+   "name": "tier4_hourglass",
+   "count": 341,
+   "seconds": 36240,
+   "variant": "HOURGLASS",
+   "expected": {
+    "tier": 4,
+    "countText": "341",
+    "shortTime": "10h 4m",
+    "clock": "10:04:00",
+    "pct": 41,
+    "toNext": 59,
+    "nextLine": "59 reels to the next colour.",
+    "isDial": true,
+    "timerWidth": 176,
+    "collapsedLabel": "341 reels today, 59 to the next colour. Tap to show the timer.",
+    "openLabel": "Watch time today 10:04:00. Tap to show the reel count.",
+    "bezelLit": 4,
+    "sandTop": 21.2,
+    "sandBottom": 43.98,
+    "mascotLine": "Orange-red · upset"
+   }
+  },
+  {
+   "name": "tier5_liquid",
+   "count": 467,
+   "seconds": 3599,
+   "variant": "LIQUID",
+   "expected": {
+    "tier": 5,
+    "countText": "467",
+    "shortTime": "59m",
+    "clock": "59:59",
+    "pct": 100,
+    "toNext": 33,
+    "nextLine": "Final colour reached.",
+    "isDial": true,
+    "timerWidth": 136,
+    "collapsedLabel": "467 reels today, final colour. Tap to show the timer.",
+    "openLabel": "Watch time today 59:59. Tap to show the reel count.",
+    "bezelLit": 10,
+    "sandTop": 33.0,
+    "sandBottom": 31.0,
+    "mascotLine": "Deep red · palm up: stop"
+   }
+  },
+  {
+   "name": "over_999_mascot",
+   "count": 1240,
+   "seconds": 3600,
+   "variant": "MASCOT",
+   "expected": {
+    "tier": 5,
+    "countText": "1.2k",
+    "shortTime": "1h",
+    "clock": "1:00:00",
+    "pct": 100,
+    "toNext": 60,
+    "nextLine": "Final colour reached.",
+    "isDial": false,
+    "timerWidth": 156,
+    "collapsedLabel": "1.2k reels today, 1h watched. Tap to show the timer.",
+    "openLabel": "Watch time today 1:00:00. Tap to show the reel count.",
+    "bezelLit": 10,
+    "sandTop": 33.0,
+    "sandBottom": 31.0,
+    "mascotLine": "Deep red · palm up: stop"
+   }
+  },
+  {
+   "name": "exactly_100_bezel",
+   "count": 100,
+   "seconds": 2812,
+   "variant": "BEZEL",
+   "expected": {
+    "tier": 2,
+    "countText": "100",
+    "shortTime": "46m",
+    "clock": "46:52",
+    "pct": 0,
+    "toNext": 100,
+    "nextLine": "100 reels to the next colour.",
+    "isDial": true,
+    "timerWidth": 176,
+    "collapsedLabel": "100 reels today, 100 to the next colour. Tap to show the timer.",
+    "openLabel": "Watch time today 46:52. Tap to show the reel count.",
+    "bezelLit": 0,
+    "sandTop": 13.0,
+    "sandBottom": 53.0,
+    "mascotLine": "Lime · surprised, that many already?"
+   }
+  },
+  {
+   "name": "thousand_even_drop",
+   "count": 1000,
+   "seconds": 59,
+   "variant": "DROP",
+   "expected": {
+    "tier": 5,
+    "countText": "1k",
+    "shortTime": "0m",
+    "clock": "00:59",
+    "pct": 100,
+    "toNext": 100,
+    "nextLine": "Final colour reached.",
+    "isDial": false,
+    "timerWidth": 136,
+    "collapsedLabel": "1k reels today, 0m watched. Tap to show the timer.",
+    "openLabel": "Watch time today 00:59. Tap to show the reel count.",
+    "bezelLit": 10,
+    "sandTop": 33.0,
+    "sandBottom": 31.0,
+    "mascotLine": "Deep red · palm up: stop"
+   }
+  },
+  {
+   "name": "ten_thousand_drop",
+   "count": 12345,
+   "seconds": 86399,
+   "variant": "DROP",
+   "expected": {
+    "tier": 5,
+    "countText": "12k",
+    "shortTime": "23h 59m",
+    "clock": "23:59:59",
+    "pct": 100,
+    "toNext": 55,
+    "nextLine": "Final colour reached.",
+    "isDial": false,
+    "timerWidth": 156,
+    "collapsedLabel": "12k reels today, 23h 59m watched. Tap to show the timer.",
+    "openLabel": "Watch time today 23:59:59. Tap to show the reel count.",
+    "bezelLit": 10,
+    "sandTop": 33.0,
+    "sandBottom": 31.0,
+    "mascotLine": "Deep red · palm up: stop"
+   }
+  },
+  {
+   "name": "negative_garbage",
+   "count": -5,
+   "seconds": -7,
+   "variant": "MASCOT",
+   "expected": {
+    "tier": 0,
+    "countText": "0",
+    "shortTime": "0m",
+    "clock": "00:00",
+    "pct": 0,
+    "toNext": 100,
+    "nextLine": "First reel turns it green.",
+    "isDial": false,
+    "timerWidth": 136,
+    "collapsedLabel": "0 reels today, 0m watched. Tap to show the timer.",
+    "openLabel": "Watch time today 00:00. Tap to show the reel count.",
+    "bezelLit": 0,
+    "sandTop": 13.0,
+    "sandBottom": 53.0,
+    "mascotLine": "Glass · happy to see you"
+   }
+  },
+  {
+   "name": "nineteen_fifty",
+   "count": 1950,
+   "seconds": 0,
+   "variant": "RING",
+   "expected": {
+    "tier": 5,
+    "countText": "1.9k",
+    "shortTime": "0m",
+    "clock": "00:00",
+    "pct": 100,
+    "toNext": 50,
+    "nextLine": "Final colour reached.",
+    "isDial": true,
+    "timerWidth": 176,
+    "collapsedLabel": "1.9k reels today, final colour. Tap to show the timer.",
+    "openLabel": "Watch time today 00:00. Tap to show the reel count.",
+    "bezelLit": 10,
+    "sandTop": 33.0,
+    "sandBottom": 31.0,
+    "mascotLine": "Deep red · palm up: stop"
+   }
+  },
+  {
+   "name": "one_reel",
+   "count": 1,
+   "seconds": 30,
+   "variant": "MASCOT",
+   "expected": {
+    "tier": 1,
+    "countText": "1",
+    "shortTime": "0m",
+    "clock": "00:30",
+    "pct": 1,
+    "toNext": 99,
+    "nextLine": "99 reels to the next colour.",
+    "isDial": false,
+    "timerWidth": 136,
+    "collapsedLabel": "1 reel today, 0m watched. Tap to show the timer.",
+    "openLabel": "Watch time today 00:30. Tap to show the reel count.",
+    "bezelLit": 0,
+    "sandTop": 13.2,
+    "sandBottom": 52.78,
+    "mascotLine": "Green · big smile"
+   }
+  },
+  {
+   "name": "ninety_nine_mascot",
+   "count": 99,
+   "seconds": 3000,
+   "variant": "MASCOT",
+   "expected": {
+    "tier": 1,
+    "countText": "99",
+    "shortTime": "50m",
+    "clock": "50:00",
+    "pct": 99,
+    "toNext": 1,
+    "nextLine": "1 reel to the next colour.",
+    "isDial": false,
+    "timerWidth": 136,
+    "collapsedLabel": "99 reels today, 50m watched. Tap to show the timer.",
+    "openLabel": "Watch time today 50:00. Tap to show the reel count.",
+    "bezelLit": 9,
+    "sandTop": 32.8,
+    "sandBottom": 31.22,
+    "mascotLine": "Green · big smile"
+   }
+  }
+ ],
+ "transitions": [
+  {
+   "from": 0,
+   "to": 1,
+   "expected": "up"
+  },
+  {
+   "from": 1,
+   "to": 3,
+   "expected": "up"
+  },
+  {
+   "from": 3,
+   "to": 3,
+   "expected": "none"
+  },
+  {
+   "from": 5,
+   "to": 0,
+   "expected": "down"
+  },
+  {
+   "from": 2,
+   "to": 1,
+   "expected": "down"
+  }
+ ]
+}

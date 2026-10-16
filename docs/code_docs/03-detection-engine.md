@@ -734,7 +734,7 @@ undercounts truly passive, event-quiet playback. Deltas are **batched in memory*
 `cc_time_today` / `cc_time_total` at ≥ 5 s / app switch / protected-foreground /
 snapshot / dispose — not one prefs write per event. This
 reuses the existing AccessibilityService — **no extra Android permission** — and
-feeds the dashboard's screen-time ring and the bubble's tap-to-reveal-time. Full
+feeds the dashboard's screen-time ring and the bubble's tap-to-show timer. Full
 detail in [17-content-counter.md](17-content-counter.md) §2.6.
 
 Because it precedes the `masterEnabled` and `pauseUntil` returns, counting keeps

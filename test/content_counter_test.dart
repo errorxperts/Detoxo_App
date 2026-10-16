@@ -275,30 +275,16 @@ void main() {
         hydrate.complete(
           CounterAppearance(
             bubble: const BubbleStyle.defaults().copyWith(size: 44),
-            widget: const WidgetStyle.defaults().copyWith(showLabel: false),
+            widget: const WidgetStyle(theme: WidgetTheme.dark),
           ),
         );
         await Future<void>.delayed(Duration.zero);
 
         expect(cubit.state.bubble, edited); // not snapped back to 44
-        expect(
-          cubit.state.widget.showLabel,
-          false,
-        ); // untouched surface hydrated
+        // The untouched surface hydrated.
+        expect(cubit.state.widget.theme, WidgetTheme.dark);
         await cubit.close();
       },
     );
-  });
-
-  group('formatBubbleClock (mirror of native BubbleView.formatMs)', () {
-    test('seconds / m:ss / h:mm:ss', () {
-      expect(formatBubbleClock(const Duration(seconds: 45)), '45s');
-      expect(formatBubbleClock(const Duration(minutes: 3, seconds: 5)), '3:05');
-      expect(
-        formatBubbleClock(const Duration(hours: 1, minutes: 23, seconds: 45)),
-        '1:23:45',
-      );
-      expect(formatBubbleClock(Duration.zero), '0s');
-    });
   });
 }

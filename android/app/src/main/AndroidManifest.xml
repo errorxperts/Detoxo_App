@@ -122,12 +122,18 @@
             </intent-filter>
         </service>
 
-        <!-- Home-screen reel counter widget. Data comes from detoxo_engine_prefs
-             (ContentCounterStore); live updates are pushed natively by the
-             accessibility service, so updatePeriodMillis is 0. -->
+        <!-- Home-screen widgets: seven families, one receiver each, each with
+             its own provider info (alike but for the picker picture, and
+             Plan's description; EVO-071). The label is the picker's name.
+             They draw the payload ReelWidgetSync writes to detoxo_engine_prefs
+             (Plan also reads the plan); updates are pushed natively, so
+             updatePeriodMillis is 0. Count keeps the original class name and
+             provider info, so widgets pinned before the families existed
+             carry on as Count. -->
         <receiver
             android:name=".widget.ContentCounterWidgetProvider"
-            android:exported="false">
+            android:exported="false"
+            android:label="@string/widget_label_count">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
@@ -135,6 +141,78 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/content_counter_widget_info"/>
         </receiver>
+        <receiver
+            android:name=".widget.NextColourWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label_next_colour">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/content_counter_widget_info_next_colour"/>
+        </receiver>
+        <receiver
+            android:name=".widget.TimeLimitWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label_time_limit">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/content_counter_widget_info_time_limit"/>
+        </receiver>
+        <receiver
+            android:name=".widget.RhythmWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label_rhythm">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/content_counter_widget_info_rhythm"/>
+        </receiver>
+        <receiver
+            android:name=".widget.BonsaiWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label_bonsai">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/content_counter_widget_info_bonsai"/>
+        </receiver>
+        <receiver
+            android:name=".widget.BentoWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label_bento">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/content_counter_widget_info_bento"/>
+        </receiver>
+        <receiver
+            android:name=".widget.PlanWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_label_plan">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/plan_widget_info"/>
+        </receiver>
+
+        <!-- Turns the widgets over to the new day at local midnight. -->
+        <service
+            android:name=".widget.MidnightJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
 
         <!-- Optional uninstall protection. -->
         <receiver

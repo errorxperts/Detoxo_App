@@ -10,6 +10,7 @@ import 'package:detoxo/features/access_protection/presentation/pin_lock_screen.d
 import 'package:detoxo/features/access_protection/presentation/pin_setup_screen.dart';
 import 'package:detoxo/features/additional_feature/appearance/presentation/appearance_screen.dart';
 import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
+import 'package:detoxo/features/analytics/presentation/widgets/by_app_section.dart';
 import 'package:detoxo/features/blocking/block_screen/presentation/block_screen_style_screen.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/content_counter/content_counter_appearance/presentation/bubble_style_screen.dart';
@@ -73,7 +74,13 @@ GoRouter buildRouter() => GoRouter(
     // stack; that constant is gone. A per-tab deep link is deliberately NOT
     // built: nothing in the app links to a tab, and a seam with no producer is
     // a speculative API that cannot be verified by use.
-    GoRoute(path: Routes.home, builder: (_, _) => const HomeShell()),
+    // `?dashboard=<n>` (a Plan widget tap, EVO-073) brings the Dashboard tab
+    // forward; a new n each tap, so a repeat tap does too.
+    GoRoute(
+      path: Routes.home,
+      builder: (_, state) =>
+          HomeShell(dashboardRequest: state.uri.queryParameters['dashboard']),
+    ),
     // The setup screen can change or disable the PIN, so the route itself is
     // gated — every entry point (settings tile, drawer shortcut, deep link)
     // passes the same guard. PinGuard short-circuits when the settings scope
@@ -121,7 +128,13 @@ GoRouter buildRouter() => GoRouter(
         },
       ),
     ),
-    GoRoute(path: Routes.analytics, builder: (_, _) => const AnalyticsScreen()),
+    // `?segment=` (a home-widget tap, EVO-072) opens By app on that tally.
+    GoRoute(
+      path: Routes.analytics,
+      builder: (_, state) => AnalyticsScreen(
+        segment: ByAppSegment.fromQuery(state.uri.queryParameters['segment']),
+      ),
+    ),
     GoRoute(
       path: Routes.appearance,
       builder: (_, _) => const AppearanceScreen(),

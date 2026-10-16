@@ -85,9 +85,9 @@ Future<void> runBootstrap(BuildContext context) async {
 
     // Phase 3 — drift repair and rehydration. Nothing routes on any of it.
     for (final (name, run) in <BootStep>[
-      // Re-render a pinned home-screen widget from the native store
-      // (day-rollover repair for a widget that saw no count since midnight).
-      ('contentWidget', sl<HomeWidgetRepository>().refresh),
+      // Rebuild the home-screen widgets' payload from the native store
+      // (day-rollover repair for a widget that saw no push since midnight).
+      ('contentWidget', sl<HomeWidgetRepository>().push),
       // Protected apps, web blocklist and whole-app blocks, pushed so native
       // matches Dart without any screen ever being opened.
       ('engineBlocklists', syncEngineBlocklists),

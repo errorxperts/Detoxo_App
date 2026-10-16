@@ -41,19 +41,19 @@ class _PendingUnblockListenerState extends State<PendingUnblockListener> {
     // launching Detoxo IS what the tap does. Waiting for the gate rather than
     // dropping the target is the difference between the button working and the
     // button doing nothing at all.
-    _gate.addListener(_onGate);
+    _gate.screensMayOpenChanged.addListener(_onGate);
   }
 
   @override
   void dispose() {
-    _gate.removeListener(_onGate);
+    _gate.screensMayOpenChanged.removeListener(_onGate);
     super.dispose();
   }
 
-  bool get _ready => _gate.ready && !_gate.pinLocked && _gate.onboarded;
-
+  /// Also waits out a resume's re-lock: a sheet opened now would sit above the
+  /// PIN and grant an unblock without it.
   void _onGate() {
-    if (!_ready || !mounted) return;
+    if (!_gate.screensMayOpen || !mounted) return;
     final pending = context.read<UnblockCubit>().state.pending;
     if (pending != null) unawaited(_show(pending));
   }
@@ -119,7 +119,9 @@ class _PendingUnblockListenerState extends State<PendingUnblockListener> {
         final pending = state.pending;
         // Otherwise it stays in state, and `_onGate` picks it up the moment the
         // gate opens.
-        if (pending != null && _ready) unawaited(_show(pending));
+        if (pending != null && _gate.screensMayOpen) {
+          unawaited(_show(pending));
+        }
       },
       child: widget.child,
     );

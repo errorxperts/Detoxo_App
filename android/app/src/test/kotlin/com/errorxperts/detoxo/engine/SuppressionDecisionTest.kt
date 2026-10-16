@@ -97,7 +97,7 @@ class SuppressionDecisionTest {
         // A global Daily Limit is a platform meter, not an app-level block:
         // the app stays openable, so its notifications must keep arriving.
         rules.setSnapshot(
-            "[${entry(id = "daily_reel_limit", platforms = q("*"), always = true, reelMs = 1)}]",
+            "[${entry(id = RuleEngine.DAILY_REEL_LIMIT_ID, platforms = q("*"), always = true, reelMs = 1)}]",
         )
         assertFalse(suppress(IG))
     }

@@ -43,12 +43,20 @@ import 'package:detoxo/features/usage/usage.dart';
 import 'package:detoxo/firebase_options.dart';
 import 'package:feedback/feedback.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The home-widget previews' font, Manrope, ships under the OFL, which asks
+  // for its licence to travel with it. Registered once: the bootstrap re-runs.
+  LicenseRegistry.addLicense(() async* {
+    yield LicenseEntryWithLineBreaks(const [
+      'Manrope',
+    ], await rootBundle.loadString('assets/fonts/OFL.txt'));
+  });
   // Telemetry init is best-effort: no offline-first app should fail to launch
   // because a Firebase handshake did not come back. DI is NOT in that bucket —
   // without it there is no app to show, so it stays outside the guard.
@@ -70,7 +78,10 @@ Future<void> main() async {
   await configureDependencies();
   // Telemetry: capture cubit events/errors globally, then switch on collection,
   // the anonymous install id and the native-event reporter.
-  Bloc.observer = FirebaseBlocObserver(sl<AnalyticsService>(), sl<CrashReportingService>());
+  Bloc.observer = FirebaseBlocObserver(
+    sl<AnalyticsService>(),
+    sl<CrashReportingService>(),
+  );
   await guardedSync('firebaseServices', FirebaseServices.start(sl));
   GlassAppBar.globalActionsBuilder = (_) => const [FeedbackActionButton()];
   runApp(const DetoxoApp());
@@ -87,7 +98,8 @@ class DetoxoApp extends StatelessWidget {
         BlocProvider(create: (_) => ConsciousCubit(sl<EngineRepository>())),
         BlocProvider(create: (_) => ReelSessionCubit(sl<EngineRepository>())),
         BlocProvider(
-          create: (_) => SettingsCubit(sl<SettingsRepository>(), sl<EngineRepository>()),
+          create: (_) =>
+              SettingsCubit(sl<SettingsRepository>(), sl<EngineRepository>()),
         ),
         BlocProvider(
           create: (_) => TargetsCubit(
@@ -96,21 +108,32 @@ class DetoxoApp extends StatelessWidget {
             performance: sl<PerformanceService>(),
           ),
         ),
-        BlocProvider(create: (_) => PermissionsCubit(sl<PermissionRepository>())),
+        BlocProvider(
+          create: (_) => PermissionsCubit(sl<PermissionRepository>()),
+        ),
         BlocProvider(create: (_) => PinCubit(sl<PinRepository>())),
         // Live reel-counter stream (today count + today usage time) and the
         // daily limit — both feed the dashboard screen-time ring.
         BlocProvider(
-          create: (_) =>
-              ContentCounterCubit(sl<ContentCounterRepository>(), sl<BubbleRepository>()),
+          create: (_) => ContentCounterCubit(
+            sl<ContentCounterRepository>(),
+            sl<BubbleRepository>(),
+          ),
         ),
         // Bubble + widget styling, shared by the Appearance hub and both
         // editors. Lazy: hydrated from native on the first screen that reads it.
-        BlocProvider(create: (_) => CounterAppearanceCubit(sl<CounterAppearanceRepository>())),
+        BlocProvider(
+          create: (_) =>
+              CounterAppearanceCubit(sl<CounterAppearanceRepository>()),
+        ),
         // Block-screen style + its on/off switch, shared by the Appearance
         // hub's card and the editor. Lazy: hydrated from native on first read.
-        BlocProvider(create: (_) => BlockScreenStyleCubit(sl<BlockScreenRepository>())),
-        BlocProvider(create: (_) => DailyLimitCubit(sl<DailyLimitRepository>())),
+        BlocProvider(
+          create: (_) => BlockScreenStyleCubit(sl<BlockScreenRepository>()),
+        ),
+        BlocProvider(
+          create: (_) => DailyLimitCubit(sl<DailyLimitRepository>()),
+        ),
         // "Days under your daily limit" streak — fed by the dashboard hero and
         // read back into its stat pill.
         BlocProvider(create: (_) => StreakCubit(sl<StreakRepository>())),
@@ -122,7 +145,8 @@ class DetoxoApp extends StatelessWidget {
         // two channel queries per mount. Not `..load()`ed: the view refreshes
         // on mount.
         BlocProvider(
-          create: (_) => InsightsCubit(sl<InsightsRepository>(), sl<EngineRepository>()),
+          create: (_) =>
+              InsightsCubit(sl<InsightsRepository>(), sl<EngineRepository>()),
         ),
         // Blocking rules (schedules / limits) + THE Dart push path for the
         // native rules snapshot: cold start via `runBootstrap`, resume via
@@ -162,7 +186,9 @@ class DetoxoApp extends StatelessWidget {
           ),
           BlocListener<PermissionsCubit, List<PermissionStatus>>(
             listener: (context, _) => sl<AppGate>().update(
-              permissionsOk: context.read<PermissionsCubit>().allRequiredGranted,
+              permissionsOk: context
+                  .read<PermissionsCubit>()
+                  .allRequiredGranted,
             ),
           ),
         ],
@@ -173,14 +199,16 @@ class DetoxoApp extends StatelessWidget {
           // reel-time meter), so a saved limit re-pushes it.
           child: BlocListener<DailyLimitCubit, DailyLimit>(
             listenWhen: (a, b) => a.limit != b.limit,
-            listener: (context, _) => unawaited(context.read<RulesCubit>().resync()),
+            listener: (context, _) =>
+                unawaited(context.read<RulesCubit>().resync()),
             child:
                 BlocSelector<
                   SettingsCubit,
                   AppSettings,
                   (AppThemeMode, AppBackground, AppBackground)
                 >(
-                  selector: (s) => (s.themeMode, s.darkBackground, s.lightBackground),
+                  selector: (s) =>
+                      (s.themeMode, s.darkBackground, s.lightBackground),
                   builder: (_, sel) {
                     final darkStyle = _bgStyle(sel.$2);
                     final lightStyle = _bgStyle(sel.$3);
@@ -202,6 +230,48 @@ class DetoxoApp extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Pushes the app theme's primary in each brightness (ARGB) to native when a
+/// background changes: the bubble and the widgets take the one of their own
+/// brightness, so a device brightness flip needs no push.
+class _BrandSync extends StatefulWidget {
+  const _BrandSync({
+    required this.light,
+    required this.dark,
+    required this.child,
+  });
+
+  final int light;
+  final int dark;
+  final Widget child;
+
+  @override
+  State<_BrandSync> createState() => _BrandSyncState();
+}
+
+class _BrandSyncState extends State<_BrandSync> {
+  @override
+  void initState() {
+    super.initState();
+    _push();
+  }
+
+  @override
+  void didUpdateWidget(_BrandSync old) {
+    super.didUpdateWidget(old);
+    if (old.light != widget.light || old.dark != widget.dark) _push();
+  }
+
+  void _push() => unawaited(
+    sl<CounterAppearanceRepository>().setBrands(
+      light: widget.light,
+      dark: widget.dark,
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// Maps the domain appearance preference to a Flutter [ThemeMode].
@@ -228,7 +298,11 @@ AppBackgroundStyle _bgStyle(AppBackground background) => switch (background) {
 };
 
 class _Router extends StatefulWidget {
-  const _Router({required this.themeMode, required this.darkBrand, required this.lightBrand});
+  const _Router({
+    required this.themeMode,
+    required this.darkBrand,
+    required this.lightBrand,
+  });
 
   final ThemeMode themeMode;
 
@@ -251,7 +325,10 @@ class _RouterState extends State<_Router> {
       theme: glassFeedbackTheme(Brightness.light),
       darkTheme: glassFeedbackTheme(Brightness.dark),
       feedbackBuilder: (context, onSubmit, scrollController) =>
-          GlassFeedbackForm(onSubmit: onSubmit, scrollController: scrollController),
+          GlassFeedbackForm(
+            onSubmit: onSubmit,
+            scrollController: scrollController,
+          ),
       child: AppResumeSync(
         // Arms the first run's starter rule on the accessibility-grant edge.
         // App-wide so a grant made from anywhere counts, not just from the
@@ -259,6 +336,7 @@ class _RouterState extends State<_Router> {
         child: StarterRuleSync(
           child: PinAutoRelock(
             router: _router,
+            gate: sl<AppGate>(),
             child: MaterialApp.router(
               title: 'Detoxo',
               theme: AppTheme.light(
@@ -275,7 +353,16 @@ class _RouterState extends State<_Router> {
               // M8: the sheet a wall's "Allow for a while" opens. Mounted
               // here, INSIDE the router, so it can never float over the PIN
               // lock or the splash.
-              builder: (context, child) => PendingUnblockListener(child: child ?? const SizedBox()),
+              // A home-widget tap's screen (IM-08), mounted the same way.
+              // The bubble and the widgets take the theme's primary at every
+              // tier; this keeps native in step with it.
+              builder: (context, child) => _BrandSync(
+                light: widget.lightBrand.primary.toARGB32(),
+                dark: widget.darkBrand.primary.toARGB32(),
+                child: PendingUnblockListener(
+                  child: WidgetTapListener(child: child ?? const SizedBox()),
+                ),
+              ),
             ),
           ),
         ),

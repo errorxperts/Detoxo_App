@@ -200,8 +200,29 @@ abstract final class ChannelMethods {
   static const String contentCounterSnapshot = 'contentCounterSnapshot';
   static const String setContentCounterEnabled = 'setContentCounterEnabled';
   static const String setContentBubbleEnabled = 'setContentBubbleEnabled';
+
+  /// Asks the launcher to pin one widget family. Payload `{family: String?}`
+  /// (a `WidgetFamily` wire token; absent = `COUNT`). Returns `Boolean`: false
+  /// for an unknown family or a launcher that can't pin. A failure on the
+  /// widget worker answers an error, so Dart reads it as null.
   static const String pinContentWidget = 'pinContentWidget';
+
+  /// Has native rebuild and store the widget payload now. Payload `{reason:
+  /// "refresh" | "background"}` (absent = refresh). Pinned widgets redraw only
+  /// when what they show changed.
   static const String refreshContentWidget = 'refreshContentWidget';
+
+  /// A freshly built widget payload as IM-02 JSON text, for the in-app
+  /// previews. Native builds it but does NOT store it, so a preview never moves
+  /// the pinned widgets. Dart sends no payload: native picks the demo iff
+  /// nothing was ever counted.
+  static const String contentWidgetPayload = 'contentWidgetPayload';
+
+  /// Reads AND CLEARS the last home-widget tap as `"FAMILY|SIZE|TARGET"`
+  /// (`TARGET` = `ACTIVITY | APPEARANCE | PERMISSIONS`, decided natively at
+  /// tap time), or null. Delivered like [takePendingUnblock]: the tap launches
+  /// Detoxo, and on a cold start no EventChannel sink exists yet.
+  static const String takePendingWidgetTap = 'takePendingWidgetTap';
 
   /// Push bubble and/or home-widget appearance to native. Payload `{bubble?,
   /// widget?}` (each a style wire map); native persists it, live-re-renders the

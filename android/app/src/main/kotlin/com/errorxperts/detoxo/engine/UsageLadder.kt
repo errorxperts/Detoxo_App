@@ -5,8 +5,10 @@ package com.errorxperts.detoxo.engine
  *
  * MUST stay byte-identical to the Dart source of truth in
  * `lib/features/content_counter/content_counter_core/domain/usage_ladder.dart`
- * so the bubble, the home widget, and the in-app previews render the same color
- * and emoji at the same count. Both step once per 50 reels and cap at [CAP].
+ * so the block screen and its in-app preview render the same color and emoji
+ * at the same count. Both step once per 50 reels and cap at [CAP]. Block
+ * screen only: the home widgets and the floating bubble no longer use it —
+ * their colour is the DS-01 tier (`WidgetPayload.tierOf`).
  */
 object UsageLadder {
 

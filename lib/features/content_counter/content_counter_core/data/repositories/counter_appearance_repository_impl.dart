@@ -32,6 +32,10 @@ class CounterAppearanceRepositoryImpl implements CounterAppearanceRepository {
   Future<void> setWidgetStyle(WidgetStyle style) =>
       _channel.setCounterStyle(widget: style.toWire());
 
+  @override
+  Future<void> setBrands({required int light, required int dark}) =>
+      _channel.setCounterStyle(brandLight: light, brandDark: dark);
+
   /// Parses a persisted style value. Native stores each style as a JSON string;
   /// returns null (→ entity defaults) when absent, empty, or malformed — the
   /// malformed case is logged, since it silently resets the user's styling.

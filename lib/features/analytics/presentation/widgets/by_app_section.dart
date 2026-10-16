@@ -18,6 +18,12 @@ enum ByAppSegment {
   const ByAppSegment(this.label);
 
   final String label;
+
+  /// `?segment=` on the Activity route (a home-widget tap, EVO-072): the
+  /// enum's name. Anything else (absent, unknown, another case) is Reels,
+  /// the default tally.
+  static ByAppSegment fromQuery(String? v) =>
+      values.asNameMap()[v] ?? ByAppSegment.reels;
 }
 
 /// One row's worth of figures, whatever the segment counts — sorted, capped
@@ -42,7 +48,11 @@ typedef ByAppRow = ({
 /// own. Labels and icons are `InsightsState.apps`, the screen's one
 /// installed-app lookup; a failure costs the labels, never the rows.
 class ByAppSection extends StatefulWidget {
-  const ByAppSection({super.key});
+  const ByAppSection({this.initial = ByAppSegment.reels, super.key});
+
+  /// The tally shown first: Time for a Rhythm widget tap (EVO-072). Read
+  /// once; the user's own pick wins from then on.
+  final ByAppSegment initial;
 
   /// How many of the stored ten screen-time apps the Time segment draws.
   static const int visibleTimeApps = 5;
@@ -131,7 +141,8 @@ class ByAppSection extends StatefulWidget {
 
 class _ByAppSectionState extends State<ByAppSection>
     with AutomaticKeepAliveClientMixin {
-  int _index = 0;
+  /// The tally the user is on, [ByAppSection.initial] until they pick one.
+  late ByAppSegment _chosen = widget.initial;
 
   /// The Activity list is lazy: a section scrolled past the cache extent is
   /// disposed, which would reset the chosen segment to Reels on the way back.
@@ -151,10 +162,13 @@ class _ByAppSectionState extends State<ByAppSection>
       ByAppSegment.blocks,
       if (stats != null) ByAppSegment.time,
     ];
-    // A revoked grant drops the Time segment from under a selection. The
-    // stored index is kept, so Time re-selects when the grant returns; the
-    // pill and the rows always agree because both derive from [segment].
-    final segment = segments[_index.clamp(0, segments.length - 1)];
+    // A revoked grant drops the Time segment from under a selection: the rows
+    // fall back to Reels, and [_chosen] is kept, so Time re-selects when the
+    // grant returns. On a cold Rhythm tap the same path runs once the first
+    // screen-time read lands. ponytail: the pill slides Reels → Time then;
+    // hold it while InsightsCubit is loading if that reads as a glitch.
+    // The pill and the rows always agree because both derive from [segment].
+    final segment = segments.contains(_chosen) ? _chosen : ByAppSegment.reels;
     final rows = ByAppSection.rowsFor(
       segment,
       count: count,
@@ -169,7 +183,7 @@ class _ByAppSectionState extends State<ByAppSection>
         GlassSegmented(
           segments: [for (final s in segments) (label: s.label, icon: null)],
           selectedIndex: segments.indexOf(segment),
-          onChanged: (i) => setState(() => _index = i),
+          onChanged: (i) => setState(() => _chosen = segments[i]),
           height: AppSizes.controlHeight,
         ),
         // `lg`, not `sm`: the control is the one glass surface that casts a

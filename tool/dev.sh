@@ -47,8 +47,13 @@ t_watch()    { run dart run build_runner watch --delete-conflicting-outputs; }
 t_genclean() { run dart run build_runner clean; }
 t_fresh()    { run flutter clean; run flutter pub get; t_gen; }
 t_quality()  { fmt; run dart fix --apply; run flutter analyze; }
-t_precommit(){ fmt; run flutter analyze; run flutter test; native_tests; run bash tool/check_boundaries.sh; }
-t_validate() { t_fresh; fmt; run flutter analyze; run flutter test; native_tests; run bash tool/check_boundaries.sh; }
+t_precommit(){ fmt; widget_tokens; run flutter analyze; run flutter test; native_tests; run bash tool/check_boundaries.sh; }
+t_validate() { t_fresh; fmt; widget_tokens; run flutter analyze; run flutter test; native_tests; run bash tool/check_boundaries.sh; }
+
+# Home-widget tokens: WidgetTokens.kt, widget_tokens.g.dart and the domain's
+# widget_rules.g.dart must match
+# tool/home_widget/tokens.json (Widget Rules DS-02 / IM-05). Fails on drift.
+widget_tokens() { run dart run tool/home_widget/gen_tokens.dart --check; }
 
 # Native JVM tests (the engine's pure-Kotlin state machines, e.g. ReelTracker).
 # Gradle needs a JDK 17+; the system `java` is often older, so resolve one:

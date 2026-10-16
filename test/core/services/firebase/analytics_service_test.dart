@@ -69,6 +69,13 @@ void main() {
     expect(e[1], {'duration_min': 15});
   });
 
+  test('logWidgetOpened → widget_opened { family, size }', () async {
+    await service.logWidgetOpened(family: 'BONSAI', size: 'LARGE');
+    final e = capturedEvent();
+    expect(e[0], 'widget_opened');
+    expect(e[1], {'family': 'BONSAI', 'size': 'LARGE'});
+  });
+
   test('logScreenView delegates to Firebase screen-view API', () async {
     await service.logScreenView('Dashboard');
     verify(() => fa.logScreenView(screenName: 'Dashboard')).called(1);

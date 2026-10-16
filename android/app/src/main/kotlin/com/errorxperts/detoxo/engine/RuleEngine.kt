@@ -1,6 +1,7 @@
 package com.errorxperts.detoxo.engine
 
 import org.json.JSONArray
+import org.json.JSONObject
 
 /**
  * Enforces the rules snapshot Dart pushes over `pushRules`: schedules already
@@ -284,6 +285,9 @@ class RuleEngine {
         const val REASON_SCHEDULE = "SCHEDULE"
         const val REASON_DAILY_LIMIT = "DAILY_LIMIT"
 
+        /** The id of the synthetic entry Dart appends for the global Daily Limit's reel meter. */
+        const val DAILY_REEL_LIMIT_ID = "daily_reel_limit"
+
         /**
          * Dart caps stored rules at 50 and appends the synthetic daily-reel-limit
          * entry AFTER them, so a legitimate snapshot is 51 long. Capping at 50
@@ -301,42 +305,76 @@ class RuleEngine {
                 val out = ArrayList<Entry>(count)
                 for (i in 0 until count) {
                     val o = arr.optJSONObject(i) ?: continue
-                    val id = o.optString("id")
-                    if (id.isEmpty()) continue
-                    val w = o.optJSONArray("windows")
-                    var windows = LongArray((w?.length() ?: 0) * 2)
-                    var n = 0
-                    if (w != null) {
-                        for (j in 0 until w.length()) {
-                            val pair = w.optJSONArray(j) ?: continue
-                            if (pair.length() < 2) continue
-                            windows[n++] = pair.optLong(0)
-                            windows[n++] = pair.optLong(1)
-                        }
-                    }
-                    if (n != windows.size) windows = windows.copyOf(n)
-                    out.add(
-                        Entry(
-                            id = id,
-                            reason = o.optString("reason", REASON_SCHEDULE),
-                            allExcept = o.optString("mode") == "ALL_EXCEPT",
-                            packages = strings(o.optJSONArray("packages")).toHashSet(),
-                            domains = strings(o.optJSONArray("domains")).map { it.lowercase() },
-                            platformIds = strings(o.optJSONArray("platformIds")).toHashSet(),
-                            windows = windows,
-                            always = o.optBoolean("always", false),
-                            reelTimeLimitMs = o.optLong("reelTimeLimitMs", 0L),
-                            strict = o.optBoolean("strict", false),
-                            usageLimitMs = o.optLong("usageLimitMs", 0L),
-                            openLimitCount = o.optInt("openLimitCount", 0),
-                            spent = o.optBoolean("spent", false),
-                        ),
-                    )
+                    out.add(entryOf(o) ?: continue)
                 }
                 out
             } catch (_: Throwable) {
                 null
             }
+        }
+
+        /**
+         * The reel-meter objects of the snapshot [json], verbatim and in order:
+         * a smaller snapshot in this same shape, which [parse] reads back. The
+         * home widget's `cc_reel_limits` mirror. Null when [json] is not a JSON
+         * array, so the caller keeps its previous mirror. Reads the two keys
+         * [entryOf] would ([Entry.isReelMeter] on an entry with an `id`)
+         * without building the entry.
+         */
+        fun reelMetersJson(json: String): String? = try {
+            val arr = JSONArray(json)
+            val meters = JSONArray()
+            for (i in 0 until minOf(arr.length(), MAX_ENTRIES)) {
+                val o = arr.optJSONObject(i) ?: continue
+                if (o.optString("id").isNotEmpty() && o.optLong("reelTimeLimitMs", 0L) > 0L) meters.put(o)
+            }
+            meters.toString()
+        } catch (_: Throwable) {
+            null
+        }
+
+        /**
+         * The soonest reel limit in force at [nowMs]: the smallest
+         * [Entry.reelTimeLimitMs] among the reel meters active now (the global
+         * Daily Limit's always-on entry, a reel time-limit rule's window). They
+         * all meter the same reel time, so the smallest runs out first. 0 when
+         * none — the home widget's Time limit reads "No daily limit".
+         */
+        fun soonestReelLimitMs(entries: List<Entry>, nowMs: Long): Long =
+            entries.filter { it.isReelMeter && it.isActive(nowMs) }
+                .minOfOrNull { it.reelTimeLimitMs } ?: 0L
+
+        /** One snapshot object; null without an `id`. */
+        private fun entryOf(o: JSONObject): Entry? {
+            val id = o.optString("id")
+            if (id.isEmpty()) return null
+            val w = o.optJSONArray("windows")
+            var windows = LongArray((w?.length() ?: 0) * 2)
+            var n = 0
+            if (w != null) {
+                for (j in 0 until w.length()) {
+                    val pair = w.optJSONArray(j) ?: continue
+                    if (pair.length() < 2) continue
+                    windows[n++] = pair.optLong(0)
+                    windows[n++] = pair.optLong(1)
+                }
+            }
+            if (n != windows.size) windows = windows.copyOf(n)
+            return Entry(
+                id = id,
+                reason = o.optString("reason", REASON_SCHEDULE),
+                allExcept = o.optString("mode") == "ALL_EXCEPT",
+                packages = strings(o.optJSONArray("packages")).toHashSet(),
+                domains = strings(o.optJSONArray("domains")).map { it.lowercase() },
+                platformIds = strings(o.optJSONArray("platformIds")).toHashSet(),
+                windows = windows,
+                always = o.optBoolean("always", false),
+                reelTimeLimitMs = o.optLong("reelTimeLimitMs", 0L),
+                strict = o.optBoolean("strict", false),
+                usageLimitMs = o.optLong("usageLimitMs", 0L),
+                openLimitCount = o.optInt("openLimitCount", 0),
+                spent = o.optBoolean("spent", false),
+            )
         }
 
         private fun strings(arr: JSONArray?): List<String> {

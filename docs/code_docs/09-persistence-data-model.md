@@ -11,7 +11,7 @@ boundary:
 | `flutter_secure_storage` | Dart | Keystore / EncryptedSharedPreferences | Secrets only (the PIN config) |
 | `detoxo_engine_prefs` | Native (Kotlin) | `SharedPreferences` | The engine's own runtime state: plan, counters, blocklists, Conscious bank, watchdog markers |
 | `detoxo_platforms_config` | Native (Kotlin) | `SharedPreferences` | Just the pushed ~31 KB `platforms_config_json` — split out so hot-path counter writes stop re-serialising it (§2.1) |
-| Home-screen widget | Native (Kotlin) | reads `detoxo_engine_prefs` (`cc_today` / `cc_total` / styles) | Rendered natively from the store; no plugin-side data (the `home_widget` package was removed) |
+| Home-screen widgets | Native (Kotlin) | `detoxo_engine_prefs`: reads the `cc_*` counter keys, writes `widget_payload` / `widget_rendered_key` | Rendered natively from the store by the one writer `ReelWidgetSync`; no plugin-side data (the `home_widget` package was removed) |
 
 > **Not used (from the old blueprint):** Room, drift/SQLite, any
 > `ContentProvider`, and any multi-process `SharedPreferences`
@@ -329,37 +329,45 @@ count, so an unrelated settings change can't refill a spent session. See
 ### 2.2 `ContentCounterStore` keys
 
 The counter is **decoupled from blocking** and enabled by default. Written by
-`engine/ContentCounter.kt` (`recordCount(pkg, dateKey, usageDeltaMs)` — one
+`engine/ContentCounter.kt` (`recordCount(pkg, dateKey, hour, usageDeltaMs)` — one
 edit for the count *and* the batched usage time, returning the snapshot;
 `recordUsage` for the periodic usage flush) and by `CommandHandler`
 (`setContentCounterEnabled`, `setContentBubbleEnabled`, `setCounterStyle`); read
-by the bubble overlay and the widget provider. `cc_enabled` / `cc_bubble_enabled`
+by the bubble overlay and the widget writer (`widgetSource`). `cc_enabled` / `cc_bubble_enabled`
 are cached per store instance (see [17](17-content-counter.md) §3).
 
 | Key | Type | Default | Meaning |
 |---|---|---|---|
 | `cc_enabled` | Boolean | **true** | Master on/off for counting (awareness on by default) |
 | `cc_bubble_enabled` | Boolean | true | Whether the floating bubble may be shown |
-| `cc_bubble_x` | Int | −1 | Last bubble X px (−1 = unset → snaps to default edge) |
-| `cc_bubble_y` | Int | −1 | Last bubble Y px (−1 = unset → default top offset) |
+| `cc_bubble_x` | Int | −1 | X px of the **collapsed body's** top-left (−1 = unset → right dock). Was the window's top-left; an old in-range value is re-clamped on first show |
+| `cc_bubble_y` | Int | −1 | Y px of the collapsed body's top-left (−1 = unset → 30 % of screen height); clamped to 20–70 % |
 | `cc_date` | String | "" | Day key of the current `today` bucket (`dd-MM-yyyy`); the **single** rollover marker shared by the reel counts **and** the usage-time buckets below |
 | `cc_today` | Int | 0 | Reels counted today |
 | `cc_total` | Int | 0 | All-time reel count |
-| `cc_time_today` | Long | 0 | Whole-app foreground time (ms) in monitored social apps today — drives the dashboard screen-time ring + bubble tap-to-reveal |
+| `cc_time_today` | Long | 0 | Whole-app foreground time (ms) in monitored social apps today — drives the dashboard screen-time ring + the bubble's timer |
 | `cc_time_total` | Long | 0 | All-time whole-app foreground time (ms) |
 | `cc_per_app_today` | String (JSON) | `{}` | `{pkg: count}` for today |
 | `cc_per_app_total` | String (JSON) | `{}` | `{pkg: count}` all-time |
-| `cc_bubble_style` | String (JSON) | "" | Bubble appearance (Dart `BubbleStyle.toWire`) |
-| `cc_widget_style` | String (JSON) | "" | Widget appearance (Dart `WidgetStyle.toWire`) |
-| `block_screen_style` | String (JSON) | "" | Block-screen appearance **+ its `enabled` switch** (Dart `BlockScreenStyle.toWire`); owned by `ConfigStore`, read once per debounced block in `BlockScreenOverlay.show` ([25](25-block-screen.md) §6). No Hive counterpart — native is the single source of truth |
+| `cc_bubble_style` | String (JSON) | "" | Bubble appearance (Dart `BubbleStyle.toWire`): `{"variant": "MASCOT"…, "size": 48–80, "opacity": 0.5–1}`; unknown variant → `MASCOT`, legacy keys ignored, rewritten on the first edit |
+| `cc_widget_style` | String (JSON) | "" | Widget appearance (Dart `WidgetStyle.toWire`, `{theme}`; native reads only `theme`, legacy upper-case tokens accepted) |
+| `cc_brand_light` / `cc_brand_dark` | Int (ARGB) | `cc_brand`, else `0xFF1C3D78` | The app theme's primary in each brightness, pushed via `setCounterStyle(brandLight:, brandDark:)`; the bubble (device brightness) and the widgets (their own theme) take its hue at every tier (`BrandTint`) |
+| `cc_brand` | Int (ARGB) | — | Pre-split single primary; no longer written, read only as the fallback of the two above |
+| `cc_hourly_today` | String (CSV) | "" | Today's usage ms per local hour, 24 values — the Rhythm widget's bars; zeroed by the shared `cc_date` rollover |
+| `cc_reel_limits` | String (JSON array) | "" | Mirror of the `pushRules` snapshot's reel-meter entries (`RuleEngine.reelMetersJson`) — the Time limit widget's soonest limit, readable with the service down |
+| `widget_payload` | String (JSON) | — | The last home-widget payload (IM-02's nine keys) `ReelWidgetSync` wrote; what every pinned widget draws |
+| `widget_rendered_key` | String | — | `WidgetPayload.visibleKey` of the last full render — an equal key skips the redraw |
+| `widget_previews_version` | Long | −1 | versionCode whose Android 15+ widget-picker previews were published |
+| `block_screen_style` | String (JSON) | "" | Block-screen appearance **+ its `enabled` switch** (Dart `BlockScreenStyle.toWire`: `enabled`, `showCount`, `showOpens`, `backDelaySec`; an older map's `theme` / `background` / `design` / `accentByUsage` are ignored); owned by `ConfigStore`, read once per debounced block in `BlockScreenOverlay.show` ([25](25-block-screen.md) §6). No Hive counterpart — native is the single source of truth |
+| `app_theme_mode` | String | "" | The app's theme choice (`SYSTEM` / `LIGHT` / `DARK`, Dart `AppThemeMode`), pushed with `pushSettings` (`themeMode`, whitelisted): the block screen's light/dark look follows it ([25](25-block-screen.md) §6). "" = never pushed → the device's night mode |
 
 **Counting** (`recordCount(pkg, dateKey)`): on a stored-date mismatch it resets
 the today total and `cc_per_app_today` to 0/`{}` **and zeroes `cc_time_today`**
 (**durable** midnight rollover), then increments the today + total scalars and
 both per-app maps in a single `edit()`.
 
-**Usage time** (`recordUsage(deltaMs, dateKey)`): adds `deltaMs` of monitored-app
-foreground time to `cc_time_today` + `cc_time_total`. `ContentCounter` **batches**
+**Usage time** (`recordUsage(deltaMs, dateKey, hour)`): adds `deltaMs` of monitored-app
+foreground time to `cc_time_today` + `cc_time_total` and to `hour`'s slot of `cc_hourly_today`. `ContentCounter` **batches**
 these writes in memory (`pendingUsageMs`) and flushes at ≥ 5 s / on app switch /
 protected-foreground / snapshot / dispose — previously one prefs write per
 accessibility event at scroll frequency (ceiling: ≤ 5 s lost on a hard process
@@ -400,23 +408,25 @@ but they are not interchangeable:
 
 ---
 
-## 3. Home-screen widget (`cc_today` / `cc_total`)
+## 3. Home-screen widgets (`widget_payload`)
 
-The 2×2 home-screen widget has **one** data source: the `cc_*` integers and
-style JSON in `detoxo_engine_prefs`, written by the native counter and read by
-`widget/ContentCounterWidgetProvider.kt` (`ContentCounterStore(context).snapshot(...)`),
-so it stays correct even when the Flutter UI is dead. Nothing is written from
-Dart — the former `home_widget` plugin mirror (its own `cc_today` / `cc_total`
-copy) was removed on 2026-08-29; native never read it.
+The six home-screen widget families have **one** data source: the `cc_*` keys in
+`detoxo_engine_prefs`, read through `ContentCounterStore.widgetSource(dateKey)` by
+the one writer `widget/ReelWidgetSync.kt`, which writes the composed payload to
+`widget_payload` and draws every pinned instance from it — so they stay correct
+even when the Flutter UI is dead. Nothing is written from Dart — the former
+`home_widget` plugin mirror (its own `cc_today` / `cc_total` copy) was removed
+on 2026-08-29; native never read it.
 
 - Dart control is `home_content_counter/data/repositories/home_widget_repository_impl.dart`:
-  `pin()` → the `pinContentWidget` command (`false` when the launcher can't pin,
-  so the editor tells the user to add it by hand), `refresh()` → the
-  `refreshContentWidget` command. Off-Android the channel itself no-ops.
-- Native pushes: `ContentCounter.pushWidget` on every counted reel (throttled to
-  1 s with a trailing flush), `setCounterStyle` for a widget-style edit, and the
-  15-min `WatchdogJobService` job (the midnight rollover repair — the widget
-  otherwise re-renders only on a count).
+  `pin(family)` → `pinContentWidget` (`false` when the launcher can't pin, so the
+  editor tells the user to add it by hand), `push({reason})` →
+  `refreshContentWidget`, `payload({demo})` → `contentWidgetPayload` (built, not
+  stored), `takePendingTap()` → `takePendingWidgetTap`. Off-Android the channel
+  itself no-ops.
+- Native pushes: the counter on every 10th reel and each tier change, settings /
+  `pushRules` / service changes, the 15-min watchdog heartbeat, and
+  `MidnightJobService` at local midnight ([17](17-content-counter.md) §5.2).
 
 ---
 
@@ -452,4 +462,4 @@ copy) was removed on 2026-08-29; native never read it.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/ContentCounter.kt`
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/DateKeys.kt`
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/channels/CommandHandler.kt`
-- `android/app/src/main/kotlin/com/errorxperts/detoxo/widget/ContentCounterWidgetProvider.kt`
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/widget/HomeWidgets.kt` (`ContentCounterWidgetProvider`, the Count family's provider, beside the other family providers)

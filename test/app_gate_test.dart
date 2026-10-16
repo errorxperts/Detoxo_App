@@ -109,6 +109,89 @@ void main() {
     });
   });
 
+  group('re-lock', () {
+    test('holds the permissions gate while it is up, and only that gate', () {
+      // The re-lock is a pageless route on /home. PermissionsCubit re-emits on
+      // every resume, and a redirect to /permissions replaced /home and
+      // removed the lock with it: the app opened without the PIN.
+      openEverything();
+      gate.relocking.value = true;
+      gate.update(permissionsOk: false);
+      expect(gate.redirect(Routes.home), isNull);
+      expect(gate.redirect(Routes.permissions), isNull);
+
+      gate.update(pinLocked: true);
+      expect(gate.redirect(Routes.home), Routes.pinLock, reason: 'unchanged');
+      gate.update(onboarded: false);
+      expect(gate.redirect(Routes.home), Routes.onboarding);
+    });
+
+    test('dropping it notifies, so the held redirect runs then', () {
+      openEverything();
+      var notified = 0;
+      gate
+        ..addListener(() => notified++)
+        ..relocking.value = true;
+      expect(notified, 0, reason: 'raising it has nothing to re-route');
+      gate.update(permissionsOk: false);
+      expect(notified, 1);
+
+      gate.relocking.value = false;
+      expect(notified, 2);
+      expect(gate.redirect(Routes.home), Routes.permissions);
+    });
+  });
+
+  group('screensMayOpen', () {
+    test('open only past every launch gate and with no re-lock', () {
+      expect(gate.screensMayOpen, isFalse, reason: 'still booting');
+      openEverything();
+      expect(gate.screensMayOpen, isTrue);
+
+      for (final close in <void Function()>[
+        () => gate.update(ready: false),
+        () => gate.update(onboarded: false),
+        () => gate.update(pinLocked: true),
+        () => gate.relocking.value = true,
+      ]) {
+        gate = AppGate();
+        openEverything();
+        close();
+        expect(gate.screensMayOpen, isFalse);
+      }
+    });
+
+    test('permissions do not close it', () {
+      // A widget tap may open /permissions itself — the gate it fixes.
+      openEverything();
+      gate.update(permissionsOk: false);
+      expect(gate.screensMayOpen, isTrue);
+    });
+
+    test('its listenable fires for gate flags and for the re-lock', () {
+      var fired = 0;
+      void count() => fired++;
+      gate.screensMayOpenChanged.addListener(count);
+      expect(
+        identical(gate.screensMayOpenChanged, gate.screensMayOpenChanged),
+        isTrue,
+        reason: 'one stored listenable, so removeListener finds the listener',
+      );
+
+      openEverything();
+      expect(fired, 1);
+      gate.relocking.value = true;
+      expect(fired, 2);
+      gate.relocking.value = false;
+      expect(fired, greaterThan(2));
+
+      final before = fired;
+      gate.screensMayOpenChanged.removeListener(count);
+      gate.update(pinLocked: true);
+      expect(fired, before);
+    });
+  });
+
   group('session flags', () {
     test('unlocking the PIN hands over to the next gate, not to home', () {
       openEverything();

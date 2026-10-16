@@ -115,6 +115,7 @@ void main() {
   Future<void> pumpScreen(
     WidgetTester tester, {
     InsightsRepository? insights,
+    ByAppSegment segment = ByAppSegment.reels,
   }) async {
     // Tall enough that the whole scroll is built, so the order can be read.
     tester.view.physicalSize = const Size(1080, 3200);
@@ -137,7 +138,10 @@ void main() {
                 UnblockCubit(_EmptyGrants(), _EmptyLedger(), engine)..load(),
           ),
         ],
-        child: MaterialApp(theme: _theme(), home: const AnalyticsScreen()),
+        child: MaterialApp(
+          theme: _theme(),
+          home: AnalyticsScreen(segment: segment),
+        ),
       ),
     );
     await tester.pump();
@@ -384,17 +388,43 @@ void main() {
     }
 
     // Revoked in Settings: the segment is gone and the rows fall back to
-    // Blocks — pill and rows agree.
+    // Reels, the default tally — pill and rows agree.
     insights.stats = null;
     await refresh();
     expect(find.text('Time'), findsNothing);
     expect(find.text('1h 10m'), findsNothing);
-    expect(find.text('No blocks yet today.'), findsOneWidget);
+    expect(find.text('No reels counted yet.'), findsOneWidget);
 
     // Granted again: the earlier choice re-selects itself.
     insights.stats = granted;
     await refresh();
     expect(find.text('Time'), findsOneWidget);
+    expect(find.text('1h 10m'), findsOneWidget);
+  });
+
+  testWidgets('opened on Time: Reels until the grant answers, then Time', (
+    tester,
+  ) async {
+    final insights = _FakeInsights(); // denied
+    await pumpScreen(tester, insights: insights, segment: ByAppSegment.time);
+    // No Usage access, so no Time segment: the default tally.
+    expect(find.text('Time'), findsNothing);
+    expect(find.text('No reels counted yet.'), findsOneWidget);
+
+    insights.stats = DailyStats(
+      dayKey: '02-09-2026',
+      screenTimeMs: const Duration(hours: 2).inMilliseconds,
+      topApps: const [
+        AppUsage(package: 'com.instagram.android', foregroundMillis: 4200000),
+      ],
+    );
+    await tester
+        .element(find.byType(ByAppSection))
+        .read<InsightsCubit>()
+        .refresh();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 800));
+    // Granted: Time is on without a tap.
     expect(find.text('1h 10m'), findsOneWidget);
   });
 

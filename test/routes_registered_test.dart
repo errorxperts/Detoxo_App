@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/app_gate.dart';
 import 'package:detoxo/core/navigation/app_router.dart';
+import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/services/firebase/firebase.dart';
-import 'package:flutter/widgets.dart' show NavigatorObserver;
+import 'package:detoxo/features/analytics/presentation/analytics_screen.dart';
+import 'package:detoxo/features/analytics/presentation/widgets/by_app_section.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -93,5 +96,36 @@ void main() {
 
     walk(buildRouter().configuration.routes);
     expect(paths.length, paths.toSet().length, reason: 'duplicate route path');
+  });
+
+  testWidgets('the Activity route opens By app on its ?segment=', (
+    tester,
+  ) async {
+    // EVO-072: the home-widget tap writes the query, this builder reads it.
+    await tester.pumpWidget(const SizedBox());
+    final context = tester.element(find.byType(SizedBox));
+    final config = buildRouter().configuration;
+    final activity = config.routes.whereType<GoRoute>().singleWhere(
+      (r) => r.path == Routes.analytics,
+    );
+    ByAppSegment opened(String location) {
+      final uri = Uri.parse(location);
+      final screen = activity.builder!(
+        context,
+        GoRouterState(
+          config,
+          uri: uri,
+          matchedLocation: uri.path,
+          fullPath: uri.path,
+          pathParameters: const {},
+          pageKey: const ValueKey('activity'),
+        ),
+      );
+      return (screen as AnalyticsScreen).segment;
+    }
+
+    expect(opened('/analytics?segment=time'), ByAppSegment.time);
+    expect(opened('/analytics'), ByAppSegment.reels);
+    expect(opened('/analytics?segment=hourly'), ByAppSegment.reels);
   });
 }

@@ -1,28 +1,60 @@
+import 'dart:async';
+
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/features/content_counter/content_counter_appearance/presentation/widgets/bubble_preview.dart';
+import 'package:detoxo/features/content_counter/content_counter_appearance/presentation/widgets/stage_carousel.dart';
+import 'package:detoxo/features/content_counter/content_counter_bubble/domain/bubble_model.dart';
 import 'package:detoxo/features/content_counter/content_counter_bubble/domain/entities/bubble_style.dart';
+import 'package:detoxo/features/content_counter/content_counter_bubble/presentation/bubble_preview.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/domain/entities/counter_appearance.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/domain/entities/counter_style_enums.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/presentation/counter_appearance_cubit.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Live-preview customization for the floating counter bubble: pick a variant,
-/// then tune size / text / spacing / opacity — the pinned preview and (if the
-/// bubble is on screen) the real overlay update as you go. Reads the app-wide
-/// `CounterAppearanceCubit` (shared with the Appearance hub).
+/// The floating-bubble picker: swipe the stage (or tap the rail) through the
+/// styles, scrub the preview count, and tune size and opacity; the stage and
+/// (if the bubble is on screen) the real overlay update as you go. Reads the
+/// app-wide `CounterAppearanceCubit` (shared with the Appearance hub). Each
+/// section rebuilds only for what it shows.
 class BubbleStyleScreen extends StatelessWidget {
   const BubbleStyleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // GlassScaffold applies the SafeArea itself.
     return const GlassScaffold(
       appBar: GlassAppBar(title: Text('Bubble style')),
-      body: SafeArea(child: _Body()),
+      body: _Body(),
     );
   }
 }
+
+/// Stage page order = rail order = the enum's.
+const _variants = BubbleVariant.values;
+
+/// The stage's height: the largest bubble with its pill, `sizeMax · (1 + 60 /
+/// 68)` = 150.6 (`BubblePreview.height`), rounded up.
+const _stageHeight = 152.0;
+
+/// The stage preview's width: the widest timer at the largest size
+/// (`BubblePreview` documents the bound).
+const _previewWidth = 220.0;
+
+bool _still(BuildContext context) =>
+    MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+/// [d], or none under the OS's "remove animations".
+Duration _motion(BuildContext context, Duration d) =>
+    _still(context) ? Duration.zero : d;
+
+/// The style being edited.
+BubbleStyle _style(BuildContext context) =>
+    context.select((CounterAppearanceCubit c) => c.state.bubble);
+
+void _setStyle(BuildContext context, BubbleStyle style) =>
+    context.read<CounterAppearanceCubit>().setBubble(style);
 
 class _Body extends StatefulWidget {
   const _Body();
@@ -32,202 +64,352 @@ class _Body extends StatefulWidget {
 }
 
 class _BodyState extends State<_Body> {
-  // The preview scrubs across the usage range so the color/emoji variants are
-  // legible even before the user has watched anything today.
-  double _previewCount = 137;
+  late final PageController _pages;
 
-  // Representative today-watch-time for the tap-reveal demo (replaced with the
-  // real value once loaded), so the stopwatch format is visible immediately.
-  Duration _previewTime = const Duration(hours: 1, minutes: 23, seconds: 45);
+  /// The previews' reel count. It scrubs across the usage range so the tier
+  /// colours read even before anything is watched today.
+  late final ValueNotifier<int> _count;
+
+  /// One per style, so Replay appear reaches the centred stage page.
+  final _previews = {
+    for (final v in _variants) v: GlobalKey<BubblePreviewState>(),
+  };
+
+  /// True while a rail tap drives the stage: the pages it flies past are
+  /// neither selected nor ticked (the tap selected its target).
+  var _flying = false;
 
   @override
   void initState() {
     super.initState();
     // Seed from the live count once; the slider owns the figure from here.
-    final count = context.read<ContentCounterCubit>().state;
-    if (count.today > 0) _previewCount = count.today.toDouble();
-    if (count.timeToday > Duration.zero) _previewTime = count.timeToday;
+    final today = context.read<ContentCounterCubit>().state.today;
+    _count = ValueNotifier(today > 0 ? today : 137);
+    _pages = PageController(
+      viewportFraction: 0.86,
+      initialPage: context
+          .read<CounterAppearanceCubit>()
+          .state
+          .bubble
+          .variant
+          .index,
+    );
   }
 
-  void _setStyle(BubbleStyle style) =>
-      context.read<CounterAppearanceCubit>().setBubble(style);
+  @override
+  void dispose() {
+    _pages.dispose();
+    _count.dispose();
+    super.dispose();
+  }
+
+  void _select(BubbleVariant v) {
+    final style = context.read<CounterAppearanceCubit>().state.bubble;
+    if (style.variant != v) _setStyle(context, style.copyWith(variant: v));
+  }
+
+  /// A swipe selects the page it settles on.
+  void _onPageChanged(int i) {
+    if (_flying) return;
+    AppHaptics.selection();
+    _select(_variants[i]);
+  }
+
+  /// A rail tap (or a tap on a side page) selects its style at once, then
+  /// flies the stage there.
+  Future<void> _goTo(int i) async {
+    if (!_pages.hasClients) return;
+    _select(_variants[i]);
+    _flying = true;
+    try {
+      if (_still(context)) {
+        _pages.jumpToPage(i);
+      } else {
+        await _pages.animateToPage(
+          i,
+          duration: const Duration(milliseconds: 380),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    } finally {
+      _flying = false;
+      // A drag that interrupted the flight decides where it ended.
+      final page = mounted && _pages.positions.length == 1
+          ? _pages.page?.round()
+          : null;
+      if (page != null) _select(_variants[page]);
+    }
+  }
+
+  /// Follows a style set elsewhere (the cubit's first load).
+  void _follow(BubbleVariant v) {
+    if (_flying || _pages.positions.length != 1) return;
+    if (_pages.page?.round() != v.index) _pages.jumpToPage(v.index);
+  }
+
+  void _replay() {
+    final v = context.read<CounterAppearanceCubit>().state.bubble.variant;
+    _previews[v]!.currentState?.replayAppear();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CounterAppearanceCubit, CounterAppearance>(
-      builder: (context, appearance) {
-        final style = appearance.bubble;
-        final count = _previewCount.round();
-        return ListView(
-          padding: EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.md,
-            AppSpacing.md,
-            AppSpacing.md + MediaQuery.viewPaddingOf(context).bottom,
+    return BlocListener<CounterAppearanceCubit, CounterAppearance>(
+      listenWhen: (a, b) => a.bubble.variant != b.bubble.variant,
+      listener: (_, s) => _follow(s.bubble.variant),
+      // The stage and the rail run edge to edge and inset themselves; the
+      // rest sits in the gutter.
+      child: ListView(
+        padding: EdgeInsets.only(
+          top: AppSpacing.md,
+          bottom: AppSpacing.xxl + MediaQuery.viewPaddingOf(context).bottom,
+        ),
+        children: [
+          _Stage(
+            controller: _pages,
+            previews: _previews,
+            count: _count,
+            onPageChanged: _onPageChanged,
+            onPick: (i) => unawaited(_goTo(i)),
           ),
-          children: [
-            _PreviewStage(style: style, count: count),
-            const SizedBox(height: AppSpacing.sm),
-            _LabeledSlider(
-              label: 'Preview count',
-              value: _previewCount,
-              min: 0,
-              max: 500,
-              divisions: 10,
-              format: (v) => '${v.round()} reels',
-              onChanged: (v) => setState(() => _previewCount = v),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            const SectionHeader('Style'),
-            VariantCarousel(
-              options: [
-                for (final v in BubbleVariant.values)
-                  VariantOption(
-                    label: _variantLabel(v),
-                    selected: style.variant == v,
-                    onTap: () => _setStyle(style.copyWith(variant: v)),
-                    preview: BubblePreview(
-                      style: style.copyWith(variant: v),
-                      count: count,
-                      area: 64,
+          const SizedBox(height: AppSpacing.xs),
+          // One list child each: grouped, their semantics would merge.
+          Padding(
+            padding: AppInsets.screenH,
+            child: _Caption(count: _count),
+          ),
+          Padding(
+            padding: AppInsets.screenH,
+            child: _CountRow(count: _count, onReplay: _replay),
+          ),
+          const Padding(
+            padding: AppInsets.screenH,
+            child: SectionHeader('Style'),
+          ),
+          _Rail(count: _count, onPick: (i) => unawaited(_goTo(i))),
+          const Padding(padding: AppInsets.screenH, child: _Customize()),
+        ],
+      ),
+    );
+  }
+}
+
+/// Every style on its board stage, in a pager whose glass lines up with the
+/// page gutter and whose neighbours peek in at the screen edge. Only the
+/// centred page animates and takes taps; a side page is a way to it.
+class _Stage extends StatelessWidget {
+  const _Stage({
+    required this.controller,
+    required this.previews,
+    required this.count,
+    required this.onPageChanged,
+    required this.onPick,
+  });
+
+  final PageController controller;
+  final Map<BubbleVariant, GlobalKey<BubblePreviewState>> previews;
+  final ValueListenable<int> count;
+  final ValueChanged<int> onPageChanged;
+  final ValueChanged<int> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = _style(context);
+    final watch = context.select((ContentCounterCubit c) => c.state.timeToday);
+    final stage = SizedBox(
+      height: _stageHeight,
+      child: LayoutBuilder(
+        builder: (context, box) {
+          // The glass spans gutter to gutter ([StageSurface] insets it `xxs`
+          // in its page), so the pager is widened past the screen until that
+          // page is its `viewportFraction`; a neighbour's glass then starts
+          // `xs` before the screen edge.
+          final glass = box.maxWidth - 2 * AppSpacing.md;
+          final pager =
+              (glass + 2 * AppSpacing.xxs) / controller.viewportFraction;
+          return OverflowBox(
+            minWidth: pager,
+            maxWidth: pager,
+            child: ValueListenableBuilder(
+              valueListenable: count,
+              builder: (context, n, _) => PageView.builder(
+                controller: controller,
+                onPageChanged: onPageChanged,
+                itemCount: _variants.length,
+                itemBuilder: (context, i) {
+                  final v = _variants[i];
+                  return StagePage(
+                    controller: controller,
+                    index: i,
+                    // A side page shrinks 10 % (`StagePage`), its glass edge
+                    // moving 5 % of the glass outward; this pulls it back.
+                    peek: 0.05 * glass,
+                    child: _StageCard(
+                      preview: BubblePreview(
+                        key: previews[v],
+                        style: style.copyWith(variant: v),
+                        count: n,
+                        watch: watch,
+                        area: _previewWidth,
+                        height: _stageHeight,
+                        interactive: true,
+                        animate: v == style.variant,
+                      ),
+                      centred: v == style.variant,
+                      onPick: () => onPick(i),
                     ),
-                  ),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      ),
+    );
+    if (_still(context)) return stage;
+    return stage
+        .animate()
+        .fadeIn(duration: AppDurations.normal, curve: AppCurves.decelerate)
+        .scaleXY(
+          begin: 0.94,
+          end: 1,
+          duration: AppDurations.normal,
+          curve: AppCurves.standard,
+        );
+  }
+}
+
+/// One style's stage: the shared glass surface, the hint, and the [preview]
+/// docked right.
+class _StageCard extends StatelessWidget {
+  const _StageCard({
+    required this.preview,
+    required this.centred,
+    required this.onPick,
+  });
+
+  final Widget preview;
+  final bool centred;
+  final VoidCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final card = StageSurface(
+      child: Stack(
+        children: [
+          Positioned(
+            left: 12,
+            bottom: 12,
+            child: Text(
+              'Tap the bubble for the timer',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.glass.onGlassMuted,
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: Align(alignment: Alignment.centerRight, child: preview),
+          ),
+        ],
+      ),
+    );
+    if (centred) return card;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onPick,
+      child: AbsorbPointer(child: card),
+    );
+  }
+}
+
+/// One centred line: the selected style's name, then what it says at the
+/// preview count (the mascot's mood, else the reels to the next colour).
+class _Caption extends StatelessWidget {
+  const _Caption({required this.count});
+
+  final ValueListenable<int> count;
+
+  @override
+  Widget build(BuildContext context) {
+    final variant = context.select(
+      (CounterAppearanceCubit c) => c.state.bubble.variant,
+    );
+    final text = Theme.of(context).textTheme.bodyMedium;
+    return ValueListenableBuilder(
+      valueListenable: count,
+      builder: (context, n, _) {
+        final line = variant == BubbleVariant.mascot
+            ? BubbleModel.mascotLine(BubbleModel.tier(n))
+            : BubbleModel.nextLine(n);
+        return AnimatedSwitcher(
+          duration: _motion(context, const Duration(milliseconds: 220)),
+          child: Text.rich(
+            // A new style cross-fades; a new count swaps in place.
+            key: ValueKey(variant),
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: variant.label,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                TextSpan(
+                  text: ' · $line',
+                  style: TextStyle(color: context.glass.onGlassMuted),
+                ),
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
-            const SectionHeader('Customize'),
-            _LabeledSlider(
-              label: 'Size',
-              value: style.size,
-              min: BubbleStyle.sizeMin,
-              max: BubbleStyle.sizeMax,
-              divisions: 8,
-              format: (v) => '${v.round()} dp',
-              onChanged: (v) => _setStyle(style.copyWith(size: v)),
-            ),
-            _LabeledSlider(
-              label: 'Text size',
-              value: style.textScale,
-              min: BubbleStyle.textScaleMin,
-              max: BubbleStyle.textScaleMax,
-              divisions: 6,
-              format: _percent,
-              onChanged: (v) => _setStyle(style.copyWith(textScale: v)),
-            ),
-            if (style.variant == BubbleVariant.minimalPill)
-              _LabeledSlider(
-                label: 'Spacing',
-                value: style.spacing,
-                min: BubbleStyle.spacingMin,
-                max: BubbleStyle.spacingMax,
-                divisions: 5,
-                format: _percent,
-                onChanged: (v) => _setStyle(style.copyWith(spacing: v)),
-              ),
-            _LabeledSlider(
-              label: 'Opacity',
-              value: style.opacity,
-              min: BubbleStyle.opacityMin,
-              max: BubbleStyle.opacityMax,
-              divisions: 5,
-              format: _percent,
-              onChanged: (v) => _setStyle(style.copyWith(opacity: v)),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            AppToggleTile(
-              leading: const IconBadge(icon: Icons.short_text_rounded),
-              title: 'Show caption',
-              subtitle: 'A tiny “reels” label under the count',
-              value: style.showLabel,
-              onChanged: (v) => _setStyle(style.copyWith(showLabel: v)),
-            ),
-            AppToggleTile(
-              leading: const IconBadge(icon: Icons.schedule_rounded),
-              title: 'Show time on tap',
-              subtitle:
-                  'Tap the bubble to reveal today’s watch time '
-                  '(double-tap opens the app)',
-              value: style.showTime,
-              onChanged: (v) => _setStyle(style.copyWith(showTime: v)),
-            ),
-            if (style.showTime) ...[
-              const SizedBox(height: AppSpacing.sm),
-              _TapRevealDemo(style: style, time: _previewTime),
-            ],
-          ],
+            textAlign: TextAlign.center,
+            style: text,
+          ),
         );
       },
     );
   }
 }
 
-String _percent(double v) => '${(v * 100).round()}%';
+/// The preview count on one row: its value, the slider, and Replay appear.
+class _CountRow extends StatelessWidget {
+  const _CountRow({required this.count, required this.onReplay});
 
-class _PreviewStage extends StatelessWidget {
-  const _PreviewStage({required this.style, required this.count});
+  final ValueNotifier<int> count;
+  final VoidCallback onReplay;
 
-  final BubbleStyle style;
-  final int count;
+  static String _reels(double v) => '${v.round()} reels';
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 168,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [context.glass.fillTop, context.glass.fillBottom],
-        ),
-        border: Border.all(color: context.glass.border),
-      ),
-      child: BubblePreview(style: style, count: count),
+    final text = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: context.glass.onGlassMuted,
+      fontFeatures: const [FontFeature.tabularFigures()],
     );
-  }
-}
-
-/// Shows what a single tap reveals: the bubble flipped to today's watch time in
-/// the stopwatch format (`45s` / `mm:ss` / `hh:mm:ss`), mirroring the overlay.
-class _TapRevealDemo extends StatelessWidget {
-  const _TapRevealDemo({required this.style, required this.time});
-
-  final BubbleStyle style;
-  final Duration time;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        color: context.glass.fillTop,
-        border: Border.all(color: context.glass.border),
-      ),
-      child: Row(
+    return ValueListenableBuilder(
+      valueListenable: count,
+      builder: (context, n, _) => Row(
         children: [
-          BubblePreview(style: style, count: 0, time: time, area: 64),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'On single tap',
-                  style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'The bubble briefly shows today’s time '
-                  '(${formatBubbleClock(time)}), then reverts to the count.',
-                  style: text.bodySmall?.copyWith(
-                    color: context.glass.onGlassMuted,
-                  ),
-                ),
-              ],
+          // Wide enough for "500 reels", so the slider never shifts; the
+          // slider announces it.
+          SizedBox(
+            width: MediaQuery.textScalerOf(context).scale(64),
+            child: ExcludeSemantics(
+              child: Text(_reels(n.toDouble()), style: text),
             ),
+          ),
+          Expanded(
+            child: Semantics(
+              label: 'Preview count',
+              child: AdaptiveSlider(
+                value: n.toDouble(),
+                max: 500,
+                divisions: 50,
+                semanticFormatter: _reels,
+                onChanged: (v) => count.value = v.round(),
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: onReplay,
+            tooltip: 'Replay appear',
+            icon: const Icon(Icons.replay),
           ),
         ],
       ),
@@ -235,12 +417,82 @@ class _TapRevealDemo extends StatelessWidget {
   }
 }
 
-String _variantLabel(BubbleVariant v) => switch (v) {
-  BubbleVariant.glassOrb => 'Glass orb',
-  BubbleVariant.usageRing => 'Usage ring',
-  BubbleVariant.emojiMood => 'Emoji mood',
-  BubbleVariant.minimalPill => 'Minimal pill',
-};
+/// The styles as static thumbnails at the preview count; the selected card's
+/// ring and glow animate (`VariantCarousel`).
+class _Rail extends StatelessWidget {
+  const _Rail({required this.count, required this.onPick});
+
+  final ValueListenable<int> count;
+  final ValueChanged<int> onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = _style(context);
+    return ValueListenableBuilder(
+      valueListenable: count,
+      builder: (context, n, _) => VariantCarousel(
+        height: 96,
+        cardWidth: 84,
+        inset: AppSpacing.md,
+        options: [
+          for (final (i, v) in _variants.indexed)
+            VariantOption(
+              label: v.label,
+              selected: v == style.variant,
+              onTap: () => onPick(i),
+              preview: RailThumb(
+                index: i,
+                selected: v == style.variant,
+                child: BubblePreview(
+                  style: style.copyWith(variant: v),
+                  count: n,
+                  area: 88,
+                  animate: false,
+                  // The card reads its label and selected state.
+                  excludeFromSemantics: true,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Customize extends StatelessWidget {
+  const _Customize();
+
+  @override
+  Widget build(BuildContext context) {
+    final style = _style(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader('Customize'),
+        _LabeledSlider(
+          label: 'Size',
+          value: style.size,
+          min: BubbleStyle.sizeMin,
+          max: BubbleStyle.sizeMax,
+          divisions: 8,
+          format: (v) => '${v.round()} dp',
+          onChanged: (v) => _setStyle(context, style.copyWith(size: v)),
+        ),
+        _LabeledSlider(
+          label: 'Opacity',
+          value: style.opacity,
+          min: BubbleStyle.opacityMin,
+          max: BubbleStyle.opacityMax,
+          divisions: 5,
+          format: _percent,
+          onChanged: (v) => _setStyle(context, style.copyWith(opacity: v)),
+        ),
+      ],
+    );
+  }
+}
+
+String _percent(double v) => '${(v * 100).round()}%';
 
 /// A compact title + value row over an [AdaptiveSlider]. [format] renders the
 /// value both for the visible label and for screen readers, so they agree.

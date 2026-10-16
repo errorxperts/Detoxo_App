@@ -185,4 +185,28 @@ void main() {
     expect(cubit.state.pending, isNull);
     await cubit.close();
   });
+
+  testWidgets('a resume re-lock holds the sheet until it is dismissed', (
+    tester,
+  ) async {
+    // The re-lock is a pageless route: a sheet opened now would sit above it
+    // and grant an unblock without the PIN.
+    gate.update(ready: true, onboarded: true);
+    final cubit = await pump(tester);
+
+    gate.relocking.value = true;
+    await cubit.takePending();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Allow this app for…'), findsNothing);
+    expect(cubit.state.pending, isNotNull, reason: 'held, not consumed');
+
+    // The drop fires the merged listenable twice; the sheet opens once.
+    gate.relocking.value = false;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Allow this app for…'), findsOneWidget);
+    expect(cubit.state.pending, isNull);
+    await cubit.close();
+  });
 }

@@ -2,9 +2,11 @@
 ///
 /// Both the color band (green→brown) and the emoji ladder step once per 50
 /// reels and cap at [kUsageCap]. The native side keeps a byte-identical copy in
-/// `android/.../engine/UsageLadder.kt`; the two MUST stay in sync (the bubble,
-/// the home widget, and the in-app previews all render from this so they look
-/// identical at the same count). `test/usage_ladder_test.dart` pins the stops.
+/// `android/.../engine/UsageLadder.kt`; the two MUST stay in sync (the block
+/// screen and its in-app preview render from this so they look identical at
+/// the same count). The home widgets and the floating bubble don't: their
+/// colour is the DS-01 tier (`WidgetPayload.reelTier` / `BubbleModel.tier`). `test/usage_ladder_test.dart`
+/// pins the stops.
 library;
 
 import 'package:flutter/painting.dart' show Color;

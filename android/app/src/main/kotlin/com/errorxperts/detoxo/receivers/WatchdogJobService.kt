@@ -18,11 +18,9 @@ import com.errorxperts.detoxo.R
 import com.errorxperts.detoxo.accessibility.DetoxoAccessibilityService
 import com.errorxperts.detoxo.engine.AccessibilityCheck
 import com.errorxperts.detoxo.engine.ConfigStore
-import com.errorxperts.detoxo.engine.ContentCounterStore
-import com.errorxperts.detoxo.engine.DateKeys
 import com.errorxperts.detoxo.engine.ServiceEventBus
 import com.errorxperts.detoxo.engine.UsageQuery
-import com.errorxperts.detoxo.widget.ContentCounterWidgetProvider
+import com.errorxperts.detoxo.widget.ReelWidgetSync
 
 /**
  * Periodic "is protection actually alive?" check. An accessibility service
@@ -56,20 +54,12 @@ class WatchdogJobService : JobService() {
         } catch (t: Throwable) {
             Log.w(TAG, "limit reconcile failed: ${t.message}")
         }
-        // The home widget only re-renders on a count, so after midnight it kept
-        // showing yesterday's total as "today" until the first reel. Piggyback
-        // on this periodic job (no wakeups of its own, unlike updatePeriodMillis);
-        // pushUpdate is a cheap no-op when nothing is pinned.
-        // ponytail: up to 15 min of stale "today" after midnight.
-        try {
-            ContentCounterWidgetProvider.pushUpdate(
-                this,
-                ContentCounterStore(this).snapshot(DateKeys.today()),
-            )
-        } catch (t: Throwable) {
-            Log.w(TAG, "widget refresh failed: ${t.message}")
-        }
-        return false // all work is synchronous
+        // The widgets' heartbeat (docs/code_docs/17-content-counter.md §5.2):
+        // fresh data while the tracker runs, else the stored payload ages into
+        // Stale. Rides this tick (no wakeups of its own); redraws only when
+        // the visible frame changed.
+        ReelWidgetSync.push(this, ReelWidgetSync.Reason.HEARTBEAT) { jobFinished(params, false) }
+        return true // finished from the widget worker
     }
 
     override fun onStopJob(params: JobParameters?): Boolean = false

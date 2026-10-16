@@ -36,13 +36,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Full-screen route (drawer → Activity): own glass app bar + back button.
 class AnalyticsScreen extends StatelessWidget {
-  const AnalyticsScreen({super.key});
+  const AnalyticsScreen({this.segment = ByAppSegment.reels, super.key});
+
+  /// The By app tally to open on (`?segment=`, EVO-072).
+  final ByAppSegment segment;
 
   @override
   Widget build(BuildContext context) {
-    return const GlassScaffold(
-      appBar: GlassAppBar(title: Text('Activity')),
-      body: SafeArea(child: _ActivityBody()),
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('Activity')),
+      body: SafeArea(child: _ActivityBody(segment: segment)),
     );
   }
 }
@@ -68,11 +71,19 @@ class AnalyticsTab extends StatelessWidget {
 }
 
 class _ActivityBody extends StatelessWidget {
-  const _ActivityBody({this.scrollController, this.onMenu, this.asTab = false});
+  const _ActivityBody({
+    this.scrollController,
+    this.onMenu,
+    this.asTab = false,
+    this.segment = ByAppSegment.reels,
+  });
 
   final ScrollController? scrollController;
   final VoidCallback? onMenu;
   final bool asTab;
+
+  /// Passed to [ByAppSection.initial].
+  final ByAppSegment segment;
 
   /// Insights recomputes (labels included), and the block and reel tiles
   /// re-read their native counters: native rolls `today` over at read time,
@@ -141,7 +152,7 @@ class _ActivityBody extends StatelessWidget {
           // `sm` below, the rhythm every grouped list in the app keeps.
           const TodayOverview(),
           const InsightsView(),
-          const ByAppSection(),
+          ByAppSection(initial: segment),
           const SizedBox(height: AppSpacing.md),
 
           // EVO-052: what the override ledger has to say. Hides itself when

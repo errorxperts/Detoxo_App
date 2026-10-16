@@ -45,13 +45,13 @@ The ⋮ entry usually shows up only after you've tried the blocked switch once. 
 
 ## How does Detoxo actually stop me from scrolling?
 
-When Detoxo detects a short-video feed, it pulls you out of it and — in the **Block screen** mode (Settings → When a reel is detected), or whenever your daily limit is used up — shows its **block screen**: a full-screen card that names what was blocked (say, "Instagram Reels is blocked by Detoxo"), why (your plan, your App blocker list, your website blocklist), and today's reel count. The standard action underneath is a simple **Back** press — the same as if you'd tapped your phone's back button — which closes the feed. (An optional short vibration can confirm it happened.)
+When Detoxo detects a short-video feed, it pulls you out of it and — in the **Block screen** mode (Settings → When a reel is detected), or whenever your daily limit is used up — shows its **block screen**: a calm full-screen card with a short motivational quote, a line that names the app you were in (say, "Instagram can wait. Your peace can't."), why it was blocked (your plan, your App blocker list, your website blocklist) and today's reel count. The standard action underneath is a simple **Back** press — the same as if you'd tapped your phone's back button — which closes the feed. (An optional short vibration can confirm it happened.)
 
-The block screen always gives you a way out: **Go home**, **Open Detoxo**, or **Back to Instagram** (or whichever app), which drops you on the app's previous screen so you can carry on with messages, search and the rest. **Back to …** counts down for five seconds before it unlocks — long enough for the block to register before the reflex tap — while the other two work at once; you can drop the wait under **Appearance → Block screen → Friction**. If the exit already dropped you on your home screen or in the app you came from, that button just reads **Dismiss**. Swiping back from the screen's edges is deliberately ignored while it is up. Depending on your setup, the action can instead **close the app** or **lock the app**, but a back-press is the default and the least disruptive; those modes bounce you out without the card. If the "Display over other apps" permission is missing, Detoxo falls back to a short toast.
+The block screen always gives you a way out: the **Home** button (⌂), **Open Detoxo**, or **Back to Instagram** (or whichever app). On Instagram that button takes you to its home feed — Detoxo taps Instagram's Home tab for you, or reopens Instagram on the feed if you'd ended up deep in a chat; for other apps it drops you on the app's previous screen so you can carry on with messages, search and the rest. **Back to …** counts down for five seconds before it unlocks — long enough for the block to register before the reflex tap — while the other two work at once; you can drop the wait under **Appearance → Block screen → Options**. If the exit already dropped you on your home screen or in the app you came from, that button just reads **Dismiss**. Swiping back from the screen's edges is deliberately ignored while it is up. Depending on your setup, the action can instead **close the app** or **lock the app**, but a back-press is the default and the least disruptive; those modes bounce you out without the card. If the "Display over other apps" permission is missing, Detoxo falls back to a short toast.
 
 ## A full screen appeared when a reel was blocked — how do I get out, or turn it off?
 
-That's the block screen. Tap **Go home** to leave, **Open Detoxo** to jump into the app, or **Back to …** to return to the app you were in (minus the feed) once its five-second wait is over. To stop it appearing on reel blocks, pick another mode under **Settings → When a reel is detected**; the switch under **Settings → Appearance → Block screen** governs the card for app and website blocks (those then go back to the short toast). A used-up daily limit, a schedule you set, or an empty Conscious bank shows the card regardless of either — the only way to stop those is to remove the rule. The same card lets you pick its look — background, light/dark theme, whether it shows today's reel count and how many times you've opened the app today (that line needs the **Usage access** permission and simply stays away without it), and whether the wait is on — with a live preview and a **Try it on your phone** button.
+That's the block screen. Tap the **Home** button (⌂) to leave, **Open Detoxo** to jump into the app, or **Back to …** to return to the app you were in (on Instagram, to its home feed) once its five-second wait is over. To stop it appearing on reel blocks, pick another mode under **Settings → When a reel is detected**; the switch under **Settings → Appearance → Block screen** governs the card for app and website blocks (those then go back to the short toast). A used-up daily limit, a schedule you set, or an empty Conscious bank shows the card regardless of either — the only way to stop those is to remove the rule. The same card lets you choose whether it shows today's reel count and how many times you've opened the app today (that line needs the **Usage access** permission and simply stays away without it), and whether the wait is on — with a live preview and a **Try it on your phone** button. Its look and colour follow Detoxo's own theme: change the theme under **Appearance** and the block screen follows.
 
 ## What's the difference between Block All, One Reel, Unblock, Conscious, and Pause?
 
@@ -92,6 +92,12 @@ Yes, the reel counter is **completely separate from blocking**. It runs on its o
 - The count keeps running whether blocking is on, off, or paused. It's on by default because awareness alone tends to change habits.
 
 You can see the number three ways: inside the app, on an optional **floating bubble** that hovers over your screen while you watch, and on an optional **home-screen widget**. The bubble and widget both keep working even if you close the Detoxo app.
+
+## Which home-screen widget should I pick, and why doesn't it change with every reel?
+
+There are six, and they all show today's reels — just differently. **Count** is the plain number; **Next colour** shows how close you are to the next colour; **Time limit** counts down your daily limit; **Rhythm** shows which hours you scrolled most; **Bonsai** is a little tree that wilts as the count climbs; **Bento** packs count, time and next colour together. Open **Appearance → Home widget** to preview each one in small, medium and large before adding it. You can place as many as you like.
+
+To protect your battery, a widget refreshes **every 10 reels and at each colour change**, whenever you leave Detoxo, and at midnight — not on every single reel. So the widget can trail the live count by a few reels; the number inside Detoxo is always exact. If a widget says **Updated** with a time, Detoxo couldn't refresh it for over an hour (usually because its Accessibility service was stopped); if it says **Turn on tracking**, tap it to fix counting.
 
 ## How does Detoxo measure my daily "screen time"?
 
@@ -169,6 +175,10 @@ It removes your own escape hatch. A strict rule keeps blocking apps, reel feeds 
 
 Yes — when a schedule or a daily limit raises the wall, it says when it lifts: "Blocked by a schedule · Unlocks at 5:30 PM", or "Your daily limit is used up · Resets at midnight". The time follows your phone's 12- or 24-hour setting.
 
+## Where do the quotes on the block screen come from?
+
+Every block screen shows a short quote and its author — about work, success, peace of mind, time and achievement. Detoxo ships 100 of them inside the app and picks a different one each time the card appears (never the same one twice in a row); nothing is downloaded. When Detoxo's theme is light the card is *Face Down* — a phone that turns itself over — and when it is dark *Spotlight*, a soft light you can move with your finger. Both hold still if you've turned off animations in your phone's accessibility settings.
+
 ## What is the "day streak" on my dashboard?
 
 The small **day streak** beside your reels count is how many days in a row you've stayed **under your daily limit**. It ticks up each day you finish under the limit and resets if you go over or skip a day — a gentle motivator to keep your scrolling in check. It's counted on your device while the app is open; nothing is uploaded.
@@ -177,18 +187,13 @@ The small **day streak** beside your reels count is how many days in a row you'v
 
 The little counter bubble floats on top of whatever app you're in, so Android asks for the **Display over apps** permission (sometimes shown as "Draw over other apps") before it can appear. Counting works everywhere without it; you just won't see the bubble. The same permission draws the **block screen** — without it, blocking still works but you get a short toast instead of the full-screen card.
 
-If the bubble or the block screen is switched on but the permission is missing, its card on the Appearance screen tells you so — tap the warning to open the setting; it clears on its own once granted.
+If the bubble or the block screen is switched on but the permission is missing, its card on the Appearance screen tells you so — tap the warning to open the setting; it clears on its own once granted. The block screen's own page shows the same warning under **Try it on your phone**.
 
 If the bubble is switched on but the permission is missing, the **Bubble** card on the Appearance screen tells you so — tap the warning to open the setting; it clears on its own once granted.
 
 ## What happens when I tap the counter bubble?
 
-It depends on the **Show time on tap** option (on by default, in the bubble's appearance settings):
-
-- **On** — a **single tap** briefly flips the bubble to show today's watch time as a running clock (e.g. `1:23:45`), then back to the count; a **double tap** opens Detoxo.
-- **Off** — a **single tap** opens Detoxo.
-
-Either way, you can **drag** the bubble to any edge and it stays where you put it.
+A single tap flips the bubble to today's watch time as a running clock (e.g. `1:23:45`); tap again to return to the count. It never opens Detoxo. You can **drag** the bubble to any edge and it stays where you put it.
 
 ## Can I see how many reels I have left?
 

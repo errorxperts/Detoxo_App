@@ -14,6 +14,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -26,6 +27,7 @@ import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityManager
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -53,6 +55,8 @@ import com.errorxperts.detoxo.overlay.BlockScreenPayload
 import com.errorxperts.detoxo.overlay.NudgeOverlay
 import com.errorxperts.detoxo.overlay.WallPolicy
 import com.errorxperts.detoxo.receivers.WatchdogJobService
+import com.errorxperts.detoxo.widget.ReelWidgetSync
+import com.errorxperts.detoxo.widget.WidgetModel
 import java.util.ArrayDeque
 import java.util.concurrent.ConcurrentHashMap
 
@@ -334,6 +338,8 @@ class DetoxoAccessibilityService : AccessibilityService() {
     // Counts reels/shorts across supported apps independent of blocking. Public
     // so CommandHandler can reach it via the service instance.
     val contentCounter by lazy { ContentCounter(this) }
+    // The night-mode bits last seen, so only a real flip redraws the widgets.
+    private var nightMode = Configuration.UI_MODE_NIGHT_UNDEFINED
     private val lastCountEventByPackage = ConcurrentHashMap<String, Long>()
     // Consecutive counting-pass misses per package, cycling 0..DFS_SKIP: the
     // stage-3 DFS runs only at 0 (see countContent). Main thread only.
@@ -414,6 +420,25 @@ class DetoxoAccessibilityService : AccessibilityService() {
         }
     }
 
+    // EVO-073: a live Pause counts down on the Plan widget — one push as each
+    // minute of it steps down and one on pauseUntil, so the widget turns back
+    // on with the app closed. Re-armed by every reload() (which follows every
+    // pushSettings / armReelSession, and runs on connect); rides
+    // consciousHandler, this service's one main-looper handler.
+    // ponytail: uptime-based, so a tick due while the CPU slept lands up to a
+    // minute after wake — push on ACTION_USER_PRESENT if that shows. With the
+    // service dead nothing ticks; the watchdog's 15-min HEARTBEAT redraws.
+    private val planTick = Runnable {
+        ReelWidgetSync.push(this, ReelWidgetSync.Reason.PLAN)
+        schedulePlanTick()
+    }
+
+    private fun schedulePlanTick() {
+        consciousHandler.removeCallbacks(planTick)
+        val left = pausedUntil - System.currentTimeMillis()
+        if (left > 0) consciousHandler.postDelayed(planTick, WidgetModel.planTickDelayMs(left))
+    }
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
@@ -436,8 +461,26 @@ class DetoxoAccessibilityService : AccessibilityService() {
         // rather than waiting for the next 15-min check.
         WatchdogJobService.schedule(this)
         WatchdogJobService.clearAlert(this, store)
+        nightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        // The widgets' tracking flag follows the service; "Turn on tracking" clears.
+        ReelWidgetSync.push(this, ReelWidgetSync.Reason.SETTINGS)
         ServiceEventBus.post("serviceStatus", mapOf("running" to true))
         Log.i(TAG, "service connected")
+    }
+
+    /**
+     * A System-theme widget and the bubble follow the device (IM-07): a
+     * night-mode flip redraws both, in that brightness's primary. ponytail:
+     * only while the service runs; otherwise the next push or launcher update
+     * repaints the widget.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val night = newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (night == nightMode) return
+        nightMode = night
+        ReelWidgetSync.push(this, ReelWidgetSync.Reason.SETTINGS)
+        contentCounter.onStyleChanged()
     }
 
     /** Reload config + settings (called after Dart pushes changes). */
@@ -465,6 +508,7 @@ class DetoxoAccessibilityService : AccessibilityService() {
         syncReelBubble()
         // A Pause or protection-off lifts every block, so a standing wall goes too.
         if (!masterOn || System.currentTimeMillis() < pausedUntil) BlockScreenOverlay.hide()
+        schedulePlanTick()
     }
 
     private fun accessibilityPackages(): Set<String> = try {
@@ -1305,6 +1349,74 @@ class DetoxoAccessibilityService : AccessibilityService() {
 
     fun performBackPublic() = performBackInternal()
 
+    /**
+     * "Back to {app}" on a reel wall: land on the app's own home feed, not
+     * wherever the engine's BACK left it. Taps the platform's `homeTabId`
+     * (Instagram's `feed_tab`) in the app's window — no reload; already on the
+     * tab → nothing, so an open feed is not scrolled to the top. The tab bar not
+     * on screen (BACK landed in a DM thread) → the app restarts at its root.
+     * No `homeTabId` for the platform → false: the wall just closed.
+     */
+    fun openAppHome(pkg: String, platformId: String): Boolean {
+        if (pkg.isBlank() || isProtected(pkg)) return false
+        val tabId = config.platformsFor(pkg).firstOrNull { it.platformId == platformId }
+            ?.homeTabId ?: return false
+        if (tapInApp(pkg, tabId)) return true
+        val launch = packageManager.getLaunchIntentForPackage(pkg)?.component ?: return false
+        return try {
+            startActivity(Intent.makeRestartActivityTask(launch))
+            true
+        } catch (t: Throwable) {
+            Log.w(TAG, "openAppHome: restart of $pkg failed: ${t.message}")
+            false
+        }
+    }
+
+    /** Clicks [viewId] — or its nearest clickable ancestor — in [pkg]'s window; true = on it now. */
+    private fun tapInApp(pkg: String, viewId: String): Boolean {
+        val root = appRoot(pkg) ?: return false
+        try {
+            val nodes = root.findAccessibilityNodeInfosByViewId(viewId) ?: return false
+            try {
+                val tab = nodes.firstOrNull() ?: return false
+                if (tab.isSelected) return true
+                var n: AccessibilityNodeInfo? = tab
+                var hops = 0
+                while (n != null && !n.isClickable && hops++ < 4) {
+                    val parent = n.parent
+                    if (n !== tab) n.recycleSafe()
+                    n = parent
+                }
+                val clicked = n?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true
+                if (n !== tab) n.recycleSafe()
+                return clicked
+            } finally {
+                nodes.forEach { it.recycleSafe() }
+            }
+        } finally {
+            root.recycleSafe()
+        }
+    }
+
+    /**
+     * [pkg]'s own application window first: right after the wall comes down —
+     * or with TalkBack on — the active window can still be the overlay. Then
+     * the active window, only if it IS [pkg] (the split-screen rule).
+     */
+    private fun appRoot(pkg: String): AccessibilityNodeInfo? {
+        val all = try { windows } catch (_: Throwable) { emptyList() }
+        for (w in all) {
+            if (w.type != AccessibilityWindowInfo.TYPE_APPLICATION) continue
+            val r = w.root ?: continue
+            if (r.packageName?.toString() == pkg) return r
+            r.recycleSafe()
+        }
+        val r = rootInActiveWindow ?: return null
+        if (r.packageName?.toString() == pkg) return r
+        r.recycleSafe()
+        return null
+    }
+
     fun killApp(pkg: String) {
         if (isProtected(pkg)) return // never kill a protected app
         try {
@@ -1439,7 +1551,7 @@ class DetoxoAccessibilityService : AccessibilityService() {
     /**
      * The wall for a block on a reel surface — the two reel sites share it.
      * [reason] (SCHEDULE / DAILY_LIMIT) replaces PLAN for a rule block;
-     * `sanitised()` then drops the plan chip, which would lie.
+     * `sanitised()` then drops the plan, whose reason line would lie.
      */
     private fun reelPayload(
         pkg: String,
@@ -1818,6 +1930,7 @@ class DetoxoAccessibilityService : AccessibilityService() {
         lastReelCountMs = now
         emitReelSessionState(blocked = false)
         syncReelBubble()
+        ReelWidgetSync.push(this, ReelWidgetSync.Reason.PLAN) // EVO-073: "3 of 5" steps down
     }
 
     /** Re-arm a fresh reel session: zero the dwell state, reload, emit. */
@@ -1894,9 +2007,12 @@ class DetoxoAccessibilityService : AccessibilityService() {
         instance = null
         consciousRunning = false
         consciousHandler.removeCallbacks(consciousTick)
+        consciousHandler.removeCallbacks(planTick)
         flushConsciousBank(force = true)
         runCatching { contentCounter.dispose() }
         tearDownOverlays()
+        // After dispose's usage flush; tracking reads off once the user disabled the service.
+        ReelWidgetSync.push(this, ReelWidgetSync.Reason.SETTINGS)
         ServiceEventBus.post("serviceStatus", mapOf("running" to false))
         return super.onUnbind(intent)
     }
@@ -1914,6 +2030,7 @@ class DetoxoAccessibilityService : AccessibilityService() {
         instance = null
         consciousRunning = false
         consciousHandler.removeCallbacks(consciousTick)
+        consciousHandler.removeCallbacks(planTick)
         flushConsciousBank(force = true)
         runCatching { contentCounter.dispose() }
         tearDownOverlays()

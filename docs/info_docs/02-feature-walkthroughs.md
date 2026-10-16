@@ -157,20 +157,25 @@ The five modes fall into two groups:
 Tap **Block All**. That's it — from now on, whenever a reel or short appears,
 Detoxo exits it (or closes / locks the app, depending on your block-mode choice
 in Settings — see §9). Pick the **Block screen** mode there and it also shows its
-**block screen**: a full-screen card that
-names what was blocked ("Instagram Reels is blocked by Detoxo"), which plan did
-it, today's reel count and how many times you've opened that app today, with
-three ways out — **Go home**, **Open Detoxo**, or **Back to Instagram** (the app
-minus its feed). That last one waits five seconds before it unlocks ("Back to
+**block screen**: a calm full-screen card with a short motivational quote and a
+line that names the app ("Instagram can wait. Your peace can't."), says why it's blocked
+("Block All is on") and shows today's reel count and how many times you've opened
+that app today, with three ways out — the **Home** button (⌂), **Open Detoxo**, or
+**Back to Instagram**, which lands you
+on Instagram's home feed (Detoxo taps its Home tab for you; if you'd ended up deep in a
+chat, Instagram reopens on the feed). That last one waits five seconds before it unlocks ("Back to
 Instagram · 5…") so the block registers before the reflex tap; the other two are
 instant. Swiping back from the screen's edges is ignored while the card is up. The
 card stays put wherever the exit dropped you — the app itself, your home screen, or
 the app you came from (there it simply reads **Dismiss**) — and disappears on its
 own when you move on to a different app, turn the screen off, start a Pause, or
 switch protection off. In **Conscious** the card also tells you your time bank is
-empty; in **One Reel** / **Unblock** it says you've watched your reel(s). You can
-restyle the card, drop the wait or the extra lines — or switch it off for app and
-website blocks — under **Appearance → Block screen** (§8, §9). Whatever mode you
+empty; in **One Reel** / **Unblock** it says you've watched your reel(s). The card
+follows Detoxo's own theme — *Face Down* (a phone that turns itself over) when
+Detoxo is light, *Spotlight* (move your finger to find the light) when it is dark —
+and its buttons take your theme's colour. You can drop the wait or the extra lines —
+or switch it off for app and website blocks — under **Appearance → Block screen**
+(§8, §9). Whatever mode you
 pick, the card always appears once your **daily limit** is used up (§6), when a
 **schedule** you set kicks in, or when your **Conscious** bank runs dry — those are
 commitments you made in advance, so Detoxo always shows you the wall for them.
@@ -484,8 +489,8 @@ On the **Appearance** screen, under **Reel counter**:
 
 ### The floating bubble
 
-A small draggable bubble that shows your live count and pops each time you watch
-another reel.
+A small draggable bubble that shows your live count, pops each time you watch
+another reel, starts in your theme's colour and changes colour every 100 reels.
 
 - It appears while you're on a reel and tucks away when you leave.
 - **During One Reel / Unblock it becomes an unlock countdown.** While one of those
@@ -496,54 +501,96 @@ another reel.
   if the counter bubble is enabled, and only while you're actually on a reel.
 - **Drag** it anywhere — it snaps to the nearest side of the screen and remembers
   where you put it.
-- **Tap** behavior depends on the **Show time on tap** setting (on by default):
-  - **On** — a **single tap** briefly flips the bubble to today's **watch time**
-    shown as a running clock (`45s`, `3:05`, or `1:23:45`), then back to the
-    count; a **double tap** opens Detoxo.
-  - **Off** — a **single tap** opens Detoxo (the classic behavior).
+- **Tap** the bubble to flip it to today's **watch time** as a running clock
+  (`00:45`, `03:05` or `1:23:45`); tap again to return to the count. The bubble
+  never opens Detoxo.
 - The bubble needs the **Display over apps** permission (from §2); without it,
   counting still works, only the bubble is hidden.
 
-### The home-screen widget
+### The home-screen widgets
 
-A 2×2 widget for your home screen showing today's count, a "reels today" caption,
-and your all-time total.
+Six widgets for your home screen. Each shows today's reels in a different way, and
+each comes in **Small** (2×2), **Medium** (4×2) and **Large** (4×4):
 
-1. On the **Appearance** screen, open **Home widget** and tap
-   **Add to home screen**.
-2. Confirm the placement your launcher offers.
+| Widget | What it shows |
+| --- | --- |
+| **Count** | Today's reels at a glance, with your watch time. The tile's colour is your "tier". |
+| **Next colour** | A ring that fills over each block of 100 reels; when it closes, the tile changes colour. |
+| **Time limit** | Watch time left in today's limit, in twelve segments. Past the limit it shows how far over you are. |
+| **Rhythm** | When today's scrolling happened, hour by hour, with your peak hour called out. |
+| **Bonsai** | A little tree that loses a stage every 100 reels, from **Blooming** to **Leafless**. |
+| **Bento** | Your count, watch time and next colour in calm, separate tiles. |
 
-The widget updates itself as you scroll — you don't need to open Detoxo to keep it
-current — and rolls over to the new day on its own (within about 15 minutes of
-midnight, even if you haven't watched anything yet).
+**The colour is your tier, in your theme.** The bubble and every widget use your
+theme's colour (the one your background sets). Every 100 reels the tile turns a
+deeper shade of it: pale at 1–99, deepest at 400 and more ("Final colour"). With no
+reels yet it's a quiet tile that says **No reels yet**. A widget set to Light or Dark
+uses your theme's colour for that mode.
+
+To add one:
+
+1. On the **Appearance** screen, open **Home widget**.
+2. Swipe through the six widgets, or tap one in the row below the big preview.
+   Switch **Small / Medium / Large** to see each size, and pick a **theme**
+   (System, Light or Dark).
+3. Tap **Add to home screen** and confirm the placement your launcher offers.
+4. A new widget lands at 2×2. To get Medium or Large, **long-press it and drag its
+   edges** — it switches to the matching layout as you resize.
+
+You can also add any of them straight from your launcher's widget list: look for
+**Detoxo**, which lists all six by name. You can put several on your home screen at
+once.
+
+**Time limit** counts down the soonest reel limit that's active today — your
+**Daily limit**, or a reel time limit from one of your **Rules**. With none set it
+honestly says **No daily limit**, and the Home widget screen offers **Set a daily
+limit**.
+
+How they stay current:
+
+- They update on their own while you scroll, without opening Detoxo. To save
+  battery they refresh **every 10 reels and at each colour change** (and whenever
+  you leave Detoxo), so the number on your home screen can trail the live count by
+  a few reels.
+- At midnight they start the new day on their own.
+- If Detoxo hasn't been able to refresh them for an hour (for example the
+  Accessibility service was stopped), they keep the last numbers and say
+  **Updated 9:40 PM**.
+- If counting is off, or Detoxo's Accessibility service isn't on, they say **Turn
+  on tracking**; tapping the widget takes you straight to the fix.
+- Otherwise, tapping a widget opens **Activity**.
 
 ### Make it yours (appearance)
 
 Both surfaces are customizable from the **Appearance** screen — each is shown as a
 live preview of your current style; tap it to open the editor:
 
-- **Bubble style** — pick a look (**Glass orb**, **Usage ring**, **Emoji mood**,
-  **Minimal pill**), and adjust size, text size, spacing, transparency, whether it
-  shows a caption, and **Show time on tap** (tap the bubble to peek at today's
-  watch time). A live preview and a **Preview count** slider let you see how it
+- **Bubble style** — pick one of six looks: **Mascot**, **Ring**, **Liquid**,
+  **Hourglass**, **Bezel** or **Drop**, and adjust its **Size** and **Opacity**. Every look changes colour
+  each time you cross another hundred reels, and shows a small pill with today's
+  watch time (for example `48m` or `1h 12m`) for a few seconds when it appears and
+  at each new colour. A live preview and a **Preview count** slider show how it
   looks as the number climbs.
-- **Home widget** — pick a background, light/dark/system **theme**, a **density**,
-  which lines to show (today / caption / all-time), and whether the color shifts as
-  your count grows.
+- **Home widget** — pick one of the six widgets, preview it Small, Medium or
+  Large, choose a light/dark/system **theme**, and add it to your home screen (see
+  above). The theme applies to every Detoxo widget you've placed.
 - **Block screen** — the full-screen card shown when something is blocked (§3).
-  The card on the Appearance screen carries its own **on/off switch** (off →
-  blocks fall back to a short toast) and a live preview; tap it to pick a
-  **background**, a light/dark/system **theme**, whether it shows **today's reel
-  count** and **times opened today** (the latter needs the Usage access
-  permission), whether its accent shifts with your usage, and — under
-  **Friction** — whether **Back to the app** waits five seconds before it
-  unlocks. **Try it on your phone**
-  raises the real card over the editor so you can see exactly what a block looks
-  like. Like the bubble, it needs "Display over other apps" — the card says so if
-  the permission is missing.
+  The card on the Appearance screen carries its own **on/off switch** (off → app
+  and website blocks fall back to a short toast) and a live preview; tap it — even
+  while it's off — to open its own page, with the same switch at the top, a big
+  preview and three **Options**: whether the card shows **today's reel count** and
+  **times opened today** (the latter needs the Usage access permission), and
+  whether **Back to the app** waits five seconds before it unlocks. Its look
+  follows the theme you picked for Detoxo itself — *Face Down* when Detoxo is light,
+  *Spotlight* when it is dark — and its colour is your theme's colour, so changing
+  the theme above changes the card too. **Try it on your phone** raises the real
+  card over the editor so you can see exactly what a block looks like. While the
+  block screen is off, its preview turns grey and says **Off**, and the options and
+  **Try it** wait for you to switch it back on. Like the bubble, it needs "Display
+  over other apps" — the card says so if the permission is missing.
 
-Changes preview instantly and apply to the live bubble, pinned widget and block
-screen as you edit.
+Changes preview instantly and apply to the live bubble, your placed widgets and
+the block screen as you edit.
 
 ---
 

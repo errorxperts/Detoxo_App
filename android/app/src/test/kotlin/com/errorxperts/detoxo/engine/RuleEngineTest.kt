@@ -83,7 +83,7 @@ class RuleEngineTest {
     fun reelMeterBlocksPlatformsOnlyOnceTheLimitIsReached() {
         val limit = 1_800_000L
         engine.setSnapshot(
-            "[${entry(id = "daily_reel_limit", reason = "DAILY_LIMIT", platforms = q("*"), always = true, reelMs = limit)}]",
+            "[${entry(id = RuleEngine.DAILY_REEL_LIMIT_ID, reason = "DAILY_LIMIT", platforms = q("*"), always = true, reelMs = limit)}]",
         )
         assertTrue(engine.hasReelMeter())
         assertNull(engine.blockingForPlatform("ig_reels", T, limit - 1))
@@ -204,10 +204,10 @@ class RuleEngineTest {
         // truncated exactly that entry and silently stopped enforcing the
         // global Daily Limit while its UI still showed it set.
         val rules = (0 until 50).joinToString(",") { entry(id = "r$it", packages = q(IG), windows = open()) }
-        val meter = entry(id = "daily_reel_limit", reason = "DAILY_LIMIT", platforms = q("*"), always = true, reelMs = 60_000)
+        val meter = entry(id = RuleEngine.DAILY_REEL_LIMIT_ID, reason = "DAILY_LIMIT", platforms = q("*"), always = true, reelMs = 60_000)
         engine.setSnapshot("[$rules,$meter]")
         assertTrue(engine.hasReelMeter())
-        assertEquals("daily_reel_limit", engine.blockingForPlatform("ig_reels", T, 60_000)?.id)
+        assertEquals(RuleEngine.DAILY_REEL_LIMIT_ID, engine.blockingForPlatform("ig_reels", T, 60_000)?.id)
     }
 
     @Test
@@ -215,7 +215,7 @@ class RuleEngineTest {
         // A user with zero rules but a global Daily Limit still has an entry, so
         // hasAnyRules() is true for them — the package arm runs above the
         // throttle on nearly every foreground event and must not be armed here.
-        engine.setSnapshot("[${entry(id = "daily_reel_limit", reason = "DAILY_LIMIT", platforms = q("*"), always = true, reelMs = 60_000)}]")
+        engine.setSnapshot("[${entry(id = RuleEngine.DAILY_REEL_LIMIT_ID, reason = "DAILY_LIMIT", platforms = q("*"), always = true, reelMs = 60_000)}]")
         assertTrue(engine.hasAnyRules())
         assertFalse(engine.hasPackageRules())
         assertFalse(engine.hasHostRules())
@@ -294,6 +294,65 @@ class RuleEngineTest {
         engine.setSnapshot("[${pending("o", 0L, 5)}]")
         assertFalse(engine.hasPendingUsageLimits())
         assertTrue(engine.hasPendingOpenLimits())
+    }
+
+    @Test
+    fun soonestReelLimitIsTheSmallestMeterActiveNow() {
+        // The home widget's Time limit: the global Daily Limit (always on) and
+        // reel time-limit rules (a window today) all meter the same reel time.
+        val global = entry(id = RuleEngine.DAILY_REEL_LIMIT_ID, reason = "DAILY_LIMIT", platforms = q("*"), always = true, reelMs = 3_600_000)
+        val rule = entry(id = "doomscroll", reason = "DAILY_LIMIT", platforms = q("ig_reels"), windows = open(), reelMs = 1_800_000)
+        val later = entry(id = "evening", reason = "DAILY_LIMIT", platforms = q("*"), windows = "[${T + 1_000},${T + 2_000}]", reelMs = 600_000)
+        val schedule = entry(packages = q(IG), windows = open())
+        fun soonest(vararg entries: String) =
+            RuleEngine.soonestReelLimitMs(RuleEngine.parse("[${entries.joinToString(",")}]")!!, T)
+
+        assertEquals(3_600_000L, soonest(global, schedule))
+        assertEquals(1_800_000L, soonest(rule))
+        assertEquals(1_800_000L, soonest(global, rule))
+        assertEquals(3_600_000L, soonest(global, later)) // its window has not opened
+        assertEquals(0L, soonest(schedule))
+        assertEquals(0L, soonest())
+    }
+
+    @Test
+    fun reelMetersJsonKeepsOnlyTheMetersInTheSameShape() {
+        val global = entry(id = RuleEngine.DAILY_REEL_LIMIT_ID, reason = "DAILY_LIMIT", platforms = q("*"), always = true, reelMs = 3_600_000)
+        val rule = entry(id = "doomscroll", reason = "DAILY_LIMIT", platforms = q("ig_reels"), windows = open(), reelMs = 1_800_000)
+        val schedule = entry(packages = q(IG), windows = open())
+
+        val mirror = RuleEngine.reelMetersJson("[$schedule,$global,$rule]")!!
+        val meters = RuleEngine.parse(mirror)!!
+        assertEquals(listOf(RuleEngine.DAILY_REEL_LIMIT_ID, "doomscroll"), meters.map { it.id })
+        assertEquals(1_800_000L, RuleEngine.soonestReelLimitMs(meters, T))
+        assertTrue(meters[1].isActive(T))
+        assertEquals("[]", RuleEngine.reelMetersJson("[$schedule]"))
+        assertNull(RuleEngine.reelMetersJson("{not json"), "not an array → keep the old mirror")
+    }
+
+    @Test
+    fun reelMetersJsonKeepsExactlyWhatParseCallsAMeter() {
+        // Read off the JSON, not a built Entry: the edge cases must match parse.
+        val meter = entry(id = "m", reason = "DAILY_LIMIT", platforms = q("*"), always = true, reelMs = 60_000)
+        val tricky = listOf(
+            meter,
+            """{"reelTimeLimitMs":60000}""", // no id: parse drops it
+            entry(id = "", reelMs = 60_000), // empty id: dropped too
+            entry(id = "zero", reelMs = 0), // a limit of 0 is no meter
+            entry(id = "negative", reelMs = -5), // nor is a negative one
+            """{"id":"text","reelTimeLimitMs":"600000"}""", // a numeric string reads as the number
+            """{"id":"junk","reelTimeLimitMs":"soon"}""", // anything else reads as 0
+            "42", // not an object: skipped
+            "null",
+        )
+        val snapshot = "[${tricky.joinToString(",")}]"
+        val expected = RuleEngine.parse(snapshot)!!.filter { it.isReelMeter }.map { it.id }
+        assertEquals(listOf("m", "text"), expected)
+        assertEquals(expected, RuleEngine.parse(RuleEngine.reelMetersJson(snapshot))!!.map { it.id })
+
+        // Past MAX_ENTRIES nothing is read, like parse.
+        val padded = List(RuleEngine.MAX_ENTRIES) { entry(id = "s$it") } + meter
+        assertEquals("[]", RuleEngine.reelMetersJson("[${padded.joinToString(",")}]"))
     }
 
     @Test

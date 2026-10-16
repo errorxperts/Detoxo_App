@@ -6,10 +6,11 @@ import android.os.Build
 import android.util.Log
 import android.view.WindowManager
 
-/** Shared by the counter bubble and the block screen: the overlay window type
- *  with its pre-O fallback, and the one way Detoxo launches itself from a
- *  window that has no Activity. Pure functions — safe to reference from JVM
- *  unit tests as long as nothing here runs in an object initializer. */
+/** The overlay window type with its pre-O fallback (the counter bubble and the
+ *  block screen), and the one way Detoxo launches itself from a window that has
+ *  no Activity (the block screen; the bubble never launches the app). Pure
+ *  functions — safe to reference from JVM unit tests as long as nothing here
+ *  runs in an object initializer. */
 
 internal fun overlayType(): Int =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

@@ -2,7 +2,6 @@ package com.errorxperts.detoxo.channels
 
 import android.app.Activity
 import android.app.admin.DevicePolicyManager
-import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -31,7 +30,9 @@ import com.errorxperts.detoxo.engine.UsageQuery
 import com.errorxperts.detoxo.notifications.DetoxoNotificationListener
 import com.errorxperts.detoxo.overlay.BlockScreenOverlay
 import com.errorxperts.detoxo.overlay.BlockScreenPayload
-import com.errorxperts.detoxo.widget.ContentCounterWidgetProvider
+import com.errorxperts.detoxo.widget.HomeWidgets
+import com.errorxperts.detoxo.widget.ReelWidgetSync
+import com.errorxperts.detoxo.widget.WidgetFamily
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import org.json.JSONArray
@@ -70,6 +71,9 @@ class CommandHandler(
         val BLOCK_MODES = setOf(
             "PRESS_BACK", "BLOCK_SCREEN", "KILL_APP", "LOCK_APP", "LOCK_SCREEN", "OVERLAY", "NONE",
         )
+
+        /** Dart `AppThemeMode` wire values — the block screen's Auto theme reads it. */
+        val THEME_MODES = setOf("SYSTEM", "LIGHT", "DARK")
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -104,6 +108,9 @@ class CommandHandler(
                 call.argument<List<String>>("enabledPlatforms")?.let {
                     store.enabledPlatforms = it.toSet()
                 }
+                call.argument<String>("themeMode")
+                    ?.takeIf { it in THEME_MODES }
+                    ?.let { store.appThemeMode = it }
                 call.argument<Boolean>("vibration")?.let { store.vibrationEnabled = it }
                 call.argument<Boolean>("masterEnabled")?.let { store.masterEnabled = it }
                 call.argument<Number>("pauseUntil")?.let { store.pauseUntil = it.toLong() }
@@ -137,6 +144,8 @@ class CommandHandler(
                     }
                 }
                 DetoxoAccessibilityService.instance?.reload()
+                // EVO-073: the plan, pause or switch the Plan widget shows may have changed.
+                ReelWidgetSync.push(context, ReelWidgetSync.Reason.PLAN)
                 result.success(true)
             }
             "pushWebBlocklist" -> {
@@ -224,6 +233,10 @@ class CommandHandler(
                     if (json != store.rulesJson && runCatching { JSONArray(json) }.isSuccess) {
                         store.rulesJson = json
                     }
+                    // The widget's reel-limit mirror, on every push and off
+                    // this thread: after an upgrade it starts empty while the
+                    // snapshot itself is unchanged. Malformed json keeps it.
+                    ReelWidgetSync.onRules(context, json)
                 }
                 DetoxoAccessibilityService.instance?.refreshRules()
                 result.success(true)
@@ -287,6 +300,7 @@ class CommandHandler(
                 store.activePlan = PLAN_ONE_REEL
                 store.resetReelSession()
                 DetoxoAccessibilityService.instance?.armReelSession()
+                ReelWidgetSync.push(context, ReelWidgetSync.Reason.PLAN)
                 result.success(true)
             }
             "reelSessionState" -> result.success(
@@ -470,6 +484,7 @@ class CommandHandler(
                     ?: return result.success(false)
                 ContentCounterStore(context).enabled = on
                 DetoxoAccessibilityService.instance?.contentCounter?.setEnabled(on)
+                ReelWidgetSync.push(context, ReelWidgetSync.Reason.SETTINGS) // "Turn on tracking"
                 result.success(true)
             }
             "setContentBubbleEnabled" -> {
@@ -480,28 +495,67 @@ class CommandHandler(
                 result.success(true)
             }
             "refreshContentWidget" -> {
-                ContentCounterWidgetProvider.pushUpdate(
-                    context,
-                    ContentCounterStore(context).snapshot(dateKey()),
-                )
-                result.success(true)
+                if (call.argument<Any?>("reason") == "background") {
+                    ReelWidgetSync.push(context, ReelWidgetSync.Reason.BACKGROUND)
+                } else {
+                    ReelWidgetSync.push(context, ReelWidgetSync.Reason.REFRESH)
+                    HomeWidgets.run { HomeWidgets.publishPickerPreviews(context) }
+                }
+                result.success(null)
+            }
+            // The in-app preview's data: built fresh, never written (only a
+            // push writes). Demo null = native picks: the demo until the
+            // first reel is ever counted. A failed build replies WIDGET_FAILED.
+            "contentWidgetPayload" -> {
+                val demo = call.argument<Any?>("demo") as? Boolean
+                replyFromWidgetWorker(result) { ReelWidgetSync.build(context, demo).toJson() }
+            }
+            // Read-and-clear, like takePendingUnblock: MainActivity armed it
+            // from the tap intent, and Dart routes it exactly once.
+            "takePendingWidgetTap" -> {
+                result.success(MainActivity.pendingWidgetTap)
+                MainActivity.pendingWidgetTap = null
             }
             "setCounterStyle" -> {
                 // Persist the changed surface(s), then live-re-render ONLY that
-                // surface: the visible bubble via the service, every pinned
-                // widget directly. A malformed surface is skipped, not a crash.
+                // surface: the visible bubble via the service, the pinned
+                // widgets through a push. A malformed surface is skipped, not a
+                // crash.
                 val store = ContentCounterStore(context)
                 (call.argument<Any?>("bubble") as? Map<*, *>)?.let {
                     store.bubbleStyleJson = JSONObject(it).toString()
                     DetoxoAccessibilityService.instance?.contentCounter?.onStyleChanged()
                 }
                 (call.argument<Any?>("widget") as? Map<*, *>)?.let {
+                    // Only `theme` is read now; legacy keys ride along unread.
                     store.widgetStyleJson = JSONObject(it).toString()
-                    ContentCounterWidgetProvider.pushUpdate(context, store.snapshot(dateKey()))
+                    ReelWidgetSync.push(context, ReelWidgetSync.Reason.SETTINGS)
+                }
+                // The app theme's primary in each brightness (ARGB): the
+                // bubble and the widgets take the one of theirs. Re-renders
+                // only when one changed.
+                val light = (call.argument<Any?>("brandLight") as? Number)?.toInt()
+                    ?.takeIf { it != store.brandLight }
+                val dark = (call.argument<Any?>("brandDark") as? Number)?.toInt()
+                    ?.takeIf { it != store.brandDark }
+                light?.let { store.brandLight = it }
+                dark?.let { store.brandDark = it }
+                if (light != null || dark != null) {
+                    DetoxoAccessibilityService.instance?.contentCounter?.onStyleChanged()
+                    ReelWidgetSync.push(context, ReelWidgetSync.Reason.SETTINGS)
                 }
                 result.success(true)
             }
-            "pinContentWidget" -> result.success(pinContentWidget())
+            "pinContentWidget" -> {
+                // Absent = Count (the pre-family call); an unknown token pins nothing.
+                val wire = call.argument<Any?>("family")
+                val family = if (wire == null) WidgetFamily.COUNT else WidgetFamily.fromWire(wire as? String)
+                if (family == null) {
+                    result.success(false)
+                } else {
+                    replyFromWidgetWorker(result) { HomeWidgets.requestPin(context, family) }
+                }
+            }
             "deviceInfo" -> result.success(deviceInfo())
             "installedPackages" -> {
                 // Enumerating launchable apps can take 100s of ms on busy
@@ -660,16 +714,18 @@ class CommandHandler(
         return bytes.toByteArray()
     }
 
-    /** Requests the launcher pin the reel counter widget. Returns false if unsupported. */
-    private fun pinContentWidget(): Boolean {
-        return try {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
-            val mgr = context.getSystemService(AppWidgetManager::class.java) ?: return false
-            if (!mgr.isRequestPinAppWidgetSupported) return false
-            val provider = ComponentName(context, ContentCounterWidgetProvider::class.java)
-            mgr.requestPinAppWidget(provider, null, null)
-        } catch (_: Throwable) {
-            false
+    /**
+     * Runs [work] on the widget worker (it draws bitmaps) and replies exactly
+     * once, on the main thread: its value, or `WIDGET_FAILED` when it throws,
+     * so Dart's channel logging sees the failure. The worker logs the throw.
+     */
+    private fun <T> replyFromWidgetWorker(result: MethodChannel.Result, work: () -> T) {
+        HomeWidgets.run {
+            val out = runCatching(work)
+            mainHandler.post {
+                out.fold({ result.success(it) }, { result.error("WIDGET_FAILED", it.message, null) })
+            }
+            out.getOrThrow() // rethrown for HomeWidgets.run to log
         }
     }
 

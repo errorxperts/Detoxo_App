@@ -82,6 +82,15 @@ void main() {
     });
   });
 
+  test('fromQuery reads the enum name; anything else is Reels', () {
+    expect(ByAppSegment.fromQuery('time'), ByAppSegment.time);
+    expect(ByAppSegment.fromQuery('blocks'), ByAppSegment.blocks);
+    expect(ByAppSegment.fromQuery('reels'), ByAppSegment.reels);
+    for (final v in [null, '', 'TIME', 'hourly']) {
+      expect(ByAppSegment.fromQuery(v), ByAppSegment.reels, reason: '$v');
+    }
+  });
+
   test('the empty copy names a switched-off counter', () {
     expect(
       ByAppSection.emptyCopy(ByAppSegment.reels, counting: false),

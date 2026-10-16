@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/core/navigation/app_gate.dart';
+import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/platform_channels/engine_channel.dart';
 import 'package:detoxo/core/storage/local_store.dart';
 import 'package:detoxo/features/access_protection/data/repositories/pin_repository_impl.dart';
@@ -804,6 +806,8 @@ void main() {
   });
 
   group('PinAutoRelock', () {
+    late AppGate gate;
+
     Future<_FakePinRepo> pumpRelockApp(
       WidgetTester tester, {
       AutoLockTimeout autoLock = AutoLockTimeout.immediately,
@@ -829,6 +833,7 @@ void main() {
           value: cubit,
           child: PinAutoRelock(
             router: router,
+            gate: gate = AppGate(),
             child: MaterialApp.router(routerConfig: router),
           ),
         ),
@@ -857,6 +862,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400)); // glass anims
 
       expect(find.text('Enter your PIN'), findsOneWidget);
+      // Held while the lock is up, so a widget tap or an unblock sheet can't
+      // open above it.
+      expect(gate.relocking.value, isTrue);
     });
 
     testWidgets('never stacks a second lock over a visible one', (
@@ -884,9 +892,12 @@ void main() {
 
       // Screen never went off during the pause: stays unlocked.
       backgroundAndResume(tester);
+      // Raised the moment the app resumes, before the async decision.
+      expect(gate.relocking.value, isTrue);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Enter your PIN'), findsNothing);
+      expect(gate.relocking.value, isFalse);
 
       // A screen-off stamp after the pause stamp: relocks.
       repo.screenOffMillis = DateTime.now()
@@ -896,6 +907,74 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Enter your PIN'), findsOneWidget);
+    });
+
+    // The bypass: the lock is pageless on /home, and AppResumeSync's
+    // permission refresh lands while it is up. A required permission revoked
+    // while away redirected /home to /permissions, which removed the lock with
+    // the page — the app was open without the PIN.
+    testWidgets('a permission lost while away cannot route out from under it', (
+      tester,
+    ) async {
+      final cubit = PinCubit(_FakePinRepo());
+      await cubit.setup(
+        type: PinType.custom,
+        secret: '1234',
+        scopes: {PinScope.app},
+        autoLock: AutoLockTimeout.immediately,
+      );
+      gate = AppGate()
+        ..update(
+          ready: true,
+          supported: true,
+          onboarded: true,
+          permissionsOk: true,
+        );
+      // The production wiring: the gate is the redirect and the refresh.
+      final router = GoRouter(
+        initialLocation: Routes.home,
+        refreshListenable: gate,
+        redirect: (_, state) => gate.redirect(state.matchedLocation),
+        routes: [
+          for (final path in [Routes.home, Routes.permissions])
+            GoRoute(
+              path: path,
+              builder: (_, _) => Scaffold(body: Text('at $path')),
+            ),
+        ],
+      );
+      await tester.pumpWidget(
+        BlocProvider.value(
+          value: cubit,
+          child: PinAutoRelock(
+            router: router,
+            gate: gate,
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        ),
+      );
+      expect(find.text('at ${Routes.home}'), findsOneWidget);
+
+      backgroundAndResume(tester);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Enter your PIN'), findsOneWidget);
+
+      gate.update(permissionsOk: false); // the resume's permission refresh
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.text('Enter your PIN'), findsOneWidget);
+      expect(find.text('at ${Routes.permissions}'), findsNothing);
+
+      for (final digit in ['1', '2', '3', '4']) {
+        await tester.tap(find.text(digit));
+        await tester.pump();
+      }
+      // The lock's exit, then /home's as the redirect replaces it.
+      await tester.pump(const Duration(seconds: 1));
+      // The held redirect runs once the lock is gone.
+      expect(find.text('Enter your PIN'), findsNothing);
+      expect(find.text('at ${Routes.permissions}'), findsOneWidget);
     });
   });
 

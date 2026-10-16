@@ -1,94 +1,204 @@
 import 'package:detoxo/features/content_counter/content_counter_bubble/domain/entities/bubble_style.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/domain/entities/counter_style_enums.dart';
 import 'package:detoxo/features/content_counter/home_content_counter/domain/entities/widget_style.dart';
+import 'package:detoxo/features/content_counter/home_content_counter/domain/entities/widget_tap.dart';
+import 'package:detoxo/features/content_counter/home_content_counter/domain/repositories/home_widget_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('BubbleStyle', () {
     test('defaults', () {
       const s = BubbleStyle.defaults();
-      expect(s.variant, BubbleVariant.glassOrb);
-      expect(s.size, BubbleStyle.sizeDefault);
-      expect(s.textScale, BubbleStyle.textScaleDefault);
-      expect(s.opacity, BubbleStyle.opacityDefault);
-      expect(s.showLabel, false);
+      expect(s.variant, BubbleVariant.mascot);
+      expect(s.size, 68);
+      expect(s.opacity, 1);
     });
 
-    test('toWire serializes the enum wire token', () {
-      final s = const BubbleStyle.defaults().copyWith(
-        variant: BubbleVariant.emojiMood,
+    test('wire tokens and labels are pinned in board order', () {
+      expect(BubbleVariant.values.map((v) => v.wire), [
+        'MASCOT',
+        'RING',
+        'LIQUID',
+        'HOURGLASS',
+        'BEZEL',
+        'DROP',
+      ]);
+      expect(BubbleVariant.values.map((v) => v.label), [
+        'Mascot',
+        'Ring',
+        'Liquid',
+        'Hourglass',
+        'Bezel',
+        'Drop',
+      ]);
+    });
+
+    test('toWire has exactly variant, size, opacity', () {
+      expect(
+        const BubbleStyle.defaults().toWire().keys,
+        unorderedEquals(['variant', 'size', 'opacity']),
       );
-      expect(s.toWire()['variant'], 'EMOJI_MOOD');
     });
 
-    test('survives a full wire round-trip', () {
+    test('survives a wire round-trip', () {
       final original = const BubbleStyle.defaults().copyWith(
-        variant: BubbleVariant.minimalPill,
-        size: 60,
-        textScale: 1.2,
-        spacing: 1.1,
-        opacity: 0.7,
-        showLabel: true,
+        variant: BubbleVariant.ring,
+        size: 72,
+        opacity: 0.6,
       );
-      final restored = BubbleStyle.fromWire(original.toWire());
-      expect(restored, original);
+      expect(BubbleStyle.fromWire(original.toWire()), original);
     });
 
-    test('fromWire defaults on null and clamps out-of-range values', () {
+    test('legacy keys are ignored and old variants fall back', () {
+      expect(
+        BubbleStyle.fromWire(const {
+          'variant': 'GLASS_ORB',
+          'textScale': 1.2,
+          'spacing': 1.1,
+          'showLabel': true,
+          'showTime': false,
+        }),
+        const BubbleStyle.defaults(),
+      );
+    });
+
+    test('retired styles read back as Mascot', () {
+      for (final w in ['NEON', 'STEPS', 'WEATHER', 'OUTLINE']) {
+        expect(
+          BubbleStyle.fromWire({'variant': w, 'size': 72.0}).variant,
+          BubbleVariant.mascot,
+          reason: w,
+        );
+      }
+    });
+
+    test('fromWire clamps and defaults', () {
       expect(BubbleStyle.fromWire(null), const BubbleStyle.defaults());
-      final clamped = BubbleStyle.fromWire(const {
-        'variant': 'NOPE',
-        'size': 999.0,
-        'textScale': 0.1,
-        'opacity': 5.0,
-      });
-      expect(clamped.variant, BubbleVariant.glassOrb); // unknown → default
-      expect(clamped.size, BubbleStyle.sizeMax);
-      expect(clamped.textScale, BubbleStyle.textScaleMin);
-      expect(clamped.opacity, BubbleStyle.opacityMax);
+      expect(BubbleStyle.fromWire(const {'size': 999.0}).size, 80);
+      expect(BubbleStyle.fromWire(const {'size': 10.0}).size, 48);
+      expect(BubbleStyle.fromWire(const {'opacity': 5.0}).opacity, 1);
+      expect(BubbleStyle.fromWire(const {'opacity': 0.1}).opacity, 0.5);
+      expect(
+        BubbleStyle.fromWire(const {'variant': 'NOPE'}).variant,
+        BubbleVariant.mascot,
+      );
+      expect(BubbleStyle.fromWire(const {'size': 'big'}).size, 68);
+    });
+
+    test('a wrong-typed variant falls back to mascot without throwing', () {
+      expect(
+        BubbleStyle.fromWire(const {'variant': 5}).variant,
+        BubbleVariant.mascot,
+      );
     });
   });
 
   group('WidgetStyle', () {
-    test('defaults', () {
-      const s = WidgetStyle.defaults();
-      expect(s.background, WidgetBackground.glassDark);
-      expect(s.theme, WidgetTheme.system);
-      expect(s.density, WidgetDensity.cozy);
-      expect(s.showToday, true);
-      expect(s.showTotal, true);
-      expect(s.accentByUsage, false);
+    test('defaults to the system theme', () {
+      expect(const WidgetStyle.defaults().theme, WidgetTheme.system);
     });
 
-    test('survives a full wire round-trip', () {
-      final original = const WidgetStyle.defaults().copyWith(
-        background: WidgetBackground.usageTint,
-        theme: WidgetTheme.dark,
-        density: WidgetDensity.compact,
-        showLabel: false,
-        accentByUsage: true,
-      );
-      final restored = WidgetStyle.fromWire(original.toWire());
-      expect(restored, original);
+    test('survives a wire round-trip, carrying only the theme', () {
+      const original = WidgetStyle(theme: WidgetTheme.dark);
+      expect(original.toWire(), {'theme': 'DARK'});
+      expect(WidgetStyle.fromWire(original.toWire()), original);
     });
 
-    test('fromWire coerces an all-lines-off payload to show today', () {
+    test('a legacy style keeps its theme and drops the rest', () {
       final s = WidgetStyle.fromWire(const {
+        'background': 'USAGE_TINT',
+        'theme': 'LIGHT',
+        'density': 'COMPACT',
         'showToday': false,
+        'showLabel': false,
         'showTotal': false,
+        'accentByUsage': true,
       });
-      expect(s.showToday, true);
+      expect(s, const WidgetStyle(theme: WidgetTheme.light));
     });
 
-    test('fromWire falls back to enum defaults on unknown tokens', () {
-      final s = WidgetStyle.fromWire(const {
-        'background': 'NOPE',
-        'theme': 'NOPE',
-        'density': 'NOPE',
-      });
-      expect(s.background, WidgetBackground.glassDark);
-      expect(s.theme, WidgetTheme.system);
-      expect(s.density, WidgetDensity.cozy);
+    test('fromWire falls back to system on null, unknown or wrong type', () {
+      expect(WidgetStyle.fromWire(null), const WidgetStyle.defaults());
+      expect(
+        WidgetStyle.fromWire(const {'theme': 'NOPE'}).theme,
+        WidgetTheme.system,
+      );
+      expect(
+        WidgetStyle.fromWire(const {'theme': 7}).theme,
+        WidgetTheme.system,
+      );
+    });
+  });
+
+  // Native, the widget tap intent and analytics all speak these tokens.
+  group('home widget wire tokens', () {
+    test('families and sizes are pinned', () {
+      expect(WidgetFamily.values.map((f) => f.wire), [
+        'COUNT',
+        'NEXT_COLOUR',
+        'TIME_LIMIT',
+        'RHYTHM',
+        'BONSAI',
+        'BENTO',
+        'PLAN',
+      ]);
+      expect(WidgetFamily.values.map((f) => f.label), [
+        'Count',
+        'Next colour',
+        'Time limit',
+        'Rhythm',
+        'Bonsai',
+        'Bento',
+        'Plan',
+      ]);
+      expect(WidgetSize.values.map((s) => s.wire), [
+        'SMALL',
+        'MEDIUM',
+        'LARGE',
+      ]);
+      expect(WidgetTapTarget.values.map((t) => t.wire), [
+        'ACTIVITY',
+        'APPEARANCE',
+        'PERMISSIONS',
+        'SETTINGS',
+      ]);
+      expect(WidgetPushReason.values.map((r) => r.wire), [
+        'refresh',
+        'background',
+      ]);
+    });
+
+    test('fromWire round-trips and falls back to Count / Small', () {
+      for (final f in WidgetFamily.values) {
+        expect(WidgetFamily.fromWire(f.wire), f);
+      }
+      for (final s in WidgetSize.values) {
+        expect(WidgetSize.fromWire(s.wire), s);
+      }
+      expect(WidgetFamily.fromWire('NOPE'), WidgetFamily.count);
+      expect(WidgetSize.fromWire(null), WidgetSize.small);
+    });
+
+    test('a widget tap parses "FAMILY|SIZE|TARGET" and nothing else', () {
+      expect(
+        WidgetTap.parse('BONSAI|LARGE|PERMISSIONS'),
+        const WidgetTap(
+          WidgetFamily.bonsai,
+          WidgetSize.large,
+          WidgetTapTarget.permissions,
+        ),
+      );
+      for (final bad in [
+        null,
+        '',
+        'COUNT|SMALL',
+        'COUNT|SMALL|ACTIVITY|X',
+        'NOPE|SMALL|ACTIVITY',
+        'COUNT|HUGE|ACTIVITY',
+        'COUNT|SMALL|HOME',
+      ]) {
+        expect(WidgetTap.parse(bad), isNull, reason: '$bad');
+      }
     });
   });
 }

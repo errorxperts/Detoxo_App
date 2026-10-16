@@ -96,7 +96,8 @@ class EngineChannel {
   /// Tri-state variant of [invokeBool]: null means "the call didn't answer"
   /// (channel error / no native side), NOT "the OS said no". Permission checks
   /// use this so one flaky read can't masquerade as a revoked grant.
-  Future<bool?> invokeBoolOrNull(String method) => _invoke<bool>(method);
+  Future<bool?> invokeBoolOrNull(String method, [Map<String, dynamic>? args]) =>
+      _invoke<bool>(method, args);
 
   Future<void> invokeVoid(String method, [Map<String, dynamic>? args]) async =>
       _invoke<void>(method, args);
@@ -320,23 +321,44 @@ class EngineChannel {
   Future<void> setContentBubbleEnabled({required bool enabled}) =>
       invokeVoid(ChannelMethods.setContentBubbleEnabled, {'enabled': enabled});
 
-  /// Requests the launcher pin the reel counter widget. Returns false if the
-  /// launcher doesn't support pinning (or off-Android).
-  Future<bool> pinContentWidget() =>
-      invokeBool(ChannelMethods.pinContentWidget);
+  /// Requests the launcher pin a [family] widget (a `WidgetFamily` wire token;
+  /// null = `COUNT`). False when the launcher doesn't support pinning or the
+  /// family is unknown; null when the call failed (already logged) or
+  /// off-Android.
+  Future<bool?> pinContentWidget({String? family}) =>
+      invokeBoolOrNull(ChannelMethods.pinContentWidget, {'family': ?family});
 
-  Future<void> refreshContentWidget() =>
-      invokeVoid(ChannelMethods.refreshContentWidget);
+  /// Has native rebuild and store the widget payload ([reason] `refresh` |
+  /// `background`). No-op off-Android.
+  Future<void> refreshContentWidget({String reason = 'refresh'}) =>
+      invokeVoid(ChannelMethods.refreshContentWidget, {'reason': reason});
 
-  /// Pushes bubble and/or home-widget appearance to native. Each arg is a style
-  /// wire map (see `BubbleStyle.toWire` / `WidgetStyle.toWire`); only the keys
+  /// A freshly built, unstored widget payload as IM-02 JSON text (see
+  /// [ChannelMethods.contentWidgetPayload]); native picks demo or live data.
+  /// Null off-Android or on a channel error.
+  Future<String?> contentWidgetPayload() =>
+      _invoke<String>(ChannelMethods.contentWidgetPayload);
+
+  /// The last home-widget tap (`"FAMILY|SIZE|TARGET"`) — read AND cleared
+  /// natively, so it answers at most once.
+  Future<String?> takePendingWidgetTap() =>
+      _invoke<String>(ChannelMethods.takePendingWidgetTap);
+
+  /// Pushes bubble and/or home-widget appearance to native. Each style arg is
+  /// a wire map (see `BubbleStyle.toWire` / `WidgetStyle.toWire`);
+  /// [brandLight] / [brandDark] are the app theme's primary (ARGB) in each
+  /// brightness, whose hue both surfaces take at every tier. Only the keys
   /// present are updated. No-op off-Android.
   Future<void> setCounterStyle({
     Map<String, dynamic>? bubble,
     Map<String, dynamic>? widget,
+    int? brandLight,
+    int? brandDark,
   }) => invokeVoid(ChannelMethods.setCounterStyle, {
     'bubble': ?bubble,
     'widget': ?widget,
+    'brandLight': ?brandLight,
+    'brandDark': ?brandDark,
   });
 
   /// Package names of the device's user-launchable apps. Returns `null` when the

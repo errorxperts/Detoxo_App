@@ -1,6 +1,6 @@
 # Native Android Layer
 
-Everything under `android/app/src/main/` that is Kotlin, manifest, or `res/xml`. This is the platform half of Detoxo: the AccessibilityService that does the actual detection and blocking, the MethodChannel/EventChannel bridge to Dart, the two broadcast receivers (boot, device-admin), the overlay bubble, the home-screen widget provider, and the manifest / resource declarations that glue them together.
+Everything under `android/app/src/main/` that is Kotlin, manifest, or `res/xml`. This is the platform half of Detoxo: the AccessibilityService that does the actual detection and blocking, the MethodChannel/EventChannel bridge to Dart, the two broadcast receivers (boot, device-admin), the overlay bubble, the six home-screen widget providers, and the manifest / resource declarations that glue them together.
 
 Android is the **only** supported platform. iOS has no AccessibilityService equivalent, so the engine is gated off there (see the Dart-side `PlatformCapabilities`); this doc is Android-only by construction.
 
@@ -29,7 +29,7 @@ EngineChannel                MethodChannel   CommandHandler ── ConfigStore
                                         DetoxoAccessibilityService  (FGS, main process)
                                           ├─ detection + block hot-path
                                           ├─ ContentCounter → ContentCounterBubble (overlay)
-                                          │                 → ContentCounterWidgetProvider (widget)
+                                          │                 → ReelWidgetSync → HomeWidgets (6 widget providers)
                                           ├─ WebBlockEngine
                                           ├─ UnblockRegistry
                                           └─ RuleEngine (pushed rules snapshot — 27)
@@ -172,7 +172,7 @@ Broadly the methods fall into four groups. (Argument/return shapes are in [18-pl
 - `monotonicNow` returns `{elapsedMs: SystemClock.elapsedRealtime(), bootCount: Settings.Global.BOOT_COUNT}` — monotonic clocks immune to Settings changes, with the boot count making cross-boot readings detectable. They anchor the PIN lockout (EVO-015) so moving the clock forward can't clear it ([08](08-pin-lock-recovery.md)); the PIN-lock siblings `setSecureScreen` / `lastScreenOff` are in [18](18-platform-channel-contracts.md).
 
 **Content counter & widget** — see §7/§8:
-`contentCounterSnapshot`, `setContentCounterEnabled`, `setContentBubbleEnabled`, `refreshContentWidget`, `setCounterStyle`, `pinContentWidget`.
+`contentCounterSnapshot`, `setContentCounterEnabled`, `setContentBubbleEnabled`, `refreshContentWidget`, `setCounterStyle`, `pinContentWidget`, `contentWidgetPayload`, `takePendingWidgetTap` (the widget arms run on the widget worker and reply on main — [18](18-platform-channel-contracts.md)). `pushRules` also mirrors the reel limits for the Time limit widget.
 
 **Device / package info**:
 `deviceInfo` (brand/manufacturer/model/sdkInt); `installedPackages` runs `queryLaunchablePackages()` on the `ioExecutor` and posts the result back on the platform thread (Flutter requires the reply on the main thread). It enumerates `MAIN`/`LAUNCHER` activities and de-dups by package, returning **`null` (not empty)** on failure so Dart treats install-state as "unknown" and keeps showing the full blocklist rather than hiding every app.
@@ -205,10 +205,12 @@ Event `type` values emitted by the native layer: `serviceStatus`, `blocked`, `we
 It intentionally does **not** restart the service. An enabled AccessibilityService is re-bound automatically by the OS after boot/update — and **cannot be rebound programmatically**, so after an OEM force-stop only the user can re-enable it. Detect + notify is therefore the ceiling (this matches EVO-013's Realme/ColorOS finding), and that is what the watchdog does. There is no date-changed receiver and no custom command broadcast — all commands arrive over the MethodChannel.
 
 `receivers/WatchdogJobService.kt` — a persisted periodic `JobScheduler` job.
-Besides the liveness check, each run pushes the home-screen counter widget from
-the store (`ContentCounterWidgetProvider.pushUpdate`, a no-op when nothing is
-pinned) — the widget only re-renders on a count, so this is what turns its
-"today" over after midnight ([17](17-content-counter.md) §5.2) — and does two
+Besides the liveness check, each run is the home widgets' heartbeat
+(`ReelWidgetSync.push(HEARTBEAT)` on the widget worker; the job returns `true`
+and calls `jobFinished` from there): a fresh build while the service runs, else
+the stored payload ages into the Stale state ([17](17-content-counter.md) §5.2).
+The midnight turnover is its own job now, `widget/MidnightJobService.kt`
+(id `1128`). It also does two
 rules jobs ([27](27-rules-engine.md)): `checkRuleBoundary` posts `ruleBoundary`
 once a pushed window edge has passed, and **`reconcileLimits`** re-measures every
 PENDING rule budget against `UsageQuery` and flips the ones that are used up, so a
@@ -269,7 +271,7 @@ Admin is opt-in and reversible: `CommandHandler.requestDeviceAdmin()` fires `ACT
 
 `overlay/ContentCounterBubble.kt` is the floating "reels seen today" badge. It runs **inside the existing accessibility FGS** — no new service — and all view operations run on the main `Looper` (`runOnMain`). Counting and blocking are decoupled: the bubble is driven by `ContentCounter`, not the block path.
 
-Beyond counting reels, the counter also accrues **whole-app foreground time** in monitored apps: `countContent` calls `contentCounter.onAppActivity(pkg)`, which sums the gap between consecutive events from the same monitored app (only when under `USAGE_ACTIVE_GAP_MS = 12000ms`) into `cc_time_today` / `cc_time_total`. This adds **no new permission** (it reuses the AccessibilityService) and feeds the dashboard screen-time ring and the bubble's tap-to-reveal-time. Algorithm detail: [03-detection-engine.md](03-detection-engine.md) §6 and [17-content-counter.md](17-content-counter.md) §2.6.
+Beyond counting reels, the counter also accrues **whole-app foreground time** in monitored apps: `countContent` calls `contentCounter.onAppActivity(pkg)`, which sums the gap between consecutive events from the same monitored app (only when under `USAGE_ACTIVE_GAP_MS = 12000ms`) into `cc_time_today` / `cc_time_total`. This adds **no new permission** (it reuses the AccessibilityService) and feeds the dashboard screen-time ring and the bubble's tap-to-show timer. Algorithm detail: [03-detection-engine.md](03-detection-engine.md) §6 and [17-content-counter.md](17-content-counter.md) §2.6.
 
 ### Window
 
@@ -281,34 +283,22 @@ Beyond counting reels, the counter also accrues **whole-app foreground time** in
 
 ### Interaction
 
-- **Tap** (resolved by a `GestureDetector` alongside the drag handler, gated on the `showTime` style flag, default on):
-  - `showTime` **on** → **single tap** briefly (`REVEAL_MS = 3000ms`) reveals today's watch time (`store.timeTodayMs`) on the bubble, then reverts to the count; **double tap** launches the app.
-  - `showTime` **off** → **single tap** launches the app (legacy behavior).
-  - Launch uses `getLaunchIntentForPackage` with `NEW_TASK|SINGLE_TOP`; a drag past slop suppresses the tap.
-- **Drag** → moves the window; on release it **springs to the nearest horizontal edge** (`snapToEdge`, `ValueAnimator` + `DecelerateInterpolator`) and persists the position.
-- Press feedback (scale down on touch), a spring-in on show (`OvershootInterpolator`), and a pop on each new count (`onCounted`).
-- Position is **clamped on-screen** (`clampY`, `restorePosition`) and persisted across shows/restarts via `ContentCounterStore.bubbleX/bubbleY` (px; `-1` = unset → default edge).
+- **Single tap** toggles count ↔ timer. A touch-down scales the body to 0.9; a release without a drag calls `toggleTimer`. There is no `GestureDetector`, no double tap, and **nothing opens the app** from the bubble. The open body widens inward from its docked edge (136 / 156 dp, 176 dp for Ring / Hourglass / Bezel) and shows today's watch time, ticking at 1 Hz from the `watchMs` provider (`ContentCounter` passes `store.timeTodayMs(dateKey()) + pendingUsageMs`).
+- **Drag** moves an **anchor** (the collapsed body's top-left); the window is the body plus the state's envelope (`overlay/bubble/BubbleEnvelope`: glow, pulse, time pill, timer width, face outsets), recomputed on each state change with the body kept still on screen. On release it **springs to the nearest side** (`snapToEdge`, `ValueAnimator`; 12 dp from the edge, Drop 0), Y clamped to 20–70 % of the screen height, and persists. Dragging an open timer folds it first.
+- Press feedback (scale down on touch), a 500 ms appear spring on show, a count pop on each new reel (`onCounted`), and — on a tier-up — a colour cross-fade, one ring pulse and the 3 s time pill. All animators run at 0 ms when `ANIMATOR_DURATION_SCALE == 0`.
+- Position is persisted via `ContentCounterStore.bubbleX/bubbleY` (px of the collapsed body's top-left; `-1` = unset → right dock at 30 % height).
 
 ### Appearance
 
-`BubbleStyleSpec.fromJson(store.bubbleStyleJson)` parses the Dart-pushed style JSON (persisted via the `setCounterStyle` command) and **re-clamps every field** so a malformed payload can never produce an unusable bubble. Four variants, rendered by the inner `BubbleView` on a software layer (redraws only on count change):
+`BubbleStyleSpec.fromJson(store.bubbleStyleJson)` parses the Dart-pushed style JSON (persisted via the `setCounterStyle` command): `{variant, size 48–80 dp (68), opacity 0.5–1 (1)}`, **re-clamped**, an unknown or legacy variant token → `MASCOT`, so a malformed payload can never produce an unusable bubble. Rendering lives in the `overlay/bubble/` package: one canvas-drawn `BubbleView` shell (software layer for the glows) plus a `BubbleFace` per style — `MASCOT` (default), `RING`, `LIQUID`, `HOURGLASS`, `BEZEL`, `DROP` (`faces/*Face.kt`; `BubbleFace.of` maps each token, pinned by `BubbleLookTest.faceOfCoversEveryStyle`). The retired `NEON` / `STEPS` / `WEATHER` / `OUTLINE` tokens read back as `MASCOT`. Pure, unit-tested pieces: `BubbleModel` (tier, strings, scalars; pinned by `test/fixtures/bubble_cases.json`), `BubbleEnvelope`, `BubbleGeometry`, `SvgPath`. Colour is the DS-01 tier (`min(5, count ÷ 100 + 1)`) in the app theme's primary hue, via `BubbleLook`: tier 0 (no reels) the glass, tiers 1–5 the usage ramp the widget tiles share (`widget/BrandTint`), in the primary for the device's brightness (`store.brand(isSystemDark)`; a night-mode flip rebuilds the visible bubble). Sizes and timings come from `BubbleTokens` (generated by `tool/home_widget/gen_tokens.dart`). The bubble no longer uses `engine/UsageLadder.kt`. The Manrope font loads through the shared `widget/Manrope.kt`. `onStyleChanged()` rebuilds the view collapsed at the same anchor when a style is pushed while the bubble is shown.
 
-| Variant | Face |
-|---|---|
-| `GLASS_ORB` (default) | dark glass circle, seed→accent gradient ring, mint glow, centered count |
-| `USAGE_RING` | glass disc + usage-colored progress arc (`UsageLadder`, capped) |
-| `EMOJI_MOOD` | mood emoji (worsens per 50 reels) over a small count |
-| `MINIMAL_PILL` | compact capsule: count + usage-colored dot, width wraps the digits |
+Above the styles sits a **"reels left" override**: `setRemaining(Int?)` (fed by `ContentCounter.setReelSessionRemaining`, which the AccessibilityService's `syncReelBubble()` drives on arm/allow/revert) makes `BubbleView` draw the current tier look with the remaining One Reel / Unblock count and a small "left" caption (faces skipped; TalkBack "N reels left"), reverting to the today-total when the session ends. Display-only — counting is unaffected. Detail in [17-content-counter.md](17-content-counter.md) §5.1.
 
-Colors/emoji come from `engine/UsageLadder.kt` (shared with the widget and the Flutter previews). `onStyleChanged()` rebuilds the view in place at the same position when a style is pushed while the bubble is shown.
-
-Above the four variants sits a **"reels left" override**: `setRemaining(Int?)` (fed by `ContentCounter.setReelSessionRemaining`, which the AccessibilityService's `syncReelBubble()` drives on arm/allow/revert) makes `BubbleView` draw a distinct teal unlock badge with the remaining One Reel / Unblock count instead of any styled variant, reverting to the today-total when the session ends. Display-only — counting is unaffected. Detail in [17-content-counter.md](17-content-counter.md) §5.1.
-
-`overlayType()` and the "open Detoxo" launch intent are shared with the block screen through `overlay/OverlayWindows.kt`.
+`overlayType()` and the "open Detoxo" launch intent (used by the block screen, not the bubble) are shared with the block screen through `overlay/OverlayWindows.kt`.
 
 ### 7b. BlockScreenOverlay (the intervention wall)
 
-The second overlay in the package: `overlay/BlockScreenOverlay.kt` is an `object` holding one full-screen `TYPE_APPLICATION_OVERLAY` window (flags 808, drawn under the system bars and into the cutout) plus two edge strips that swallow the back gesture, raised by the accessibility service at app and website blocks, at reel blocks in the **Block screen** mode or when forced (`overlay/WallPolicy.kt` — a spent daily limit, a schedule, a drained Conscious bank), and by `CommandHandler`'s preview arm. It is fail-safe (no grant → `false` → the trigger site keeps its toast), always dismissible from an on-screen action, and comes down on a foreground change away from the app it covers, on Pause / protection-off (`reload()`), on screen-off (a `BroadcastReceiver` registered on the **service** in `onServiceConnected`, unregistered inside `runCatching` from `onUnbind` and `onDestroy` — the MainActivity receiver is dead whenever the UI is), and when the service unbinds. The face is Canvas-drawn with real `Button`s underneath so TalkBack gets one target per action. Everything else — trigger sites, hide rules, renderer, style + on/off switch, channel — is in [25-block-screen.md](25-block-screen.md).
+The second overlay in the package: `overlay/BlockScreenOverlay.kt` is an `object` holding one full-screen `TYPE_APPLICATION_OVERLAY` window (flags 808, drawn under the system bars and into the cutout) plus two edge strips that swallow the back gesture, raised by the accessibility service at app and website blocks, at reel blocks in the **Block screen** mode or when forced (`overlay/WallPolicy.kt` — a spent daily limit, a schedule, a drained Conscious bank), and by `CommandHandler`'s preview arm. It is fail-safe (no grant → `false` → the trigger site keeps its toast), always dismissible from an on-screen action, and comes down on a foreground change away from the app it covers, on Pause / protection-off (`reload()`), on screen-off (a `BroadcastReceiver` registered on the **service** in `onServiceConnected`, unregistered inside `runCatching` from `onUnbind` and `onDestroy` — the MainActivity receiver is dead whenever the UI is), and when the service unbinds. The face is Canvas-drawn with real `Button`s underneath so TalkBack gets one target per action — one design, Quotes, in two looks that follow the app's theme: Face Down when it is light, Spotlight when it is dark (`overlay/QuoteWall.kt`, its quotes from `overlay/QuoteBook.kt`); the buttons are the app's own, drawn natively (`overlay/WallButtons.kt`). On a reel wall, "Back to {app}" asks the service to open the app's home feed (`openAppHome`: a tap on the platform's `homeTabId`, else a restart of the app at its root). Everything else — trigger sites, hide rules, renderer, style + on/off switch, channel — is in [25-block-screen.md](25-block-screen.md).
 
 ### 7c. NudgeOverlay (the soft nudge card)
 
@@ -316,17 +306,18 @@ The third overlay: `overlay/NudgeOverlay.kt` is an `object` holding one small **
 
 ---
 
-## 8. ContentCounterWidgetProvider (home-screen widget)
+## 8. Home-screen widgets (`widget/**`)
 
-`widget/ContentCounterWidgetProvider.kt` is an `AppWidgetProvider` for a **2×2** home-screen widget showing today's reel count + all-time total.
+Six widget families — Count, Next colour, Time limit, Rhythm, Bonsai, Bento — each its own `AppWidgetProvider` in `widget/HomeWidgets.kt` (one-line subclasses of `FamilyWidgetProvider`). Count keeps the original FQCN `widget.ContentCounterWidgetProvider`, so widgets pinned by older builds carry on as Count. Full design in [17](17-content-counter.md) §5.2.
 
-- **Single source of truth**: `ContentCounterStore` (`detoxo_engine_prefs`). The widget reads `snapshot(dateKey())` directly, so it is correct even when the Flutter UI is dead. Persisted counts live under keys `cc_today` / `cc_total` (per-app maps under `cc_per_app_today` / `cc_per_app_total`).
-- **Live updates are pushed natively**: `updatePeriodMillis=0` (no polling). The native counting brain calls `ContentCounterWidgetProvider.pushUpdate(context, snapshot)` on each counted reel (throttled) and on style changes; `pushUpdate` is a cheap no-op when no instances are pinned.
-- **Bitmap-rendered face**: the widget draws to a `Bitmap` via `WidgetBitmapRenderer` (honouring the user's chosen glass background/theme/density and the persisted `widgetStyle` JSON) and sets it into `RemoteViews`. It re-renders on `onAppWidgetOptionsChanged` (resize) at the launcher-reported size, clamped to bound bitmap memory.
-- **Tap** → launches the app via a `PendingIntent` (`FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE`).
-- **Pin request**: `CommandHandler.pinContentWidget()` calls `AppWidgetManager.requestPinAppWidget(...)` (API 26+, guarded by `isRequestPinAppWidgetSupported`).
+- **One writer**: `widget/ReelWidgetSync.kt` builds the payload from `ContentCounterStore.widgetSource` + the mirrored reel limits, writes `widget_payload` to `detoxo_engine_prefs`, and redraws pinned instances only when the visible frame changed. Correct with the Flutter UI dead.
+- **Live updates are pushed natively**: `updatePeriodMillis=0`. Pushes come from the counter (every 10th reel and each tier change), Dart (bootstrap, app pause), settings and service changes, the 15-min watchdog heartbeat and `MidnightJobService`.
+- **One worker**: every widget task runs on `HomeWidgets.run {}` (a single-thread executor that logs any throw — it must never kill the service's process). Providers use `goAsync()` + `finish()` in `finally`.
+- **Bitmap-rendered faces**: `WidgetBitmapRenderer` draws the family's face (`WidgetFace` → `WidgetPainter`, colours from the generated `WidgetTokens.kt`, Manrope from `flutter_assets/assets/fonts/`) at the instance's size class (`WidgetSize.of`) into the launcher cell, long side ≤ 1200 px.
+- **Tap** → a per-instance `PendingIntent` (`requestCode = appWidgetId`, `FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE`) opens `MainActivity` with the family + size; `MainActivity.pendingWidgetTap` holds `"FAMILY|SIZE|TARGET"` for Dart's `takePendingWidgetTap`.
+- **Pin request**: `HomeWidgets.requestPin(family)` (API 26+, guarded by `isRequestPinAppWidgetSupported`) shows that family's demo face in the dialog. Android 15+ also gets real per-family picker previews (`setWidgetPreview`, once per versionCode).
 
-Provider metadata (`res/xml/content_counter_widget_info.xml`): `minWidth/minHeight 110dp`, `targetCell 2×2`, `updatePeriodMillis=0`, `resizeMode horizontal|vertical`, `widgetCategory home_screen`, initial + preview layouts. This is the **only** widget surface: Dart pins and refreshes it through the `pinContentWidget` / `refreshContentWidget` commands, the render and all reads are done here in Kotlin, and the 15-min watchdog job re-pushes it so "today" rolls over after midnight (§5).
+Provider metadata (`res/xml/content_counter_widget_info.xml`, shared by all six): `minWidth/minHeight 110dp`, `targetCell 2×2`, `updatePeriodMillis=0`, `resizeMode horizontal|vertical`, `widgetCategory home_screen`, `description @string/cc_widget_description`, initial + static preview layouts (the static preview is what launchers before Android 15 show for all six).
 
 ---
 
@@ -365,7 +356,8 @@ Provider metadata (`res/xml/content_counter_widget_info.xml`): `minWidth/minHeig
 - **`.receivers.BootReceiver`** — exported (required for the protected `BOOT_COMPLETED` / `MY_PACKAGE_REPLACED` broadcasts; `QUICKBOOT_POWERON` is an unprotected OEM action, so the payload must stay an idempotent re-schedule — §5).
 - **`.receivers.WatchdogJobService`** — `exported="false"`, permission `BIND_JOB_SERVICE` (the protection watchdog, §5).
 - **`.notifications.DetoxoNotificationListener`** — `exported="false"`, permission `BIND_NOTIFICATION_LISTENER_SERVICE`, a `NotificationListenerService` intent-filter, `android:label="@string/notification_listener_label"`. **No `<uses-permission>`**: the `BIND_` guard is declared on the tag and held by the system. Cancels notifications from apps blocked right now, and is bound only while the user's toggle is on — see [29](29-notification-suppression.md).
-- **`.widget.ContentCounterWidgetProvider`** — `exported="false"`, `APPWIDGET_UPDATE` filter, `<meta-data>` → `@xml/content_counter_widget_info`.
+- **`.widget.ContentCounterWidgetProvider`** (Count), **`.widget.NextColourWidgetProvider`**, **`TimeLimitWidgetProvider`**, **`RhythmWidgetProvider`**, **`BonsaiWidgetProvider`**, **`BentoWidgetProvider`** — each `exported="false"`, `android:label="@string/widget_label_*"` (the picker name), `APPWIDGET_UPDATE` filter, `<meta-data>` → `@xml/content_counter_widget_info`.
+- **`.widget.MidnightJobService`** — `exported="false"`, permission `BIND_JOB_SERVICE` (the widgets' midnight turnover, job `1128`).
 - **`.admin.DetoxoDeviceAdminReceiver`** — exported, `BIND_DEVICE_ADMIN`, `<meta-data>` → `@xml/device_admin_policies`, `DEVICE_ADMIN_ENABLED` filter.
 
 ### `<queries>` (package visibility, Android 11+)
@@ -403,7 +395,7 @@ See §8.
 
 ### `strings.xml`
 
-`app_name` (Detoxo), the accessibility description/summary, `device_admin_label`/`device_admin_description`, `cc_widget_description` ("Reel counter") — plus the **engine surfaces**: `toast_blocked` (`"%1$s is blocked by Detoxo"`, one shared string for both web and whole-app block toasts so the copy can never drift apart), `toast_blocked_adult` (`"Adult site blocked by Detoxo"` — adult-list hits are never named on screen, EVO-018), the FGS notification strings (`fgs_*`) and the watchdog notification strings (`watchdog_*`).
+`app_name` (Detoxo), the accessibility description/summary, `device_admin_label`/`device_admin_description`, `widget_label_*` (the six widget picker names) and `cc_widget_description` ("Today's reels at a glance") — plus the **engine surfaces**: `toast_blocked` (`"%1$s is blocked by Detoxo"`, one shared string for both web and whole-app block toasts so the copy can never drift apart), `toast_blocked_adult` (`"Adult site blocked by Detoxo"` — adult-list hits are never named on screen, EVO-018), the FGS notification strings (`fgs_*`) and the watchdog notification strings (`watchdog_*`).
 
 ---
 
@@ -455,5 +447,5 @@ See §8.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/UsageQuery.kt` (pull-only `UsageStatsManager` reads — [26](26-catalog-and-usage-signal.md))
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/RuleEngine.kt` (the pushed rules snapshot — [27](27-rules-engine.md))
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/LimitReconciler.kt` (the watchdog's rule-budget flip — [27](27-rules-engine.md))
-- `android/app/src/main/kotlin/com/errorxperts/detoxo/widget/ContentCounterWidgetProvider.kt`
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/widget/HomeWidgets.kt` (worker, the six providers, render, pin, tap), `ReelWidgetSync.kt`, `MidnightJobService.kt`, `WidgetBitmapRenderer.kt`
 - `android/app/build.gradle.kts`

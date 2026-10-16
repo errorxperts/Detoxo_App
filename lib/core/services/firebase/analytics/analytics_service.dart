@@ -47,6 +47,10 @@ abstract interface class AnalyticsService {
   /// welcome→survey drop-off — the most valuable number in the funnel — has no
   /// denominator.
   Future<void> logOnboardingStep(String step, {required String direction});
+
+  /// A home-screen widget tap opened the app. Only the widget's [family] and
+  /// [size] wire tokens are sent.
+  Future<void> logWidgetOpened({required String family, required String size});
 }
 
 /// [AnalyticsService] backed by Firebase Analytics. The [FirebaseAnalytics]
@@ -127,6 +131,15 @@ class FirebaseAnalyticsService implements AnalyticsService {
         AnalyticsParam.step: step,
         AnalyticsParam.direction: direction,
       });
+
+  @override
+  Future<void> logWidgetOpened({
+    required String family,
+    required String size,
+  }) => _log(AnalyticsEvent.widgetOpened, {
+    AnalyticsParam.family: family,
+    AnalyticsParam.size: size,
+  });
 
   Future<void> _log(String name, [Map<String, Object>? parameters]) =>
       _analytics.logEvent(name: name, parameters: parameters);

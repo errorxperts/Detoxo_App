@@ -1,8 +1,9 @@
 # Platform Channel Contracts
 
 The Dart app and the native Android engine communicate over exactly **two Flutter
-platform channels** — the home-screen widget included (pinned and refreshed by
-two commands below; the former `home_widget` plugin bridge is gone). This doc is
+platform channels** — the home-screen widgets included (pinned, refreshed,
+previewed and tapped through four commands below; the former `home_widget`
+plugin bridge is gone). This doc is
 the complete, source-derived contract: every command method (args + return) on
 the MethodChannel and every event `type` + payload shape on the EventChannel.
 
@@ -95,6 +96,7 @@ Method-name constants live in `ChannelMethods` (Dart) and are matched by string 
 | `blockAdultWebsites` | `bool` | |
 | `blockWebsitesForBlockedApps` | `bool` | |
 | `suppressNotifications` | `bool` | Notification suppression on/off. Set-if-changed: on a real change native persists it **and** binds/unbinds the notification listener (`DetoxoNotificationListener.syncBinding`). That is only the responsive half of the "off ⇒ unbound" guarantee — the durable half is `onListenerConnected` re-reading the stored flag, since the OS rebinds on boot regardless ([29](29-notification-suppression.md) §5). Only the switch crosses the channel — the suppressed set is derived natively ([29](29-notification-suppression.md)). |
+| `themeMode` | `String` | `AppThemeMode.wire`: `SYSTEM` \| `LIGHT` \| `DARK`; whitelisted (`THEME_MODES`) into `ConfigStore.appThemeMode` — the block screen's light/dark look follows it ([25](25-block-screen.md) §6). An unknown value is dropped. |
 
 **`pushWebBlocklist` payload** — `json` is a JSON-encoded array of
 `{pattern, matchType}` rules. `matchType` is `WebMatchType.wire`:
@@ -230,7 +232,7 @@ they do **not** route through the service instance — `BlockScreenOverlay` is a
 | `hideBlockScreen` | — | `BlockScreenOverlay.hide()` | `true` | `hideBlockScreen()` |
 | `isBlockScreenShowing` | — | `BlockScreenOverlay.isShowing()` | `Boolean` | `isBlockScreenShowing()` |
 | `goHome` | — | `ACTION_MAIN` + `CATEGORY_HOME` + `NEW_TASK` | `true` | `goHome()` |
-| `setBlockScreenStyle` | `{style: Map}` (`BlockScreenStyle.toWire()`: `enabled`, `theme`, `background`, `showCount`, `showOpens`, `accentByUsage`, `backDelaySec` 0–60) | persists `ConfigStore.blockScreenStyleJson`, rebuilds a showing wall | `true` (malformed → skipped, still `true`) | `setBlockScreenStyle(Map)` |
+| `setBlockScreenStyle` | `{style: Map}` (`BlockScreenStyle.toWire()`: `enabled`, `showCount`, `showOpens`, `backDelaySec` 0–60; older keys are ignored) | persists `ConfigStore.blockScreenStyleJson`, rebuilds a showing wall | `true` (malformed → skipped, still `true`) | `setBlockScreenStyle(Map)` |
 | `blockScreenStyle` | — | parses the persisted JSON | the style as a `Map` (`{}` when never saved / malformed) | `blockScreenStyle()` |
 
 ### PIN lock / Smart Auto Lock
@@ -323,9 +325,11 @@ Notes:
 |---|---|---|---|---|
 | `setContentCounterEnabled` | `{enabled: Bool}` (missing → no-op) | `store.enabled`; `service.contentCounter.setEnabled` | `true`; `false` when `enabled` is absent/malformed (nothing written) | `setContentCounterEnabled({enabled})` |
 | `setContentBubbleEnabled` | `{enabled: Bool}` (missing → no-op) | `store.bubbleEnabled`; `service.contentCounter.setBubbleEnabled` | `true`; `false` when `enabled` is absent/malformed | `setContentBubbleEnabled({enabled})` |
-| `pinContentWidget` | — | `AppWidgetManager.requestPinAppWidget(ContentCounterWidgetProvider)` | `Boolean` (false if launcher can't pin / < API 26) | `pinContentWidget()` |
-| `refreshContentWidget` | — | `ContentCounterWidgetProvider.pushUpdate(store.snapshot)` | `true` | `refreshContentWidget()` |
-| `setCounterStyle` | `{bubble?: Map, widget?: Map}` | persists each present surface (`as? Map` — a malformed one is skipped) and live-re-renders **only that surface**: `bubble` → the visible bubble, `widget` → all pinned widgets | `true` | `setCounterStyle({bubble, widget})` |
+| `pinContentWidget` | `{family?: String}` (`COUNT` \| `NEXT_COLOUR` \| `TIME_LIMIT` \| `RHYTHM` \| `BONSAI` \| `BENTO`; absent = `COUNT`) | on the widget worker: `HomeWidgets.requestPin(family)` → `requestPinAppWidget` on that family's provider with its demo face as `EXTRA_APPWIDGET_PREVIEW` | `Boolean` (false for an unknown family, a launcher that can't pin, < API 26) | `pinContentWidget({family})` |
+| `refreshContentWidget` | `{reason: "refresh" \| "background"}` (absent = refresh) | `ReelWidgetSync.push(REFRESH \| BACKGROUND)`: rebuild + store `widget_payload`, redraw only when the visible frame changed; a refresh also publishes the Android 15+ picker previews (once per versionCode) | `null` | `refreshContentWidget({reason})` |
+| `contentWidgetPayload` | `{demo?: Bool}` (absent = demo until the first reel is ever counted) | a fresh `ReelWidgetSync.build(demo)` on the widget worker — **not stored**, so an in-app preview never moves the pinned widgets | `String?` — the IM-02 JSON below; `null` on a failed build (Dart parses it as Empty) | `contentWidgetPayload({demo})` |
+| `takePendingWidgetTap` | — | reads **and clears** `MainActivity.pendingWidgetTap`, armed from a widget-tap intent in `onCreate` / `onNewIntent` (a Recents relaunch is ignored). A consumable, like `takePendingUnblock`: the tap cold-starts Detoxo before any EventChannel sink exists | `String?` `"FAMILY\|SIZE\|TARGET"`, `TARGET` = `ACTIVITY` \| `APPEARANCE` \| `PERMISSIONS`, decided natively at tap time | `takePendingWidgetTap()` |
+| `setCounterStyle` | `{bubble?: Map, widget?: Map, brandLight?: int, brandDark?: int}` | persists each present surface (`as? Map` — a malformed one is skipped) and live-re-renders **only that surface**: `bubble` → the visible bubble, `widget` → `ReelWidgetSync.push(SETTINGS)` (only the widget's `theme` is read); `brandLight` / `brandDark` (the theme's primary per brightness, ARGB, each only when it changed) → `cc_brand_light` / `cc_brand_dark`, then both | `true` | `setCounterStyle({bubble, widget, brandLight, brandDark})` |
 
 The bubble's `BubbleRepository.canShow()` reads `canDrawOverlays` **tri-state**
 (`invokeBoolOrNull`): `null` = the call didn't answer, rendered as unknown —
@@ -338,11 +342,20 @@ as JSON and re-renders.
 
 - `bubble` (from `BubbleStyle.toWire`,
   `lib/features/content_counter/content_counter_bubble/domain/entities/bubble_style.dart`):
-  `{variant: String, size: num, textScale: num, spacing: num, opacity: num, showLabel: bool, showTime: bool}`
-  (`showTime` gates the bubble's tap-to-reveal-watch-time gesture; default `true`)
+  `{variant: String, size: num, opacity: num}` — `variant` is one of the six tokens
+  `MASCOT` (default) · `RING` · `LIQUID` · `HOURGLASS` · `BEZEL` · `DROP` (any other,
+  including the retired `NEON` / `STEPS` / `WEATHER` / `OUTLINE`, reads as `MASCOT`); `size` 48–80 dp (default 68), `opacity` 0.5–1 (default 1)
+  are re-clamped on both sides. An unknown/legacy variant (`GLASS_ORB`, `USAGE_RING`,
+  `EMOJI_MOOD`, `MINIMAL_PILL`) loads as `MASCOT`; the old `textScale` / `spacing` /
+  `showLabel` / `showTime` keys are ignored.
 - `widget` (from `WidgetStyle.toWire`,
   `lib/features/content_counter/home_content_counter/domain/entities/widget_style.dart`):
-  `{background: String, theme: String, density: String, showToday: bool, showLabel: bool, showTotal: bool, accentByUsage: bool}`
+  `{theme: String}` (`system` | `light` | `dark`; native also accepts the legacy
+  `SYSTEM` / `LIGHT` / `DARK` and ignores the old background/density/line keys)
+- `brand` — an int, the app theme's resolved `colorScheme.primary` as ARGB
+  (`Color.toARGB32()`; it arrives as a Long and is read as `Number.toInt()`). Pushed
+  by `main.dart`'s `_BrandSync` when it changes; the bubble's 0-reel glass and the
+  widgets' empty tile take its hue ([17](17-content-counter.md), `BrandTint`).
 
 Every `ChannelMethods` constant now has a native `when` arm — the dead
 declared-but-unhandled constants (`showOverlay`, `hideOverlay`,
@@ -406,13 +419,31 @@ ever posted them and no Dart consumer read them.
 
 ---
 
-## Home-screen widget (over the command channel)
+## Home-screen widgets (over the command channel)
 
-The home-screen reel-counter widget is driven by exactly two commands above —
-`pinContentWidget` and `refreshContentWidget` — through
+The six home-screen widget families are driven by four commands above —
+`pinContentWidget`, `refreshContentWidget`, `contentWidgetPayload` and
+`takePendingWidgetTap` — through
 `lib/features/content_counter/home_content_counter/data/repositories/home_widget_repository_impl.dart`
-(`pin()` / `refresh()`). The native provider renders from `ContentCounterStore`
-(the **native store is the source of truth**); nothing is written from Dart.
+(`pin(family)` / `push({reason})` / `payload({demo})` / `takePendingTap()`).
+`pushRules` also feeds them: native mirrors the snapshot's reel meters into
+`cc_reel_limits` for the Time limit face ([17](17-content-counter.md) §3). The
+native writer `ReelWidgetSync` builds from `ContentCounterStore` (the **native
+store is the source of truth**); nothing is written from Dart.
+
+**Widget payload (IM-02)** — the `contentWidgetPayload` reply and the stored
+`widget_payload`, exactly nine keys, pinned on both sides by
+`test/fixtures/home_widget_payloads.json`:
+
+```
+{ reel_count: Int, watch_seconds: Int, reel_tier: Int (0..5),
+  hourly_seconds: [24 × Int 0..3600], limit_minutes: Int (0 = none),
+  theme: "system" | "light" | "dark", reduce_motion: Bool,
+  updated_at: Long (epoch ms, 0 = never), tracking_enabled: Bool }
+```
+
+A missing, corrupt or out-of-range value parses as the Empty payload's value
+(IM-09).
 The former `home_widget` plugin side-bridge was removed: its `saveWidgetData`
 keys were never read natively, it rendered every pinned widget twice per push,
 and its `requestPinWidget` never threw, so the launcher-can't-pin case was
@@ -426,8 +457,10 @@ misreported as success.
   `com.errorxperts.detoxo/*`, wired in `MainActivity`.
 - **Commands**: string-dispatched in `CommandHandler`; returns are `Boolean`
   (queries/launches/actions), `true` (fire-and-forget mutations), a `Long`
-  (`lastScreenOff`), a map (stats/snapshots/deviceInfo/`monotonicNow`), or
-  a `List`/`null` (installedPackages). Every declared constant has a native
+  (`lastScreenOff`), a map (stats/snapshots/deviceInfo/`monotonicNow`), a
+  `String?` (`takePendingUnblock`, `contentWidgetPayload`,
+  `takePendingWidgetTap`), `null` (`refreshContentWidget`), or a `List`/`null`
+  (installedPackages). Every declared constant has a native
   arm; unknown methods → `notImplemented`.
 - **Events**: 9 live types multiplexed by `type`; every declared constant has
   a native emitter. M8 deliberately added none — a grant's expiry is enforced
@@ -436,8 +469,11 @@ misreported as success.
 - **Errors**: only `queryAppUsage` / `queryUsageEvents` ever `result.error(...)`
   (`BAD_ARGS`, `USAGE_ACCESS_DENIED`, `USAGE_QUERY_FAILED`); every other arm is
   fail-safe (`success` or `notImplemented`).
-- **Widget**: `pinContentWidget` / `refreshContentWidget` on the command channel;
-  provider `ContentCounterWidgetProvider`, native store is source of truth.
+- **Widgets**: `pinContentWidget {family}` / `refreshContentWidget {reason}` /
+  `contentWidgetPayload {demo}` / `takePendingWidgetTap` on the command channel;
+  six providers in `widget/HomeWidgets.kt` (Count keeps the
+  `ContentCounterWidgetProvider` FQCN), one writer `ReelWidgetSync`, native store
+  is source of truth.
 
 See also [03-detection-engine.md](03-detection-engine.md) for how `blocked` is
 produced, and the content-counter engine doc for `contentCounted`
@@ -472,4 +508,6 @@ and the bubble/widget surfaces.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/ContentCounterStore.kt`
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/ContentCounter.kt`
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/accessibility/DetoxoAccessibilityService.kt`
-- `android/app/src/main/kotlin/com/errorxperts/detoxo/widget/ContentCounterWidgetProvider.kt`
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/widget/{HomeWidgets,ReelWidgetSync,WidgetPayload}.kt`
+- `lib/features/content_counter/home_content_counter/domain/entities/{widget_payload,widget_tap}.dart`
+- `test/fixtures/home_widget_payloads.json`
