@@ -273,7 +273,7 @@ void main() {
       openGate();
       await tester.pumpAndSettle();
       expect(dashboard, findsOneWidget);
-      final first = (tester.widget<Text>(dashboard).data)!;
+      final first = tester.widget<Text>(dashboard).data!;
       expect(analytics.opened, [('PLAN', 'SMALL')]);
       // `go`, not `push`: the shell is the root, so there is nothing to pop.
       expect(GoRouter.of(appNavigatorKey.currentContext!).canPop(), isFalse);

@@ -38,6 +38,9 @@ class $AssetsContentGen {
   /// File path: assets/content/mindful_timer_quotes.json
   String get mindfulTimerQuotes => 'assets/content/mindful_timer_quotes.json';
 
+  /// File path: assets/content/motivational_quotes.json
+  String get motivationalQuotes => 'assets/content/motivational_quotes.json';
+
   /// File path: assets/content/pause_countdown_cooldown_emojis.json
   String get pauseCountdownCooldownEmojis =>
       'assets/content/pause_countdown_cooldown_emojis.json';
@@ -54,14 +57,29 @@ class $AssetsContentGen {
     curiousEmojis,
     dailyLimitEmojiBands,
     mindfulTimerQuotes,
+    motivationalQuotes,
     pauseCountdownCooldownEmojis,
     pauseCountdownPauseEmojis,
     pauseEmojis,
   ];
 }
 
+class $AssetsFontsGen {
+  const $AssetsFontsGen();
+
+  /// File path: assets/fonts/OFL.txt
+  String get ofl => 'assets/fonts/OFL.txt';
+
+  /// List of all assets
+  List<String> get values => [ofl];
+}
+
 class $AssetsImagesGen {
   const $AssetsImagesGen();
+
+  /// File path: assets/images/Detoxo_logo.png
+  AssetGenImage get detoxoLogo =>
+      const AssetGenImage('assets/images/Detoxo_logo.png');
 
   /// Directory path: assets/images/bg
   $AssetsImagesBgGen get bg => const $AssetsImagesBgGen();
@@ -69,6 +87,9 @@ class $AssetsImagesGen {
   /// File path: assets/images/detox_logo_no_bg.webp
   AssetGenImage get detoxLogoNoBg =>
       const AssetGenImage('assets/images/detox_logo_no_bg.webp');
+
+  /// Directory path: assets/images/icons
+  $AssetsImagesIconsGen get icons => const $AssetsImagesIconsGen();
 
   /// Directory path: assets/images/illustration
   $AssetsImagesIllustrationGen get illustration =>
@@ -79,7 +100,7 @@ class $AssetsImagesGen {
       const $AssetsImagesSocialIconPackGen();
 
   /// List of all assets
-  List<AssetGenImage> get values => [detoxLogoNoBg];
+  List<AssetGenImage> get values => [detoxoLogo, detoxLogoNoBg];
 }
 
 class $AssetsLottieGen {
@@ -193,11 +214,43 @@ class $AssetsLottieGen {
 class $AssetsSvgGen {
   const $AssetsSvgGen();
 
+  /// File path: assets/svg/check.svg
+  SvgGenImage get check => const SvgGenImage('assets/svg/check.svg');
+
+  /// File path: assets/svg/chevron-right.svg
+  SvgGenImage get chevronRight =>
+      const SvgGenImage('assets/svg/chevron-right.svg');
+
+  /// File path: assets/svg/chevrons-right.svg
+  SvgGenImage get chevronsRight =>
+      const SvgGenImage('assets/svg/chevrons-right.svg');
+
+  /// File path: assets/svg/flame.svg
+  SvgGenImage get flame => const SvgGenImage('assets/svg/flame.svg');
+
+  /// File path: assets/svg/lock-open.svg
+  SvgGenImage get lockOpen => const SvgGenImage('assets/svg/lock-open.svg');
+
+  /// File path: assets/svg/lock.svg
+  SvgGenImage get lock => const SvgGenImage('assets/svg/lock.svg');
+
+  /// File path: assets/svg/play-circle.svg
+  SvgGenImage get playCircle => const SvgGenImage('assets/svg/play-circle.svg');
+
   /// File path: assets/svg/sidebar.svg
   SvgGenImage get sidebar => const SvgGenImage('assets/svg/sidebar.svg');
 
   /// List of all assets
-  List<SvgGenImage> get values => [sidebar];
+  List<SvgGenImage> get values => [
+    check,
+    chevronRight,
+    chevronsRight,
+    flame,
+    lockOpen,
+    lock,
+    playCircle,
+    sidebar,
+  ];
 }
 
 class $AssetsImagesBgGen {
@@ -254,6 +307,54 @@ class $AssetsImagesBgGen {
     lightBg3,
     lightBg4,
     lightBg5,
+  ];
+}
+
+class $AssetsImagesIconsGen {
+  const $AssetsImagesIconsGen();
+
+  /// File path: assets/images/icons/detoxo-logo.webp
+  AssetGenImage get detoxoLogo =>
+      const AssetGenImage('assets/images/icons/detoxo-logo.webp');
+
+  /// File path: assets/images/icons/icon-app-blocker.webp
+  AssetGenImage get iconAppBlocker =>
+      const AssetGenImage('assets/images/icons/icon-app-blocker.webp');
+
+  /// File path: assets/images/icons/icon-block-all.webp
+  AssetGenImage get iconBlockAll =>
+      const AssetGenImage('assets/images/icons/icon-block-all.webp');
+
+  /// File path: assets/images/icons/icon-blocker-rules.webp
+  AssetGenImage get iconBlockerRules =>
+      const AssetGenImage('assets/images/icons/icon-blocker-rules.webp');
+
+  /// File path: assets/images/icons/icon-conscious.webp
+  AssetGenImage get iconConscious =>
+      const AssetGenImage('assets/images/icons/icon-conscious.webp');
+
+  /// File path: assets/images/icons/icon-one-reel.webp
+  AssetGenImage get iconOneReel =>
+      const AssetGenImage('assets/images/icons/icon-one-reel.webp');
+
+  /// File path: assets/images/icons/icon-pause.webp
+  AssetGenImage get iconPause =>
+      const AssetGenImage('assets/images/icons/icon-pause.webp');
+
+  /// File path: assets/images/icons/icon-web-blocker.webp
+  AssetGenImage get iconWebBlocker =>
+      const AssetGenImage('assets/images/icons/icon-web-blocker.webp');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [
+    detoxoLogo,
+    iconAppBlocker,
+    iconBlockAll,
+    iconBlockerRules,
+    iconConscious,
+    iconOneReel,
+    iconPause,
+    iconWebBlocker,
   ];
 }
 
@@ -827,6 +928,7 @@ class Assets {
 
   static const $AssetsConfigGen config = $AssetsConfigGen();
   static const $AssetsContentGen content = $AssetsContentGen();
+  static const $AssetsFontsGen fonts = $AssetsFontsGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
   static const $AssetsLottieGen lottie = $AssetsLottieGen();
   static const $AssetsSvgGen svg = $AssetsSvgGen();

@@ -99,7 +99,7 @@ class _HomeShellState extends State<HomeShell> {
           child: GlassContainer(
             borderRadius: AppRadius.pill,
             blurSigma: AppBlur.bar,
-            padding: const EdgeInsets.symmetric(vertical: 0),
+            padding: EdgeInsets.zero,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
