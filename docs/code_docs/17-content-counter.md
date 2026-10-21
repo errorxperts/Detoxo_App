@@ -1053,4 +1053,5 @@ Cross-feature (the migrated counter hub; theme + background live here too):
   selection live under the finger (`onChanged` fires as each segment is crossed —
   a theme picker previews live), the pill swells and brightens while a finger is
   down, and the label colour/weight tween on the pill's clock; reduce-motion
-  collapses all of it to `Duration.zero`.
+  collapses all of it to `Duration.zero`. `selectedIndex: -1` lights nothing (the pill
+  fades out) — the Unblock sheet's quick picks use it for a custom value.

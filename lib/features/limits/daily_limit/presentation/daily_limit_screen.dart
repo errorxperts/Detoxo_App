@@ -80,9 +80,9 @@ class _DailyLimitViewState extends State<_DailyLimitView> {
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       Slider(
-                        value: minutes.clamp(0, 180),
-                        max: 180,
-                        divisions: 36,
+                        value: minutes.clamp(0, 480),
+                        max: 480,
+                        divisions: 96,
                         label: '${minutes.round()} min',
                         onChanged: (v) => setState(() => _draftMinutes = v),
                       ),

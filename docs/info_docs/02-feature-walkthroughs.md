@@ -118,13 +118,13 @@ You can skip the optional ones now and turn them on later from
 
 Your **Blocking Mode** decides what happens when Detoxo spots a reel. You pick it
 from the big **Command Center** card on the home screen. Below the main dial the
-modes appear as a **horizontal, swipeable row of pills** — **Block All**, **One
-Reel**, **Unblock**, **Conscious**, and **Pause** (swipe sideways to reach all
-five). The mode you're on is the highlighted pill, and while a **One Reel** or
-**Unblock** session is live its pill shows a small remaining-count badge — plus a
-live countdown/ring while a timed mode is running.
+modes appear as a **horizontal, swipeable row of pills** — **Block All**,
+**Conscious**, **Pause**, and **One Reel**. The mode you're on is the highlighted
+pill, and while a **One Reel** or **Unblock** session is live its pill shows a small
+remaining-count badge (an Unblock is started from **Pause**, so that pill lights) — plus
+a live countdown/ring while a timed mode is running.
 
-The five modes fall into two groups:
+The modes fall into two groups:
 
 - **Base modes — they stick.** **Block All** (the default) and **Conscious**. Pick
   one and it stays put until you change it yourself.
@@ -148,7 +148,7 @@ The five modes fall into two groups:
 |---|---|
 | **Block All** | The strict default and a **base** mode. Every reel or short Detoxo detects gets you pulled out immediately; it stays until you change it. |
 | **One Reel** | *Temporary.* Watch a single reel, then it returns to your base mode. Tap it again to watch one more. See below. |
-| **Unblock** | *Temporary.* Choose how many reels to unlock (a **2–20 dial**); watch that many, then it returns to your base mode. See below. |
+| **Unblock** | *Temporary.* From **Pause**'s **Reels** tab, choose how many reels to unlock (**2–20**); watch that many, then it returns to your base mode. See below. |
 | **Conscious** | A **base** mode — you *earn* watch-time by staying off reels first. See below. |
 | **Pause** | *Temporary.* A short, timed break from reel and website blocking; then it returns to your base mode. (Apps you've fully locked stay locked.) |
 
@@ -195,17 +195,19 @@ what's remaining.
 
 ### Unblock — choose how many, then it returns to your base
 
-**Unblock** is One Reel with a dial: instead of exactly one reel, you decide how
+**Unblock** is One Reel with a count: instead of exactly one reel, you decide how
 many to let through before your base mode snaps back.
 
-1. Tap the **Unblock** card — a **dialog opens with a dial**.
-2. Turn the dial to pick a count — **2 to 20 reels**.
+1. Tap **Pause** on the Command Center and switch the **Unblock reels** sheet to
+   its **Reels** tab.
+2. Pick a count — **2 to 20 reels** — with **−** / **+** (hold either to change
+   faster) or a quick pick (5, 10, 15, 20).
 3. Tap **Unlock N reels** to start.
 
 You can now watch that many reels; each time you **scroll to the next reel** it
 counts one toward your allowance, and the card shows a live "**N of M reels left**"
 line. Once you've used them up, Detoxo **returns to your base mode** (Block All or
-Conscious) until you tap **Unblock** and confirm a new count — every confirmation
+Conscious) until you open **Pause** → **Reels** and confirm a new count — every confirmation
 hands you a fresh allowance.
 
 > Like every blocking mode, **One Reel** and **Unblock** need Detoxo's
@@ -244,9 +246,11 @@ on fresh, you start with an empty bank — you always have to earn the first min
 freely for a set number of minutes — handy when you genuinely want a breather
 without turning protection off for good.
 
-1. Tap **Pause** on the Command Center.
-2. Drag the slider to choose a length — **2 to 10 minutes** (in 2-minute steps;
-   4 minutes by default).
+1. Tap **Pause** on the Command Center — the **Unblock reels** sheet opens on its
+   **Time** tab (switch to **Reels** to unblock a number of reels instead — see
+   Unblock above).
+2. Use **−** / **+** to choose a length — **1 to 10 minutes** (4 by default) — or
+   tap a quick pick (2, 4, 6, 10). The sheet shows the time blocking returns.
 3. Confirm. The card shows a **live countdown** and a *Paused* banner.
 4. When the timer runs out, Detoxo **returns to your base mode automatically** —
    Block All or Conscious, whichever you were on before the break. You can also tap
@@ -373,7 +377,7 @@ You first set a daily limit during setup (the drag dial on the "Here's the deal"
 step — §1). To change it later, open **Daily limit** from **Settings → Daily
 limit** (or the menu) to adjust the cap on how much time you want per day.
 
-1. Drag the slider to your target — **0 to 180 minutes**, in 5-minute steps.
+1. Drag the slider to your target — **0 to 480 minutes (8 hours)**, in 5-minute steps.
    (0 means "no limit set.")
 2. Tap **Save limit**.
 
@@ -679,8 +683,8 @@ grouped into **Get help**, **Learn & share**, and **Legal**:
 - **Feature tutorials** — replay the guided tours:
   - **Dashboard tour** — the same welcome walkthrough of the home screen
     (this is where it lives now, having moved out of Settings). It walks you through
-    all five blocking modes — **Block All**, **Conscious**, **Pause**, **One Reel**,
-    and **Unblock** — plus the **App** and **Web** blockers.
+    all four blocking modes — **Block All**, **Conscious**, **Pause** (by time or by
+    reel count), and **One Reel** — plus the **App** and **Web** blockers.
   - **Feedback button** — a quick, one-step highlight that turns the top-bar
     feedback button on (if it's off) and points out where it is and what it does.
 - **Share an idea** — a simple box to tell us what would make Detoxo better.

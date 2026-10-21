@@ -1,3 +1,5 @@
+import 'dart:ui' show Tristate;
+
 import 'package:detoxo/core/design_system/components/selection.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
@@ -14,8 +16,9 @@ Future<int?> _pump(
   WidgetTester tester, {
   bool expand = true,
   double height = 52,
+  int? initial,
 }) async {
-  int? tapped;
+  var tapped = initial;
   await tester.pumpWidget(
     MaterialApp(
       theme: _theme(),
@@ -123,4 +126,21 @@ void main() {
       expect(_pillLeft(tester), before);
     },
   );
+
+  // -1 = a value set elsewhere (a quick-pick row's "custom"): nothing lit.
+  testWidgets('-1 selects nothing until a segment is tapped', (tester) async {
+    await _pump(tester, initial: -1);
+    bool on(String label) =>
+        tester
+            .getSemantics(find.bySemanticsLabel(label))
+            .flagsCollection
+            .isSelected ==
+        Tristate.isTrue;
+    expect(on('Today'), isFalse);
+    expect(on('All'), isFalse);
+
+    await tester.tap(find.text('All'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(on('All'), isTrue);
+  });
 }

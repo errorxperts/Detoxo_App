@@ -36,6 +36,9 @@ class GlassSegmented extends StatefulWidget {
   });
 
   final List<GlassSegment> segments;
+
+  /// The lit segment, or -1 for none (the pill fades out) — e.g. a quick-pick
+  /// row whose value was set by another control.
   final int selectedIndex;
   final ValueChanged<int> onChanged;
 
@@ -81,6 +84,7 @@ class _GlassSegmentedState extends State<GlassSegmented> {
     final accent = Theme.of(context).colorScheme.secondary;
     final text = Theme.of(context).textTheme;
     final selected = widget.selectedIndex.clamp(0, segments.length - 1);
+    final none = widget.selectedIndex < 0;
     final compact = height < 48;
     // A card-header control is 44 tall by design, but its touch target still
     // has to reach the 48 dp floor (`AppSizes.minTapTarget`): the visual track
@@ -118,22 +122,28 @@ class _GlassSegmentedState extends State<GlassSegmented> {
                 alignment: segments.length > 1
                     ? Alignment(-1 + 2 * selected / (segments.length - 1), 0)
                     : Alignment.center,
-                // Swells under a finger, like a key lifting to meet it.
-                child: AnimatedScale(
-                  scale: _pressed ? 1.04 : 1,
-                  duration: press,
-                  curve: AppCurves.standard,
-                  child: FractionallySizedBox(
-                    widthFactor: 1 / segments.length,
-                    heightFactor: 1,
-                    child: GlassContainer(
-                      enableBlur: false,
-                      borderRadius: AppRadius.pill,
-                      padding: EdgeInsets.zero,
-                      tintTop: accent.withValues(alpha: _pressed ? 0.42 : 0.30),
-                      tintBottom: accent.withValues(alpha: 0.12),
-                      borderColor: accent.withValues(alpha: 0.55),
-                      child: const SizedBox.expand(),
+                child: AnimatedOpacity(
+                  opacity: none ? 0 : 1,
+                  duration: slide,
+                  // Swells under a finger, like a key lifting to meet it.
+                  child: AnimatedScale(
+                    scale: _pressed ? 1.04 : 1,
+                    duration: press,
+                    curve: AppCurves.standard,
+                    child: FractionallySizedBox(
+                      widthFactor: 1 / segments.length,
+                      heightFactor: 1,
+                      child: GlassContainer(
+                        enableBlur: false,
+                        borderRadius: AppRadius.pill,
+                        padding: EdgeInsets.zero,
+                        tintTop: accent.withValues(
+                          alpha: _pressed ? 0.42 : 0.30,
+                        ),
+                        tintBottom: accent.withValues(alpha: 0.12),
+                        borderColor: accent.withValues(alpha: 0.55),
+                        child: const SizedBox.expand(),
+                      ),
                     ),
                   ),
                 ),
@@ -147,7 +157,7 @@ class _GlassSegmentedState extends State<GlassSegmented> {
                   for (var i = 0; i < segments.length; i++)
                     Expanded(
                       child: TweenAnimationBuilder<double>(
-                        tween: Tween(end: i == selected ? 1.0 : 0.0),
+                        tween: Tween(end: !none && i == selected ? 1.0 : 0.0),
                         duration: slide,
                         curve: AppCurves.fluid,
                         builder: (_, t, _) {
@@ -235,7 +245,7 @@ class _GlassSegmentedState extends State<GlassSegmented> {
                     Expanded(
                       child: Semantics(
                         button: true,
-                        selected: i == selected,
+                        selected: !none && i == selected,
                         // One choice among several, not independent toggles.
                         inMutuallyExclusiveGroup: true,
                         label: segments[i].label,

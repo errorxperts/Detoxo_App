@@ -43,35 +43,32 @@ void main() {
   ) async {
     await _pump(tester);
 
-    for (final label in [
-      'Block All',
-      'Conscious',
-      'Pause',
-      'One Reel',
-      'Unblock',
-    ]) {
+    for (final label in ['Block All', 'Conscious', 'Pause', 'One Reel']) {
       expect(find.text(label), findsOneWidget);
     }
+    // Unblock merged into Pause's sheet — no separate pill.
+    expect(find.text('Unblock'), findsNothing);
     // Every pill carries artwork — a mode wired to a missing asset would drop
     // one of these.
-    expect(find.byType(Image), findsNWidgets(5));
+    expect(find.byType(Image), findsNWidgets(4));
   });
 
+  // An N-reel unblock is started from the Pause sheet, so Pause carries it.
   testWidgets('badges the active reel pill with the remaining count', (
     tester,
   ) async {
     await _pump(
       tester,
-      selected: DashboardMode.unblock,
+      selected: DashboardMode.pause,
       session: const ReelSessionState(allowance: 5, consumed: 2, active: true),
     );
     expect(find.text('3'), findsOneWidget);
     // The badged pill keeps its artwork — the count is stacked on the coin,
     // not swapped for it.
-    expect(find.byType(Image), findsNWidgets(5));
+    expect(find.byType(Image), findsNWidgets(4));
 
-    // Inactive session → no badge.
-    await _pump(tester, selected: DashboardMode.unblock);
+    // Inactive session (a timed Pause) → no badge.
+    await _pump(tester, selected: DashboardMode.pause);
     expect(find.text('3'), findsNothing);
   });
 

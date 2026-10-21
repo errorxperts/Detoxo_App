@@ -241,7 +241,7 @@ DailyLimit>` that calls `RulesCubit.resync()` whenever `limit` changes.
   `used / limit` clamped to `[0,1]`, where `used` is
   **`ContentCounterCubit.state.timeToday`** — the native reel-time meter that
   enforces the limit — not `DailyLimit.consumed`.
-- **Set-your-limit card** — a `Slider` from **0 to 180 minutes**, `divisions: 36`
+- **Set-your-limit card** — a `Slider` from **0 to 480 minutes (8 h)**, `divisions: 96`
   (→ **5-minute steps**), with a draft (`_draftMinutes`) held in local
   `setState` until the user taps **Save limit**, which calls
   `setLimit(Duration(minutes: minutes.round()))`, clears the draft, and shows a

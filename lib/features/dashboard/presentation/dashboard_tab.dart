@@ -268,8 +268,8 @@ class _HeroState extends State<_Hero> {
 }
 
 /// The vertical mode selector below the hero. Watches settings + the live reel
-/// session; Block All / One Reel arm directly, Conscious / Pause open their glass
-/// dialogs, Unblock confirms a count from its inline slider.
+/// session; Block All / One Reel arm directly, Conscious opens its glass dialog,
+/// Pause opens the Unblock sheet (by time or by reel count).
 class _ModeSection extends StatelessWidget {
   const _ModeSection();
 
@@ -291,7 +291,6 @@ class _ModeSection extends StatelessWidget {
           DashboardMode.conscious => 1,
           DashboardMode.pause => 2,
           DashboardMode.oneReel => 3,
-          DashboardMode.unblock => 4,
         };
         return showcaseTarget(
           step: featureShowcaseSteps[i],
@@ -303,16 +302,14 @@ class _ModeSection extends StatelessWidget {
   }
 }
 
-/// Block All / One Reel arm directly; Conscious and Pause open their global glass
-/// dialogs; Unblock is handled by the selector's inline slider (via onUnblock).
+/// Block All / One Reel arm directly; Conscious opens its glass dialog; Pause
+/// opens the Unblock sheet (by time or by reel count).
 Future<void> _onModeSelect(BuildContext context, DashboardMode mode) async {
   switch (mode) {
     case DashboardMode.blockAll:
       await context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll);
     case DashboardMode.oneReel:
       await context.read<SettingsCubit>().setOneReel(count: 1);
-    case DashboardMode.unblock:
-      await SessionDialogs.showUnblock(context);
     case DashboardMode.conscious:
       await SessionDialogs.showConscious(context);
     case DashboardMode.pause:
@@ -326,7 +323,8 @@ DashboardMode _dashMode(AppSettings s, {required bool pauseLive}) {
     BlockingPlan.blockAll => DashboardMode.blockAll,
     BlockingPlan.curious => DashboardMode.conscious,
     BlockingPlan.oneReel =>
-      s.reelAllowance <= 1 ? DashboardMode.oneReel : DashboardMode.unblock,
+      // An N-reel unblock is started from the Pause sheet, so it lights Pause.
+      s.reelAllowance <= 1 ? DashboardMode.oneReel : DashboardMode.pause,
     BlockingPlan.paused => DashboardMode.pause,
   };
 }

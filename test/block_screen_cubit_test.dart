@@ -97,9 +97,9 @@ void main() {
   });
 
   test('Try it right after the switch pushes the switch first', () async {
-    when(repo.style).thenAnswer(
-      (_) async => const BlockScreenStyle(enabled: false),
-    );
+    when(
+      repo.style,
+    ).thenAnswer((_) async => const BlockScreenStyle(enabled: false));
     when(() => repo.preview(any())).thenAnswer((_) async => true);
     final cubit = BlockScreenStyleCubit(repo);
     await Future<void>.delayed(Duration.zero);

@@ -1,271 +1,324 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
 import 'package:detoxo/features/blocking/plans/presentation/conscious_cubit.dart';
-import 'package:detoxo/features/blocking/plans/presentation/widgets/countdown_ring.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
-/// The single global surface for the Pause and Conscious modes — opened as a
-/// frosted [GlassDialog] from the dashboard so the whole app shares one modal
-/// style instead of dedicated full screens. Each dialog is dual-state: it sets
-/// the mode up when idle and offers the live action (Resume / Turn off) while a
-/// session runs. The live countdown itself lives in the dashboard hero ring.
+/// The global surfaces for the session modes, opened from the dashboard.
+///
+/// Pause opens the frosted Unblock [GlassBottomSheet]: unblock reels for N
+/// minutes (a Pause) or for N reels, then the base mode returns on its own.
+/// While a Pause runs, the sheet shows the live action (Resume) instead.
+/// Conscious keeps its own dual-state [GlassDialog]. The live countdown lives
+/// in the dashboard hero.
 abstract final class SessionDialogs {
   static Future<void> showPause(BuildContext context) =>
-      GlassDialog.show<void>(context: context, child: const _PauseDialog());
+      GlassBottomSheet.show<void>(
+        context: context,
+        child: const _UnblockSheet(),
+      );
 
   static Future<void> showConscious(BuildContext context) =>
       GlassDialog.show<void>(context: context, child: const _ConsciousDialog());
-
-  static Future<void> showUnblock(BuildContext context) =>
-      GlassDialog.show<void>(context: context, child: const _UnblockDialog());
 }
 
-// ── Unblock (allow N reels, then revert to the base mode) ────────────────────
+// ── Unblock: N minutes or N reels, then back to the base mode ────────────────
 
-class _UnblockDialog extends StatefulWidget {
-  const _UnblockDialog();
+class _UnblockSheet extends StatefulWidget {
+  const _UnblockSheet();
 
   @override
-  State<_UnblockDialog> createState() => _UnblockDialogState();
+  State<_UnblockSheet> createState() => _UnblockSheetState();
 }
 
-class _UnblockDialogState extends State<_UnblockDialog> {
-  int _count = SessionDefaults.unblockDefault;
-
-  void _unlock() {
-    context.read<SettingsCubit>().setOneReel(count: _count);
-    Navigator.of(context).pop();
-  }
-
-  /// The base mode this Unblock will return to when the count is spent.
-  String get _baseLabel =>
-      planLabel(context.read<SettingsCubit>().state.baseMode);
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Unblock',
-          textAlign: TextAlign.center,
-          style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Center(
-          child: SleekCircularSlider(
-            min: SessionDefaults.unblockSliderMin.toDouble(),
-            max: SessionDefaults.unblockSliderMax.toDouble(),
-            initialValue: SessionDefaults.unblockDefault.toDouble(),
-            appearance: pauseSliderAppearance(context, interactive: true),
-            onChange: (value) {
-              final n = SessionDefaults.snapUnblockCount(value);
-              if (n != _count) setState(() => _count = n);
-            },
-            innerWidget: (_) => _sliderCenter(context),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          'Watch a set number of reels',
-          textAlign: TextAlign.center,
-          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          'You can watch $_count reels, then blocking returns automatically '
-          'to $_baseLabel.',
-          textAlign: TextAlign.center,
-          style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        PrimaryButton(
-          label: 'Unlock $_count reels',
-          expand: true,
-          onPressed: _unlock,
-        ),
-      ],
-    );
-  }
-
-  Widget _sliderCenter(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AppAnimatedIcon(
-          icon: AppIcon.unblock,
-          size: 40,
-          color: Theme.of(context).colorScheme.secondary,
-          playOnAppear: true,
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          '$_count',
-          style: text.displaySmall?.copyWith(
-            fontWeight: FontWeight.w800,
-            height: 1,
-          ),
-        ),
-        Text(
-          _count == 1 ? 'reel' : 'reels',
-          style: text.labelSmall?.copyWith(
-            color: context.glass.onGlassMuted,
-            letterSpacing: 2,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Pause ───────────────────────────────────────────────────────────────────
-
-class _PauseDialog extends StatefulWidget {
-  const _PauseDialog();
-
-  @override
-  State<_PauseDialog> createState() => _PauseDialogState();
-}
-
-class _PauseDialogState extends State<_PauseDialog> {
+class _UnblockSheetState extends State<_UnblockSheet> {
+  bool _byReels = false;
   int _minutes = SessionDefaults.pauseDefaultMinutes;
+  int _reels = SessionDefaults.unblockDefault;
 
-  void _start() {
-    context.read<SettingsCubit>().startPause(
-      pause: Duration(minutes: _minutes),
-    );
-    Navigator.of(context).pop();
+  /// Hold-to-repeat on the − / + buttons.
+  Timer? _hold;
+
+  int get _value => _byReels ? _reels : _minutes;
+  int get _min =>
+      _byReels ? SessionDefaults.unblockMin : SessionDefaults.pauseMin;
+  int get _max =>
+      _byReels ? SessionDefaults.unblockMax : SessionDefaults.pauseMax;
+  String get _unit =>
+      _byReels ? 'reels' : (_minutes == 1 ? 'minute' : 'minutes');
+
+  @override
+  void dispose() {
+    _hold?.cancel();
+    super.dispose();
   }
 
-  void _resume() {
-    context.read<SettingsCubit>().resumeNow();
+  Duration _motion(Duration d) =>
+      (MediaQuery.maybeDisableAnimationsOf(context) ?? false)
+      ? Duration.zero
+      : d;
+
+  void _set(int v) => setState(() {
+    if (_byReels) {
+      _reels = v;
+    } else {
+      _minutes = v;
+    }
+  });
+
+  /// Steps the active value by [d]; false at a bound, which also ends a hold.
+  bool _step(int d) {
+    final next = (_value + d).clamp(_min, _max);
+    if (next == _value) return false;
+    AppHaptics.selection();
+    _set(next);
+    return true;
+  }
+
+  /// Keeps stepping while held, speeding up from 200 ms to 60 ms a step.
+  void _repeat(int d, [int delayMs = 200]) {
+    _hold?.cancel();
+    _hold = Timer(Duration(milliseconds: delayMs), () {
+      if (_step(d)) _repeat(d, math.max(60, delayMs * 4 ~/ 5));
+    });
+  }
+
+  void _confirm() {
+    final settings = context.read<SettingsCubit>();
+    if (_byReels) {
+      settings.setOneReel(count: _reels);
+    } else {
+      settings.startPause(pause: Duration(minutes: _minutes));
+    }
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, AppSettings>(
+      buildWhen: (a, b) => a.isPauseContractLive() != b.isPauseContractLive(),
       builder: (context, settings) => settings.isPauseContractLive()
-          ? _liveView(context)
-          : _pickerView(context),
+          ? const _PauseLive()
+          : _picker(context),
     );
   }
 
-  Widget _pickerView(BuildContext context) {
+  Widget _picker(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final picks = _byReels
+        ? SessionDefaults.unblockPicks
+        : SessionDefaults.pausePicks;
+    final base = planLabel(context.read<SettingsCubit>().state.baseMode);
+    final until = TimeOfDay.fromDateTime(
+      DateTime.now().add(Duration(minutes: _minutes)),
+    ).format(context);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            header: true,
+            child: Text(
+              'Unblock reels',
+              style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          GlassSegmented(
+            segments: const [
+              (label: 'Time', icon: null),
+              (label: 'Reels', icon: null),
+            ],
+            selectedIndex: _byReels ? 1 : 0,
+            height: AppSizes.controlHeight,
+            onChanged: (i) => setState(() => _byReels = i == 1),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _stepper(context),
+          const SizedBox(height: AppSpacing.md),
+          Semantics(
+            container: true,
+            label: 'Quick pick, ${_byReels ? 'reels' : 'minutes'}',
+            child: GlassSegmented(
+              segments: [for (final n in picks) (label: '$n', icon: null)],
+              // -1 (a custom value) hides the pill.
+              selectedIndex: picks.indexOf(_value),
+              height: AppSizes.controlHeight,
+              onChanged: (i) => _set(picks[i]),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            _byReels
+                ? '$base returns after your last reel.'
+                : '$base returns at $until. App locks stay on.',
+            textAlign: TextAlign.center,
+            style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          PrimaryButton(
+            label: _byReels
+                ? 'Unlock $_reels reels'
+                : 'Unblock for $_minutes min',
+            expand: true,
+            onPressed: _confirm,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// − value + — one control for both tabs. A tap steps by one, holding
+  /// repeats. Screen readers get one adjustable node (swipe up/down) whose
+  /// live region announces every change, including − / + and quick picks.
+  Widget _stepper(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final noun = _byReels ? 'reels' : 'minutes';
+    return Row(
       children: [
-        Text(
-          'Pause',
-          textAlign: TextAlign.center,
-          style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        _stepButton(
+          -1,
+          Icons.remove_rounded,
+          'Fewer $noun',
+          enabled: _value > _min,
         ),
-        const SizedBox(height: AppSpacing.md),
-        Center(
-          child: SleekCircularSlider(
-            min: SessionDefaults.pauseSliderMin.toDouble(),
-            max: SessionDefaults.pauseSliderMax.toDouble(),
-            initialValue: SessionDefaults.pauseDefaultMinutes.toDouble(),
-            appearance: pauseSliderAppearance(context, interactive: true),
-            onChange: (value) {
-              final m = SessionDefaults.snapPauseMinutes(value);
-              if (m != _minutes) setState(() => _minutes = m);
-            },
-            innerWidget: (_) => _sliderCenter(context),
+        Expanded(
+          child: Semantics(
+            slider: true,
+            liveRegion: true,
+            label: _byReels ? 'Reels to unlock' : 'Minutes to unblock',
+            value: '$_value $_unit',
+            increasedValue: '${math.min(_value + 1, _max)} $noun',
+            decreasedValue: '${math.max(_value - 1, _min)} $noun',
+            onIncrease: () => _step(1),
+            onDecrease: () => _step(-1),
+            child: ExcludeSemantics(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedSwitcher(
+                      duration: _motion(AppDurations.fast),
+                      transitionBuilder: (child, a) => FadeTransition(
+                        opacity: a,
+                        child: ScaleTransition(
+                          scale: Tween(begin: 0.85, end: 1.0).animate(a),
+                          child: child,
+                        ),
+                      ),
+                      child: Text(
+                        '$_value',
+                        key: ValueKey((_byReels, _value)),
+                        style: text.displayLarge?.copyWith(
+                          fontSize: 56,
+                          height: 1,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -2,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                    ),
+                    Text(
+                      _unit,
+                      style: text.titleSmall?.copyWith(
+                        color: context.glass.onGlassMuted,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          'Take a mindful pause',
-          textAlign: TextAlign.center,
-          style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          'Reels and blocked sites are allowed for $_minutes min, then '
-          'Block All resumes automatically. App locks stay on.',
-          textAlign: TextAlign.center,
-          style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        PrimaryButton(label: 'Start pause', expand: true, onPressed: _start),
+        _stepButton(1, Icons.add_rounded, 'More $noun', enabled: _value < _max),
       ],
     );
   }
 
-  Widget _sliderCenter(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AppAnimatedIcon(
-          icon: AppIcon.pause,
-          size: 44,
-          color: Theme.of(context).colorScheme.secondary,
-          playOnAppear: true,
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          '$_minutes',
-          style: text.displaySmall?.copyWith(
-            fontWeight: FontWeight.w800,
-            height: 1,
+  Widget _stepButton(
+    int d,
+    IconData icon,
+    String label, {
+    required bool enabled,
+  }) {
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: label,
+      child: PressScale(
+        pressedScale: enabled ? 0.9 : 1,
+        child: GestureDetector(
+          onTap: enabled ? () => _step(d) : null,
+          onLongPressStart: enabled
+              ? (_) {
+                  if (_step(d)) _repeat(d);
+                }
+              : null,
+          onLongPressEnd: (_) => _hold?.cancel(),
+          onLongPressCancel: () => _hold?.cancel(),
+          child: AnimatedOpacity(
+            opacity: enabled ? 1 : 0.35,
+            duration: _motion(AppDurations.fast),
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: context.glass.border,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 24, color: context.glass.onGlass),
+            ),
           ),
         ),
-        Text(
-          'min',
-          style: text.labelSmall?.copyWith(
-            color: context.glass.onGlassMuted,
-            letterSpacing: 2,
-          ),
-        ),
-      ],
+      ),
     );
   }
+}
 
-  Widget _liveView(BuildContext context) {
+/// Shown instead of the picker while a Pause runs.
+class _PauseLive extends StatelessWidget {
+  const _PauseLive();
+
+  @override
+  Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Icon(
-          Icons.pause_circle_outline,
-          size: 44,
-          color: AppColors.warning,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          'Pause active',
-          textAlign: TextAlign.center,
-          style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        Semantics(
+          header: true,
+          child: Text(
+            'Pause active',
+            style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Reels and blocked sites are allowed; app locks stay on. Blocking '
           'resumes automatically when the window ends.',
-          textAlign: TextAlign.center,
           style: text.bodyMedium?.copyWith(color: context.glass.onGlassMuted),
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         SecondaryButton(
           label: 'Resume blocking now',
           expand: true,
-          onPressed: _resume,
+          onPressed: () {
+            context.read<SettingsCubit>().resumeNow();
+            Navigator.of(context).pop();
+          },
         ),
       ],
     );

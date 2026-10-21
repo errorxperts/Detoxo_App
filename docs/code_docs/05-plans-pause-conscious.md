@@ -108,7 +108,7 @@ Native gate (`DetoxoAccessibilityService.onAccessibilityEvent`):
 if (System.currentTimeMillis() < pausedUntil) return  // cached mirror of store.pauseUntil
 ```
 
-This gate is **purely clock-based**, so it holds even if the Flutter UI is dead. Pickers/defaults come from `SessionDefaults` (`lib/features/blocking/plans/domain/entities/session_defaults.dart`): slider 2–10 min in 2-min steps (`snapPauseMinutes`), default 4, `maxPauseMinutes` 10.
+This gate is **purely clock-based**, so it holds even if the Flutter UI is dead. Pickers/defaults come from `SessionDefaults` (`lib/features/blocking/plans/domain/entities/session_defaults.dart`): stepper 1–10 whole minutes (`pauseMin` / `pauseMax`), quick picks `pausePicks` 2/4/6/10, default 4, `maxPauseMinutes` 10.
 
 ### Pause ticker (UI truth)
 
@@ -285,12 +285,13 @@ a platform) can never refill the session mid-watch; only an explicit mode tap do
 After the Nth reel the native gate blocks and the app **auto-reverts to the base
 mode** (§7.4) — it no longer sits blocked waiting for a re-tap.
 
-**How the UI arms.** **One Reel** arms directly at count 1 (no picker). **Unblock**
-opens `SessionDialogs.showUnblock` — a circular **2–20** count slider mirroring the
-Pause dialog (`_PauseDialog`) — which calls `setOneReel(count:)` on confirm. Its
-bounds live in `SessionDefaults`: `unblockSliderMin` 2 / `unblockSliderMax` 20 /
-`unblockSliderStep` 1, `unblockDefault` 5, and `snapUnblockCount(value)` (round +
-clamp to 2..20).
+**How the UI arms.** **One Reel** arms directly at count 1 (no picker). An N-reel
+**Unblock** has no pill of its own: the **Pause** pill opens `SessionDialogs.showPause` —
+the Unblock sheet — and its **Reels** tab (a −/+ stepper over **2–20**, hold to repeat,
+accelerating 200 → 60 ms a step, plus quick picks) calls `setOneReel(count:)` on confirm.
+While it runs the dashboard lights the Pause pill with the "N left" badge. Its bounds live in
+`SessionDefaults`: `unblockMin` 2 / `unblockMax` 20 (native clamps the allowance to 20),
+`unblockDefault` 5, `unblockPicks` 5/10/15/20.
 
 ### 7.2 Native gate — a reel counts after 2s of dwell
 
@@ -460,7 +461,7 @@ All content widgets honour reduce-motion (still glyph / plain text).
 
 | Widget | File | Role |
 |---|---|---|
-| `SessionDialogs` | `plans/presentation/widgets/session_dialogs.dart` | The single global frosted `GlassDialog` for **Pause**, **Conscious**, and **Unblock**. Pause / Conscious are dual-state: a setup/picker view when idle, a live action view (Resume / Turn off) while a session runs (`_ConsciousDialog` keys on `settings.activePlan == BlockingPlan.curious`). **`showUnblock`** (`_UnblockDialog`) is a one-shot circular 2–20 count picker (mirrors `_PauseDialog`, seeded at `SessionDefaults.unblockDefault`) that arms via `setOneReel(count:)`. |
+| `SessionDialogs` | `plans/presentation/widgets/session_dialogs.dart` | The global session surfaces. **`showPause`** opens the compact Unblock `GlassBottomSheet` (`_UnblockSheet`, titled "Unblock reels", ~404 dp on a 390×844 phone): a **Time \| Reels** `GlassSegmented` switch (opens on Time) over **one** −/+ hold-to-repeat stepper — 1–10 min → `startPause`, or 2–20 reels → `setOneReel(count:)` — then a quick-pick `GlassSegmented` (`pausePicks` / `unblockPicks`; a custom value passes `selectedIndex: -1`, hiding the pill), a one-line note naming the base mode it returns to, and one CTA. The value is screen-reader *adjustable* (slider + live region, swipe up/down steps by 1); the layout is stress-tested at 2× text on a 360 dp phone, in landscape, and in the light theme (`test/unblock_sheet_test.dart`). **While a Pause runs** it shows `_PauseLive` (Resume blocking now) instead. **Conscious** keeps its dual-state `GlassDialog` (`_ConsciousDialog` keys on `settings.activePlan == BlockingPlan.curious`). |
 | `CountdownRing` | `plans/presentation/widgets/countdown_ring.dart` | Read-only circular gauge (`SleekCircularSlider`, no handle) used by the dashboard hero. `progress` = **remaining fraction for Pause, banked fraction for Conscious**. Shares `pauseSliderAppearance` with the interactive Pause picker so both look identical. |
 | `AnimatedDigitTimer` | `plans/presentation/widgets/animated_digit_timer.dart` | Per-digit crossfading `mm:ss` countdown in the hero. |
 | `CountdownCubit` | `plans/presentation/countdown_cubit.dart` | Generic 1 Hz countdown to a target `DateTime`; emits remaining `Duration` clamped at zero. |
@@ -468,17 +469,17 @@ All content widgets honour reduce-motion (still glyph / plain text).
 | `ReelSessionCubit` | `plans/presentation/reel_session_cubit.dart` | Mirrors the native One Reel / Unblock session (§7.3). Provided app-wide in `main.dart`; watched by the dashboard `ModeSelector`. |
 | `AnimatedEmoji`, `QuoteBox` | `plans/presentation/widgets/{animated_emoji,quote_box}.dart` | Built content widgets (§8.3/§8.4) — not yet mounted. |
 
-The dashboard (`lib/features/dashboard/presentation/dashboard_tab.dart` + `widgets/command_center_card.dart`) is the caller: it opens `SessionDialogs.showPause/showConscious/showUnblock`, builds the hero `SessionCountdown` from either the live `PauseSession.remainingIn` or `ConsciousState` (`progress`/`banked`), and relabels `BlockingPlan.curious → 'CONSCIOUS'`. Plan selection is a **horizontally-scrolling row of pill cells** (`widgets/mode_selector.dart`) inside one dark rounded glass strip — icon-over-label, the selected cell filling with a `primary→secondary` gradient pill — in fixed enum order Block All, Conscious, Pause, One Reel, Unblock (the last two use `AppIcon.oneReel`/`unblock`). (This reverted the earlier vertical bounded-scroll board; all five pills are feature-tour targets.) One Reel arms directly at count 1; Unblock opens `showUnblock`; the active One Reel / Unblock pill shows a small accent **"N" remaining badge** read from `ReelSessionCubit`'s `reelSession.remaining`. `ModeSelector`'s public API no longer takes a `baseMode` param (the "BASE" chip was dropped; `_ModeSection` no longer passes it). Per-plan hero stats (today's reel / block counts) render through a single `StatStrip` (`widgets/stat_pill.dart`), now **uncontained** (bare pills, no card chrome).
+The dashboard (`lib/features/dashboard/presentation/dashboard_tab.dart` + `widgets/command_center_card.dart`) is the caller: it opens `SessionDialogs.showPause/showConscious`, builds the hero `SessionCountdown` from either the live `PauseSession.remainingIn` or `ConsciousState` (`progress`/`banked`), and relabels `BlockingPlan.curious → 'CONSCIOUS'`. Plan selection is a **horizontally-scrolling row of pill cells** (`widgets/mode_selector.dart`) inside one dark rounded glass strip — icon-over-label, the selected cell filling with a `primary→secondary` gradient pill — in fixed enum order Block All, Conscious, Pause, One Reel. (This reverted the earlier vertical bounded-scroll board; all four pills are feature-tour targets. The separate Unblock pill was dropped — Pause's sheet covers both time and reel count.) One Reel arms directly at count 1; Pause opens `showPause`; an N-reel unblock lights **Pause**. The active One Reel / Pause pill shows a small accent **"N" remaining badge** read from `ReelSessionCubit`'s `reelSession.remaining`. `ModeSelector`'s public API no longer takes a `baseMode` param (the "BASE" chip was dropped; `_ModeSection` no longer passes it). Per-plan hero stats (today's reel / block counts) render through a single `StatStrip` (`widgets/stat_pill.dart`), now **uncontained** (bare pills, no card chrome).
 
 ---
 
 ## 10. End-to-end flows (summary)
 
-**Start a Pause (4 min):** `SessionDialogs` picker → `SettingsCubit.startPause(4 min)` → `AppSettings` gets `activePlan = baseMode` + `PauseSession(cooldown=0, planToResume=baseMode)` → `_commit` persists + pushes `{activePlan: <base wire>, pauseUntil: pauseEnd}` → native gate `now < pauseUntil` suspends reel/web blocking (whole-app locks stay enforced) → at `pauseEnd`, native gate re-arms and the 1 Hz UI ticker settles the session back to the **base mode**.
+**Start a Pause (4 min):** `SessionDialogs` sheet, Time tab → `SettingsCubit.startPause(4 min)` → `AppSettings` gets `activePlan = baseMode` + `PauseSession(cooldown=0, planToResume=baseMode)` → `_commit` persists + pushes `{activePlan: <base wire>, pauseUntil: pauseEnd}` → native gate `now < pauseUntil` suspends reel/web blocking (whole-app locks stay enforced) → at `pauseEnd`, native gate re-arms and the 1 Hz UI ticker settles the session back to the **base mode**.
 
 **Turn on Conscious:** `SessionDialogs` → `SettingsCubit.enterConscious()` → `setPlan(curious)` (records `baseMode = curious`) → `_commit` pushes `{activePlan: CURIOUS, consciousEarnDivisor, consciousMaxBankMs}` (stored **verbatim**, no bank reset) → then `enterConscious` `await`s `resetConsciousBank` → `CommandHandler` empties the bank (store + the service's cache, via `onConsciousBankReset()`) + `reload()` → `syncConscious()` starts the 1 Hz accountant → each tick accrues while abstaining / drains 1:1 while watching, booting reels on empty → `consciousState` events stream to `ConsciousCubit` for the hero/dialog. (An auto-revert *into* Conscious skips the reset, so the bank survives.)
 
-**Turn on One Reel / Unblock (allow 3):** `ModeSelector` (Unblock → `showUnblock` picker) → `SettingsCubit.setOneReel(count: 3)` → `_commit` pushes `{activePlan: ONE_REEL, reelAllowance: 3}` (persists the target, does *not* reset the count) → then the imperative `armReelSession(3)` → `CommandHandler` sets `reelAllowance=3`, `activePlan=ONE_REEL`, `resetReelSession()` (count→0), calls `service.armReelSession()` (zero runtime dwell state, reload, emit) → in the detector loop `allowReelOrBlock` counts a reel once it's watched ≥ 2s: reels 1–3 each increment `reelsConsumed`; a fresh 4th reel (allowance spent) is blocked and emits `reelSessionState {blocked:true}` → `SettingsCubit._onReelSession` flips `activePlan → baseMode` (**auto-revert**, §7.4); events also stream to `ReelSessionCubit`.
+**Turn on One Reel / Unblock (allow 3):** `ModeSelector` (Pause → `showPause` sheet, Reels tab) → `SettingsCubit.setOneReel(count: 3)` → `_commit` pushes `{activePlan: ONE_REEL, reelAllowance: 3}` (persists the target, does *not* reset the count) → then the imperative `armReelSession(3)` → `CommandHandler` sets `reelAllowance=3`, `activePlan=ONE_REEL`, `resetReelSession()` (count→0), calls `service.armReelSession()` (zero runtime dwell state, reload, emit) → in the detector loop `allowReelOrBlock` counts a reel once it's watched ≥ 2s: reels 1–3 each increment `reelsConsumed`; a fresh 4th reel (allowance spent) is blocked and emits `reelSessionState {blocked:true}` → `SettingsCubit._onReelSession` flips `activePlan → baseMode` (**auto-revert**, §7.4); events also stream to `ReelSessionCubit`.
 
 ---
 
@@ -495,7 +496,7 @@ The dashboard (`lib/features/dashboard/presentation/dashboard_tab.dart` + `widge
 - `lib/features/blocking/plans/presentation/conscious_cubit.dart` — native bank mirror.
 - `lib/features/blocking/plans/presentation/reel_session_cubit.dart` — native One Reel / Unblock session mirror.
 - `lib/features/blocking/plans/presentation/countdown_cubit.dart` — generic 1 Hz countdown.
-- `lib/features/blocking/plans/presentation/widgets/session_dialogs.dart` — Pause + Conscious dialogs.
+- `lib/features/blocking/plans/presentation/widgets/session_dialogs.dart` — Unblock sheet (Time / Reels tabs, opened by Pause) + Conscious dialog.
 - `lib/features/blocking/plans/presentation/widgets/countdown_ring.dart` — hero gauge + shared appearance.
 - `lib/features/blocking/plans/presentation/widgets/animated_digit_timer.dart` — per-digit countdown.
 - `lib/features/blocking/plans/presentation/widgets/animated_emoji.dart` — 14 emoji animations.
@@ -506,7 +507,7 @@ The dashboard (`lib/features/dashboard/presentation/dashboard_tab.dart` + `widge
 - `lib/features/blocking/shared/data/repositories/engine_repository_impl.dart` — `pushSettings` derivation (+ `reelAllowance`), `resetConsciousBank`, `consciousStream`/`consciousCurrent`, `armReelSession`/`reelSessionStream`/`reelSessionCurrent`.
 - `lib/features/dashboard/presentation/dashboard_tab.dart` — plan surfaces, `_statusLabel` (`curious → 'CONSCIOUS'`), dialog + `ModeSelector` wiring (`setOneReel`).
 - `lib/features/dashboard/presentation/widgets/command_center_card.dart` — `SessionCountdown`, hero ring, `StatStrip`.
-- `lib/features/dashboard/presentation/widgets/mode_selector.dart` — horizontal pill-scroll plan picker (Block All / Conscious / Pause / One Reel / Unblock); active reel pill shows a `reelSession.remaining` badge; no `baseMode` param.
+- `lib/features/dashboard/presentation/widgets/mode_selector.dart` — horizontal pill-scroll plan picker (Block All / Conscious / Pause / One Reel); active reel pill (One Reel, or Pause for an N-reel unblock) shows a `reelSession.remaining` badge; no `baseMode` param.
 - `lib/features/dashboard/presentation/widgets/stat_pill.dart` — `StatStrip` hero stat row.
 - `lib/core/constants/app_constants.dart` — bundled content asset paths, `EngineTimings`.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/accessibility/DetoxoAccessibilityService.kt` — Conscious accountant (`syncConscious`, `accountConscious`, `consciousSnapshot`), One Reel / Unblock gate (`allowReelOrBlock`, `armReelSession`, `reelSessionSnapshot`), Pause `pauseUntil` gate, constants.

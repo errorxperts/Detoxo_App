@@ -3,15 +3,15 @@ import 'package:detoxo/features/blocking/plans/domain/entities/reel_session_stat
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
-/// The five blocking modes. Order = the two sticky **base** modes and Pause
-/// first (they're the feature-tour targets, kept as the leftmost pills), then
-/// the count-based override modes.
-enum DashboardMode { blockAll, conscious, pause, oneReel, unblock }
+/// The four blocking modes. Order = the two sticky **base** modes, Pause, then
+/// One Reel — the feature tour walks them in this order. Pause opens the shared
+/// Unblock sheet (by time or by reel count), so an N-reel unblock lights Pause.
+enum DashboardMode { blockAll, conscious, pause, oneReel }
 
 /// The blocking-mode picker: a horizontally-scrolling row of pill cells (a
 /// glossy illustration "coin" over a label; the active cell fills with a
-/// primary→secondary gradient pill). All five modes fit by scrolling sideways
-/// within one glass strip.
+/// primary→secondary gradient pill). All modes fit by scrolling sideways within
+/// one glass strip.
 class ModeSelector extends StatelessWidget {
   const ModeSelector({
     required this.selected,
@@ -25,7 +25,7 @@ class ModeSelector extends StatelessWidget {
   /// The active mode (drives the highlighted pill).
   final DashboardMode selected;
 
-  /// Live One Reel / Unblock session, for the "N left" badge on the active pill.
+  /// Live One Reel / N-reel session, for the "N left" badge on the active pill.
   final ReelSessionState reelSession;
 
   /// Fired when a pill is tapped.
@@ -72,10 +72,10 @@ class ModeSelector extends StatelessWidget {
     );
   }
 
-  /// The live "N" remaining badge for the active One Reel / Unblock pill.
+  /// The live "N" remaining badge for the active One Reel / Pause pill. Pause
+  /// only carries one for an N-reel unblock: a timed Pause runs no reel session.
   int? _badgeFor(DashboardMode mode) {
-    final isReel =
-        mode == DashboardMode.oneReel || mode == DashboardMode.unblock;
+    final isReel = mode == DashboardMode.oneReel || mode == DashboardMode.pause;
     if (isReel && selected == mode && reelSession.active) {
       return reelSession.remaining;
     }
@@ -121,11 +121,6 @@ final _modeSpecs = <_ModeSpec>[
     mode: DashboardMode.oneReel,
     image: Assets.images.illustration.oneReel.path,
     label: 'One Reel',
-  ),
-  _ModeSpec(
-    mode: DashboardMode.unblock,
-    image: Assets.images.illustration.timer.path,
-    label: 'Unblock',
   ),
 ];
 

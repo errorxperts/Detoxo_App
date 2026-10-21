@@ -2,9 +2,8 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
-/// Glass-tinted appearance for the circular duration ring, shared by the
-/// interactive Pause picker and the read-only hero countdown so they look
-/// identical. [interactive] shows a draggable handle; the countdown hides it.
+/// Glass-tinted appearance for the hero's circular countdown ring.
+/// [interactive] shows a draggable handle; the countdown hides it.
 CircularSliderAppearance pauseSliderAppearance(
   BuildContext context, {
   required bool interactive,

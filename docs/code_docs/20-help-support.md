@@ -61,13 +61,13 @@ offers two replayable tours:
   on the dashboard, so it replays via the established pattern:
   `SettingsCubit.setShowcaseSeen(value: false)` + `context.go(Routes.home)`; the dashboard's
   coordinator restarts the tour on the flag's true→false edge once front-most. The tour is
-  **seven steps** (`featureShowcaseStepCount = 7`, defined in
+  **six steps** (`featureShowcaseStepCount = 6`, defined in
   [`feature_showcase_steps.dart`](../../lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart)):
-  it spotlights all **five mode pills** — Block All, Conscious, Pause, **One Reel** (position 4),
-  **Unblock** (position 5) — in `DashboardMode` order at indices 0–4 (wrapped by
-  `ModeSelector.showcaseBuilder`, which maps mode `i` → `featureShowcaseSteps[i]`; `oneReel` and
-  `unblock` are the two `FeatureShowcaseKeys` added here) — then the **App Blocker** and **Web
-  Blocker** capsules at `featureShowcaseSteps[5]` / `[6]`. Each step's badge shows the same
+  it spotlights all **four mode pills** — Block All, Conscious, Pause (whose step now covers
+  unblocking by time *or* reel count), **One Reel** (position 4) — in `DashboardMode` order at
+  indices 0–3 (wrapped by `ModeSelector.showcaseBuilder`, which maps mode `i` →
+  `featureShowcaseSteps[i]`) — then the **App Blocker** and **Web Blocker** capsules at
+  `featureShowcaseSteps[4]` / `[5]`. Each step's badge shows the same
   artwork as the widget it points at: `ShowcaseStep.image` is an
   `assets/images/illustration/*.png` path, clipped to a circle inside a tone-lit `IconBadge`
   (the art is a glow on an opaque backdrop, so the circular clip is what makes it an icon).

@@ -72,12 +72,10 @@ change:
   give-and-take that rewards patience.
 - **One Reel** — feeling the itch? This lets you watch a single clip, then closes the
   feed so one doesn't become fifty. Tap it again for one more.
-- **Unblock** — want a handful, not just one? Pick how many reels to release (a dial
-  from 2 to 20), watch them, and your base mode returns until you unlock more.
-- **Pause** — need the feed for a few minutes (finding a specific video, showing a
-  friend)? Tap **Pause**, pick a short window (2–10 minutes), and blocking steps
-  aside. When the timer runs out, protection switches itself back on automatically —
-  no way to "forget" to re-enable it.
+- **Pause** — need the feed for a bit (finding a specific video, showing a
+  friend)? Tap **Pause** and pick **Time** (1–10 minutes) or **Reels** (2–20 — an
+  **Unblock**), and blocking steps aside. When the time or the reels run out,
+  protection switches itself back on automatically — no way to "forget" to re-enable it.
 
 > A note on the name: in the app this earn-as-you-go mode is called **Conscious** —
 > a mindful middle ground between all-or-nothing.
@@ -174,9 +172,8 @@ takes over.
   minutes of guilt-free scrolling; dip in and it counts down. It rewards patience
   instead of relying on willpower.
 - 1️⃣ **One Reel** — allow a single clip, then close the feed so one doesn't become fifty.
-- 🔓 **Unblock** — release a batch you choose (2–20 reels), then it returns to your base mode on its own.
-- ⏸️ **Pause** — need the feed for a few minutes? Take a short break; blocking turns
-  itself back on automatically.
+- ⏸️ **Pause** — need the feed for a bit? Unblock for a few minutes or a batch of reels
+  you choose (2–20); blocking turns itself back on automatically.
 
 **See your habit clearly.** Detoxo counts every reel you watch — today and all-time —
 right on your device. A draggable **floating bubble** shows the count climbing as you

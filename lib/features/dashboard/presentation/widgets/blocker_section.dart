@@ -71,8 +71,8 @@ class _BlockerSectionState extends State<BlockerSection> {
       children: [
         Expanded(
           child: showcaseTarget(
-            step: featureShowcaseSteps[5],
-            index: 5,
+            step: featureShowcaseSteps[4],
+            index: 4,
             child: BlockerTile(
               image: Assets.images.illustration.appBlock.path,
               title: 'App Blocker',
@@ -85,8 +85,8 @@ class _BlockerSectionState extends State<BlockerSection> {
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: showcaseTarget(
-            step: featureShowcaseSteps[6],
-            index: 6,
+            step: featureShowcaseSteps[5],
+            index: 5,
             child: BlockerTile(
               image: Assets.images.illustration.webBlock.path,
               title: 'Web Blocker',

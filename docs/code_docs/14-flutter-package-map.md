@@ -103,7 +103,7 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 | `cupertino_native` | `^0.1.1` | **Wired** | Native-feel adaptive controls (`lib/core/design_system/adaptive/adaptive_controls.dart`). |
 | `flutter_floating_bottom_bar` | `^1.2.1` | **Wired** | The floating bottom navigation bar shell. |
 | `not_static_icons` | `^0.46.0` | **Wired** | Animated (Lucide-style) icons, wrapped in `lib/core/design_system/foundations/animated_icons.dart` (re-exports `AnimatedIconController`). |
-| `sleek_circular_slider` | `^2.1.0` | **Wired** (2 files) | Circular sliders (e.g. Conscious time-bank / daily-limit dials). |
+| `sleek_circular_slider` | `^2.1.0` | **Wired** (1 file) | The dashboard hero's read-only countdown ring (`plans/presentation/widgets/countdown_ring.dart`, Pause / Conscious). |
 | `showcaseview` | `^5.1.0` | **Wired** | Onboarding coach-marks / feature tour (`lib/features/additional_feature/showcase_view/`). |
 | `flutter_svg` | `^2.3.0` | **Wired** (2 files) | Renders bundled SVG art. |
 | `cached_network_image` | `^3.4.1` | **Wired** | Remote-icon fallback in `AppIconAvatar` (`app_icon_avatar.dart`, used by blocklist tiles + the reel-counter card). App icons ship **locally** in `assets/images/social_icon_pack/` as 160² quantised PNGs; this only handles `http…` `iconUrl`s from remote config. Note it drags `flutter_cache_manager` → `sqflite` → the `sqflite_android` native plugin. |

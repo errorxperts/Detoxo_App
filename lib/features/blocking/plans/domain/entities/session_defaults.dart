@@ -9,32 +9,22 @@ abstract final class SessionDefaults {
   /// Server-tunable cap on selectable pause minutes.
   static const int maxPauseMinutes = 10;
 
-  // Circular pause-duration slider: 2–10 min in 2-min steps (snaps to
-  // 2/4/6/8/10). [pauseDefaultMinutes] is the value the slider opens on.
-  static const int pauseSliderMin = 2;
-  static const int pauseSliderMax = maxPauseMinutes;
-  static const int pauseSliderStep = 2;
+  // Time tab of the Unblock sheet: a −/+ stepper over 1–10 whole minutes,
+  // plus [pausePicks] as one-tap presets. [pauseDefaultMinutes] is where it
+  // opens.
+  static const int pauseMin = 1;
+  static const int pauseMax = maxPauseMinutes;
   static const int pauseDefaultMinutes = 4;
-
-  /// Snaps an arbitrary slider value to the nearest [pauseSliderStep] minute,
-  /// clamped to the [pauseSliderMin]..[pauseSliderMax] range.
-  static int snapPauseMinutes(double value) {
-    final stepped = (value / pauseSliderStep).round() * pauseSliderStep;
-    return stepped.clamp(pauseSliderMin, pauseSliderMax);
-  }
+  static const List<int> pausePicks = [2, 4, 6, 10];
 
   // ── Unblock (allow N reels, then revert to the base mode) ──────────────────
-  // Circular count slider: 2–20 reels in steps of 1. One Reel is the count-1
-  // special case and needs no picker (it arms directly).
-  static const int unblockSliderMin = 2;
-  static const int unblockSliderMax = 20;
-  static const int unblockSliderStep = 1;
+  // Reels tab of the Unblock sheet: the same −/+ stepper over 2–20 reels (native
+  // clamps the allowance to 20), plus [unblockPicks] as one-tap presets. One
+  // Reel is the count-1 special case and needs no picker (it arms directly).
+  static const int unblockMin = 2;
+  static const int unblockMax = 20;
   static const int unblockDefault = 5;
-
-  /// Snaps an arbitrary slider value to the nearest whole reel count, clamped to
-  /// the [unblockSliderMin]..[unblockSliderMax] range.
-  static int snapUnblockCount(double value) =>
-      value.round().clamp(unblockSliderMin, unblockSliderMax);
+  static const List<int> unblockPicks = [5, 10, 15, 20];
 
   // ── Conscious (earn-as-you-abstain token bucket) ───────────────────────────
   // While abstaining the bank fills at 1 / [consciousEarnDivisor] of elapsed

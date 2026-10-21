@@ -325,7 +325,7 @@ Rebuild/state note on the dashboard (polish):
   `_ConsciousBanner` widget so that tick rebuilds only that tile.
 
 `ModeSelector` (`presentation/widgets/mode_selector.dart`) is the horizontally
-scrolling strip of five mode pills. Each pill is an illustration "coin" over its
+scrolling strip of four mode pills (Block All, Conscious, Pause, One Reel). Each pill is an illustration "coin" over its
 label: the mode's `assets/images/illustration/*.png` clipped to a ring-lit circle
 — the same artwork its feature-tour step shows. The art is full-colour on an
 opaque backdrop, so the circular clip is what turns it into an icon, and the
