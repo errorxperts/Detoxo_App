@@ -228,11 +228,13 @@ class _SheetState extends State<_Sheet> {
     _dy = math.max(0, _dy + d.delta.dy);
   });
 
-  void _release([DragEndDetails? _]) {
+  Future<void> _release([DragEndDetails? _]) async {
     if (_dy > GlassBottomSheet.dismissDrag) {
       // The route slides it out from where the finger left it.
-      Navigator.of(context).maybePop();
-      return;
+      await Navigator.of(context).maybePop();
+      // Still current: a PopScope in the content refused (e.g. a sheet
+      // holding through its success beat), so it springs back.
+      if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? false)) return;
     }
     setState(() {
       _dragging = false;

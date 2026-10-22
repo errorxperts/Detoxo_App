@@ -125,6 +125,26 @@ void main() {
       expect(find.text('body'), findsOneWidget, reason: 'drag');
     });
 
+    testWidgets('a refused 120 px drag springs back', (tester) async {
+      await tester.pumpWidget(
+        _app(
+          (context) => GlassBottomSheet.show<void>(
+            context: context,
+            child: const PopScope(canPop: false, child: Text('held')),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      final rest = tester.getTopLeft(find.text('held'));
+      await tester.drag(
+        find.byKey(GlassBottomSheet.grabberKey),
+        const Offset(0, 120),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(find.text('held')), rest);
+    });
+
     testWidgets('a barrier tap closes a dismissible sheet', (tester) async {
       await _openSheet(tester);
       await tester.tapAt(const Offset(20, 20));
