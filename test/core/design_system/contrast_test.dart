@@ -164,6 +164,34 @@ void main() {
           }, 3);
         }
       });
+
+      test('Session sheet controls read at their minimums', () {
+        // Quick picks: ink-2 on control, the selected label on control-on
+        // (accentText in Light, ink in Dark), glyphs in accentText(brand).
+        _expectContrast('ink-2', t.ink2, {'control': t.control}, 4.5);
+        final selected = t.brightness == Brightness.light
+            ? t.accentText(t.brand)
+            : t.ink;
+        _expectContrast('selected pick', selected, {
+          'controlOn': t.controlOn,
+        }, 4.5);
+        _expectContrast('stepper glyph', t.accentText(t.brand), {
+          'control': t.control,
+        }, 3);
+        // The 20 px label box spans 30–70 % of the 52 px vertical gradient.
+        // Light white is 4.17:1 on the top stop alone but 4.66:1 at 30 %.
+        Color band(Color from, Color to, double at) =>
+            Color.lerp(from, to, at)!;
+        _expectContrast('start ink', t.startInk, {
+          'start@30%': band(t.startFrom, t.startTo, .3),
+          'start@70%': band(t.startFrom, t.startTo, .7),
+        }, 4.5);
+        // Light white is 4.49:1 on the top stop alone; the label band passes.
+        _expectContrast('started ink', t.startedInk, {
+          'started@30%': band(t.startedFrom, t.startedTo, .3),
+          'started@70%': band(t.startedFrom, t.startedTo, .7),
+        }, 4.5);
+      });
     });
   }
 

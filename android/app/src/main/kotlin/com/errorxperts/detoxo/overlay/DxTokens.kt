@@ -257,6 +257,42 @@ internal object DxTokens {
     const val BUTTON_TO_LIGHT: Int = 0xFFE9EDF4.toInt()
     /** Soft button, end of its 145° gradient. (dark) */
     const val BUTTON_TO_DARK: Int = 0xFF181B2A.toInt()
+    /** Session sheet controls: stepper circles, quick-pick card, time-dial track, sheet close (Compact Guide). (light) */
+    const val CONTROL_LIGHT: Int = 0xFFDFE7F8.toInt()
+    /** Session sheet controls: stepper circles, quick-pick card, time-dial track, sheet close (Compact Guide). (dark) */
+    const val CONTROL_DARK: Int = 0xFF2A3756.toInt()
+    /** Selected quick pick chip on control (Compact Guide). (light) */
+    const val CONTROL_ON_LIGHT: Int = 0xFFC7D8FF.toInt()
+    /** Selected quick pick chip on control (Compact Guide). (dark) */
+    const val CONTROL_ON_DARK: Int = 0xFF3E5989.toInt()
+    /** Session sheet Start button, top of its vertical gradient. (light) */
+    const val START_FROM_LIGHT: Int = 0xFF3574FA.toInt()
+    /** Session sheet Start button, top of its vertical gradient. (dark) */
+    const val START_FROM_DARK: Int = 0xFF8FD3FF.toInt()
+    /** Session sheet Start button, bottom of its gradient. (light) */
+    const val START_TO_LIGHT: Int = 0xFF2457E0.toInt()
+    /** Session sheet Start button, bottom of its gradient. (dark) */
+    const val START_TO_DARK: Int = 0xFF6AA8FF.toInt()
+    /** Label and glyph on the Start button. (light) */
+    const val START_INK_LIGHT: Int = 0xFFFFFFFF.toInt()
+    /** Label and glyph on the Start button. (dark) */
+    const val START_INK_DARK: Int = 0xFF0A1430.toInt()
+    /** Session started (Start button after it commits), top of its gradient. (light) */
+    const val STARTED_FROM_LIGHT: Int = 0xFF10893F.toInt()
+    /** Session started (Start button after it commits), top of its gradient. (dark) */
+    const val STARTED_FROM_DARK: Int = 0xFF6BF0B0.toInt()
+    /** Session started, bottom of its gradient. (light) */
+    const val STARTED_TO_LIGHT: Int = 0xFF0A7036.toInt()
+    /** Session started, bottom of its gradient. (dark) */
+    const val STARTED_TO_DARK: Int = 0xFF4BE39A.toInt()
+    /** Label and drawn check on Session started. (light) */
+    const val STARTED_INK_LIGHT: Int = 0xFFFFFFFF.toInt()
+    /** Label and drawn check on Session started. (dark) */
+    const val STARTED_INK_DARK: Int = 0xFF062612.toInt()
+    /** Behind an open sheet: this colour at k-scrim-0/60/100 in a radial gradient, over a scrim-blur backdrop. (light) */
+    const val SCRIM_LIGHT: Int = 0xFF141828.toInt()
+    /** Behind an open sheet: this colour at k-scrim-0/60/100 in a radial gradient, over a scrim-blur backdrop. (dark) */
+    const val SCRIM_DARK: Int = 0xFF04060C.toInt()
 
     /** Accent while no mode is on and less than 60% of the daily limit is used. (light): main, light, deep. */
     @JvmField
@@ -343,6 +379,26 @@ internal object DxTokens {
     const val K_HALO_LIGHT: Float = 0.22f
     /** Ring knob halo (--halo): Light mixes the accent main, Dark its light stop, at this alpha. (dark) */
     const val K_HALO_DARK: Float = 0.3f
+    /** Sheet scrim: alpha of scrim at the bottom centre of its radial gradient (radial-gradient(120% 70% at 50% 100%, …) 0%). (light) */
+    const val K_SCRIM_0_LIGHT: Float = 0.38f
+    /** Sheet scrim: alpha of scrim at the bottom centre of its radial gradient (radial-gradient(120% 70% at 50% 100%, …) 0%). (dark) */
+    const val K_SCRIM_0_DARK: Float = 0.62f
+    /** Sheet scrim: alpha of scrim at 60% of its radial gradient. (light) */
+    const val K_SCRIM_60_LIGHT: Float = 0.26f
+    /** Sheet scrim: alpha of scrim at 60% of its radial gradient. (dark) */
+    const val K_SCRIM_60_DARK: Float = 0.46f
+    /** Sheet scrim: alpha of scrim at the edge of its radial gradient (100%). (light) */
+    const val K_SCRIM_100_LIGHT: Float = 0.22f
+    /** Sheet scrim: alpha of scrim at the edge of its radial gradient (100%). (dark) */
+    const val K_SCRIM_100_DARK: Float = 0.4f
+    /** Session sheet: brand glow at its top (340×260 radial, 120px above the sheet), opacity. (light) */
+    const val K_SHEET_GLOW_LIGHT: Float = 0.12f
+    /** Session sheet: brand glow at its top (340×260 radial, 120px above the sheet), opacity. (dark) */
+    const val K_SHEET_GLOW_DARK: Float = 0.2f
+    /** Second ambient light, from the accent deep stop (400px, low on the screen): the accent at this alpha. The first light is k-amb on the main stop. (light) */
+    const val K_AMB_DEEP_LIGHT: Float = 0.1f
+    /** Second ambient light, from the accent deep stop (400px, low on the screen): the accent at this alpha. The first light is k-amb on the main stop. (dark) */
+    const val K_AMB_DEEP_DARK: Float = 0.16f
 
     /** Confirm sheet, caution tone (unblocking). */
     const val TONE_CAUTION_A: Int = 0xFFFFC062.toInt()
@@ -489,6 +545,30 @@ internal object DxTokens {
         DxShadowLayer(0x99000000.toInt(), 6f, 6f, 12f, 0f, true),
         DxShadowLayer(0x0BFFFFFF.toInt(), -4f, -4f, 10f, 0f, true),
     )
+    /** Session sheet Start button. (light) */
+    @JvmField
+    val SHADOW_START_SHADOW_LIGHT: Array<DxShadowLayer> = arrayOf(
+        DxShadowLayer(0x4DFFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
+        DxShadowLayer(0x523574FA.toInt(), 0f, 10f, 24f, 0f, false),
+    )
+    /** Session sheet Start button. (dark) */
+    @JvmField
+    val SHADOW_START_SHADOW_DARK: Array<DxShadowLayer> = arrayOf(
+        DxShadowLayer(0x73FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
+        DxShadowLayer(0x4D6AA8FF.toInt(), 0f, 10f, 26f, 0f, false),
+    )
+    /** Session started button. (light) */
+    @JvmField
+    val SHADOW_STARTED_SHADOW_LIGHT: Array<DxShadowLayer> = arrayOf(
+        DxShadowLayer(0x40FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
+        DxShadowLayer(0x4D10893F.toInt(), 0f, 10f, 24f, 0f, false),
+    )
+    /** Session started button. (dark) */
+    @JvmField
+    val SHADOW_STARTED_SHADOW_DARK: Array<DxShadowLayer> = arrayOf(
+        DxShadowLayer(0x66FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
+        DxShadowLayer(0x404BE39A.toInt(), 0f, 10f, 24f, 0f, false),
+    )
 
     /** Screen title. */
     const val TITLE_XL_SIZE: Float = 34f
@@ -500,6 +580,11 @@ internal object DxTokens {
     const val NUMBER_LINE: Float = 48f
     const val NUMBER_WEIGHT: Int = 700
     const val NUMBER_TRACKING_EM: Float = -2f / 48f
+    /** Value inside the time dial (Compact Guide number-lg). */
+    const val NUMBER_LG_SIZE: Float = 58f
+    const val NUMBER_LG_LINE: Float = 58f
+    const val NUMBER_LG_WEIGHT: Int = 700
+    const val NUMBER_LG_TRACKING_EM: Float = -2.4f / 58f
     /** Section titles. */
     const val TITLE_SIZE: Float = 22f
     const val TITLE_LINE: Float = 28f
@@ -515,6 +600,11 @@ internal object DxTokens {
     const val LABEL_LINE: Float = 20f
     const val LABEL_WEIGHT: Int = 700
     const val LABEL_TRACKING_EM: Float = 0f
+    /** Stats numbers, "Blocker rules", quick-pick numbers (Compact Guide label-strong). */
+    const val LABEL_STRONG_SIZE: Float = 15f
+    const val LABEL_STRONG_LINE: Float = 20f
+    const val LABEL_STRONG_WEIGHT: Int = 800
+    const val LABEL_STRONG_TRACKING_EM: Float = 0f
     /** Under the time left; stats words. */
     const val BODY_SIZE: Float = 14f
     const val BODY_LINE: Float = 20f
@@ -525,11 +615,21 @@ internal object DxTokens {
     const val SUBHEAD_LINE: Float = 18f
     const val SUBHEAD_WEIGHT: Int = 600
     const val SUBHEAD_TRACKING_EM: Float = 0f
+    /** Counts such as "2 on" and "Tap to set up" (Compact Guide count). */
+    const val COUNT_SIZE: Float = 13f
+    const val COUNT_LINE: Float = 18f
+    const val COUNT_WEIGHT: Int = 700
+    const val COUNT_TRACKING_EM: Float = 0f
     /** Mode labels. Uppercase with 1.6px tracking for the "Time left" eyebrow. */
     const val CAPTION_SIZE: Float = 12f
     const val CAPTION_LINE: Float = 16f
     const val CAPTION_WEIGHT: Int = 700
     const val CAPTION_TRACKING_EM: Float = 0f
+    /** Unit inside the time dial, uppercase (Compact Guide eyebrow-lg). */
+    const val EYEBROW_LG_SIZE: Float = 14f
+    const val EYEBROW_LG_LINE: Float = 18f
+    const val EYEBROW_LG_WEIGHT: Int = 700
+    const val EYEBROW_LG_TRACKING_EM: Float = 1.8f / 14f
     /** Eyebrows and section headers: caption, uppercase, 1.6px tracking (.dx-eyebrow). */
     const val EYEBROW_SIZE: Float = 12f
     const val EYEBROW_LINE: Float = 16f
@@ -592,6 +692,10 @@ internal object DxTokens {
     const val SHEET_BLUR: Float = 30f
     /** Confirm sheet: backdrop saturation. */
     const val SHEET_SATURATE: Float = 1.7f
+    /** Sheet scrim: backdrop blur. */
+    const val SCRIM_BLUR: Float = 8f
+    /** Sheet scrim: backdrop saturation. */
+    const val SCRIM_SATURATE: Float = 1.2f
     /** Light coloured text mixes the accent toward this ink (--accent-text: color-mix(in srgb, accent 60%, #0b1020)). */
     const val ACCENT_TEXT_INK: Int = 0xFF0B1020.toInt()
     /** How far Light coloured text mixes toward accent-text-ink (the ink's share of --accent-text). */
@@ -608,4 +712,10 @@ internal object DxTokens {
     const val ICON_SATURATE_OFF: Float = 0.7f
     /** Idle mode icon opacity. */
     const val ICON_OPACITY_OFF: Float = 0.8f
+    /** Quick-pick card and the tab lens (Compact Guide card-sm). */
+    const val RADIUS_CARD_SM: Float = 26f
+    /** Sheet padding, sides and bottom (Compact Guide sheet side). */
+    const val SPACE_SHEET_SIDE: Float = 22f
+    /** Screen top to the tab header row (Compact Guide header top), safe area included. */
+    const val SPACE_HEADER_TOP: Float = 54f
 }

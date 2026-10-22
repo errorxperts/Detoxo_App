@@ -28,6 +28,13 @@ abstract final class AppSpacing {
   /// Above a section title.
   static const double section = AppTokens.spaceSection;
 
+  /// Sheet padding, sides and bottom.
+  static const double sheetSide = AppTokens.spaceSheetSide;
+
+  /// Screen top to the tab header row, safe area included: use
+  /// `max(headerTop, safeTop + xs)`.
+  static const double headerTop = AppTokens.spaceHeaderTop;
+
   /// Bottom clearance a scroll view needs so its last item isn't hidden behind
   /// the floating tab bar: the spec leaves 132 for the bar, its lift and
   /// breathing room. Add the device's bottom safe-area inset on top of this at
@@ -66,6 +73,9 @@ abstract final class AppRadius {
 
   /// Blocker tiles and the mode card.
   static const double card = AppTokens.radiusCard;
+
+  /// Quick-pick card and the tab lens.
+  static const double cardSm = AppTokens.radiusCardSm;
 
   /// Tab bar and the slide track.
   static const double bar = AppTokens.radiusBar;

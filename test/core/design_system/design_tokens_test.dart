@@ -157,6 +157,36 @@ void main() {
     expect(AppTypography.eyebrow.letterSpacing, 1.6);
   });
 
+  test('a type variant overrides only the fields it names', () {
+    // number-lg: number at 58/58 with -2.4 tracking, weight kept.
+    expect(AppTypography.numberLg.fontSize, 58);
+    expect(AppTypography.numberLg.height, 1);
+    expect(AppTypography.numberLg.letterSpacing, -2.4);
+    expect(AppTypography.numberLg.fontWeight, AppTypography.number.fontWeight);
+    // count / label-strong: only the weight changes.
+    expect(AppTypography.count.fontSize, AppTypography.subhead.fontSize);
+    expect(AppTypography.count.fontWeight, FontWeight.w700);
+    expect(AppTypography.labelStrong.height, AppTypography.label.height);
+    expect(AppTypography.labelStrong.fontWeight, FontWeight.w800);
+    expect(AppTypography.eyebrowLg.height, 18 / 14);
+    expect(AppTypography.eyebrowLg.letterSpacing, 1.8);
+  });
+
+  test('Compact Guide session tokens (recipes.json)', () {
+    expect(AppTokens.light.control, const Color(0xFFDFE7F8));
+    expect(AppTokens.dark.controlOn, const Color(0xFF3E5989));
+    expect(AppTokens.dark.startInk, const Color(0xFF0A1430));
+    expect(AppTokens.light.startedTo, const Color(0xFF0A7036));
+    expect(AppTokens.dark.kScrim0, 0.62);
+    expect(AppTokens.light.kSheetGlow, 0.12);
+    expect(AppTokens.dark.kAmbDeep, 0.16);
+    expect(AppTokens.scrimSaturate, 1.2);
+    expect(AppTokens.light.startShadow.last.blur, 24);
+    expect(AppRadius.cardSm, 26);
+    expect(AppSpacing.sheetSide, 22);
+    expect(AppSpacing.headerTop, 54);
+  });
+
   test('tone-<t>-<f> becomes ConfirmTone; spacing and radius alias', () {
     expect(ConfirmTone.critical.c, const Color(0xFFE8366A));
     expect(ConfirmTone.values, [

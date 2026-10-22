@@ -268,15 +268,20 @@ class _Design {
       final i = styles.indexWhere((s) => s.name == v['base']);
       if (i < 0) throw FormatException('$name: no base style ${v['base']}');
       final base = styles[i];
+      // A variant overrides only the fields it names; the rest are the base's.
+      double? css(String key) => switch (v[key]) {
+        final String s => _cssNumber(s, name),
+        _ => null,
+      };
       styles.insert(
         i + 1,
         _Style(
           name,
           _usage(v),
-          size: base.size,
-          line: base.line,
-          weight: base.weight,
-          tracking: _cssNumber(v['letterSpacing'] as String, name),
+          size: css('fontSize') ?? base.size,
+          line: css('lineHeight') ?? base.line,
+          weight: v['fontWeight'] as int? ?? base.weight,
+          tracking: css('letterSpacing') ?? base.tracking,
         ),
       );
     }

@@ -49,6 +49,15 @@ final class AppTokens {
     required this.grabber,
     required this.buttonFrom,
     required this.buttonTo,
+    required this.control,
+    required this.controlOn,
+    required this.startFrom,
+    required this.startTo,
+    required this.startInk,
+    required this.startedFrom,
+    required this.startedTo,
+    required this.startedInk,
+    required this.scrim,
     required this.brand,
     required this.blockAll,
     required this.conscious,
@@ -67,6 +76,11 @@ final class AppTokens {
     required this.kArcGlow,
     required this.kAmb,
     required this.kHalo,
+    required this.kScrim0,
+    required this.kScrim60,
+    required this.kScrim100,
+    required this.kSheetGlow,
+    required this.kAmbDeep,
     required this.shadowCard,
     required this.shadowGlass,
     required this.shadowGroove,
@@ -76,6 +90,8 @@ final class AppTokens {
     required this.pillEdge,
     required this.lensEdge,
     required this.trackShadow,
+    required this.startShadow,
+    required this.startedShadow,
   });
 
   static const AppTokens light = AppTokens._(
@@ -120,6 +136,15 @@ final class AppTokens {
     grabber: Color(0x2E141A2A),
     buttonFrom: Color(0xFFFFFFFF),
     buttonTo: Color(0xFFE9EDF4),
+    control: Color(0xFFDFE7F8),
+    controlOn: Color(0xFFC7D8FF),
+    startFrom: Color(0xFF3574FA),
+    startTo: Color(0xFF2457E0),
+    startInk: Color(0xFFFFFFFF),
+    startedFrom: Color(0xFF10893F),
+    startedTo: Color(0xFF0A7036),
+    startedInk: Color(0xFFFFFFFF),
+    scrim: Color(0xFF141828),
     brand: AccentPalette(
       Color(0xFF3D7BFF),
       Color(0xFF7CC4FF),
@@ -162,6 +187,11 @@ final class AppTokens {
     kArcGlow: 0.35,
     kAmb: 0.16,
     kHalo: 0.22,
+    kScrim0: 0.38,
+    kScrim60: 0.26,
+    kScrim100: 0.22,
+    kSheetGlow: 0.12,
+    kAmbDeep: 0.1,
     shadowCard: [
       DxShadow(color: Color(0xF2FFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x99FFFFFF), spread: 1, inset: true),
@@ -237,6 +267,14 @@ final class AppTokens {
         inset: true,
       ),
     ],
+    startShadow: [
+      DxShadow(color: Color(0x4DFFFFFF), offset: Offset(0, 1), inset: true),
+      DxShadow(color: Color(0x523574FA), offset: Offset(0, 10), blur: 24),
+    ],
+    startedShadow: [
+      DxShadow(color: Color(0x40FFFFFF), offset: Offset(0, 1), inset: true),
+      DxShadow(color: Color(0x4D10893F), offset: Offset(0, 10), blur: 24),
+    ],
   );
 
   static const AppTokens dark = AppTokens._(
@@ -281,6 +319,15 @@ final class AppTokens {
     grabber: Color(0x42FFFFFF),
     buttonFrom: Color(0xFF262B44),
     buttonTo: Color(0xFF181B2A),
+    control: Color(0xFF2A3756),
+    controlOn: Color(0xFF3E5989),
+    startFrom: Color(0xFF8FD3FF),
+    startTo: Color(0xFF6AA8FF),
+    startInk: Color(0xFF0A1430),
+    startedFrom: Color(0xFF6BF0B0),
+    startedTo: Color(0xFF4BE39A),
+    startedInk: Color(0xFF062612),
+    scrim: Color(0xFF04060C),
     brand: AccentPalette(
       Color(0xFF6AA8FF),
       Color(0xFF8FE3FF),
@@ -323,6 +370,11 @@ final class AppTokens {
     kArcGlow: 0.5,
     kAmb: 0.3,
     kHalo: 0.3,
+    kScrim0: 0.62,
+    kScrim60: 0.46,
+    kScrim100: 0.4,
+    kSheetGlow: 0.2,
+    kAmbDeep: 0.16,
     shadowCard: [
       DxShadow(color: Color(0x1FFFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x0FFFFFFF), spread: 1, inset: true),
@@ -397,6 +449,14 @@ final class AppTokens {
         blur: 10,
         inset: true,
       ),
+    ],
+    startShadow: [
+      DxShadow(color: Color(0x73FFFFFF), offset: Offset(0, 1), inset: true),
+      DxShadow(color: Color(0x4D6AA8FF), offset: Offset(0, 10), blur: 26),
+    ],
+    startedShadow: [
+      DxShadow(color: Color(0x66FFFFFF), offset: Offset(0, 1), inset: true),
+      DxShadow(color: Color(0x404BE39A), offset: Offset(0, 10), blur: 24),
     ],
   );
 
@@ -528,6 +588,33 @@ final class AppTokens {
   /// Soft button, end of its 145° gradient.
   final Color buttonTo;
 
+  /// Session sheet controls: stepper circles, quick-pick card, time-dial track, sheet close (Compact Guide).
+  final Color control;
+
+  /// Selected quick pick chip on control (Compact Guide).
+  final Color controlOn;
+
+  /// Session sheet Start button, top of its vertical gradient.
+  final Color startFrom;
+
+  /// Session sheet Start button, bottom of its gradient.
+  final Color startTo;
+
+  /// Label and glyph on the Start button.
+  final Color startInk;
+
+  /// Session started (Start button after it commits), top of its gradient.
+  final Color startedFrom;
+
+  /// Session started, bottom of its gradient.
+  final Color startedTo;
+
+  /// Label and drawn check on Session started.
+  final Color startedInk;
+
+  /// Behind an open sheet: this colour at k-scrim-0/60/100 in a radial gradient, over a scrim-blur backdrop.
+  final Color scrim;
+
   /// Accent while no mode is on and less than 60% of the daily limit is used.
   final AccentPalette brand;
 
@@ -582,6 +669,21 @@ final class AppTokens {
   /// Ring knob halo (--halo): Light mixes the accent main, Dark its light stop, at this alpha.
   final double kHalo;
 
+  /// Sheet scrim: alpha of scrim at the bottom centre of its radial gradient (radial-gradient(120% 70% at 50% 100%, …) 0%).
+  final double kScrim0;
+
+  /// Sheet scrim: alpha of scrim at 60% of its radial gradient.
+  final double kScrim60;
+
+  /// Sheet scrim: alpha of scrim at the edge of its radial gradient (100%).
+  final double kScrim100;
+
+  /// Session sheet: brand glow at its top (340×260 radial, 120px above the sheet), opacity.
+  final double kSheetGlow;
+
+  /// Second ambient light, from the accent deep stop (400px, low on the screen): the accent at this alpha. The first light is k-amb on the main stop.
+  final double kAmbDeep;
+
   /// Blocker tiles and the rules row.
   final List<DxShadow> shadowCard;
 
@@ -608,6 +710,12 @@ final class AppTokens {
 
   /// Slide track, pressed in.
   final List<DxShadow> trackShadow;
+
+  /// Session sheet Start button.
+  final List<DxShadow> startShadow;
+
+  /// Session started button.
+  final List<DxShadow> startedShadow;
 
   /// Every accent palette, in spec order.
   List<AccentPalette> get palettes => [
@@ -673,6 +781,12 @@ final class AppTokens {
   /// Confirm sheet: backdrop saturation.
   static const double sheetSaturate = 1.7;
 
+  /// Sheet scrim: backdrop blur.
+  static const double scrimBlur = 8;
+
+  /// Sheet scrim: backdrop saturation.
+  static const double scrimSaturate = 1.2;
+
   /// Light coloured text mixes the accent toward this ink (--accent-text: color-mix(in srgb, accent 60%, #0b1020)).
   static const Color accentTextInk = Color(0xFF0B1020);
 
@@ -696,6 +810,15 @@ final class AppTokens {
 
   /// Idle mode icon opacity.
   static const double iconOpacityOff = 0.8;
+
+  /// Quick-pick card and the tab lens (Compact Guide card-sm).
+  static const double radiusCardSm = 26;
+
+  /// Sheet padding, sides and bottom (Compact Guide sheet side).
+  static const double spaceSheetSide = 22;
+
+  /// Screen top to the tab header row (Compact Guide header top), safe area included.
+  static const double spaceHeaderTop = 54;
 }
 
 /// The confirm sheet's tones: the slide fill [a] → [b] (at 55 %) → [c], the
@@ -771,6 +894,17 @@ abstract final class AppTypography {
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
+  /// Value inside the time dial (Compact Guide number-lg).
+  static const TextStyle numberLg = TextStyle(
+    fontFamily: family,
+    fontSize: 58,
+    height: 58 / 58,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -2.4,
+    leadingDistribution: TextLeadingDistribution.even,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
   /// Section titles.
   static const TextStyle title = TextStyle(
     fontFamily: family,
@@ -804,6 +938,17 @@ abstract final class AppTypography {
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
+  /// Stats numbers, "Blocker rules", quick-pick numbers (Compact Guide label-strong).
+  static const TextStyle labelStrong = TextStyle(
+    fontFamily: family,
+    fontSize: 15,
+    height: 20 / 15,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
   /// Under the time left; stats words.
   static const TextStyle body = TextStyle(
     fontFamily: family,
@@ -826,6 +971,17 @@ abstract final class AppTypography {
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
+  /// Counts such as "2 on" and "Tap to set up" (Compact Guide count).
+  static const TextStyle count = TextStyle(
+    fontFamily: family,
+    fontSize: 13,
+    height: 18 / 13,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
   /// Mode labels. Uppercase with 1.6px tracking for the "Time left" eyebrow.
   static const TextStyle caption = TextStyle(
     fontFamily: family,
@@ -833,6 +989,17 @@ abstract final class AppTypography {
     height: 16 / 12,
     fontWeight: FontWeight.w700,
     letterSpacing: 0,
+    leadingDistribution: TextLeadingDistribution.even,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
+  /// Unit inside the time dial, uppercase (Compact Guide eyebrow-lg).
+  static const TextStyle eyebrowLg = TextStyle(
+    fontFamily: family,
+    fontSize: 14,
+    height: 18 / 14,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 1.8,
     leadingDistribution: TextLeadingDistribution.even,
     fontFeatures: [FontFeature.tabularFigures()],
   );

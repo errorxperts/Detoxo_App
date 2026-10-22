@@ -341,6 +341,10 @@ class $AssetsImagesIconsGen {
   AssetGenImage get iconPause =>
       const AssetGenImage('assets/images/icons/icon-pause.webp');
 
+  /// File path: assets/images/icons/icon-reel-count.webp
+  AssetGenImage get iconReelCount =>
+      const AssetGenImage('assets/images/icons/icon-reel-count.webp');
+
   /// File path: assets/images/icons/icon-web-blocker.webp
   AssetGenImage get iconWebBlocker =>
       const AssetGenImage('assets/images/icons/icon-web-blocker.webp');
@@ -354,6 +358,7 @@ class $AssetsImagesIconsGen {
     iconConscious,
     iconOneReel,
     iconPause,
+    iconReelCount,
     iconWebBlocker,
   ];
 }
