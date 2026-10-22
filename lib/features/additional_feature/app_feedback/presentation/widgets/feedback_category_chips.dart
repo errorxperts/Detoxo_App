@@ -2,7 +2,8 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/additional_feature/app_feedback/domain/entities/feedback_category.dart';
 import 'package:flutter/material.dart';
 
-/// A row of selectable glass chips for choosing the [FeedbackCategory].
+/// A row of OPTION chips (one picked, with its check) for the
+/// [FeedbackCategory].
 class FeedbackCategoryChips extends StatelessWidget {
   const FeedbackCategoryChips({
     required this.selected,

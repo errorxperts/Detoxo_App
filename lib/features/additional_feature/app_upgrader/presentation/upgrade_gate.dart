@@ -1,4 +1,3 @@
-import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/features/additional_feature/app_upgrader/domain/repositories/app_upgrade_service.dart';
 import 'package:detoxo/features/additional_feature/app_upgrader/presentation/app_upgrade_dialog.dart';
@@ -6,14 +5,14 @@ import 'package:detoxo/features/additional_feature/app_upgrader/presentation/upg
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Wraps the app's main surface with the update-check flow: it provides the
-/// [UpgradeCubit], runs the automatic check once on mount, and surfaces the
-/// glass [AppUpgradeDialog] when an update is available.
+/// Wraps the app's main surface with the automatic update check: it provides
+/// the [UpgradeCubit], runs the check once on mount, and shows the
+/// [AppUpgradeDialog] sheet when an update is available.
 ///
-/// Mounted above the `HomeShell` scaffold, so its subtree (including the drawer)
-/// can read the same cubit for the manual "Check for updates" entry, and the
-/// dialog is shown from a context under the go_router Navigator (no navigatorKey
-/// plumbing needed).
+/// Mounted above the `HomeShell` scaffold, so the sheet is shown from a
+/// context under the go_router Navigator (no navigatorKey plumbing needed).
+/// The manual check lives on the Settings version row, which hosts its own
+/// cubit and toast.
 class UpgradeGate extends StatelessWidget {
   const UpgradeGate({required this.child, super.key});
 
@@ -38,8 +37,8 @@ class _UpgradeGateView extends StatefulWidget {
 }
 
 class _UpgradeGateViewState extends State<_UpgradeGateView> {
-  /// Guards against stacking the dialog while one is already open (HomeShell
-  /// rebuilds on tab switches; a manual check can also re-fire).
+  /// Guards against stacking the sheet while one is already open (HomeShell
+  /// rebuilds on tab switches).
   bool _dialogOpen = false;
 
   Future<void> _onState(BuildContext context, UpgradeState state) async {
@@ -57,12 +56,8 @@ class _UpgradeGateViewState extends State<_UpgradeGateView> {
           onSkip: cubit.skip,
         );
         _dialogOpen = false;
+      // The launch check stays silent when there's nothing to show.
       case UpgradeView.upToDate:
-        // Only confirm "up to date" for a user-initiated (drawer) check; the
-        // automatic launch check stays silent when there's nothing to show.
-        if (state.manual) {
-          GlassToast.show(context, "You're on the latest version");
-        }
       case UpgradeView.idle:
       case UpgradeView.checking:
       case UpgradeView.error:

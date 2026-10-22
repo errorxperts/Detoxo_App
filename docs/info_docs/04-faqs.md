@@ -253,8 +253,8 @@ No — Detoxo is **Android-only**, and this isn't a temporary gap. The whole pro
 
 ## How do I take a break or turn Detoxo off?
 
-- For a **quick break**, use **Pause** — pick 1–10 minutes and reels and blocked websites are allowed until the timer ends, then it returns to your base mode (Block All or Conscious) on its own. Apps you've fully locked on the Block apps screen stay locked through the break. This is the recommended way to step away without forgetting to turn protection back on.
-- To **turn blocking off entirely**, open **Settings** and switch off **Protection** (the master switch for all detection). If you've set a PIN, Detoxo will ask for it first — that's the intentional speed bump that stops an impulsive "just turn it off."
+- For a **quick break**, tap **Pause** on Today — pick 1–10 minutes and tap **Start**; reels and blocked websites are allowed until the timer ends, then it returns to your base mode (Block All or Conscious) on its own. Apps you've fully locked on the Block apps screen stay locked through the break. This is the recommended way to step away without forgetting to turn protection back on.
+- To **turn blocking off entirely**, open **Settings** and switch off **Blocking active** (the master switch for all detection). If you've set a PIN, Detoxo asks for it first; then you wait a moment and slide to confirm — the intentional speed bump that stops an impulsive "just turn it off."
 
 The reel counter is controlled separately (**Count short videos** on the Appearance screen), so you can keep counting even with blocking off.
 

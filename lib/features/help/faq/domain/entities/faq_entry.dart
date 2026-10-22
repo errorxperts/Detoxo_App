@@ -18,7 +18,7 @@ enum FaqCategory {
     FaqCategory.setup => 'Setup & permissions',
     FaqCategory.blocking => 'Blocking & plans',
     FaqCategory.counter => 'Reel counter',
-    FaqCategory.blockersLimits => 'App & web blocker',
+    FaqCategory.blockersLimits => 'App Blocker & Web Blocker',
     FaqCategory.pin => 'PIN & recovery',
     FaqCategory.privacy => 'Privacy & data',
     FaqCategory.platform => 'Platform & iOS',

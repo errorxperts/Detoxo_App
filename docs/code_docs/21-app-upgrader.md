@@ -1,8 +1,8 @@
 # App Upgrader
 
 The **app upgrader** is Detoxo's in-app "update available" prompt. It checks the Google Play
-listing for a newer build and, when one exists, surfaces an on-brand glass dialog to send the
-user to the store. It lives under
+listing for a newer build and, when one exists, shows an `AppDialog` in the design system's
+sheet to send the user to the store. It lives under
 [`lib/features/additional_feature/app_upgrader/`](../../lib/features/additional_feature/app_upgrader/)
 and is reached only through its barrel
 [`app_upgrader.dart`](../../lib/features/additional_feature/app_upgrader/app_upgrader.dart).
@@ -59,16 +59,21 @@ Feature-first Clean Architecture, mirroring the sibling `app_feedback`:
   inline via `BlocProvider` (not registered in `get_it`), like the app's other cubits.
 - [`AppUpgradeDialog`](../../lib/features/additional_feature/app_upgrader/presentation/app_upgrade_dialog.dart)
   — `abstract final class` with `static show(context, status, {onUpdate, onLater, onSkip})`,
-  built on `AppDialog.show` (icon `Icons.system_update`, muted version message, optional
-  scrollable "What's new" release-notes box). Optional update → `[SecondaryButton('Later'),
-  PrimaryButton('Update now', expand)]`, stacked with "Update now" on top, plus a subtle "Skip
-  this version". **Blocking** update (`!canDismiss`) → title "Update required", **only** "Update
-  now", and `dismissible: false`, so the barrier tap, the sheet drag **and** the back button are
-  all disabled; "Update now" does not pop (the user stays gated until they actually update).
+  built on `AppDialog.show` (a neutral ink-2 `IconBadge` of `Icons.system_update`, the version
+  message in message/ink-2, and optional release notes: a **WHAT'S NEW** eyebrow over a
+  `fillQuiet` well — radius `AppRadius.row` 22, padding 16, at most 160 tall and scrolling —
+  holding the notes in subhead/ink-2). Optional update → `[SecondaryButton('Later'),
+  PrimaryButton('Update now', expand)]`, stacked with "Update now" on top, plus a centred
+  `SecondaryButton` "Skip this version" under the notes. **Blocking** update (`!canDismiss`) →
+  title "Update required", **only** "Update now", and `dismissible: false`, so the barrier tap,
+  the sheet drag **and** the back button are all disabled; "Update now" does not pop (the user
+  stays gated until they actually update).
 - [`UpgradeGate`](../../lib/features/additional_feature/app_upgrader/presentation/upgrade_gate.dart)
-  — provides the `UpgradeCubit` (`..check()` on mount) and a `BlocListener` that shows the dialog
-  on `updateAvailable` (one-shot guarded) or a "You're on the latest version" `GlassToast` on a
-  **manual** `upToDate`.
+  — provides the `UpgradeCubit` (`..check()` on mount) and a `BlocListener` that shows the sheet
+  on `updateAvailable` (one-shot guarded). Every other result stays silent: nothing under the
+  gate runs a manual check (the drawer has no "Check for updates"), so its old manual-`upToDate`
+  toast was dead and is gone; the "You're on the latest version" toast belongs to the Settings
+  version row's own cubit (below).
 
 ## Wiring
 

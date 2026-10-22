@@ -1,10 +1,13 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/additional_feature/app_feedback/domain/entities/feedback_category.dart';
 import 'package:detoxo/features/additional_feature/app_feedback/domain/entities/feedback_report.dart';
 import 'package:detoxo/features/additional_feature/app_feedback/domain/repositories/feedback_repository.dart';
 import 'package:detoxo/features/help/faq/data/faq_data.dart';
 import 'package:detoxo/features/help/faq/domain/entities/faq_entry.dart';
 import 'package:detoxo/features/help/faq/presentation/faq_cubit.dart';
+import 'package:detoxo/features/help/faq/presentation/widgets/faq_expansion_tile.dart';
 import 'package:detoxo/features/help/share_ideas/presentation/share_ideas_cubit.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Records the last report, or throws to simulate "no email app".
@@ -34,6 +37,33 @@ void main() {
       expect(results.every((e) => e.matches('accessibility')), isTrue);
     });
 
+    test('finds the Web Blocker by its feature name', () {
+      final results = filterFaqs('Web Blocker');
+      expect(
+        results.map((e) => e.question),
+        contains('How does the Web Blocker work?'),
+      );
+      expect(FaqCategory.blockersLimits.label, 'App Blocker & Web Blocker');
+    });
+
+    test('answers use current names and the calm voice', () {
+      const stale = [
+        'Command Center',
+        'Reel counter screen',
+        'switch off Protection',
+        'Display over apps',
+        'website blocker',
+        '2–10 minutes',
+      ];
+      for (final e in kFaqEntries) {
+        final text = '${e.question} ${e.answer}';
+        expect(text, isNot(contains('!')), reason: e.question);
+        for (final name in stale) {
+          expect(text, isNot(contains(name)), reason: e.question);
+        }
+      }
+    });
+
     test('unmatched query returns an empty list', () {
       expect(filterFaqs('zzz-not-a-real-term'), isEmpty);
     });
@@ -47,6 +77,41 @@ void main() {
         );
       }
     });
+  });
+
+  testWidgets('FaqExpansionTile opens and closes its answer', (tester) async {
+    final semantics = tester.ensureSemantics();
+    const entry = FaqEntry(
+      category: FaqCategory.setup,
+      question: 'Why?',
+      answer: 'Because.',
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: const Scaffold(
+          body: PanelGroup(children: [FaqExpansionTile(entry: entry)]),
+        ),
+      ),
+    );
+    expect(find.text('Because.'), findsNothing);
+    expect(
+      tester.getSemantics(find.text('Why?')),
+      isSemantics(isButton: true, hasExpandedState: true),
+    );
+
+    await tester.tap(find.text('Why?'));
+    await tester.pumpAndSettle();
+    expect(find.text('Because.'), findsOneWidget);
+    expect(
+      tester.getSemantics(find.text('Why?')),
+      isSemantics(hasExpandedState: true, isExpanded: true),
+    );
+
+    await tester.tap(find.text('Why?'));
+    await tester.pumpAndSettle();
+    expect(find.text('Because.'), findsNothing);
+    semantics.dispose();
   });
 
   group('FaqCubit', () {

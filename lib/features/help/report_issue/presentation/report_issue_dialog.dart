@@ -4,13 +4,13 @@ import 'package:detoxo/features/blocking/blocking.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// The "Report an issue" entry point. A glass dialog that explains the bug-report
-/// flow, lets the user enable the always-visible top-bar feedback button, and
-/// can launch the annotated-screenshot report overlay immediately.
+/// The "Report an issue" entry point. An [AppDialog] sheet that says what
+/// "Report a bug" does in one line, holds a flat row for the always-visible
+/// top-bar feedback button, and launches the annotated-screenshot overlay.
 ///
-/// "Report a bug now" pops the dialog first, then calls
-/// [FeedbackLauncher.show] with the caller's (screen) context so the
-/// `BetterFeedback` overlay captures the underlying screen — not the dialog.
+/// "Report a bug" pops the sheet first, then calls [FeedbackLauncher.show]
+/// with the caller's (screen) context so the `BetterFeedback` overlay
+/// captures the underlying screen — not the sheet.
 abstract final class ReportIssueDialog {
   static Future<void> show(BuildContext context) {
     return AppDialog.show<void>(
@@ -18,11 +18,8 @@ abstract final class ReportIssueDialog {
       title: 'Report an issue',
       icon: Icons.bug_report_outlined,
       message:
-          'Found a bug? Tap "Report a bug now" to capture the current screen, '
-          'draw on it, choose Bug or Suggestion, and send it straight to our '
-          'team with your device details attached.\n\n'
-          'Want to report from wherever a bug happens? Turn on the feedback '
-          'button below and it appears in every top bar.',
+          'Tap Report a bug to capture this screen, mark it up and send it to '
+          'us with your device details.',
       content: const _FeedbackButtonToggle(),
       actions: [
         SecondaryButton(
@@ -42,8 +39,9 @@ abstract final class ReportIssueDialog {
   }
 }
 
-/// The live toggle bound to `settings.showFeedbackButton`. Wrapped in a
-/// [BlocBuilder] so it reflects the flag immediately as it's flipped.
+/// The live toggle bound to `settings.showFeedbackButton`: a flat row under a
+/// hairline (the sheet is its surface). Wrapped in a [BlocBuilder] so it
+/// reflects the flag immediately as it's flipped.
 class _FeedbackButtonToggle extends StatelessWidget {
   const _FeedbackButtonToggle();
 
@@ -51,16 +49,23 @@ class _FeedbackButtonToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, AppSettings>(
       builder: (context, settings) {
-        return AppToggleTile(
-          leading: Icon(
-            Icons.feedback_outlined,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-          title: 'Feedback button',
-          subtitle: 'Show a feedback button in every top bar',
-          value: settings.showFeedbackButton,
-          onChanged: (v) =>
-              context.read<SettingsCubit>().setShowFeedbackButton(enabled: v),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Divider(height: 1),
+            AppToggleTile(
+              leading: Icon(
+                Icons.feedback_outlined,
+                color: context.tokens.ink2,
+              ),
+              title: 'Feedback button',
+              subtitle: 'Show a feedback button in every top bar',
+              value: settings.showFeedbackButton,
+              onChanged: (v) => context
+                  .read<SettingsCubit>()
+                  .setShowFeedbackButton(enabled: v),
+            ),
+          ],
         );
       },
     );
