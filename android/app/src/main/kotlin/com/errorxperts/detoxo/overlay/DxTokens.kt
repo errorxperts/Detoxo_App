@@ -573,6 +573,18 @@ internal object DxTokens {
         DxShadowLayer(0x66FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0x404BE39A.toInt(), 0f, 10f, 24f, 0f, false),
     )
+    /** DetoxoLogo glow: the Logos README drop-shadow chain (sigma 1 + 10 Light, 8 Dark) at blur 2 x sigma, so sigma = blur / 2 like every shadow. Dark has no contour; its clear first layer keeps the shapes equal. (light) */
+    @JvmField
+    val SHADOW_LOGO_GLOW_LIGHT: Array<DxShadowLayer> = arrayOf(
+        DxShadowLayer(0x991E326E.toInt(), 0f, 0f, 2f, 0f, false),
+        DxShadowLayer(0x733D7BFF.toInt(), 0f, 4f, 20f, 0f, false),
+    )
+    /** DetoxoLogo glow: the Logos README drop-shadow chain (sigma 1 + 10 Light, 8 Dark) at blur 2 x sigma, so sigma = blur / 2 like every shadow. Dark has no contour; its clear first layer keeps the shapes equal. (dark) */
+    @JvmField
+    val SHADOW_LOGO_GLOW_DARK: Array<DxShadowLayer> = arrayOf(
+        DxShadowLayer(0x006AA8FF.toInt(), 0f, 0f, 0f, 0f, false),
+        DxShadowLayer(0x8C6AA8FF.toInt(), 0f, 0f, 16f, 0f, false),
+    )
 
     /** Screen title. */
     const val TITLE_XL_SIZE: Float = 34f

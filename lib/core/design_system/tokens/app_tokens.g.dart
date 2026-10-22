@@ -93,6 +93,7 @@ final class AppTokens {
     required this.trackShadow,
     required this.startShadow,
     required this.startedShadow,
+    required this.logoGlow,
   });
 
   static const AppTokens light = AppTokens._(
@@ -277,6 +278,10 @@ final class AppTokens {
       DxShadow(color: Color(0x40FFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x4D10893F), offset: Offset(0, 10), blur: 24),
     ],
+    logoGlow: [
+      DxShadow(color: Color(0x991E326E), blur: 2),
+      DxShadow(color: Color(0x733D7BFF), offset: Offset(0, 4), blur: 20),
+    ],
   );
 
   static const AppTokens dark = AppTokens._(
@@ -460,6 +465,10 @@ final class AppTokens {
     startedShadow: [
       DxShadow(color: Color(0x66FFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x404BE39A), offset: Offset(0, 10), blur: 24),
+    ],
+    logoGlow: [
+      DxShadow(color: Color(0x006AA8FF)),
+      DxShadow(color: Color(0x8C6AA8FF), blur: 16),
     ],
   );
 
@@ -722,6 +731,9 @@ final class AppTokens {
 
   /// Session started button.
   final List<DxShadow> startedShadow;
+
+  /// DetoxoLogo glow: the Logos README drop-shadow chain (sigma 1 + 10 Light, 8 Dark) at blur 2 x sigma, so sigma = blur / 2 like every shadow. Dark has no contour; its clear first layer keeps the shapes equal.
+  final List<DxShadow> logoGlow;
 
   /// Every accent palette, in spec order.
   List<AccentPalette> get palettes => [

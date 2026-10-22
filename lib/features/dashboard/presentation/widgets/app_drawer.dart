@@ -1,6 +1,7 @@
 import 'package:detoxo/core/constants/app_constants.dart';
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -123,7 +124,7 @@ class AppDrawer extends StatelessWidget {
   }
 }
 
-/// A plain drawer row: leading icon + label.
+/// A plain drawer row: leading icon, label and an ink-3 chevron.
 class _DrawerItem extends StatelessWidget {
   const _DrawerItem({
     required this.icon,
@@ -143,6 +144,11 @@ class _DrawerItem extends StatelessWidget {
       title: Text(
         label,
         style: text.bodyLarge?.copyWith(color: context.tokens.ink),
+      ),
+      trailing: Glyph(
+        Assets.svg.chevronRight,
+        size: 18,
+        color: context.tokens.ink3,
       ),
       onTap: onTap,
     );

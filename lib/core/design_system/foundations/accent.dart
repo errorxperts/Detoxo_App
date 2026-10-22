@@ -99,7 +99,8 @@ List<double> accentIconMatrix(
 }
 
 /// [accentIconMatrix] as a [ColorFilter]: selected icons pass the defaults,
-/// idle ones `saturate: AppTokens.iconSaturateOff, opacity: .8`.
+/// idle ones `saturate: AppTokens.iconSaturateOff, opacity:
+/// AppTokens.iconOpacityOff` (see `Icon3d`).
 ColorFilter accentIconFilter(
   AccentPalette accent, {
   double saturate = AppTokens.iconSaturateOn,
