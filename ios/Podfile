@@ -1,4 +1,4 @@
-# cupertino_native requires iOS 14.0 minimum.
+# iOS 14.0 minimum: first set for cupertino_native (removed in M12), kept as is.
 platform :ios, '14.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.

@@ -44,7 +44,7 @@ enum UnblockSource {
   /// The "Allow for a while" button on the native block screen.
   wall('WALL'),
 
-  /// The swipe action on an App Blocker / Website blocker row.
+  /// The swipe action on an App Blocker / Web Blocker row.
   blocklistRow('BLOCKLIST_ROW');
 
   const UnblockSource(this.wire);

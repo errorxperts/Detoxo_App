@@ -84,9 +84,9 @@ class _HomeShellState extends State<HomeShell> {
     // and is blurred into it, so a heavy black scrim would make the frosted
     // panel read murky/dark instead of as light glass.
     final dark = Theme.of(context).brightness == Brightness.dark;
-    // Provides the UpgradeCubit + runs the automatic update check, and shows the
-    // glass update dialog. Wrapping the scaffold puts the drawer in cubit scope
-    // for the manual "Check for updates" entry.
+    // Provides the UpgradeCubit, runs the automatic update check and shows the
+    // update sheet. The manual check is the Settings version row, which hosts
+    // its own cubit.
     return UpgradeGate(
       child: GlassScaffold(
         safeArea: false,

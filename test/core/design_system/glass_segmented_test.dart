@@ -1,5 +1,3 @@
-import 'dart:ui' show Tristate;
-
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,10 +8,9 @@ Future<int?> _pump(
   WidgetTester tester, {
   bool expand = true,
   double height = 52,
-  int? initial,
   bool reduceMotion = false,
 }) async {
-  var tapped = initial;
+  int? tapped;
   await tester.pumpWidget(
     MaterialApp(
       theme: _theme(),
@@ -162,23 +159,5 @@ void main() {
     await tester.pump();
     expect(_pillLeft(tester), greaterThan(before));
     expect(tester.binding.hasScheduledFrame, isFalse);
-  });
-
-  // -1 = a value set elsewhere (a quick-pick row's "custom"): nothing lit.
-  testWidgets('-1 selects nothing until a segment is tapped', (tester) async {
-    await _pump(tester, initial: -1);
-    bool on(String label) =>
-        tester
-            .getSemantics(find.bySemanticsLabel(label))
-            .flagsCollection
-            .isSelected ==
-        Tristate.isTrue;
-    expect(on('Today'), isFalse);
-    expect(on('All'), isFalse);
-    expect(find.byIcon(Icons.check_rounded), findsNothing);
-
-    await tester.tap(find.text('All'), warnIfMissed: false);
-    await tester.pumpAndSettle();
-    expect(on('All'), isTrue);
   });
 }

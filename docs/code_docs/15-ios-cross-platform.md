@@ -237,6 +237,12 @@ Everything downstream (repositories, cubits, screens) can call the same command 
 unconditionally and get safe defaults, which keeps the platform branch confined to these
 three getters.
 
+The design system has **no iOS rendering branch** either. Its last one, `AdaptiveSlider`
+behind `PlatformAdaptive.useCupertino` (a native `CNSlider` from `cupertino_native` on
+iOS/macOS), went in the Frozen Glass sweep (M12) along with `lib/core/design_system/adaptive/`
+and the package: every control is the same Material / Frozen Glass widget on every platform,
+and iOS still lands on `UnsupportedScreen`. The `ios/Podfile` keeps its iOS 14.0 floor.
+
 ---
 
 ## 6. What an iOS build could *theoretically* do — **not implemented**

@@ -102,8 +102,7 @@ void main() {
       ),
     );
     await tester.pump();
-    // Entrance animations. Never pumpAndSettle: the GlassScaffold ambient
-    // background repeats forever.
+    // Entrance animations, over fixed frames.
     await tester.pump(const Duration(milliseconds: 700));
     return (rules, boundaries);
   }

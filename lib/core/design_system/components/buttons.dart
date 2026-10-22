@@ -1,5 +1,4 @@
 import 'package:detoxo/core/design_system/components/overlays.dart';
-import 'package:detoxo/core/design_system/foundations/animated_icons.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
@@ -24,29 +23,6 @@ class PrimaryButton extends StatelessWidget {
   final bool expand;
   final IconData? icon;
 
-  @override
-  Widget build(BuildContext context) => _SoftButton(
-    label: label,
-    onPressed: onPressed,
-    expand: expand,
-    leading: icon == null ? null : Icon(icon, size: 20),
-  );
-}
-
-/// The soft-button skin, shared by [PrimaryButton] and [AnimatedIconButton].
-class _SoftButton extends StatelessWidget {
-  const _SoftButton({
-    required this.label,
-    required this.onPressed,
-    required this.expand,
-    this.leading,
-  });
-
-  final String label;
-  final VoidCallback? onPressed;
-  final bool expand;
-  final Widget? leading;
-
   static const double _height = 54;
 
   @override
@@ -67,7 +43,7 @@ class _SoftButton extends StatelessWidget {
             widthFactor: 1,
             child: _Label(
               label: label,
-              leading: leading,
+              leading: icon == null ? null : Icon(icon, size: 20),
               style: AppTypography.button.copyWith(color: t.ink),
             ),
           ),
@@ -194,58 +170,6 @@ class SecondaryButton extends StatelessWidget {
       child: content,
     );
   }
-}
-
-/// A soft button whose leading icon plays its morph on every press, for hero
-/// actions ("Save limit"). Reduce Motion skips the morph.
-class AnimatedIconButton extends StatefulWidget {
-  const AnimatedIconButton({
-    required this.label,
-    required this.icon,
-    required this.onPressed,
-    this.expand = false,
-    super.key,
-  });
-
-  final String label;
-  final AppIcon icon;
-  final VoidCallback? onPressed;
-  final bool expand;
-
-  @override
-  State<AnimatedIconButton> createState() => _AnimatedIconButtonState();
-}
-
-class _AnimatedIconButtonState extends State<AnimatedIconButton> {
-  final AnimatedIconController _iconController = AnimatedIconController();
-
-  @override
-  void dispose() {
-    _iconController.dispose();
-    super.dispose();
-  }
-
-  void _onTap() {
-    if (!(MediaQuery.maybeDisableAnimationsOf(context) ?? false)) {
-      _iconController
-        ..reset()
-        ..animate();
-    }
-    widget.onPressed!();
-  }
-
-  @override
-  Widget build(BuildContext context) => _SoftButton(
-    label: widget.label,
-    expand: widget.expand,
-    onPressed: widget.onPressed == null ? null : _onTap,
-    leading: AppAnimatedIcon(
-      icon: widget.icon,
-      size: 20,
-      color: context.tokens.ink,
-      controller: _iconController,
-    ),
-  );
 }
 
 /// The spec accent pill (`.dx-pill`): 44 px, [tint] at `kPill` under the

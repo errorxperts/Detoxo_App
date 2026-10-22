@@ -37,11 +37,9 @@ class _MockBlockScreen extends Mock implements BlockScreenStyleCubit {}
 void main() {
   setUp(() async {
     await sl.reset();
-    PlatformAdaptive.debugUseCupertino = false;
   });
 
   tearDown(() async {
-    PlatformAdaptive.debugUseCupertino = null;
     await sl.reset();
   });
 

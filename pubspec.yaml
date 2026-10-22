@@ -78,12 +78,13 @@ dependencies:
   # lib/gen/assets.gen.dart imports only flutter + flutter_svg. Install it with
   # `brew install FlutterGen/tap/fluttergen` (see tool/dev.sh assets).
 
-  # Design system: motion, native iOS controls.
+  # Design system: motion.
   # No google_fonts: Manrope is bundled (see `fonts:` below), so text never
   # waits on a runtime fetch.
+  # No cupertino_native / not_static_icons: iOS gets the UnsupportedScreen, so
+  # no native iOS control is drawn, and icons are the Frozen Glass Icon3d /
+  # Glyph set (M12).
   flutter_animate: ^4.5.2
-  cupertino_native: ^0.1.1
-  not_static_icons: ^0.46.0
   # Swipe-to-reveal row actions (web blocklist rows). First/only swipe surface.
   flutter_slidable: ^4.0.0
   showcaseview: ^5.1.0
@@ -176,7 +177,6 @@ flutter:
   assets:
     - assets/config/
     - assets/content/
-    - assets/images/
     # Frozen Glass 3D icons + logo (design-system artifact 8CurH1ViCsKXpFeYNtmMRZ).
     - assets/images/icons/
     - assets/images/social_icon_pack/

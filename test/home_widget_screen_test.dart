@@ -60,11 +60,9 @@ void main() {
 
   setUp(() async {
     await sl.reset();
-    PlatformAdaptive.debugUseCupertino = false;
   });
 
   tearDown(() async {
-    PlatformAdaptive.debugUseCupertino = null;
     await sl.reset();
   });
 
@@ -94,8 +92,7 @@ void main() {
         ),
       ),
     );
-    // The payload lands and the entrance plays out. No pumpAndSettle: the
-    // ambient background loops.
+    // The payload lands and the entrance plays out, over fixed frames.
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
   }

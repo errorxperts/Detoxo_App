@@ -106,7 +106,8 @@ lever in this project, ahead of anything in Gradle.
 ### Rules that keep it small
 
 1. **Build-time inputs never live under `assets/`.** `pubspec.yaml` declares whole
-   directories, so a design source dropped in `assets/images/` ships to every user.
+   directories, so a design source dropped in one (`assets/images/icons/`, …) ships to
+   every user.
    Launcher-icon artwork lives in `tool/branding/`. This one mistake was costing
    2.3 MB per install.
 2. **Ship artwork at display resolution, not source resolution.** See the format rule

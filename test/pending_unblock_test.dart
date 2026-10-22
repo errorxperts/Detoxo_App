@@ -65,9 +65,8 @@ void main() {
     await sl.reset();
   });
 
-  /// Pumps until [finder]'s widget is actually inside the surface. The sheet
-  /// slides up, and `pumpAndSettle` is not an option here (the glass surfaces
-  /// carry an ambient animation that never settles).
+  /// Pumps until [finder]'s widget is actually inside the surface: the sheet
+  /// slides up, so it is found before it is in place.
   Future<void> settleIn(WidgetTester tester, Finder finder) async {
     for (var i = 0; i < 30; i++) {
       await tester.pump(const Duration(milliseconds: 50));

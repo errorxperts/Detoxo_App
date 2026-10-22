@@ -48,23 +48,12 @@ class $AssetsFontsGen {
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
-  /// File path: assets/images/Detoxo_logo.png
-  AssetGenImage get detoxoLogo =>
-      const AssetGenImage('assets/images/Detoxo_logo.png');
-
-  /// File path: assets/images/detox_logo_no_bg.webp
-  AssetGenImage get detoxLogoNoBg =>
-      const AssetGenImage('assets/images/detox_logo_no_bg.webp');
-
   /// Directory path: assets/images/icons
   $AssetsImagesIconsGen get icons => const $AssetsImagesIconsGen();
 
   /// Directory path: assets/images/social_icon_pack
   $AssetsImagesSocialIconPackGen get socialIconPack =>
       const $AssetsImagesSocialIconPackGen();
-
-  /// List of all assets
-  List<AssetGenImage> get values => [detoxoLogo, detoxLogoNoBg];
 }
 
 class $AssetsSvgGen {

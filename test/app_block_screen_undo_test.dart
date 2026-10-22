@@ -300,7 +300,7 @@ void main() {
   });
 }
 
-/// Never pumpAndSettle: the GlassScaffold ambient background repeats forever.
+/// Fixed frames: enough for the entrance and a sheet or toast to land.
 Future<void> settle(WidgetTester tester) async {
   await tester.pump();
   await tester.pump(const Duration(milliseconds: 700));

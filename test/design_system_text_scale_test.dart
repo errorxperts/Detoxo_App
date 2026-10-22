@@ -133,7 +133,9 @@ void main() {
       semantics.dispose();
     });
 
-    testWidgets('SecondaryButton and AnimatedIconButton', (tester) async {
+    testWidgets('SecondaryButton and a PrimaryButton with an icon', (
+      tester,
+    ) async {
       final semantics = tester.ensureSemantics();
       await pump(
         tester,
@@ -141,9 +143,9 @@ void main() {
           mainAxisSize: MainAxisSize.min,
           children: [
             SecondaryButton(label: 'Grant', onPressed: () {}),
-            AnimatedIconButton(
+            PrimaryButton(
               label: 'Upgrade',
-              icon: AppIcon.check,
+              icon: Icons.check_rounded,
               onPressed: () {},
             ),
           ],

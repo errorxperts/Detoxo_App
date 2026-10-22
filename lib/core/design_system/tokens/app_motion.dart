@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 
 /// Motion durations. Pairs with flutter_animate's `.ms` ergonomics.
 abstract final class AppDurations {
-  static const Duration instant = Duration(milliseconds: 90); // button press
   static const Duration fast = Duration(milliseconds: 180); // toggles
   static const Duration normal = Duration(milliseconds: 300); // entrance fades
   static const Duration medium = Duration(milliseconds: 400); // page / sheet
@@ -38,7 +37,6 @@ abstract final class AppCurves {
   static const Curve standard = Curves.easeOutCubic; // entrances
   static const Curve emphasized = Curves.easeInOutCubicEmphasized;
   static const Curve decelerate = Curves.easeOut;
-  static const Curve gentle = Curves.easeInOut; // pulses, reversible
 
   // ── Frozen Glass (bundle.css cubic-beziers) ────────────────────────────────
   /// Press: a short overshoot back to rest.

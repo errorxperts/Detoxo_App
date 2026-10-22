@@ -20,7 +20,7 @@ class _Engine implements EngineRepository {
   dynamic noSuchMethod(Invocation invocation) => Future<Null>.value();
 }
 
-/// Fixed frames: the ambient ground never lets pumpAndSettle converge.
+/// Fixed frames: enough for a route push or a sheet to land.
 Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 6; i++) {
     await tester.pump(const Duration(milliseconds: 120));

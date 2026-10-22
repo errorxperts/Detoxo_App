@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:detoxo/core/design_system/foundations/animated_icons.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
@@ -305,14 +304,13 @@ class ProgressBar extends StatelessWidget {
 }
 
 /// A calm empty / placeholder state: the icon in ink-2, the subtitle in body
-/// ink-2. [animatedIcon] draws a still glyph that never plays on its own.
+/// ink-2.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     required this.icon,
     required this.title,
     this.subtitle,
     this.action,
-    this.animatedIcon,
     super.key,
   });
 
@@ -320,7 +318,6 @@ class EmptyState extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Widget? action;
-  final AppIcon? animatedIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -331,10 +328,7 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (animatedIcon != null)
-              AppAnimatedIcon(icon: animatedIcon!, size: 44, color: ink2)
-            else
-              Icon(icon, size: 44, color: ink2),
+            Icon(icon, size: 44, color: ink2),
             const SizedBox(height: AppSpacing.sm),
             Text(
               title,

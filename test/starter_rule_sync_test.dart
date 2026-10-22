@@ -105,7 +105,7 @@ void main() {
 
     test('a skipped survey still gets the rule its promise named', () async {
       // `mattersMost` is null when the survey is skipped. The commitment screen
-      // renders the doomscroll-budget promise for that case, so the write has
+      // renders the reel budget promise for that case, so the write has
       // to agree with it — it used to refuse, leaving the user with an empty
       // Rules screen and a promise the app had just made on-screen.
       repo.progress = const OnboardingProgress(

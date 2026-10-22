@@ -106,7 +106,7 @@ class _MockAppBlocks extends Mock implements AppBlockRepository {}
 
 class _MockStats extends Mock implements WebBlockStatsRepository {}
 
-/// Fixed frames: the GlassScaffold ambient never lets pumpAndSettle converge.
+/// Fixed frames: enough for a route push or a sheet to land.
 Future<void> _settle(WidgetTester tester) async {
   for (var i = 0; i < 6; i++) {
     await tester.pump(const Duration(milliseconds: 120));

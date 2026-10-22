@@ -10,8 +10,8 @@
 
 There is deliberately **no `lib/features/monetization/` module**. Premium is not a
 feature with data/domain/presentation layers; it exists only as a handful of fields
-scattered across the blocking config models, one design-system pill, one reserved
-`StoreKeys` constant, and some Android manifest metadata.
+scattered across the blocking config models, one reserved `StoreKeys` constant, and
+some Android manifest metadata. The design system no longer carries any gating UI (§4).
 
 ---
 
@@ -26,8 +26,8 @@ scattered across the blocking config models, one design-system pill, one reserve
 | Ad slot config | `Map<String, AdSlotModel> admobConfig` | Parsed, **never consumed** |
 | Premium-exclusive notices | `InAppNotificationModel.premiumExclusive` | Parsed, **never consumed** |
 | Dev-unlock flag | `StoreKeys.premiumDevUnlock` (`'premium_dev_unlock'`) | **Declared only** — no read/write, no UI |
-| "Premium" lock pill | `AppToggleTile.locked` → `Pill(label: 'Premium')` | Scaffolding, **never triggered** |
-| Premium/crown icon | `AppIcon.premium` → `CrownIcon` | Defined, **never referenced** |
+| "Premium" lock pill | — | **Removed** (Frozen Glass M12, see §4) |
+| Premium/crown icon | — | **Removed** (Frozen Glass M12, see §4) |
 | Ads SDK / AdMob app id | — | **Removed** (see §5) |
 | Billing SDK | — | **Removed** (see §5) |
 
@@ -94,9 +94,8 @@ return BlockTarget(
 ```
 
 But `BlockTarget.premiumExclusive` is a **dead read**: nothing consumes it. The
-blocklist tile (`block_app_tile.dart`) builds an `AppToggleTile` from a target
-and never passes `locked:` — so a "premium-exclusive" platform renders as a normal,
-fully-usable toggle. No app or platform is actually gated at runtime.
+blocklist tile (`block_app_tile.dart`) renders every target as a normal,
+fully-usable row, so a "premium-exclusive" platform is not marked in any way. No app or platform is actually gated at runtime.
 
 ### `PromoCtaModel premiumPurchaseCTA` — upgrade CTA
 
@@ -154,44 +153,19 @@ See [09-persistence-data-model.md](09-persistence-data-model.md).
 
 ---
 
-## 4. Premium gating in the UI (inert scaffolding)
+## 4. Premium gating in the UI — removed
 
-The design system ships the *visual* language for gating, but nothing drives it.
+The inert scaffolding went in the Frozen Glass sweep (M12), since nothing ever drove it:
 
-### `AppToggleTile.locked`
+- **`AppToggleTile.locked` / `onLockedTap`** (`components/list_tiles.dart`), which swapped
+  the row's switch for a `Pill(label: 'Premium')` with a lock icon. No call site ever
+  passed `locked: true`. The row now always ends in its `AppToggle`; `Pill` itself stays
+  a generic status label ("Active" / "Not set up").
+- **`AppIcon.premium` → `CrownIcon`**, which went with the whole `not_static_icons`
+  catalogue (`foundations/animated_icons.dart`, see
+  [14-flutter-package-map.md](14-flutter-package-map.md) §7).
 
-`lib/core/design_system/components/list_tiles.dart` defines a switch row that swaps
-its trailing switch for a lock pill when `locked` is `true`:
-
-```dart
-final trailing = locked
-    ? const Pill(label: 'Premium', tone: AppTone.warning, icon: Icons.lock_outline)
-    : AppToggle(value: value, onChanged: onChanged, enabled: enabled);
-return GlassListTile(
-  ..., trailing: trailing, onTap: locked ? onLockedTap : null,
-);
-```
-
-`locked` defaults to `false`. Across **all** ~15 call sites (settings, blocklist,
-web blocker, content-counter appearance, PIN setup) **none pass `locked: true`** and
-none pass `onLockedTap`. The "Premium" pill and its tap handler therefore never
-appear in the shipped app. Wiring `locked: target.premiumExclusive` (plus a resolved
-entitlement) is the intended hook — see §2 for the missing read.
-
-### `Pill(label: 'Premium')`
-
-The reusable status label (`lib/core/design_system/components/badges.dart`,
-`class Pill`: a dot or an icon, then the word in ink-2) supports a `'Premium'` label
-with `AppTone.warning` and the lock icon. It is a generic component ("Premium" /
-"Active" / "Not set up"); the only premium usage is the inert `AppToggleTile.locked`
-branch above.
-
-### `AppIcon.premium` / `CrownIcon`
-
-`lib/core/design_system/foundations/animated_icons.dart` registers
-`AppIcon.premium → CrownIcon`. `AppIcon.premium` / `CrownIcon` are **not referenced
-anywhere** outside their own declaration — a ready-to-use crown glyph for a future
-paywall, currently unused.
+A real paywall would add its lock affordance with the entitlement read (§2), not before.
 
 ---
 
@@ -234,7 +208,7 @@ ship locally in `assets/images/social_icon_pack/`). Do not go live on this bundl
 
 ## 7. Summary
 
-- Premium is a **data model + inert UI scaffolding**, not a working feature.
+- Premium is a **data model** only, not a working feature; there is no gating UI.
 - **No entitlement is ever evaluated**; `activePlanDetails`, `premiumOnly`,
   `premiumExclusive`, `premiumPurchaseCTA`, and `admobConfig` are all
   parsed-then-dropped (only `inappNotification` is consumed).
@@ -259,9 +233,6 @@ ship locally in `assets/images/social_icon_pack/`). Do not go live on this bundl
 - `lib/features/blocking/shared/data/models/platform_config_model.dart` (`PlatformModel.premiumExclusive`)
 - `lib/features/blocking/shared/domain/entities/block_target.dart` (`BlockTarget.premiumExclusive`)
 - `lib/features/blocking/shared/data/repositories/config_repository_impl.dart` (copies `premiumExclusive`; consumes only `inappNotification`)
-- `lib/core/design_system/components/list_tiles.dart` (`AppToggleTile.locked` → `Pill('Premium')`)
-- `lib/core/design_system/components/badges.dart` (`Pill`)
-- `lib/core/design_system/foundations/animated_icons.dart` (`AppIcon.premium` → `CrownIcon`)
-- `lib/features/blocking/blocklist/presentation/widgets/block_app_tile.dart` (uses `AppToggleTile`, never `locked`)
+- `lib/features/blocking/blocklist/presentation/widgets/block_app_tile.dart` (renders every target alike; never reads `premiumExclusive`)
 - `assets/config/initial_config.json` (bundled `activePlanDetails` / `premiumPurchaseCTA`; `admobConfig` is now empty)
 - `docs/code_docs/22-play-release.md` (why the ads/billing SDKs stay out)

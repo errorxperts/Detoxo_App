@@ -554,7 +554,7 @@ void main() {
 
     test('a limit with no budget is refused by the shared validator', () {
       // `resolveSnapshot` emits nothing for a budget of zero, so the rule
-      // would read "0 min a day" and block nothing.
+      // would read "0m a day" and block nothing.
       expect(_timeLimit(thresholdMin: 0).validate(), isNotNull);
       expect(_openLimit(maxOpens: 0).validate(), isNotNull);
       expect(_timeLimit().validate(), isNull);
