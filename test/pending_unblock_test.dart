@@ -42,6 +42,8 @@ class _FakeLedger implements BypassLedgerRepository {
 
 ThemeData _theme() => AppTheme.dark();
 
+const _title = 'Unblock this app?';
+
 void main() {
   late _MockEngine engine;
   late _FakeGrants grants;
@@ -116,6 +118,7 @@ void main() {
   testWidgets('a pending target opens the duration sheet and grants', (
     tester,
   ) async {
+    final semantics = tester.ensureSemantics();
     gate.update(ready: true, onboarded: true);
     final cubit = await pump(tester);
 
@@ -123,7 +126,7 @@ void main() {
     await settleIn(tester, find.text('15 min'));
 
     expect(
-      find.text('Allow this app for…'),
+      find.text(_title),
       findsOneWidget,
       reason:
           'the sheet is pushed through the router navigator key — the builder '
@@ -132,13 +135,24 @@ void main() {
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.text('15 min'));
-    for (var i = 0; i < 6; i++) {
+    // The ConfirmSheet's wait, then the slide (TalkBack's double-tap on the
+    // ready knob), then its 1 s "Confirmed" hold.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(seconds: 1));
+    tester.semantics.tap(find.semantics.byLabel('Slide to unblock'));
+    for (var i = 0; i < 8; i++) {
       await tester.pump(const Duration(milliseconds: 200));
     }
 
     expect(cubit.state.active, hasLength(1));
     expect(cubit.state.active.single.targetId, 'com.instagram.android');
+    expect(
+      cubit.state.active.single.endMs - cubit.state.active.single.startMs,
+      const Duration(minutes: 15).inMilliseconds,
+    );
     expect(cubit.state.pending, isNull, reason: 'consumed exactly once');
+    expect(find.text('Unblocked for 15 min'), findsOneWidget);
+    semantics.dispose();
     await cubit.close();
   });
 
@@ -149,7 +163,7 @@ void main() {
     await cubit.takePending();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('Allow this app for…'), findsOneWidget);
+    expect(find.text(_title), findsOneWidget);
 
     appNavigatorKey.currentState!.pop();
     await tester.pump();
@@ -171,14 +185,14 @@ void main() {
     await cubit.takePending();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('Allow this app for…'), findsNothing);
+    expect(find.text(_title), findsNothing);
     expect(cubit.state.pending, isNotNull, reason: 'held, not consumed');
 
     gate.unlockPin();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('Allow this app for…'), findsOneWidget);
+    expect(find.text(_title), findsOneWidget);
     expect(cubit.state.pending, isNull);
     await cubit.close();
   });
@@ -195,14 +209,14 @@ void main() {
     await cubit.takePending();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('Allow this app for…'), findsNothing);
+    expect(find.text(_title), findsNothing);
     expect(cubit.state.pending, isNotNull, reason: 'held, not consumed');
 
     // The drop fires the merged listenable twice; the sheet opens once.
     gate.relocking.value = false;
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('Allow this app for…'), findsOneWidget);
+    expect(find.text(_title), findsOneWidget);
     expect(cubit.state.pending, isNull);
     await cubit.close();
   });

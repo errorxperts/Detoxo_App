@@ -1,7 +1,6 @@
-import 'dart:async';
-import 'dart:math' as math;
-
 import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/core/utils/app_logger.dart';
+import 'package:detoxo/core/utils/clock_format.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
@@ -14,318 +13,76 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// The global surfaces for the session modes, opened from the dashboard.
 ///
-/// Pause opens the frosted Unblock [GlassBottomSheet]: unblock reels for N
-/// minutes (a Pause) or for N reels, then the base mode returns on its own.
-/// While a Pause runs, the sheet shows the live action (Resume) instead.
-/// Conscious keeps its own dual-state sheet. The live countdown lives in the
-/// dashboard hero.
+/// Pause and an N-reel unblock open the [SessionSheet], By time or By reel
+/// count: Start commits, the sheet reads "Session started" and closes, and the
+/// base mode returns on its own when the session ends. A Start that fails
+/// keeps the sheet open behind an error toast. Conscious keeps its own
+/// dual-state sheet. The live countdown lives in the dashboard hero.
 abstract final class SessionDialogs {
-  static Future<void> showPause(BuildContext context) =>
-      GlassBottomSheet.show<void>(
-        context: context,
-        child: const _UnblockSheet(),
-      );
+  static const String startFailed = "Couldn't start the session — try again";
+
+  /// Unblock reels for 1–10 minutes (a Pause).
+  static Future<void> showPause(BuildContext context) {
+    final settings = context.read<SettingsCubit>();
+    return SessionSheet.show(
+      context,
+      kind: SessionKind.time,
+      min: SessionDefaults.pauseMin,
+      max: SessionDefaults.pauseMax,
+      initial: SessionDefaults.pauseDefaultMinutes,
+      picks: SessionDefaults.pausePicks,
+      note: (v) {
+        final at = DateTime.now().add(Duration(minutes: v));
+        final time = formatLocalTime(context, at.hour * 60 + at.minute);
+        return 'Blocking resumes at $time';
+      },
+      startLabel: (v) => 'Start $v-min session',
+      onStart: (v) => _start(
+        context,
+        () => settings.startPause(pause: Duration(minutes: v)),
+      ),
+    );
+  }
+
+  /// Unblock 1–20 reels, then block again.
+  static Future<void> showReels(BuildContext context) {
+    final settings = context.read<SettingsCubit>();
+    return SessionSheet.show(
+      context,
+      kind: SessionKind.reels,
+      min: SessionDefaults.unblockMin,
+      max: SessionDefaults.unblockMax,
+      initial: SessionDefaults.unblockDefault,
+      picks: SessionDefaults.unblockPicks,
+      note: (v) => 'Blocking resumes after $v ${v == 1 ? 'reel' : 'reels'}',
+      startLabel: (v) => 'Start $v-reel session',
+      onStart: (v) => _start(context, () => settings.setOneReel(count: v)),
+    );
+  }
+
+  /// The sheet's `onStart`: true once [commit] lands. A throw (the settings
+  /// write or the native push) is logged and toasted, and the sheet stays.
+  static Future<bool> _start(
+    BuildContext context,
+    Future<void> Function() commit,
+  ) async {
+    try {
+      await commit();
+      return true;
+    } on Object catch (e, s) {
+      AppLogger.e('session start failed', e, s);
+      if (context.mounted) {
+        GlassToast.show(context, startFailed, tone: AppTone.danger);
+      }
+      return false;
+    }
+  }
 
   static Future<void> showConscious(BuildContext context) =>
       GlassBottomSheet.show<void>(
         context: context,
         child: const _ConsciousDialog(),
       );
-}
-
-// ── Unblock: N minutes or N reels, then back to the base mode ────────────────
-
-class _UnblockSheet extends StatefulWidget {
-  const _UnblockSheet();
-
-  @override
-  State<_UnblockSheet> createState() => _UnblockSheetState();
-}
-
-class _UnblockSheetState extends State<_UnblockSheet> {
-  bool _byReels = false;
-  int _minutes = SessionDefaults.pauseDefaultMinutes;
-  int _reels = SessionDefaults.unblockDefault;
-
-  /// Hold-to-repeat on the − / + buttons.
-  Timer? _hold;
-
-  int get _value => _byReels ? _reels : _minutes;
-  int get _min =>
-      _byReels ? SessionDefaults.unblockMin : SessionDefaults.pauseMin;
-  int get _max =>
-      _byReels ? SessionDefaults.unblockMax : SessionDefaults.pauseMax;
-  String get _unit =>
-      _byReels ? 'reels' : (_minutes == 1 ? 'minute' : 'minutes');
-
-  @override
-  void dispose() {
-    _hold?.cancel();
-    super.dispose();
-  }
-
-  Duration _motion(Duration d) =>
-      (MediaQuery.maybeDisableAnimationsOf(context) ?? false)
-      ? Duration.zero
-      : d;
-
-  void _set(int v) => setState(() {
-    if (_byReels) {
-      _reels = v;
-    } else {
-      _minutes = v;
-    }
-  });
-
-  /// Steps the active value by [d]; false at a bound, which also ends a hold.
-  bool _step(int d) {
-    final next = (_value + d).clamp(_min, _max);
-    if (next == _value) return false;
-    AppHaptics.selection();
-    _set(next);
-    return true;
-  }
-
-  /// Keeps stepping while held, speeding up from 200 ms to 60 ms a step.
-  void _repeat(int d, [int delayMs = 200]) {
-    _hold?.cancel();
-    _hold = Timer(Duration(milliseconds: delayMs), () {
-      if (_step(d)) _repeat(d, math.max(60, delayMs * 4 ~/ 5));
-    });
-  }
-
-  void _confirm() {
-    final settings = context.read<SettingsCubit>();
-    if (_byReels) {
-      settings.setOneReel(count: _reels);
-    } else {
-      settings.startPause(pause: Duration(minutes: _minutes));
-    }
-    Navigator.of(context).pop();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<SettingsCubit, AppSettings>(
-      buildWhen: (a, b) => a.isPauseContractLive() != b.isPauseContractLive(),
-      builder: (context, settings) => settings.isPauseContractLive()
-          ? const _PauseLive()
-          : _picker(context),
-    );
-  }
-
-  Widget _picker(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final picks = _byReels
-        ? SessionDefaults.unblockPicks
-        : SessionDefaults.pausePicks;
-    final base = planLabel(context.read<SettingsCubit>().state.baseMode);
-    final until = TimeOfDay.fromDateTime(
-      DateTime.now().add(Duration(minutes: _minutes)),
-    ).format(context);
-
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Semantics(
-            header: true,
-            child: Text(
-              'Unblock reels',
-              style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          GlassSegmented(
-            segments: const [
-              (label: 'Time', icon: null),
-              (label: 'Reels', icon: null),
-            ],
-            selectedIndex: _byReels ? 1 : 0,
-            height: AppSizes.controlHeight,
-            onChanged: (i) => setState(() => _byReels = i == 1),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _stepper(context),
-          const SizedBox(height: AppSpacing.md),
-          Semantics(
-            container: true,
-            label: 'Quick pick, ${_byReels ? 'reels' : 'minutes'}',
-            child: GlassSegmented(
-              segments: [for (final n in picks) (label: '$n', icon: null)],
-              // -1 (a custom value) hides the pill.
-              selectedIndex: picks.indexOf(_value),
-              height: AppSizes.controlHeight,
-              onChanged: (i) => _set(picks[i]),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            _byReels
-                ? '$base returns after your last reel.'
-                : '$base returns at $until. App locks stay on.',
-            textAlign: TextAlign.center,
-            style: text.bodySmall?.copyWith(color: context.tokens.ink2),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          PrimaryButton(
-            label: _byReels
-                ? 'Unlock $_reels reels'
-                : 'Unblock for $_minutes min',
-            expand: true,
-            onPressed: _confirm,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// − value + — one control for both tabs. A tap steps by one, holding
-  /// repeats. Screen readers get one adjustable node (swipe up/down) whose
-  /// live region announces every change, including − / + and quick picks.
-  Widget _stepper(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final noun = _byReels ? 'reels' : 'minutes';
-    return Row(
-      children: [
-        _stepButton(
-          -1,
-          Icons.remove_rounded,
-          'Fewer $noun',
-          enabled: _value > _min,
-        ),
-        Expanded(
-          child: Semantics(
-            slider: true,
-            liveRegion: true,
-            label: _byReels ? 'Reels to unlock' : 'Minutes to unblock',
-            value: '$_value $_unit',
-            increasedValue: '${math.min(_value + 1, _max)} $noun',
-            decreasedValue: '${math.max(_value - 1, _min)} $noun',
-            onIncrease: () => _step(1),
-            onDecrease: () => _step(-1),
-            child: ExcludeSemantics(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AnimatedSwitcher(
-                      duration: _motion(AppDurations.fast),
-                      transitionBuilder: (child, a) => FadeTransition(
-                        opacity: a,
-                        child: ScaleTransition(
-                          scale: Tween(begin: 0.85, end: 1.0).animate(a),
-                          child: child,
-                        ),
-                      ),
-                      child: Text(
-                        '$_value',
-                        key: ValueKey((_byReels, _value)),
-                        style: text.displayLarge?.copyWith(
-                          fontSize: 56,
-                          height: 1,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -2,
-                          fontFeatures: const [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    ),
-                    Text(
-                      _unit,
-                      style: text.titleSmall?.copyWith(
-                        color: context.tokens.ink2,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        _stepButton(1, Icons.add_rounded, 'More $noun', enabled: _value < _max),
-      ],
-    );
-  }
-
-  Widget _stepButton(
-    int d,
-    IconData icon,
-    String label, {
-    required bool enabled,
-  }) {
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: label,
-      child: PressScale(
-        pressedScale: enabled ? 0.9 : 1,
-        child: GestureDetector(
-          onTap: enabled ? () => _step(d) : null,
-          onLongPressStart: enabled
-              ? (_) {
-                  if (_step(d)) _repeat(d);
-                }
-              : null,
-          onLongPressEnd: (_) => _hold?.cancel(),
-          onLongPressCancel: () => _hold?.cancel(),
-          child: AnimatedOpacity(
-            opacity: enabled ? 1 : 0.35,
-            duration: _motion(AppDurations.fast),
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: context.tokens.hairline,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 24, color: context.tokens.ink),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Shown instead of the picker while a Pause runs.
-class _PauseLive extends StatelessWidget {
-  const _PauseLive();
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Semantics(
-          header: true,
-          child: Text(
-            'Pause active',
-            style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          'Reels and blocked sites are allowed; app locks stay on. Blocking '
-          'resumes automatically when the window ends.',
-          style: text.bodyMedium?.copyWith(color: context.tokens.ink2),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        SecondaryButton(
-          label: 'Resume blocking now',
-          expand: true,
-          onPressed: () {
-            context.read<SettingsCubit>().resumeNow();
-            Navigator.of(context).pop();
-          },
-        ),
-      ],
-    );
-  }
 }
 
 // ── Conscious ─────────────────────────────────────────────────────────────────

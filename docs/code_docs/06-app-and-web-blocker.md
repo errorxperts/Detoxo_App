@@ -446,8 +446,11 @@ Latent since inception, first triggered 2026-08-17 by the first on-device
   can always be cleared; the section header shows the entry count). Each row
   keeps only the enable toggle inline (with a site-named `semanticLabel`);
   allow/resume (EVO-012, generalised by M8: the shared
-  `showUnblockDurationSheet` — a `GlassBottomSheet` of 5/15/30/60-minute chips,
-  the same one the App Blocker rows and the block screen use; allowed rows show
+  `showUnblockDurationSheet` — the caution `ConfirmSheet` "Unblock {site}?" with
+  `iconWebBlocker`, 5/15/30/60-minute chips (5 picked) and the allowances line,
+  committed only after its 5 s wait and slide, then toasted "{site} unblocked for
+  15 min"; the same sheet the App Blocker rows ("Unblock {app}?",
+  `iconAppBlocker`) and the block screen use; allowed rows show
   a warning `Pill` "Allowed until HH:MM" **selected off `UnblockCubit`'s derived
   `active` list**, so the row actually rebuilds when the grant lapses instead of
   holding a dead countdown; native re-arms the block at expiry;

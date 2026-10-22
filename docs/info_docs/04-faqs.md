@@ -55,15 +55,15 @@ That's the block screen. Tap the **Home** button (⌂) to leave, **Open Detoxo**
 
 ## What's the difference between Block All, One Reel, Unblock, Conscious, and Pause?
 
-These are the ways Detoxo can behave. You pick whichever fits your goal from the four mode cards on the home screen — **Unblock** lives inside **Pause**:
+These are the ways Detoxo can behave. You pick whichever fits your goal from the four mode cards on the home screen — **Unblock** starts from the ring above them:
 
 | Mode | What it does |
 | --- | --- |
 | **Block All** | The strict default, and a **base** mode. Every reel/short you open is closed straight away, and it stays on until you change it. |
 | **One Reel** | *Temporary.* Lets a single reel play, then returns to your base mode. Scrolling to the next reel is what ends the peek. Tap **One Reel** again whenever you want another single clip — each tap re-arms one reel. |
-| **Unblock** | *Temporary.* You decide how many reels to release: tap **Pause**, switch to **Reels**, pick a count (2–20) with − / + or a quick pick, and confirm. You can watch that many, then it returns to your base mode — open **Pause** → **Reels** and confirm a new count to unlock more. |
+| **Unblock** | *Temporary.* You decide how many reels to release: tap **Unblock** on the Today ring, pick a count (1–20) with − / + or a quick pick, and tap **Start**. You can watch that many, then it returns to your base mode — tap **Unblock** and start a new count to watch more. |
 | **Conscious** | An "earn-as-you-abstain" **base** mode. You build up a small allowance of watch-time by *staying off* reels (about 1 minute banked for every 10 minutes away, up to 10 minutes saved). While you have allowance, reels play; when it runs out, blocking kicks back in until you've earned more. It keeps you honest without a hard wall. |
-| **Pause** | *Temporary.* A short, deliberate break. Tap **Pause** and choose a window (1–10 minutes) on its **Time** tab; during it, reels and blocked websites are allowed. When the timer runs out, it returns to your base mode. (Apps you've fully locked on the Block apps screen stay locked through a Pause.) |
+| **Pause** | *Temporary.* A short, deliberate break. Tap **Pause**, choose a window (1–10 minutes) on its dial or a quick pick, and tap **Start**; during it, reels and blocked websites are allowed. When the timer runs out, it returns to your base mode. (Apps you've fully locked on the Block apps screen stay locked through a Pause.) |
 
 Two of these **stick** — **Block All** and **Conscious** are your *base* mode — and three are **temporary** overrides (**One Reel**, **Unblock**, **Pause**) that auto-return to whichever base mode you were on once they finish. (See "What happens after One Reel, Unblock, or Pause finishes?" below.)
 
@@ -73,11 +73,11 @@ Tip: with **Conscious**, pausing a video doesn't secretly bank you extra time �
 
 **Unblock** lets you release a set number of reels and then automatically returns to your base mode — think of it as **One Reel** with a count.
 
-1. Tap **Pause** on the home screen and switch the sheet to its **Reels** tab.
-2. Use **−** / **+** (or a quick pick) to choose how many reels to unlock — anywhere from **2 to 20**.
-3. Tap **Unlock N reels** to start the session.
+1. Tap **Unblock** on the Today ring. The **Session blocker** sheet opens **By reel count**.
+2. Use **−** / **+** (or a quick pick) to choose how many reels to unblock — anywhere from **1 to 20**, 10 to start.
+3. Tap **Start 10-reel session** (the button follows your count). It reads **Session started**, and the sheet closes.
 
-You can now watch that many reels. A reel only counts toward your allowance **after you've actually watched it for about 2 seconds** — so quickly scrolling past reels doesn't burn them, and a single reel that loops uses up just one. The card shows a live "**N of M reels left**" line. When the count runs out, Detoxo **returns to your base mode** (Block All or Conscious) — it won't quietly hand you more. To watch another batch, open **Pause** → **Reels** and confirm a count again; every confirmation gives you a **fresh allowance**. Like all blocking, Unblock needs Detoxo's Accessibility permission on.
+You can now watch that many reels. A reel only counts toward your allowance **after you've actually watched it for about 2 seconds** — so quickly scrolling past reels doesn't burn them, and a single reel that loops uses up just one. The card shows a live "**N of M reels left**" line. When the count runs out, Detoxo **returns to your base mode** (Block All or Conscious) — it won't quietly hand you more. To watch another batch, tap **Unblock** and start a new count; every start gives you a **fresh allowance**. Like all blocking, Unblock needs Detoxo's Accessibility permission on.
 
 ## What happens after One Reel, Unblock, or Pause finishes?
 
@@ -297,11 +297,11 @@ Yes. On the **Block apps** screen, tap **Add app** and pick any app from your ph
 
 ## Can I let a blocked website through for a few minutes?
 
-Yes — without unblocking it. On the **Website blocker** screen, tap the site's row (or swipe it left), choose **Allow** and pick 5, 15, 30 or 60 minutes. The row shows "Allowed until …" and the site opens normally until then; when the time is up, blocking switches itself back on — even if Detoxo never reopens. Tap **Resume** to end it early.
+Yes — without unblocking it. On the **Website blocker** screen, tap the site's row (or swipe it left), choose **Allow**, pick 5, 15, 30 or 60 minutes, wait out the five-second breath and slide to unblock. The row shows "Allowed until …" and the site opens normally until then; when the time is up, blocking switches itself back on — even if Detoxo never reopens. Tap **Resume** to end it early.
 
 ## Can I do that for an app, or for one feed?
 
-Yes — that's the same thing now. On the **Block apps** screen each blocked row has a timer button, and when Detoxo blocks something the block screen itself offers **Allow for a while** — tapping it shows the durations right on that screen, so you never have to leave the app you're in. Pick 5, 15, 30 or 60 minutes and *only that thing* opens: every other app, feed and site stays exactly as protected as it was. It ends by itself, it survives a restart, and moving your phone's clock backwards won't buy you extra time. See [02-feature-walkthroughs.md](02-feature-walkthroughs.md) §18.
+Yes — that's the same thing now. On the **Block apps** screen each blocked row has a timer button, and when Detoxo blocks something the block screen itself offers **Allow for a while** — tapping it shows the durations right on that screen, so you never have to leave the app you're in. Pick 5, 15, 30 or 60 minutes, wait out the five-second breath and slide to unblock, and *only that thing* opens: every other app, feed and site stays exactly as protected as it was. It ends by itself, it survives a restart, and moving your phone's clock backwards won't buy you extra time. See [02-feature-walkthroughs.md](02-feature-walkthroughs.md) §18.
 
 Two exceptions: adult sites are never unblockable this way, and a rule you marked **Locked** or **Strict** isn't either — that one needs an override.
 
@@ -309,7 +309,7 @@ Two exceptions: adult sites are never unblockable this way, and a rule you marke
 
 A locked rule has **no off switch**. You can't disable it, you can't delete it, you can't shrink what it covers, you can't change its hours, you can't loosen its daily limit, and a Pause doesn't lift it. You can rename it, and you can always make it cover *more*. Detoxo asks you to confirm before locking, because there is no unlock afterwards.
 
-The way through is an **override**: two a week. Spending one means picking a reason and how long (up to an hour), and it steps that **one rule** aside for exactly that long — not your other rules, not your app blocks. It comes back on time whether or not Detoxo is running.
+The way through is an **override**: two a week. Spending one means picking a reason, then how long (up to an hour), and sliding to lift the rule; it steps that **one rule** aside for exactly that long — not your other rules, not your app blocks. It comes back on time whether or not Detoxo is running.
 
 ## I locked a rule and now I really do want it gone. What are my options?
 
