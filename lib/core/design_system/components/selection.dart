@@ -8,24 +8,21 @@ import 'package:flutter/material.dart';
 /// One option in a [GlassSegmented] — a label with an optional leading icon.
 typedef GlassSegment = ({String label, IconData? icon});
 
-/// The liquid-glass segmented control: a frosted stadium track lifted by a soft
-/// depth shadow, with an accent-lit pill that glides between options.
+/// The segmented control, an OPTION picker: a quiet pill track with a solid
+/// option-base chip that slides to the pick (a short overshoot plus the spec
+/// squish). No accent and no shadow.
 ///
-/// Both the track and the sliding pill are [GlassContainer]s, so the frost, the
-/// sheen and the specular liquid-glass rim are the same ones every other
-/// surface uses — the only thing this widget adds is the outer shadow (glass is
-/// otherwise shadowless) that lifts a control off the background, and the pill's
-/// motion. The pill blurs nothing: the track's backdrop filter already frosts
-/// what's behind it, so a nested filter would cost a `saveLayer` for nothing.
+/// State is never colour alone: besides the chip's shape, the picked label
+/// goes ink-2 → ink and leads with a check.
 ///
-/// Interaction: a tap selects on release; a horizontal drag anywhere on the
-/// track scrubs the selection live under the finger (iOS-style); while a finger
-/// is down the pill swells and brightens. Labels light up on the same clock as
-/// the pill's slide, and every motion collapses to zero under reduce-motion.
+/// Interaction: a tap selects; a horizontal drag anywhere on the track scrubs
+/// the selection live under the finger (iOS-style). Each segment is one
+/// focusable radio (focus ring, Enter/Space). Every motion is zero under
+/// Reduce Motion.
 ///
 /// Segments are always equal width — [expand] fills the parent, otherwise the
 /// control hugs its widest label (for headers and toolbars).
-class GlassSegmented extends StatefulWidget {
+class GlassSegmented extends StatelessWidget {
   const GlassSegmented({
     required this.segments,
     required this.selectedIndex,
@@ -37,8 +34,8 @@ class GlassSegmented extends StatefulWidget {
 
   final List<GlassSegment> segments;
 
-  /// The lit segment, or -1 for none (the pill fades out) — e.g. a quick-pick
-  /// row whose value was set by another control.
+  /// The picked segment, or -1 for none (the chip fades out) — e.g. a
+  /// quick-pick row whose value was set by another control.
   final int selectedIndex;
   final ValueChanged<int> onChanged;
 
@@ -49,78 +46,63 @@ class GlassSegmented extends StatefulWidget {
   /// Stretch to the parent's width. `false` sizes to the widest segment.
   final bool expand;
 
-  /// Gap between the track's edge and the sliding pill.
+  /// Gap between the track's edge and the chip.
   static const double _inset = 4;
 
-  @override
-  State<GlassSegmented> createState() => _GlassSegmentedState();
-}
-
-class _GlassSegmentedState extends State<GlassSegmented> {
-  /// Finger down anywhere on the control: the pill swells and brightens.
-  bool _pressed = false;
-
-  void _setPressed(bool value) {
-    if (_pressed != value) setState(() => _pressed = value);
-  }
+  /// The picked segment's check glyph.
+  static const double _check = 16;
 
   /// Live selection while a finger slides along the track. [dx] is local to
   /// this widget's box — the same box `context.size` reports, hugging or not.
-  void _scrub(double dx) {
-    final n = widget.segments.length;
+  void _scrub(BuildContext context, double dx) {
+    final n = segments.length;
     final width = context.size?.width ?? 0;
     if (width <= 0) return;
     final i = (dx / width * n).floor().clamp(0, n - 1);
-    if (i == widget.selectedIndex) return;
+    if (i == selectedIndex) return;
     AppHaptics.selection();
-    widget.onChanged(i);
+    onChanged(i);
   }
 
   @override
   Widget build(BuildContext context) {
-    final segments = widget.segments;
-    final height = widget.height;
-    final glass = context.tokens;
-    final accent = Theme.of(context).colorScheme.secondary;
-    final text = Theme.of(context).textTheme;
-    final selected = widget.selectedIndex.clamp(0, segments.length - 1);
-    final none = widget.selectedIndex < 0;
-    final compact = height < 48;
+    final t = context.tokens;
+    final n = segments.length;
+    final picked = selectedIndex.clamp(0, n - 1);
+    final none = selectedIndex < 0;
+    final style = height < 48 ? AppTypography.caption : AppTypography.label;
     // A card-header control is 44 tall by design, but its touch target still
     // has to reach the 48 dp floor (`AppSizes.minTapTarget`): the visual track
     // keeps [height] and the hit layer spans the box padded up to the floor.
     final reach = (AppSizes.minTapTarget - height).clamp(0.0, height) / 2;
-    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final slide = reduceMotion ? Duration.zero : AppDurations.normal;
-    final press = reduceMotion ? Duration.zero : AppDurations.fast;
+    final slide = context.motion(AppDurations.chip);
+    // Labels and the chip's fade follow the spec's `.dx-opt` (.3 s ease).
+    final fade = context.motion(AppDurations.normal);
 
-    // Option track: solid, no shadow (spec .dx-option).
     final track = GlassContainer(
       surface: DxSurface.option,
-      color: context.tokens.fillQuiet,
+      color: t.fillQuiet,
       borderRadius: AppRadius.pill,
-      padding: const EdgeInsets.all(GlassSegmented._inset),
+      padding: const EdgeInsets.all(_inset),
       child: SizedBox(
-        height: height - GlassSegmented._inset * 2,
+        height: height - _inset * 2,
         child: Stack(
           fit: StackFit.expand,
           children: [
             AnimatedAlign(
               duration: slide,
-              curve: AppCurves.fluid,
-              alignment: segments.length > 1
-                  ? Alignment(-1 + 2 * selected / (segments.length - 1), 0)
+              curve: AppCurves.chip,
+              alignment: n > 1
+                  ? Alignment(-1 + 2 * picked / (n - 1), 0)
                   : Alignment.center,
               child: AnimatedOpacity(
                 opacity: none ? 0 : 1,
-                duration: slide,
-                // Swells under a finger, like a key lifting to meet it.
-                child: AnimatedScale(
-                  scale: _pressed ? 1.04 : 1,
-                  duration: press,
-                  curve: AppCurves.standard,
+                duration: fade,
+                curve: AppCurves.glide,
+                child: Squish(
+                  trigger: selectedIndex,
                   child: FractionallySizedBox(
-                    widthFactor: 1 / segments.length,
+                    widthFactor: 1 / n,
                     heightFactor: 1,
                     child: const GlassContainer(
                       surface: DxSurface.option,
@@ -133,57 +115,16 @@ class _GlassSegmentedState extends State<GlassSegmented> {
               ),
             ),
             // Labels only — the taps and the semantics live on the hit layer
-            // below, which is the one that reaches the 48 dp floor. Colour
-            // and weight tween on the pill's clock, so a label lights up as
-            // the pill arrives instead of snapping ahead of it.
+            // below, which is the one that reaches the 48 dp floor.
             Row(
               children: [
-                for (var i = 0; i < segments.length; i++)
+                for (var i = 0; i < n; i++)
                   Expanded(
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(end: !none && i == selected ? 1.0 : 0.0),
-                      duration: slide,
-                      curve: AppCurves.fluid,
-                      builder: (_, t, _) {
-                        final color = Color.lerp(glass.ink2, accent, t);
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (segments[i].icon != null) ...[
-                              Icon(segments[i].icon, size: 18, color: color),
-                              const SizedBox(width: AppSpacing.xs),
-                            ],
-                            // Flexible, so the ellipsis below can engage:
-                            // at 2.0x text a 360 dp screen's third of the
-                            // track is narrower than "Medium".
-                            Flexible(
-                              child: Padding(
-                                // Breathing room so a label never touches
-                                // the pill's rim when the control hugs its
-                                // content.
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppSpacing.md,
-                                ),
-                                child: Text(
-                                  segments[i].label,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style:
-                                      (compact
-                                              ? text.labelMedium
-                                              : text.labelLarge)
-                                          ?.copyWith(
-                                            fontWeight: t > 0.5
-                                                ? FontWeight.w700
-                                                : FontWeight.w500,
-                                            color: color,
-                                          ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                    child: _SegmentLabel(
+                      segment: segments[i],
+                      on: !none && i == picked,
+                      style: style,
+                      duration: fade,
                     ),
                   ),
               ],
@@ -193,67 +134,128 @@ class _GlassSegmentedState extends State<GlassSegmented> {
       ),
     );
 
-    final control = Listener(
-      // Raw pointer events, like [PressScale]: no recognizer, so the pressed
-      // state never enters the gesture arena.
-      onPointerDown: (_) => _setPressed(true),
-      onPointerUp: (_) => _setPressed(false),
-      onPointerCancel: (_) => _setPressed(false),
-      child: GestureDetector(
-        // Taps still land on the per-segment detectors below. A horizontal
-        // drag anywhere on the track wins the arena past the touch slop and
-        // scrubs the selection live; vertical moves still scroll the list.
-        onHorizontalDragUpdate: (d) => _scrub(d.localPosition.dx),
-        // A pointer-only convenience: without this the drag handler would
-        // publish scrollLeft/scrollRight actions that merge into the enclosing
-        // list item's node. Screen readers select via the segment buttons.
-        excludeFromSemantics: true,
-        child: Stack(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: reach),
-              child: ExcludeSemantics(child: track),
-            ),
-            // The hit layer: one full-height, opaque target per segment, so a
-            // 44 dp header control still takes a 48 dp tap. Column edges differ
-            // from the label columns by the track's 4 dp inset at most.
-            Positioned.fill(
-              child: Row(
-                children: [
-                  for (var i = 0; i < segments.length; i++)
-                    Expanded(
-                      child: Semantics(
-                        button: true,
-                        selected: !none && i == selected,
-                        // One choice among several, not independent toggles.
-                        inMutuallyExclusiveGroup: true,
-                        label: segments[i].label,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            AppHaptics.selection();
-                            widget.onChanged(i);
-                          },
-                          child: const SizedBox.expand(),
-                        ),
-                      ),
+    final control = GestureDetector(
+      // Taps still land on the per-segment pressables below. A horizontal
+      // drag anywhere on the track wins the arena past the touch slop and
+      // scrubs the selection live; vertical moves still scroll the list.
+      onHorizontalDragUpdate: (d) => _scrub(context, d.localPosition.dx),
+      // A pointer-only convenience: without this the drag handler would
+      // publish scrollLeft/scrollRight actions that merge into the enclosing
+      // list item's node. Screen readers select via the segment buttons.
+      excludeFromSemantics: true,
+      child: Stack(
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: reach),
+            child: ExcludeSemantics(child: track),
+          ),
+          // The hit layer: one full-height, opaque target per segment, so a
+          // 44 dp header control still takes a 48 dp tap. Column edges differ
+          // from the label columns by the track's 4 dp inset at most.
+          Positioned.fill(
+            child: Row(
+              children: [
+                for (var i = 0; i < n; i++)
+                  Expanded(
+                    child: AppPressable(
+                      onTap: () {
+                        AppHaptics.selection();
+                        onChanged(i);
+                      },
+                      haptic: false,
+                      pressedScale: 1,
+                      radius: AppRadius.brPill,
+                      semanticLabel: segments[i].label,
+                      selected: !none && i == picked,
+                      // One choice among several, not independent toggles.
+                      inMutuallyExclusiveGroup: true,
+                      child: const SizedBox.expand(),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
 
     // Equal-width segments either way: inside IntrinsicWidth the flex children
     // all settle on the widest segment's intrinsic width.
-    return widget.expand ? control : IntrinsicWidth(child: control);
+    return expand ? control : IntrinsicWidth(child: control);
   }
 }
 
-/// A selectable glass chip (e.g. small option pickers). For 2–4 segment
-/// pickers prefer [GlassSegmented].
+/// One segment's label: [GlassSegmented._check] (when [on]), the optional
+/// icon and the text, tweening ink-2 → ink.
+class _SegmentLabel extends StatelessWidget {
+  const _SegmentLabel({
+    required this.segment,
+    required this.on,
+    required this.style,
+    required this.duration,
+  });
+
+  final GlassSegment segment;
+  final bool on;
+  final TextStyle style;
+  final Duration duration;
+
+  /// What the check and its gap take; an unpicked label pads by half of it
+  /// each side, so a hugging control keeps one width whichever is picked.
+  static const double _checkRoom = GlassSegmented._check + AppSpacing.xs;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: on ? 1.0 : 0.0),
+      duration: duration,
+      curve: AppCurves.glide,
+      builder: (_, v, _) {
+        final color = Color.lerp(t.ink2, t.ink, v);
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (on) ...[
+              Icon(
+                Icons.check_rounded,
+                size: GlassSegmented._check,
+                color: color,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+            ],
+            if (segment.icon != null) ...[
+              Icon(segment.icon, size: 18, color: color),
+              const SizedBox(width: AppSpacing.xs),
+            ],
+            // Flexible, so the ellipsis below can engage: at 2.0x text a
+            // 360 dp screen's third of the track is narrower than "Medium".
+            Flexible(
+              child: Padding(
+                // Breathing room so a label never touches the chip's rim
+                // when the control hugs its content.
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md + (on ? 0 : _checkRoom / 2),
+                ),
+                child: Text(
+                  segment.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: style.copyWith(color: color),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// A selectable OPTION chip (small option pickers, toggled categories, days):
+/// quiet fill and an ink-2 label at rest; picked, the solid option base, a
+/// leading check and an ink label. For 2–4 segment pickers prefer
+/// [GlassSegmented].
 class AppChip extends StatelessWidget {
   const AppChip({
     required this.label,
@@ -271,9 +273,9 @@ class AppChip extends StatelessWidget {
   final IconData? icon;
 
   /// True when the chip is a one-shot action rather than a toggle, so it has no
-  /// selected state to announce. Without this a duration picker reads as
-  /// "5 min, **not selected**, button" — a state the user can never change, on
-  /// a chip that dismisses the sheet the moment it is tapped.
+  /// selected state to announce or check to show. Without this a duration
+  /// picker reads as "5 min, **not selected**, button" — a state the user can
+  /// never change, on a chip that dismisses the sheet the moment it is tapped.
   final bool momentary;
 
   /// What a screen reader announces instead of [label]. Needed wherever the
@@ -282,55 +284,54 @@ class AppChip extends StatelessWidget {
   /// "Instagram, selected" but activating it REMOVES Instagram.
   final String? semanticLabel;
 
+  static const double _check = 16;
+
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final t = context.tokens;
+    final checked = selected && !momentary;
+    // An unpicked toggle reserves the check's room (half each side), so
+    // picking one never reflows its row.
+    final reserve = momentary || checked ? 0.0 : (_check + AppSpacing.xxs) / 2;
     return AppPressable(
       onTap: onSelected,
-      pressedScale: 0.94,
+      radius: AppRadius.brPill,
       selected: momentary ? null : selected,
       semanticLabel: semanticLabel,
-      minTapTarget: const Size(0, AppSizes.minTapTarget),
+      minTapTarget: AppSizes.minTapTargetSquare,
       // Selection cross-fades on the same clock as `AppToggle` instead of
       // snapping. The tween has no `begin`, so a chip mounted already-selected
-      // renders its end state with no first-frame fade. The `null` tints at
-      // rest are load-bearing: `GlassContainer` takes any explicit tint over
-      // its frost, so only a lerp in flight may replace it.
+      // renders its end state with no first-frame fade.
       child: TweenAnimationBuilder<double>(
         tween: Tween(end: selected ? 1.0 : 0.0),
-        duration: reduce ? Duration.zero : AppDurations.fast,
+        duration: context.motion(AppDurations.fast),
         curve: AppCurves.standard,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 16),
-              const SizedBox(width: AppSpacing.xxs),
-            ],
-            Text(
-              label,
-              style: text.labelLarge?.copyWith(
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              ),
+        builder: (context, v, _) {
+          final ink = Color.lerp(t.ink2, t.ink, v);
+          return GlassContainer(
+            surface: DxSurface.option,
+            color: Color.lerp(t.fillQuiet, t.optionBase, v),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.md + reserve,
+              vertical: AppSpacing.xs,
             ),
-          ],
-        ),
-        builder: (context, t, child) => GlassContainer(
-          surface: DxSurface.option,
-          // fill-quiet at rest, the solid option base once picked.
-          color: Color.lerp(
-            context.tokens.fillQuiet,
-            context.tokens.optionBase,
-            t,
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.xs,
-          ),
-          borderRadius: AppRadius.pill,
-          child: child!,
-        ),
+            borderRadius: AppRadius.pill,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (checked) ...[
+                  Icon(Icons.check_rounded, size: _check, color: t.ink),
+                  const SizedBox(width: AppSpacing.xxs),
+                ],
+                if (icon != null) ...[
+                  Icon(icon, size: 16, color: ink),
+                  const SizedBox(width: AppSpacing.xxs),
+                ],
+                Text(label, style: AppTypography.label.copyWith(color: ink)),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

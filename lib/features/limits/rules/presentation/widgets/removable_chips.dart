@@ -27,8 +27,11 @@ class RemovableChips extends StatelessWidget {
           label: label?.call(item) ?? item,
           // The chip LOOKS selected but activating it deletes the target —
           // "Instagram, selected" would be a trap for a screen reader user.
+          // Momentary: a one-shot removal, so no selected state and no check
+          // beside the close icon.
           semanticLabel: 'Remove ${label?.call(item) ?? item}',
           selected: true,
+          momentary: true,
           icon: Icons.close,
           onSelected: () => onRemove(item),
         ),
