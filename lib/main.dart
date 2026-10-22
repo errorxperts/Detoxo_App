@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:detoxo/app/app_resume_sync.dart';
 import 'package:detoxo/app/engine_sync.dart';
 import 'package:detoxo/app/starter_rule_sync.dart';
-import 'package:detoxo/core/design_system/foundations/ambient_background.dart';
-import 'package:detoxo/core/design_system/foundations/background_scope.dart';
+import 'package:detoxo/core/design_system/foundations/glass_scaffold.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/app_gate.dart';
 import 'package:detoxo/core/navigation/app_router.dart';
@@ -201,77 +201,15 @@ class DetoxoApp extends StatelessWidget {
             listenWhen: (a, b) => a.limit != b.limit,
             listener: (context, _) =>
                 unawaited(context.read<RulesCubit>().resync()),
-            child:
-                BlocSelector<
-                  SettingsCubit,
-                  AppSettings,
-                  (AppThemeMode, AppBackground, AppBackground)
-                >(
-                  selector: (s) =>
-                      (s.themeMode, s.darkBackground, s.lightBackground),
-                  builder: (_, sel) {
-                    final darkStyle = _bgStyle(sel.$2);
-                    final lightStyle = _bgStyle(sel.$3);
-                    return BackgroundScope(
-                      dark: darkStyle,
-                      light: lightStyle,
-                      // The selected background drives the live brand accent so the
-                      // whole app harmonises with what's behind the glass.
-                      child: _Router(
-                        themeMode: _flutterThemeMode(sel.$1),
-                        darkBrand: brandFor(darkStyle, Brightness.dark),
-                        lightBrand: brandFor(lightStyle, Brightness.light),
-                      ),
-                    );
-                  },
-                ),
+            child: BlocSelector<SettingsCubit, AppSettings, AppThemeMode>(
+              selector: (s) => s.themeMode,
+              builder: (_, mode) => _Router(themeMode: _flutterThemeMode(mode)),
+            ),
           ),
         ),
       ),
     );
   }
-}
-
-/// Pushes the app theme's primary in each brightness (ARGB) to native when a
-/// background changes: the bubble and the widgets take the one of their own
-/// brightness, so a device brightness flip needs no push.
-class _BrandSync extends StatefulWidget {
-  const _BrandSync({
-    required this.light,
-    required this.dark,
-    required this.child,
-  });
-
-  final int light;
-  final int dark;
-  final Widget child;
-
-  @override
-  State<_BrandSync> createState() => _BrandSyncState();
-}
-
-class _BrandSyncState extends State<_BrandSync> {
-  @override
-  void initState() {
-    super.initState();
-    _push();
-  }
-
-  @override
-  void didUpdateWidget(_BrandSync old) {
-    super.didUpdateWidget(old);
-    if (old.light != widget.light || old.dark != widget.dark) _push();
-  }
-
-  void _push() => unawaited(
-    sl<CounterAppearanceRepository>().setBrands(
-      light: widget.light,
-      dark: widget.dark,
-    ),
-  );
-
-  @override
-  Widget build(BuildContext context) => widget.child;
 }
 
 /// Maps the domain appearance preference to a Flutter [ThemeMode].
@@ -281,35 +219,10 @@ ThemeMode _flutterThemeMode(AppThemeMode mode) => switch (mode) {
   AppThemeMode.dark => ThemeMode.dark,
 };
 
-/// Maps the domain background preference to the design-system style enum.
-AppBackgroundStyle _bgStyle(AppBackground background) => switch (background) {
-  AppBackground.aurora => AppBackgroundStyle.aurora,
-  AppBackground.dark1 => AppBackgroundStyle.dark1,
-  AppBackground.dark2 => AppBackgroundStyle.dark2,
-  AppBackground.dark3 => AppBackgroundStyle.dark3,
-  AppBackground.dark4 => AppBackgroundStyle.dark4,
-  AppBackground.dark5 => AppBackgroundStyle.dark5,
-  AppBackground.dark6 => AppBackgroundStyle.dark6,
-  AppBackground.light1 => AppBackgroundStyle.light1,
-  AppBackground.light2 => AppBackgroundStyle.light2,
-  AppBackground.light3 => AppBackgroundStyle.light3,
-  AppBackground.light4 => AppBackgroundStyle.light4,
-  AppBackground.light5 => AppBackgroundStyle.light5,
-};
-
 class _Router extends StatefulWidget {
-  const _Router({
-    required this.themeMode,
-    required this.darkBrand,
-    required this.lightBrand,
-  });
+  const _Router({required this.themeMode});
 
   final ThemeMode themeMode;
-
-  /// Background-matched brand pairing for each theme, fed into [AppTheme] so the
-  /// primary/accent adapt to the selected dark/light background.
-  final ({Color primary, Color accent}) darkBrand;
-  final ({Color primary, Color accent}) lightBrand;
 
   @override
   State<_Router> createState() => _RouterState();
@@ -317,6 +230,19 @@ class _Router extends StatefulWidget {
 
 class _RouterState extends State<_Router> {
   final _router = buildRouter();
+
+  @override
+  void initState() {
+    super.initState();
+    // The bubble and the home widgets paint the static spec brand of their
+    // own brightness; one push at start keeps native in step with it.
+    unawaited(
+      sl<CounterAppearanceRepository>().setBrands(
+        light: AppTokens.light.brand.main.toARGB32(),
+        dark: AppTokens.dark.brand.main.toARGB32(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -339,14 +265,8 @@ class _RouterState extends State<_Router> {
             gate: sl<AppGate>(),
             child: MaterialApp.router(
               title: 'Detoxo',
-              theme: AppTheme.light(
-                brandPrimary: widget.lightBrand.primary,
-                brandAccent: widget.lightBrand.accent,
-              ),
-              darkTheme: AppTheme.dark(
-                brandPrimary: widget.darkBrand.primary,
-                brandAccent: widget.darkBrand.accent,
-              ),
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
               themeMode: widget.themeMode,
               routerConfig: _router,
               debugShowCheckedModeBanner: false,
@@ -354,14 +274,8 @@ class _RouterState extends State<_Router> {
               // here, INSIDE the router, so it can never float over the PIN
               // lock or the splash.
               // A home-widget tap's screen (IM-08), mounted the same way.
-              // The bubble and the widgets take the theme's primary at every
-              // tier; this keeps native in step with it.
-              builder: (context, child) => _BrandSync(
-                light: widget.lightBrand.primary.toARGB32(),
-                dark: widget.darkBrand.primary.toARGB32(),
-                child: PendingUnblockListener(
-                  child: WidgetTapListener(child: child ?? const SizedBox()),
-                ),
+              builder: (context, child) => PendingUnblockListener(
+                child: WidgetTapListener(child: child ?? const SizedBox()),
               ),
             ),
           ),

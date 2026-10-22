@@ -16,9 +16,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Fixed-frame settle — the repo-wide substitute for `pumpAndSettle`.
 ///
-/// `pumpAndSettle` never returns here: GlassScaffold's ambient background
-/// repeats forever (core/design_system/foundations/ambient_background.dart), so
-/// the frame queue never drains.
+/// `pumpAndSettle` can hang on a real boot: any looping animation on screen
+/// keeps the frame queue from draining, so walks use fixed frames instead.
 Future<void> settle(WidgetTester tester, {int frames = 6}) async {
   for (var i = 0; i < frames; i++) {
     await tester.pump(const Duration(milliseconds: 120));

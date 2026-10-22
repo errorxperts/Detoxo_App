@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 /// `overlay/BlockScreenPalette.kt`, the source of truth. Edit the Kotlin
 /// first, then mirror here. Kotlin's `blend(a, b, t)` is `Color.lerp(b, a, t)`.
 ///
-/// The ground is flat. The accent is not here: it is the app theme's primary
-/// (`brandFor`), a fill and a tint only; [legibleOn] makes it readable as a
+/// The ground is flat. The accent is not here: it is the static spec
+/// `brand.main` of the theme, a fill and a tint only; [legibleOn] makes it readable as a
 /// label.
 class WallPalette {
   const WallPalette({

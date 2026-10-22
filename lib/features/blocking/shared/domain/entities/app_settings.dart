@@ -27,8 +27,6 @@ class AppSettings extends Equatable {
     this.onboarded = false,
     this.hasSeenFeatureShowcase = false,
     this.themeMode = AppThemeMode.dark,
-    this.darkBackground = AppBackground.dark1,
-    this.lightBackground = AppBackground.aurora,
     this.blockAdultWebsites = false,
     this.blockWebsitesForBlockedApps = false,
     this.showFeedbackButton = false,
@@ -38,6 +36,8 @@ class AppSettings extends Equatable {
     this.nudgeDailyCap = 4,
   });
 
+  /// Tolerant: unknown and retired keys (`darkBackground`, `lightBackground`)
+  /// are ignored, and [toJson] writes only the kept ones.
   factory AppSettings.fromJson(Map<String, dynamic> json) {
     // Legacy migration: the old model stored `paused` as the active plan while a
     // pause ran. The new model keeps activePlan = Block All and tracks the live
@@ -68,13 +68,6 @@ class AppSettings extends Equatable {
       onboarded: json['onboarded'] as bool? ?? false,
       hasSeenFeatureShowcase: json['hasSeenFeatureShowcase'] as bool? ?? false,
       themeMode: AppThemeMode.fromWire(json['themeMode'] as String?),
-      darkBackground: AppBackground.fromWire(
-        json['darkBackground'] as String?,
-        fallback: AppBackground.dark1,
-      ),
-      lightBackground: AppBackground.fromWire(
-        json['lightBackground'] as String?,
-      ),
       blockAdultWebsites: json['blockAdultWebsites'] as bool? ?? false,
       blockWebsitesForBlockedApps:
           json['blockWebsitesForBlockedApps'] as bool? ?? false,
@@ -121,12 +114,6 @@ class AppSettings extends Equatable {
 
   /// Appearance preference (drives the Flutter `ThemeMode` in the UI layer).
   final AppThemeMode themeMode;
-
-  /// Animated background choices — one per theme, so switching theme keeps each
-  /// mode's own pick (drives the design-system background in the UI layer). Dark
-  /// mode uses one of the `dark*` options; light mode uses `aurora`/`light*`.
-  final AppBackground darkBackground;
-  final AppBackground lightBackground;
 
   /// Website-blocker toggles, pushed to native via [toJson]/pushSettings. The
   /// variable-length blocklist itself ships separately (pushWebBlocklist); these
@@ -206,8 +193,6 @@ class AppSettings extends Equatable {
     bool? onboarded,
     bool? hasSeenFeatureShowcase,
     AppThemeMode? themeMode,
-    AppBackground? darkBackground,
-    AppBackground? lightBackground,
     bool? blockAdultWebsites,
     bool? blockWebsitesForBlockedApps,
     bool? showFeedbackButton,
@@ -231,8 +216,6 @@ class AppSettings extends Equatable {
       hasSeenFeatureShowcase:
           hasSeenFeatureShowcase ?? this.hasSeenFeatureShowcase,
       themeMode: themeMode ?? this.themeMode,
-      darkBackground: darkBackground ?? this.darkBackground,
-      lightBackground: lightBackground ?? this.lightBackground,
       blockAdultWebsites: blockAdultWebsites ?? this.blockAdultWebsites,
       blockWebsitesForBlockedApps:
           blockWebsitesForBlockedApps ?? this.blockWebsitesForBlockedApps,
@@ -258,8 +241,6 @@ class AppSettings extends Equatable {
     'onboarded': onboarded,
     'hasSeenFeatureShowcase': hasSeenFeatureShowcase,
     'themeMode': themeMode.wire,
-    'darkBackground': darkBackground.wire,
-    'lightBackground': lightBackground.wire,
     'blockAdultWebsites': blockAdultWebsites,
     'blockWebsitesForBlockedApps': blockWebsitesForBlockedApps,
     'showFeedbackButton': showFeedbackButton,
@@ -282,8 +263,6 @@ class AppSettings extends Equatable {
     onboarded,
     hasSeenFeatureShowcase,
     themeMode,
-    darkBackground,
-    lightBackground,
     blockAdultWebsites,
     blockWebsitesForBlockedApps,
     showFeedbackButton,

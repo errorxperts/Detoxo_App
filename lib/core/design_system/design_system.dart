@@ -25,10 +25,9 @@ export 'components/selection.dart';
 export 'components/toggle.dart';
 export 'components/variant_carousel.dart';
 // Foundations
-export 'foundations/ambient_background.dart';
 export 'foundations/animated_icons.dart';
-export 'foundations/background_scope.dart';
 export 'foundations/glass_container.dart';
+export 'foundations/glass_scaffold.dart';
 export 'foundations/liquid_glass_border.dart';
 export 'foundations/motion.dart';
 // Theme

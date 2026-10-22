@@ -39,11 +39,10 @@ class BlockScreenPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = (payload ?? BlockScreenPayload.preview()).sanitised();
-    // The app theme's brightness and primary (native reads the same values,
-    // pushed as themeMode and brandLight / brandDark).
-    final b = Theme.of(context).brightness;
-    final dark = b == Brightness.dark;
-    final accent = brandFor(BackgroundScope.of(context, b), b).primary;
+    // The app theme's brightness and the static spec brand (native reads the
+    // same values, pushed as themeMode and brandLight / brandDark).
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final accent = context.tokens.brand.main;
     final palette = wallPaletteFor(dark: dark, accent: accent);
     final copy = BlockScreenCopy.from(p, style);
     final board = compact ? _compactBoard : _board;

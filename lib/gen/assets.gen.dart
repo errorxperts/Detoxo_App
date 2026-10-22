@@ -81,9 +81,6 @@ class $AssetsImagesGen {
   AssetGenImage get detoxoLogo =>
       const AssetGenImage('assets/images/Detoxo_logo.png');
 
-  /// Directory path: assets/images/bg
-  $AssetsImagesBgGen get bg => const $AssetsImagesBgGen();
-
   /// File path: assets/images/detox_logo_no_bg.webp
   AssetGenImage get detoxLogoNoBg =>
       const AssetGenImage('assets/images/detox_logo_no_bg.webp');
@@ -250,63 +247,6 @@ class $AssetsSvgGen {
     lock,
     playCircle,
     sidebar,
-  ];
-}
-
-class $AssetsImagesBgGen {
-  const $AssetsImagesBgGen();
-
-  /// File path: assets/images/bg/dark_bg1.svg
-  SvgGenImage get darkBg1 => const SvgGenImage('assets/images/bg/dark_bg1.svg');
-
-  /// File path: assets/images/bg/dark_bg2.svg
-  SvgGenImage get darkBg2 => const SvgGenImage('assets/images/bg/dark_bg2.svg');
-
-  /// File path: assets/images/bg/dark_bg3.svg
-  SvgGenImage get darkBg3 => const SvgGenImage('assets/images/bg/dark_bg3.svg');
-
-  /// File path: assets/images/bg/dark_bg4.svg
-  SvgGenImage get darkBg4 => const SvgGenImage('assets/images/bg/dark_bg4.svg');
-
-  /// File path: assets/images/bg/dark_bg5.svg
-  SvgGenImage get darkBg5 => const SvgGenImage('assets/images/bg/dark_bg5.svg');
-
-  /// File path: assets/images/bg/dark_bg6.svg
-  SvgGenImage get darkBg6 => const SvgGenImage('assets/images/bg/dark_bg6.svg');
-
-  /// File path: assets/images/bg/light_bg1.svg
-  SvgGenImage get lightBg1 =>
-      const SvgGenImage('assets/images/bg/light_bg1.svg');
-
-  /// File path: assets/images/bg/light_bg2.svg
-  SvgGenImage get lightBg2 =>
-      const SvgGenImage('assets/images/bg/light_bg2.svg');
-
-  /// File path: assets/images/bg/light_bg3.svg
-  SvgGenImage get lightBg3 =>
-      const SvgGenImage('assets/images/bg/light_bg3.svg');
-
-  /// File path: assets/images/bg/light_bg4.svg
-  SvgGenImage get lightBg4 =>
-      const SvgGenImage('assets/images/bg/light_bg4.svg');
-
-  /// File path: assets/images/bg/light_bg5.svg
-  SvgGenImage get lightBg5 =>
-      const SvgGenImage('assets/images/bg/light_bg5.svg');
-
-  /// List of all assets
-  List<SvgGenImage> get values => [
-    darkBg1,
-    darkBg2,
-    darkBg3,
-    darkBg4,
-    darkBg5,
-    darkBg6,
-    lightBg1,
-    lightBg2,
-    lightBg3,
-    lightBg4,
-    lightBg5,
   ];
 }
 

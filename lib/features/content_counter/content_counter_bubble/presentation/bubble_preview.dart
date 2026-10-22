@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:detoxo/features/content_counter/content_counter_bubble/domain/bubble_model.dart';
 import 'package:detoxo/features/content_counter/content_counter_bubble/domain/entities/bubble_style.dart';
 import 'package:detoxo/features/content_counter/content_counter_bubble/presentation/bubble_face.dart';
@@ -9,7 +10,6 @@ import 'package:detoxo/features/content_counter/content_counter_bubble/presentat
 import 'package:detoxo/features/content_counter/content_counter_bubble/presentation/bubble_painter.dart';
 import 'package:detoxo/features/content_counter/content_counter_bubble/presentation/bubble_tokens.g.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/domain/brand_tint.dart';
-import 'package:detoxo/features/content_counter/content_counter_core/presentation/counter_brand.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
@@ -162,7 +162,10 @@ class BubblePreviewState extends State<BubblePreview>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    _brand = counterBrand(context, MediaQuery.platformBrightnessOf(context));
+    // The static spec brand of the device brightness, as native draws it.
+    _brand = AppTokens.forBrightness(
+      MediaQuery.platformBrightnessOf(context),
+    ).brand.main.toARGB32();
     _syncMotion();
   }
 

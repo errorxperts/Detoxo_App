@@ -134,16 +134,6 @@ class SettingsCubit extends Cubit<AppSettings> {
   Future<void> setThemeMode(AppThemeMode mode) =>
       _commit((s) => s.copyWith(themeMode: mode));
 
-  /// Animated background choice for one theme. UI-only: the native engine
-  /// ignores it and persistence flows through [_commit]. Pass
-  /// [dark] for the mode being edited so each theme keeps its own pick.
-  Future<void> setBackground(AppBackground background, {required bool dark}) =>
-      _commit(
-        (s) => dark
-            ? s.copyWith(darkBackground: background)
-            : s.copyWith(lightBackground: background),
-      );
-
   Future<void> setOnboarded({required bool value}) =>
       _commit((s) => s.copyWith(onboarded: value));
 

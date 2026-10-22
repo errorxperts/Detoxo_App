@@ -352,9 +352,9 @@ as JSON and re-renders.
   `lib/features/content_counter/home_content_counter/domain/entities/widget_style.dart`):
   `{theme: String}` (`system` | `light` | `dark`; native also accepts the legacy
   `SYSTEM` / `LIGHT` / `DARK` and ignores the old background/density/line keys)
-- `brand` — an int, the app theme's resolved `colorScheme.primary` as ARGB
+- `brand` — an int, the static Frozen Glass spec `brand.main` of a theme as ARGB
   (`Color.toARGB32()`; it arrives as a Long and is read as `Number.toInt()`). Pushed
-  by `main.dart`'s `_BrandSync` when it changes; the bubble's 0-reel glass and the
+  once at start by `main.dart` (`brandLight` / `brandDark`); the bubble's 0-reel glass and the
   widgets' empty tile take its hue ([17](17-content-counter.md), `BrandTint`).
 
 Every `ChannelMethods` constant now has a native `when` arm — the dead

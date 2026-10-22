@@ -28,7 +28,7 @@ runtime behaviour yet). Every "wired" claim below is grounded in a real import i
 
 | Package | Version | Status | Role in Detoxo |
 | --- | --- | --- | --- |
-| `flutter_bloc` | `^9.1.1` | **Wired** (35 files) | The only state-management library. Every feature exposes **Cubits** (no event-driven Blocs, no Riverpod). Provides `BlocProvider`, `BlocBuilder`, `BlocSelector`, `BlocListener` used across screens (e.g. `main.dart` selects `(AppThemeMode, AppBackground, AppBackground)` — theme + the per-mode dark/light background — off `SettingsCubit`). |
+| `flutter_bloc` | `^9.1.1` | **Wired** (35 files) | The only state-management library. Every feature exposes **Cubits** (no event-driven Blocs, no Riverpod). Provides `BlocProvider`, `BlocBuilder`, `BlocSelector`, `BlocListener` used across screens (e.g. `main.dart` selects `AppThemeMode` off `SettingsCubit`). |
 | `bloc` | `^9.2.1` | **Wired (transitive)** | Foundation library re-exported by `flutter_bloc`; `Cubit`/`Emitter` come from here. Not imported directly (`package:bloc/bloc.dart` appears nowhere) but pinned so the version is explicit. |
 | `equatable` | `^2.0.8` | **Wired** (21 files) | Value equality for Cubit states and domain entities/value-objects, so `BlocBuilder`/`BlocSelector` can skip no-op rebuilds. |
 | `get_it` | `^9.2.1` | **Wired** | The service locator. Single registration surface in `lib/core/di/injector.dart` exposed as `sl`. All repositories/cubits/data sources are resolved through it. |
@@ -227,8 +227,6 @@ Re-add any of these only when something actually imports them.
   bubble text (700/800). One copy serves Flutter and the native renderers, which
   read them from `flutter_assets/assets/fonts/` through `widget/Manrope.kt`
   (`semiBold`, `bold`, `extraBold`; [17](17-content-counter.md) §5.2).
-- `assets/images/bg/` — the 11 user-selectable background SVGs, rendered via
-  `flutter_svg`. 25 KB for the whole set; the best size/value ratio in the app.
 - `assets/images/illustration/` — 23 hero illustrations as **512² lossy WebP**
   (~29 KB each). They render at 50–80 dp, so 512 px leaves 2× headroom on a 3× screen.
 - `assets/images/social_icon_pack/` — bundled app icons: one icon per app

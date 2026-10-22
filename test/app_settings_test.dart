@@ -3,47 +3,31 @@ import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('AppSettings background', () {
-    test('defaults: dark1 for dark, aurora for light', () {
-      expect(const AppSettings().darkBackground, AppBackground.dark1);
-      expect(const AppSettings().lightBackground, AppBackground.aurora);
-    });
-
-    test('copyWith + toJson serialize both wire tokens', () {
-      final settings = const AppSettings().copyWith(
-        darkBackground: AppBackground.dark3,
-        lightBackground: AppBackground.light2,
-      );
-      expect(settings.darkBackground, AppBackground.dark3);
-      expect(settings.lightBackground, AppBackground.light2);
-      expect(settings.toJson()['darkBackground'], 'DARK3');
-      expect(settings.toJson()['lightBackground'], 'LIGHT2');
-    });
-
-    test('fromJson reads the wire tokens', () {
+  group('AppSettings retired background keys', () {
+    test('a stored blob with them loads, keeping every other field', () {
       final settings = AppSettings.fromJson(const {
-        'darkBackground': 'DARK5',
-        'lightBackground': 'LIGHT4',
+        'themeMode': 'LIGHT',
+        'onboarded': true,
+        'reelAllowance': 3,
+        'darkBackground': 'DARK3',
+        'lightBackground': 'LIGHT2',
       });
-      expect(settings.darkBackground, AppBackground.dark5);
-      expect(settings.lightBackground, AppBackground.light4);
+      expect(settings.themeMode, AppThemeMode.light);
+      expect(settings.onboarded, isTrue);
+      expect(settings.reelAllowance, 3);
     });
 
-    test('fromJson defaults when keys are missing (back-compat)', () {
-      final settings = AppSettings.fromJson(const <String, dynamic>{});
-      expect(settings.darkBackground, AppBackground.dark1);
-      expect(settings.lightBackground, AppBackground.aurora);
+    test('toJson writes neither key, and round-trips', () {
+      const settings = AppSettings(themeMode: AppThemeMode.system);
+      final json = settings.toJson();
+      expect(json, isNot(contains('darkBackground')));
+      expect(json, isNot(contains('lightBackground')));
+      expect(AppSettings.fromJson(json), settings);
     });
 
-    test('survives a full JSON round-trip', () {
-      final original = const AppSettings().copyWith(
-        darkBackground: AppBackground.dark6,
-        lightBackground: AppBackground.light5,
-      );
-      final restored = AppSettings.fromJson(original.toJson());
-      expect(restored.darkBackground, AppBackground.dark6);
-      expect(restored.lightBackground, AppBackground.light5);
-      expect(restored, original);
+    test('Dark stays the default theme', () {
+      expect(const AppSettings().themeMode, AppThemeMode.dark);
+      expect(AppSettings.fromJson(const {}).themeMode, AppThemeMode.dark);
     });
   });
 }

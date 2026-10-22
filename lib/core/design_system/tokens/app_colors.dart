@@ -11,7 +11,7 @@ abstract final class AppColors {
   // ── Brand (evolved signature: electric indigo + aqua-cyan) ──────────────
   // Fallback/anchor values used by gradients and as the default (Aurora) brand.
   // The live brand accent/primary is background-adaptive and flows through the
-  // ColorScheme — see `brandFor` + `AppTheme` and `context.accent`.
+  // ColorScheme — see `AppTheme` and `context.accent`.
   static const Color seed = Color(
     0xFF6E7BFF,
   ); // electric indigo — primary anchor + gradients

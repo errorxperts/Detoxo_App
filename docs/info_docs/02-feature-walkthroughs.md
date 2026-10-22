@@ -525,8 +525,8 @@ each comes in **Small** (2×2), **Medium** (4×2) and **Large** (4×4):
 | **Bonsai** | A little tree that loses a stage every 100 reels, from **Blooming** to **Leafless**. |
 | **Bento** | Your count, watch time and next colour in calm, separate tiles. |
 
-**The colour is your tier, in your theme.** The bubble and every widget use your
-theme's colour (the one your background sets). Every 100 reels the tile turns a
+**The colour is your tier, in your theme.** The bubble and every widget use
+Detoxo's blue for your theme. Every 100 reels the tile turns a
 deeper shade of it: pale at 1–99, deepest at 400 and more ("Final colour"). With no
 reels yet it's a quiet tile that says **No reels yet**. A widget set to Light or Dark
 uses your theme's colour for that mode.
@@ -628,13 +628,9 @@ Open **Settings** from the top bar or menu. It's grouped into:
 
 **General**
 
-- **Appearance** — opens the Appearance screen: choose a **Theme** (**Light** or
-  **Dark**, or **Match system** to follow your device — the default), a
-  a **Background** — the options are theme-specific, so Dark and Light each keep
-  their own pick (Dark: Midnight, Twilight, Nebula, Magenta, Frost, Prism; Light:
-  Aurora plus Sky, Dawn, Blossom, Sunrise, Pastel). The chosen background also
-  sets the app's **accent colour**, so buttons, switches and highlights harmonise
-  with whatever is behind the glass. Manage the **reel counter** here too
+- **Appearance** — opens the Appearance screen: choose a **Theme** — **System**
+  (follows your device), **Light** or **Dark** (the default). Manage the
+  **reel counter** here too
   (counting, the bubble, bubble style and the home widget) and the **block
   screen** (its on/off switch and look — §8). Everything previews live.
 - **Feedback button** — show a quick feedback button in every top bar.

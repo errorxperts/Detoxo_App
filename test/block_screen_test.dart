@@ -317,9 +317,11 @@ void main() {
     }
 
     const fallback = Color(0xFF1C3D78); // BrandTint.FALLBACK
+    // Every accent the wall can take: each palette main of both themes (the
+    // live accent comes next), plus the native pre-push fallback.
     final primaries = {
-      for (final style in AppBackgroundStyle.values)
-        for (final b in Brightness.values) brandFor(style, b).primary,
+      for (final t in const [AppTokens.light, AppTokens.dark])
+        for (final p in t.palettes) p.main,
       fallback,
     };
 
@@ -356,10 +358,9 @@ void main() {
       final mint = wallPaletteFor(dark: true, accent: const Color(0xFF37DFA0));
       final pink = wallPaletteFor(dark: true, accent: const Color(0xFFFF6FB0));
       expect(mint.ground, isNot(pink.ground));
-      // The dark wall's ink and muted, for every primary a dark app uses.
-      for (final style in AppBackgroundStyle.values) {
-        final accent = brandFor(style, Brightness.dark).primary;
-        final p = wallPaletteFor(dark: true, accent: accent);
+      // The dark wall's ink and muted, for every accent a dark app uses.
+      for (final palette in AppTokens.dark.palettes) {
+        final p = wallPaletteFor(dark: true, accent: palette.main);
         expect(contrast(p.ink, p.ground), greaterThanOrEqualTo(17));
         expect(contrast(p.muted, p.ground), greaterThanOrEqualTo(7.8));
       }
@@ -375,19 +376,19 @@ void main() {
       expect(legibleOn(p.ink, ground: p.ground, ink: p.ink), p.ink);
     });
 
-    test('every theme primary gives the primary button legible text', () {
-      for (final style in AppBackgroundStyle.values) {
-        for (final b in Brightness.values) {
-          final primary = brandFor(style, b).primary;
-          final fill = legibleFill(primary);
+    test('every palette main gives the primary button legible text', () {
+      for (final t in const [AppTokens.light, AppTokens.dark]) {
+        for (final palette in t.palettes) {
+          final fill = legibleFill(palette.main);
+          final at = '${palette.main}, ${t.brightness.name}';
           expect(
             contrast(onColorFor(fill), fill),
             greaterThanOrEqualTo(4.5),
-            reason: '$style/$b',
+            reason: at,
           );
-          // Only Sky (light1) needed darkening: white was 4.499:1 there.
-          if (primary != const Color(0xFF2F6BFF)) {
-            expect(fill, primary, reason: '$style/$b');
+          // Only Light over-main (#e5384f) needs darkening.
+          if (palette.main != AppTokens.light.over.main) {
+            expect(fill, palette.main, reason: at);
           }
         }
       }

@@ -12,26 +12,26 @@ import org.junit.Test
  * Pins the wall's pure half: window flags, the strip-width formula at both SDK
  * branches, the plan-label mapping (the wire token `CURIOUS` must never reach
  * a screen), the payload sanitiser (EVO-018), the style spec, and the colours
- * (the palette and every accent-on-ground rule, for each theme primary).
+ * (the palette and every accent-on-ground rule, for each spec palette main).
  * Window lifecycle needs a device — see the device-sanity list in
  * docs/code_docs/25-block-screen.md.
  */
 class BlockScreenGeometryTest {
 
-    // Every theme primary in `brandFor()` (`app_theme.dart`): Aurora dark and dark1–6,
-    // then light1 (Sky), light2 (Teal), light4 (Rose), Aurora light, light3 and light5.
-    private val darkPrimaries = intArrayOf(
-        0xFF8B93FF.toInt(), 0xFF5B8CFF.toInt(), 0xFFA78BFF.toInt(), 0xFF9B7CFF.toInt(),
-        0xFFFF6FB0.toInt(), 0xFF5AA0FF.toInt(), 0xFF37DFA0.toInt(),
+    // Every accent the wall can take: the main of each spec palette (brand, Block All,
+    // Conscious, Pause, One Reel, over) in each theme, from the generated DxTokens.
+    private val darkMains = intArrayOf(
+        DxTokens.BRAND_MAIN_DARK, DxTokens.BLOCK_ALL_MAIN_DARK, DxTokens.CONSCIOUS_MAIN_DARK,
+        DxTokens.PAUSE_MAIN_DARK, DxTokens.ONE_REEL_MAIN_DARK, DxTokens.OVER_MAIN_DARK,
     )
-    private val sky = 0xFF2F6BFF.toInt()
-    private val teal = 0xFF0B7E8C.toInt()
-    private val rose = 0xFFC0367A.toInt()
-    private val alreadyLegibleLight = intArrayOf(0xFF4F46E5.toInt(), 0xFFC21D9E.toInt(), 0xFF5257DB.toInt())
+    private val lightMains = intArrayOf(
+        DxTokens.BRAND_MAIN_LIGHT, DxTokens.BLOCK_ALL_MAIN_LIGHT, DxTokens.CONSCIOUS_MAIN_LIGHT,
+        DxTokens.PAUSE_MAIN_LIGHT, DxTokens.ONE_REEL_MAIN_LIGHT, DxTokens.OVER_MAIN_LIGHT,
+    )
 
     /** `BrandTint.FALLBACK`: the accent before Dart has ever pushed one. */
     private val fallback = 0xFF1C3D78.toInt()
-    private val everyAccent = darkPrimaries + intArrayOf(sky, teal, rose) + alreadyLegibleLight + fallback
+    private val everyAccent = darkMains + lightMains + fallback
 
     @Test
     fun windowFlagsAre808() {
@@ -182,9 +182,15 @@ class BlockScreenGeometryTest {
             }
         }
         // The light wall is the board's own, whatever the accent.
-        assertEquals(Palette(0xFFECEFF4.toInt(), 0xFF12151B.toInt(), 0xFF5A6170.toInt()), wallPalette(false, sky))
+        assertEquals(
+            Palette(0xFFECEFF4.toInt(), 0xFF12151B.toInt(), 0xFF5A6170.toInt()),
+            wallPalette(false, DxTokens.BRAND_MAIN_LIGHT),
+        )
         // The dark ground carries a breath of the accent: two accents, two grounds.
-        assertNotEquals(wallPalette(true, sky).ground, wallPalette(true, rose).ground)
+        assertNotEquals(
+            wallPalette(true, DxTokens.BRAND_MAIN_DARK).ground,
+            wallPalette(true, DxTokens.ONE_REEL_MAIN_DARK).ground,
+        )
     }
 
     @Test
@@ -213,7 +219,7 @@ class BlockScreenGeometryTest {
     @Test
     fun theSpotlightKeepsItsMutedTextReadableUnderTheLight() {
         // At the light's centre the writer and meta sit on the glow AND the lit logo.
-        for (accent in darkPrimaries + fallback) {
+        for (accent in darkMains + fallback) {
             val p = wallPalette(true, accent)
             val lit = blend(accent, blend(accent, p.ground, GLOW_ALPHA / 255f), LIT_LOGO_ALPHA / 255f)
             assertTrue(Integer.toHexString(accent), contrastRatio(p.muted, lit) >= 4.5)
@@ -222,12 +228,12 @@ class BlockScreenGeometryTest {
 
     @Test
     fun legibleOnLeavesAnAccentThatAlreadyReadsAlone() {
-        val light = wallPalette(false, sky)
-        // The light wall deepens Sky (3.9:1), Teal and Rose a little, and nothing else of the light set.
-        for (c in intArrayOf(sky, teal, rose)) assertNotEquals(c, legibleOn(c, light.ground, light.ink))
-        for (c in alreadyLegibleLight + fallback) assertEquals(c, legibleOn(c, light.ground, light.ink))
-        // The dark wall leaves every dark primary alone and lifts only the fallback navy.
-        for (c in darkPrimaries) {
+        val light = wallPalette(false, DxTokens.BRAND_MAIN_LIGHT)
+        // The light wall deepens every light main (each is under 4.5:1 on #ECEFF4), not the fallback.
+        for (c in lightMains) assertNotEquals(c, legibleOn(c, light.ground, light.ink))
+        assertEquals(fallback, legibleOn(fallback, light.ground, light.ink))
+        // The dark wall leaves every dark main alone and lifts only the fallback navy.
+        for (c in darkMains) {
             val p = wallPalette(true, c)
             assertEquals(c, legibleOn(c, p.ground, p.ink))
         }
@@ -238,13 +244,13 @@ class BlockScreenGeometryTest {
 
     @Test
     fun legibleFillDarkensOnlyWhatNeedsIt() {
-        val sky = 0xFF2F6BFF.toInt() // light1: white text 4.499:1, navy worse
-        val fixed = legibleFill(sky)
-        assertNotEquals(sky, fixed)
+        // Only Light over-main (#e5384f) needs darkening; every other accent already reads.
+        val over = DxTokens.OVER_MAIN_LIGHT
+        val fixed = legibleFill(over)
+        assertNotEquals(over, fixed)
         assertTrue(contrastRatio(onColorFor(fixed), fixed) >= 4.5)
-        // Theme primaries that already read, the fallback brand, and the old teal accent.
-        for (ok in intArrayOf(0xFF4F46E5.toInt(), 0xFF5B8CFF.toInt(), 0xFF1C3D78.toInt(), 0xFF44E2CD.toInt())) {
-            assertEquals(ok, legibleFill(ok))
+        for (ok in everyAccent) {
+            if (ok != over) assertEquals(Integer.toHexString(ok), ok, legibleFill(ok))
         }
     }
 }

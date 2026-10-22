@@ -11,14 +11,14 @@ double _contrast(Color a, Color b) {
   return (la > lb ? la + 0.05 : lb + 0.05) / (la > lb ? lb + 0.05 : la + 0.05);
 }
 
-/// The usage ramp holds its contrast in every theme the app can pick: every
-/// background's primary in both brightnesses, plus the pre-push fallback.
+/// The usage ramp holds its contrast for every brand native can be pushed: the
+/// spec `brand.main` of both themes, plus the pre-push fallback.
 /// `BrandTint`'s tables are tuned against exactly these checks.
 void main() {
   final brands = {
     BrandTint.fallback,
-    for (final style in AppBackgroundStyle.values)
-      for (final b in Brightness.values) brandFor(style, b).primary.toARGB32(),
+    for (final t in const [AppTokens.light, AppTokens.dark])
+      t.brand.main.toARGB32(),
   };
 
   for (final brand in brands) {

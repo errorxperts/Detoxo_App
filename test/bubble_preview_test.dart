@@ -143,33 +143,23 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testWidgets("every tier takes the primary of the device's brightness", (
+  testWidgets("every tier takes the spec brand of the device's brightness", (
     tester,
   ) async {
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
-    // Different backgrounds per brightness, so the two primaries differ.
-    const dark = AppBackgroundStyle.dark4;
-    const light = AppBackgroundStyle.light1;
-    for (final (b, style) in [
-      (Brightness.dark, dark),
-      (Brightness.light, light),
-    ]) {
+    for (final b in Brightness.values) {
       tester.platformDispatcher.platformBrightnessTestValue = b;
       for (final count in [0, 150, 450]) {
         await tester.pumpWidget(
           MaterialApp(
-            home: BackgroundScope(
-              dark: dark,
-              light: light,
-              child: Center(child: _preview(count: count, animate: false)),
-            ),
+            home: Center(child: _preview(count: count, animate: false)),
           ),
         );
         expect(
           _frame(tester).look,
           BubbleLook.of(
             BubbleModel.tier(count),
-            brand: brandFor(style, b).primary.toARGB32(),
+            brand: AppTokens.forBrightness(b).brand.main.toARGB32(),
           ),
           reason: '$b, $count reels',
         );

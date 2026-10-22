@@ -1,5 +1,5 @@
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/domain/entities/counter_style_enums.dart';
-import 'package:detoxo/features/content_counter/content_counter_core/presentation/counter_brand.dart';
 import 'package:detoxo/features/content_counter/home_content_counter/domain/entities/widget_payload.dart';
 import 'package:detoxo/features/content_counter/home_content_counter/domain/widget_model.dart';
 import 'package:detoxo/features/content_counter/home_content_counter/presentation/faces/bento_face.dart';
@@ -99,8 +99,8 @@ class _WidgetPreviewState extends State<WidgetPreview>
         MediaQuery.maybePlatformBrightnessOf(context) == Brightness.dark;
     _use24h = MediaQuery.maybeAlwaysUse24HourFormatOf(context) ?? false;
     _reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    _brandLight = counterBrand(context, Brightness.light);
-    _brandDark = counterBrand(context, Brightness.dark);
+    _brandLight = AppTokens.light.brand.main.toARGB32();
+    _brandDark = AppTokens.dark.brand.main.toARGB32();
     _retarget();
   }
 

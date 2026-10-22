@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' show ImageFilter;
 
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
@@ -7,11 +6,9 @@ import 'package:detoxo/features/blocking/blocking.dart';
 import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
-/// One home for how Detoxo *looks*: the app theme (a Light / Dark segmented
-/// control that auto-follows the device by default) and background, the reel
+/// One home for how Detoxo *looks*: the app theme (System / Light / Dark), the reel
 /// counter's two surfaces — the floating bubble and the home-screen widget —
 /// and the block screen, each shown as a large live preview you tap to
 /// customise. The bubble and the block screen carry their own on/off; the
@@ -34,10 +31,6 @@ class AppearanceScreen extends StatelessWidget {
           // ── App theme ───────────────────────────────────────────────────
           SectionHeader('Theme'),
           _ThemeControl(),
-
-          // ── App background ──────────────────────────────────────────────
-          SectionHeader('Background'),
-          _BackgroundSection(),
 
           // ── Reel counter: master switch + the two surfaces as cards ─────
           SectionHeader('Reel counter'),
@@ -208,71 +201,39 @@ class _CounterSection extends StatelessWidget {
   }
 }
 
-// ── Theme control (segmented + match-system, no glass card) ─────────────────────
+// ── Theme control ──────────────────────────────────────────────────────────────
 
-/// The app-theme control, kept deliberately flat (no card): a custom sliding
-/// **Light / Dark** segmented button plus a compact **Match system** row that
-/// keeps the app auto-following the device (the default). Picking a segment
-/// commits an explicit theme and turns matching off; while matching is on the
-/// segment dims to show it's device-driven, not locked. The whole app re-themes
-/// instantly.
+/// The app theme: one System / Light / Dark segmented control. System follows
+/// the device; Dark is the default. The whole app re-themes instantly.
 class _ThemeControl extends StatelessWidget {
   const _ThemeControl();
 
+  static const _modes = [
+    AppThemeMode.system,
+    AppThemeMode.light,
+    AppThemeMode.dark,
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SettingsCubit, AppSettings>(
-      buildWhen: (a, b) => a.themeMode != b.themeMode,
-      builder: (context, settings) {
-        final mode = settings.themeMode;
-        final system = mode == AppThemeMode.system;
-        final dark = Theme.of(context).brightness == Brightness.dark;
-        final selectedIndex = switch (mode) {
-          AppThemeMode.light => 0,
-          AppThemeMode.dark => 1,
-          AppThemeMode.system => dark ? 1 : 0,
-        };
-        final cubit = context.read<SettingsCubit>();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AnimatedOpacity(
-              duration: AppDurations.fast,
-              opacity: system ? 0.55 : 1,
-              child: GlassSegmented(
-                segments: const [
-                  (label: 'Light', icon: Icons.light_mode_rounded),
-                  (label: 'Dark', icon: Icons.dark_mode_rounded),
-                ],
-                selectedIndex: selectedIndex,
-                onChanged: (i) => cubit.setThemeMode(
-                  i == 0 ? AppThemeMode.light : AppThemeMode.dark,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            _FlatToggleRow(
-              icon: Icons.brightness_auto_rounded,
-              label: 'Match system',
-              value: system,
-              onChanged: (on) => cubit.setThemeMode(
-                on
-                    ? AppThemeMode.system
-                    : dark
-                    ? AppThemeMode.dark
-                    : AppThemeMode.light,
-              ),
-            ),
-          ],
-        );
-      },
+    return BlocSelector<SettingsCubit, AppSettings, AppThemeMode>(
+      selector: (s) => s.themeMode,
+      builder: (context, mode) => GlassSegmented(
+        segments: const [
+          (label: 'System', icon: Icons.brightness_auto_rounded),
+          (label: 'Light', icon: Icons.light_mode_rounded),
+          (label: 'Dark', icon: Icons.dark_mode_rounded),
+        ],
+        selectedIndex: _modes.indexOf(mode),
+        onChanged: (i) =>
+            unawaited(context.read<SettingsCubit>().setThemeMode(_modes[i])),
+      ),
     );
   }
 }
 
-/// A flat (no card) toggle row: muted icon, semibold label, switch. Shared by
-/// **Match system** and the reel counter master so the two read alike.
+/// A flat (no card) toggle row: muted icon, semibold label, switch (the reel
+/// counter master).
 class _FlatToggleRow extends StatelessWidget {
   const _FlatToggleRow({
     required this.icon,
@@ -410,217 +371,3 @@ class _SurfaceCard extends StatelessWidget {
     );
   }
 }
-
-// ── Background carousel ─────────────────────────────────────────────────────────
-
-/// The animated-background picker: a horizontally-scrolling row of real SVG
-/// previews; the selected one carries its name. The options are
-/// theme-specific — dark mode shows the `dark*` backgrounds, light mode shows
-/// Aurora + the `light*` backgrounds — and each theme keeps its own pick.
-/// Selecting a card updates the app background live behind this screen.
-class _BackgroundSection extends StatelessWidget {
-  const _BackgroundSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final options = dark ? _darkBackgrounds : _lightBackgrounds;
-    return BlocBuilder<SettingsCubit, AppSettings>(
-      buildWhen: (a, b) =>
-          a.darkBackground != b.darkBackground ||
-          a.lightBackground != b.lightBackground,
-      builder: (context, settings) {
-        final selected = dark
-            ? settings.darkBackground
-            : settings.lightBackground;
-        return SizedBox(
-          height: 84,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
-            itemCount: options.length,
-            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
-            itemBuilder: (context, i) {
-              final b = options[i];
-              return _BgCard(
-                style: b.$1,
-                label: b.$2,
-                dark: dark,
-                selected: b.$1 == selected,
-                onTap: () => context.read<SettingsCubit>().setBackground(
-                  b.$1,
-                  dark: dark,
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// One background preview card (real SVG, or a gradient for the asset-less
-/// Aurora). The SVG is blurred to mirror the full-screen ambient background —
-/// which blurs its SVG heavily — so the swatch reads like what actually renders.
-/// The selected card animates to an accent ring + glow with a check badge and
-/// shows its [label]; every card announces its name to screen readers.
-/// Same shape as the design system's `VariantCarousel` card — fold into it if
-/// the two ever need to move together.
-class _BgCard extends StatelessWidget {
-  const _BgCard({
-    required this.style,
-    required this.label,
-    required this.dark,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final AppBackground style;
-  final String label;
-  final bool dark;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final asset = _bgSvgAsset(style);
-    final accent = Theme.of(context).colorScheme.secondary;
-    final borderWidth = selected ? 2.0 : 1.0;
-    final preview = asset == null
-        ? DecoratedBox(
-            decoration: BoxDecoration(gradient: _auroraSwatchGradient(dark)),
-          )
-        // Match the ambient background's heavy blur, scaled to the swatch.
-        : ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-            child: SvgPicture.asset(asset, fit: BoxFit.cover),
-          );
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: AppDurations.fast,
-          curve: AppCurves.standard,
-          width: 116,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(
-              color: selected ? accent : context.glass.border,
-              width: borderWidth,
-            ),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: accent.withValues(alpha: 0.35),
-                      blurRadius: 12,
-                    ),
-                  ]
-                : null,
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppRadius.md - borderWidth),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                preview,
-                if (selected)
-                  Positioned(
-                    top: 6,
-                    right: 6,
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: accent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.check,
-                        size: 14,
-                        color: Theme.of(context).colorScheme.onSecondary,
-                      ),
-                    ),
-                  ),
-                // The swatches follow the theme (dark swatches in dark mode),
-                // so the on-glass text colour reads on all of them.
-                if (selected)
-                  Positioned(
-                    left: AppSpacing.sm,
-                    right: AppSpacing.sm,
-                    bottom: AppSpacing.xs,
-                    child: ExcludeSemantics(
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: context.glass.onGlass,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── Background option data ──────────────────────────────────────────────────────
-
-/// Dark-mode background options (default first). Dark has no Aurora — it's a
-/// light-mode ambient.
-const _darkBackgrounds = <(AppBackground, String)>[
-  (AppBackground.dark1, 'Midnight'),
-  (AppBackground.dark2, 'Twilight'),
-  (AppBackground.dark3, 'Nebula'),
-  (AppBackground.dark4, 'Magenta'),
-  (AppBackground.dark5, 'Frost'),
-  (AppBackground.dark6, 'Prism'),
-];
-
-/// Light-mode background options (Aurora, the theme-aware ambient, is default).
-const _lightBackgrounds = <(AppBackground, String)>[
-  (AppBackground.aurora, 'Aurora'),
-  (AppBackground.light1, 'Sky'),
-  (AppBackground.light2, 'Dawn'),
-  (AppBackground.light3, 'Blossom'),
-  (AppBackground.light4, 'Sunrise'),
-  (AppBackground.light5, 'Pastel'),
-];
-
-/// SVG asset for a background, or null for Aurora (which has no asset). Mirrors
-/// `svgAssetFor` in the design system — the presentation layer can't reach
-/// `main.dart`'s domain→style mapper, so a small local copy keeps the picker
-/// self-contained.
-String? _bgSvgAsset(AppBackground style) => switch (style) {
-  AppBackground.aurora => null,
-  AppBackground.dark1 => 'assets/images/bg/dark_bg1.svg',
-  AppBackground.dark2 => 'assets/images/bg/dark_bg2.svg',
-  AppBackground.dark3 => 'assets/images/bg/dark_bg3.svg',
-  AppBackground.dark4 => 'assets/images/bg/dark_bg4.svg',
-  AppBackground.dark5 => 'assets/images/bg/dark_bg5.svg',
-  AppBackground.dark6 => 'assets/images/bg/dark_bg6.svg',
-  AppBackground.light1 => 'assets/images/bg/light_bg1.svg',
-  AppBackground.light2 => 'assets/images/bg/light_bg2.svg',
-  AppBackground.light3 => 'assets/images/bg/light_bg3.svg',
-  AppBackground.light4 => 'assets/images/bg/light_bg4.svg',
-  AppBackground.light5 => 'assets/images/bg/light_bg5.svg',
-};
-
-/// A small gradient standing in for the (asset-less) Aurora background in its
-/// picker swatch.
-Gradient _auroraSwatchGradient(bool dark) => LinearGradient(
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
-  colors: dark
-      ? const [Color(0xFF1E2A52), Color(0xFF3A2A78), Color(0xFF0B1326)]
-      : const [Color(0xFFF1ECFF), Color(0xFFE6FBF6), Color(0xFFEEF1FB)],
-);

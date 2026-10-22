@@ -1,4 +1,3 @@
-import 'package:detoxo/core/design_system/foundations/background_scope.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
@@ -110,92 +109,16 @@ extension GlassThemeX on BuildContext {
   }
 }
 
-/// Per-background brand pairing. The selected background drives the app's live
-/// primary + accent so the whole UI harmonises with what's behind the glass —
-/// each pair is sampled from that background's own palette.
-/// [AppBackgroundStyle.aurora] (the asset-less default) uses the signature
-/// pairing, resolved per brightness.
-///
-/// Keyed by the design-system [AppBackgroundStyle] (dark* only appear in dark
-/// mode, light* only in light mode); [brightness] disambiguates
-/// [AppBackgroundStyle.aurora].
-({Color primary, Color accent}) brandFor(
-  AppBackgroundStyle style,
-  Brightness brightness,
-) {
-  final dark = brightness == Brightness.dark;
-  return switch (style) {
-    AppBackgroundStyle.aurora =>
-      dark
-          ? (primary: const Color(0xFF8B93FF), accent: const Color(0xFF35DCE8))
-          : (primary: const Color(0xFF4F46E5), accent: const Color(0xFF0B7E8C)),
-    AppBackgroundStyle.dark1 => (
-      primary: const Color(0xFF5B8CFF),
-      accent: const Color(0xFF38E0F0),
-    ),
-    AppBackgroundStyle.dark2 => (
-      primary: const Color(0xFFA78BFF),
-      accent: const Color(0xFF66D0FF),
-    ),
-    AppBackgroundStyle.dark3 => (
-      primary: const Color(0xFF9B7CFF),
-      accent: const Color(0xFF3AE0FF),
-    ),
-    AppBackgroundStyle.dark4 => (
-      primary: const Color(0xFFFF6FB0),
-      accent: const Color(0xFFC489FF),
-    ),
-    AppBackgroundStyle.dark5 => (
-      primary: const Color(0xFF5AA0FF),
-      accent: const Color(0xFF39E6F2),
-    ),
-    AppBackgroundStyle.dark6 => (
-      primary: const Color(0xFF37DFA0),
-      accent: const Color(0xFF7C9BFF),
-    ),
-    AppBackgroundStyle.light1 => (
-      primary: const Color(0xFF2F6BFF),
-      accent: const Color(0xFF0E7FA8),
-    ),
-    AppBackgroundStyle.light2 => (
-      primary: const Color(0xFF0B7E8C),
-      accent: const Color(0xFF3B5FD0),
-    ),
-    AppBackgroundStyle.light3 => (
-      primary: const Color(0xFFC21D9E),
-      accent: const Color(0xFF5A4FD0),
-    ),
-    AppBackgroundStyle.light4 => (
-      primary: const Color(0xFFC0367A),
-      accent: const Color(0xFF2F6FC0),
-    ),
-    AppBackgroundStyle.light5 => (
-      primary: const Color(0xFF5257DB),
-      accent: const Color(0xFF7E36C8),
-    ),
-  };
-}
-
-/// Centralised, dark-first themes with a **background-adaptive brand** layered
-/// over hand-authored, contrast-audited neutral surfaces. Scaffolds are
-/// transparent so the ambient mesh shows through; brand roles come from the
-/// selected background via [brandFor], neutrals/semantics stay fixed per theme.
+/// The app themes, built from the generated Frozen Glass tokens. The brand is
+/// the static spec `brand` palette (no background picker): `brand.main` is the
+/// primary, its accent text colour the secondary.
 abstract final class AppTheme {
-  // Signature pairing (the asset-less Aurora default), per brightness.
-  static const Color _sigDarkPrimary = Color(0xFF8B93FF);
-  static const Color _sigDarkAccent = Color(0xFF35DCE8);
-  static const Color _sigLightPrimary = Color(0xFF4F46E5);
-  static const Color _sigLightAccent = Color(0xFF0B7E8C);
+  static ThemeData dark() => _brand(AppTokens.dark);
 
-  static ThemeData dark({
-    Color brandPrimary = _sigDarkPrimary,
-    Color brandAccent = _sigDarkAccent,
-  }) => _base(Brightness.dark, brandPrimary, brandAccent);
+  static ThemeData light() => _brand(AppTokens.light);
 
-  static ThemeData light({
-    Color brandPrimary = _sigLightPrimary,
-    Color brandAccent = _sigLightAccent,
-  }) => _base(Brightness.light, brandPrimary, brandAccent);
+  static ThemeData _brand(AppTokens t) =>
+      _base(t.brightness, t.brand.main, t.accentText(t.brand));
 
   // ── Type ──────────────────────────────────────────────────────────────────
 

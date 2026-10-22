@@ -7,9 +7,8 @@
 // `sl.reset()` — a second booting test in this isolate dies with
 // "Object/factory with type LocalStore is already registered".
 //
-// Never `pumpAndSettle`: GlassScaffold's ambient background repeats forever
-// (core/design_system/foundations/ambient_background.dart), so it never
-// converges. Use `settle` (fixed frames) and `waitFor` (polls real frames).
+// Never `pumpAndSettle`: any looping animation on a real boot keeps it from
+// converging. Use `settle` (fixed frames) and `waitFor` (polls real frames).
 //
 // The walk BRANCHES on whatever screen it lands on — the device may already be
 // onboarded and holding real user data. It never assumes a fresh install and
