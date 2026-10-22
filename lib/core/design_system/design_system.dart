@@ -23,6 +23,7 @@ export 'components/overlays.dart';
 export 'components/permission_card.dart';
 export 'components/section_header.dart';
 export 'components/selection.dart';
+export 'components/time_left_ring.dart';
 export 'components/toggle.dart';
 export 'components/variant_carousel.dart';
 // Foundations
