@@ -31,6 +31,8 @@ class _ProjectionStepState extends State<ProjectionStep> {
   /// sixth of a day awake, which the arc can show; a tenth of 24 h could not.
   static const _wakingHours = 16;
 
+  static const double _ring = 200;
+
   /// "about 2.5 hours" — from the band's midpoint, so 'Not sure' reads as the
   /// average it stands for and the chip labels never reach prose.
   static String _hours(ScreenTimeBand band) {
@@ -45,6 +47,7 @@ class _ProjectionStepState extends State<ProjectionStep> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final t = context.tokens;
     final band = widget.progress.band;
     final perYear = widget.progress.daysPerYear;
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
@@ -66,28 +69,37 @@ class _ProjectionStepState extends State<ProjectionStep> {
               tween: Tween(begin: 0, end: band.hoursPerDay / _wakingHours),
               duration: reduce ? Duration.zero : AppDurations.slow,
               curve: AppCurves.standard,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _DayCountUp(days: total),
-                  Text(
-                    'DAYS',
-                    style: text.labelSmall?.copyWith(
-                      letterSpacing: 2,
-                      color: context.tokens.ink2,
-                    ),
+              // Inside the disc, less its spec 10 px margin; scales down
+              // rather than overflowing at large text sizes.
+              child: SizedBox.square(
+                dimension: (224 - 20) * _ring / 300,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _DayCountUp(days: total),
+                      Text(
+                        'DAYS',
+                        style: AppTypography.eyebrow.copyWith(color: t.ink2),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-              builder: (context, v, child) =>
-                  ProgressRing(size: 200, progress: v, child: child),
+              builder: (context, v, child) => ProgressRing(
+                size: _ring,
+                progress: v,
+                palette: t.brand,
+                child: child,
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
             _caption,
             textAlign: TextAlign.center,
-            style: text.titleMedium?.copyWith(color: context.tokens.ink),
+            style: AppTypography.body.copyWith(color: t.ink2),
           ),
           const SizedBox(height: AppSpacing.md),
           GlassSegmented(
@@ -114,12 +126,11 @@ class _ProjectionStepState extends State<ProjectionStep> {
               ? 'Short-form feeds are built to never end. The time goes '
                     'somewhere, and it is rarely where you meant it to.'
               : 'At about ${_hours(band)} a day, that is about $perYear full '
-                    'days a year — roughly '
+                    'days a year, roughly '
                     '${(band.hoursPerDay / _wakingHours * 100).round()}% of '
-                    'your waking hours, scrolling. You did not choose that; '
-                    'the feed did.',
+                    'your waking hours.',
           textAlign: TextAlign.center,
-          style: text.bodyLarge?.copyWith(color: context.tokens.ink),
+          style: text.bodyLarge?.copyWith(color: t.ink),
         ),
       ],
     );
@@ -143,10 +154,7 @@ class _DayCountUp extends StatelessWidget {
       curve: AppCurves.decelerate,
       builder: (context, v, _) => Text(
         '$v',
-        style: Theme.of(context).textTheme.displaySmall?.copyWith(
-          fontWeight: FontWeight.w800,
-          color: context.tokens.ink,
-        ),
+        style: AppTypography.number.copyWith(color: context.tokens.ink),
       ),
     );
   }

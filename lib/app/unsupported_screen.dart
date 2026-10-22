@@ -2,7 +2,8 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
 /// Shown on platforms (iOS) where the core AccessibilityService-based blocker
-/// cannot run. See docs/15-ios-cross-platform.md for the FamilyControls path.
+/// cannot run. See docs/code_docs/15-ios-cross-platform.md for the
+/// FamilyControls path.
 class UnsupportedScreen extends StatelessWidget {
   const UnsupportedScreen({super.key});
 
@@ -16,11 +17,8 @@ class UnsupportedScreen extends StatelessWidget {
       body: SafeArea(
         child: EmptyState(
           icon: Icons.phonelink_erase,
-          title: 'Detoxo runs on Android',
-          subtitle:
-              'The reel/short blocker relies on Android’s Accessibility Service, '
-              'which has no equivalent on this platform. An iOS Screen Time / '
-              'Family Controls version is a separate effort.',
+          title: 'Detoxo works on Android only',
+          subtitle: 'This version can’t run on this device.',
         ),
       ),
     );
