@@ -73,7 +73,7 @@ Derived getters / checks:
 - `isConfigured` → `type != PinType.none`.
 - `isLockedOut` → `lockedUntil != null && lockedUntil.isAfter(now)` — wall-clock
   only, and now documented as the lock screen's **display approximation**
-  (countdown text, dialogs). Enforcement does **not** use it alone: a Settings
+  (the countdown line). Enforcement does **not** use it alone: a Settings
   clock bump would defeat it.
 - **`lockoutRemainingAt(now, {elapsedMs, bootCount})`** — the clock-robust
   truth (EVO-015), pure. The monotonic leg is authoritative **in both
@@ -324,31 +324,45 @@ The full-screen keypad. One widget, three roles, selected by its callbacks:
 
 Key behaviours:
 
+- **Look (Frozen Glass):** a plain screen on the gradient, no surfaces under the
+  content — `DetoxoLogo` (60) as the hero, the title in `title` / ink, the
+  subtitle in `body` / ink-2. `_Dots` are 14 px, filled ink or a hairline ring.
 - `PopScope(canPop: false)` — the system back gesture **never** dismisses it. A
-  close (✕) affordance appears **only** when `onCancel` is provided (i.e. an
-  optional in-app gate, never the launch gate).
+  close affordance (a `GlassIconButton` ✕, label and tooltip "Cancel", where
+  `GlassAppBar` puts its back button) appears **only** when `onCancel` is
+  provided (i.e. an optional in-app gate, never the launch gate).
 - On mount, if `biometricEnabled`, it fires `authenticateBiometric()` via a
   post-frame callback (prompts immediately).
 - `_onKey` appends a digit, ignores input past `expectedLength`, and auto-submits
-  (`_attempt`) once the buffer is full. If locked, a keypress instead re-shows the
-  lockout dialog.
+  (`_attempt`) once the buffer is full. A key pressed during a lockout does
+  nothing (the keypad is disabled anyway).
 - `_attempt` → `cubit.verify`; on success `_succeed` (success haptic + the role's
-  unlock action); on failure it plays an error haptic + shake, shows "Incorrect
-  PIN", clears the entry, and — reading the freshly-emitted state — pops the
-  lockout dialog if a new cooldown just started.
-- **Lockout UX is dual:** an inline `_LockoutText` ticks a live countdown
-  (`formatCountdown`) driven by a 1 Hz timer (`_syncLockTimer`) that runs *only*
-  while locked and re-enables the keypad the instant the window ends; plus a glass
-  dialog ("Too many attempts. Please wait …") shown **once per distinct lockout
-  window** (guarded by `_shownFor`) so repeated pokes and the 1 Hz rebuild can't
-  spam it.
-- Scope-specific copy (title/subtitle/icon) is provided for `app`, `settings`,
+  unlock action); on failure an error haptic, "Incorrect PIN" and a cleared
+  entry. If that failure started a cooldown, the countdown line replaces it.
+- **Lockout UX is one inline line**, no dialog (the "Too many attempts" sheet is
+  gone, M6). `_LockoutText` ticks a live countdown ("Too many attempts. Try
+  again in 04:59", `formatCountdown`) on its own 1 Hz timer; `_syncLockTimer`
+  schedules a single rebuild that re-enables the keypad the instant the window
+  ends. The line is a **live region** whose semantics label is the fixed end
+  time ("Try again at 7:45 PM", "… tomorrow at …" across midnight, via
+  `formatLocalTime`), so TalkBack announces it once rather than every second.
+  The "Incorrect PIN" line is a live region too. Both are `subhead` words in
+  ink, never red.
+- Scope-specific copy (title/subtitle) is provided for `app`, `settings`,
   `appLocker`, and `planSwitch`/`detoxoSettings`.
-- The keypad is 1–9 then `[biometric] 0 [backspace]`: the bottom-left key is the
-  fingerprint shortcut when `biometricEnabled`, otherwise empty. `_Dots` renders
-  `expectedLength` progress dots (clamped 1–10).
-- "Forgot PIN?" opens `PinHelpSheet` — an explanation, not an unlock. It never
-  calls `_succeed`, so there is no path from this button into the app.
+- **Keypad:** four rows of three, 1–9 then `[biometric] 0 [Delete]`; the
+  bottom-left key is the fingerprint shortcut when `biometricEnabled`,
+  otherwise empty. Digit keys are 72 px soft raised circles — the spec soft
+  button (`DxSurfacePainter`: `buttonFrom → buttonTo` at 145°, `shadowButton`)
+  with the digit in `title`, tabular, ink; the glyph keys are flat ink-2 icons.
+  **Each key is one `AppPressable(semanticLabel:)` button node** that TalkBack
+  can activate (the old `Semantics(excludeSemantics: true)` wrapper dropped the
+  tap action, so a double-tap did nothing); a locked keypad fades to .4 and
+  announces its keys as disabled. `_Dots` renders `expectedLength` progress
+  dots (clamped 1–10) as one "n of m digits entered" node.
+- "Forgot PIN?" (`SecondaryButton`) opens `PinHelpSheet` — an explanation, not
+  an unlock. It never calls `_succeed`, so there is no path from this button
+  into the app.
 
 ### `PinSetupScreen` (`pin_setup_screen.dart`)
 
@@ -356,35 +370,52 @@ Configure or turn off the lock. Loads the current `PinConfig` on init (filtering
 scopes to `_supportedScopes = {app, settings}`) and probes `canUseBiometrics()` to
 decide whether to show the biometric toggle.
 
+Layout: a `SectionHeader` + one panel per section — **PIN type** (one row, the
+type's hint and, for Date/Time, the live derived value as an ink-2 line under
+it), **Your PIN** (two themed fields), **Protect** (the two scope switches in a
+`PanelGroup`), **Auto-lock** (Smart Auto Lock, §10, when the app scope is on: the re-lock row and
+"Hide screen in Recents" in one `PanelGroup`), **Convenience** (the biometric
+switch, when available), then the one-line warning and `PrimaryButton`
+("Save PIN", check icon). It is a `SingleChildScrollView`, not a lazy list, so
+every section is built and an error can be scrolled to.
+
 Save validation (`_save`):
 
 1. `type == none` → routes to `_turnOff`: `confirmPinOff` (the route's `PinGuard`
    already asked for the PIN), then pop; a no-op pop if nothing was configured.
-2. custom: PIN ≥ 4 digits, and PIN == confirm (both toast on failure).
-3. at least one scope selected.
-4. `setup(..., biometricEnabled: _biometric && _biometricAvailable, autoLock:
-   _autoLock, secureScreen: _secureScreen)`, toast, pop.
+2. **Inline, no toasts.** The first Save sets `_tried`; from then on
+   `_pinError` / `_scopeError` are computed live from the fields, so each line
+   stays until it is fixed and clears the moment it is:
+   - custom: "Use at least 4 digits", then "The two PINs differ" — under the
+     Your PIN fields;
+   - "Pick at least one" — under the Protect panel.
+   The lines are `subhead` ink live regions; a failed Save scrolls the first one
+   into view (`Scrollable.ensureVisible`, `context.motion`).
+3. `setup(..., biometricEnabled: _biometric && _biometricAvailable, autoLock:
+   _autoLock, secureScreen: _secureScreen)`, the toast "PIN saved", pop.
 
-When the **app** scope is selected, a **Smart Auto Lock** section appears: a
-bottom-sheet radio picker for the auto-lock timeout (`_AutoLockPicker`, same
-pattern as the PIN-type picker) and a "Hide screen in Recents" toggle
-(labeled as also blocking screenshots — FLAG_SECURE does both). The biometric
-toggle is labeled "Unlock with fingerprint or device credential".
+The auto-lock timeout and the PIN type are picked in bottom sheets
+(`_AutoLockPicker`, `_PinTypePicker`) of flat `GlassListTile(selected:)` rows —
+the picked row carries the check and reads as selected; there are no radio
+glyphs. "Hide screen in Recents" is labeled as also blocking screenshots
+(FLAG_SECURE does both). The biometric toggle is labeled "Unlock with
+fingerprint or device credential".
 
-The screen states inline that there is no reset and that a forgotten PIN means
-reinstalling — shown *before* the user commits, not discovered afterwards.
+The screen states before Save that there is no reset: "Detoxo can’t recover a
+forgotten PIN. Reinstalling clears it with all settings."
 
-The custom-PIN fields are digits-only, obscured, `maxLength: 10` (hint "Enter 4–10
-digits"). Date/Time selections show a live derived-value preview instead of an
-entry field. A bottom-sheet radio picker chooses among none / custom / date / time.
+The custom-PIN fields are digits-only and obscured, capped at 10 by a
+`LengthLimitingTextInputFormatter` (not `maxLength`, so no counter shows), on
+the theme's filled field (hint "Enter 4–10 digits"). Date/Time selections show
+the derived-value preview instead of an entry field.
 
 ### `PinHelpSheet` (`pin_help_sheet.dart`)
 
-A glass bottom sheet titled **"Forgot your PIN?"**. It states that Detoxo cannot
-unlock the PIN for anyone, explains why (the PIN never leaves the device, there is
-no account), names reinstalling as the way to start over, and notes that uninstall
-protection must be switched off first. One **Got it** button; it dismisses and
-nothing else.
+A glass bottom sheet titled **"Forgot your PIN?"**. Two sentences in body /
+ink-2: Detoxo can't unlock it (the PIN never leaves the phone), and reinstalling
+clears it with all settings. One subhead line notes that uninstall protection
+must be switched off first. One **Got it** button; it dismisses and nothing
+else.
 
 It replaced a 299-line 3-step OTP flow. `maskEmail` and `_ReadOnlyField` went with
 it — neither had any other caller.
@@ -558,6 +589,7 @@ gate.
 - `lib/features/blocking/shared/domain/entities/enums.dart` (`PinType`, `PinScope`)
 - `lib/core/storage/local_store.dart` (`StoreKeys.pinConfig`)
 - `lib/core/widgets/common_widgets.dart` (`formatCountdown`)
+- `lib/core/utils/clock_format.dart` (`formatLocalTime`, the lockout line's spoken end time)
 - `lib/core/di/injector.dart` (`PinRepository` registration)
 - `lib/main.dart` (`PinCubit` provider)
 - `lib/core/navigation/routes.dart`, `lib/core/navigation/app_router.dart` (`/pin/setup`, `/pin/lock`)

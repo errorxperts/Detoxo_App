@@ -1,18 +1,18 @@
 import 'package:equatable/equatable.dart';
 
-/// What kind of sensitive data a protected app holds. Shown as a pill on the
-/// app's card; never crosses the platform channel.
+/// What kind of sensitive data a protected app holds. Shown as the subtitle of
+/// the app's row; never crosses the platform channel.
 enum ProtectedAppCategory {
   banking('banking', 'Banking'),
   payments('payments', 'Payments'),
   government('government', 'Government'),
   identity('identity', 'Identity'),
-  passwordManager('password_manager', 'Password Manager'),
+  passwordManager('password_manager', 'Password manager'),
   authentication('authentication', 'Authentication'),
   healthcare('healthcare', 'Healthcare'),
   insurance('insurance', 'Insurance'),
   investment('investment', 'Investment'),
-  personalData('personal_data', 'Personal Data'),
+  personalData('personal_data', 'Personal data'),
   other('other', 'Other');
 
   const ProtectedAppCategory(this.wire, this.label);

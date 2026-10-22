@@ -41,7 +41,7 @@ enum AppPermission {
     required: true,
   ),
   overlay(
-    'Display over apps',
+    'Display over other apps',
     'Shows the block / PIN screen over other apps.',
     required: true,
   ),

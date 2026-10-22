@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 ///
 /// The escape hatch is identical on 13/14 and 15+ (App info → ⋮ → "Allow
 /// restricted settings"); only the system dialog's wording differs, so the copy
-/// names both variants rather than branching on the SDK level. The allowance is
+/// stays generic rather than branching on the SDK level. The allowance is
 /// per app, not per permission — one confirmation unblocks all three toggles.
 abstract final class RestrictedSettingsSheet {
   static Future<void> show(BuildContext context) {
@@ -36,36 +36,26 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final muted = text.bodyMedium?.copyWith(color: context.tokens.ink2);
+    final ink2 = context.tokens.ink2;
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            "Because Detoxo wasn't installed from the Play Store, Android locks "
-            'a few switches until you confirm you meant to turn them on. You may '
-            'have seen a message about a "restricted setting", or "app was '
-            'denied access".',
-            style: muted,
+            'Android locks a few switches for apps not from the Play Store. '
+            'Allow them once:',
+            style: AppTypography.body.copyWith(color: ink2),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            "It's a one-time confirmation. After it, Accessibility and Display "
-            'over apps both work normally.',
-            style: muted,
-          ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           for (var i = 0; i < _steps.length; i++) ...[
             if (i > 0) const SizedBox(height: AppSpacing.sm),
             _Step(number: i + 1, text: _steps[i]),
           ],
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           Text(
-            "Don't see it in the ⋮ menu? Scroll to the bottom of App info — some "
-            'phones list it there instead.',
-            style: text.bodySmall?.copyWith(color: context.tokens.ink2),
+            'Not in the ⋮ menu? Some phones list it at the bottom of App info.',
+            style: AppTypography.subhead.copyWith(color: ink2),
           ),
           const SizedBox(height: AppSpacing.lg),
           PrimaryButton(
@@ -87,6 +77,7 @@ class _Body extends StatelessWidget {
   }
 }
 
+/// A numbered step: the number in a fill-quiet circle, the step in body ink.
 class _Step extends StatelessWidget {
   const _Step({required this.number, required this.text});
 
@@ -95,7 +86,7 @@ class _Step extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.secondary;
+    final t = context.tokens;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -103,23 +94,17 @@ class _Step extends StatelessWidget {
           width: 24,
           height: 24,
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: accent.withValues(alpha: 0.16),
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: t.fillQuiet, shape: BoxShape.circle),
           child: Text(
             '$number',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: accent,
-              fontWeight: FontWeight.w700,
-            ),
+            style: AppTypography.caption.copyWith(color: t.ink2),
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(top: 2),
-            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+            child: Text(text, style: AppTypography.body.copyWith(color: t.ink)),
           ),
         ),
       ],

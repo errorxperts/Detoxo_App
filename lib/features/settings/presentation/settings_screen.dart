@@ -6,6 +6,7 @@ import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/app_gate.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/storage/local_store.dart';
+import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
@@ -14,7 +15,6 @@ import 'package:detoxo/features/additional_feature/app_upgrader/app_upgrader.dar
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
-import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_screen.dart';
 import 'package:detoxo/features/limits/limits.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/presentation/permission_actions.dart';
@@ -134,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   /// Proceeding past the disclosure does commit, because the system grant
   /// screen returns no result — the user is still standing on Android's list
   /// when this resolves, so "not granted yet" is not "not wanted". The tile
-  /// renders that gap truthfully instead of pretending (see `_SuppressionTile`).
+  /// renders that gap truthfully instead of pretending (see [_GrantedSwitch]).
   Future<void> _setSuppressNotifications(
     BuildContext context, {
     required bool enabled,
@@ -184,109 +184,147 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.secondary;
     // The Settings screen is a separate route (not under HomeShell's
     // UpgradeGate), so it hosts its own UpgradeCubit. It auto-checks on open so
-    // the app-version banner can reveal a compact "Update" button when a newer
-    // build is available.
+    // the version row can reveal an "Update" button when a newer build is
+    // available.
     return BlocProvider(
       create: (_) => UpgradeCubit(sl<AppUpgradeService>())..check(),
       child: GlassScaffold(
         appBar: const GlassAppBar(title: Text('Settings')),
         body: BlocBuilder<SettingsCubit, AppSettings>(
           builder: (context, settings) {
+            final pinOn = context.select<PinCubit, bool>(
+              (c) => c.state.isConfigured,
+            );
+            final cubit = context.read<SettingsCubit>();
             return ListView(
               padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
+                AppSpacing.gutter,
                 0,
-                AppSpacing.md,
+                AppSpacing.gutter,
                 AppSpacing.xxl,
               ),
+              // One SectionHeader and one panel of flat rows per section.
               children: [
                 // ── Protection: how Detoxo blocks & limits reels ────────────
                 const SectionHeader('Protection'),
-                FeatureTile(
-                  icon: Icons.hourglass_bottom,
-                  title: 'Daily limit',
-                  subtitle: 'Cap your reel time per day',
-                  onTap: () => context.push(Routes.dailyLimit),
-                ),
-                _BlockModeTile(
-                  mode: settings.defaultBlockMode,
-                  onTap: _openBlockMode,
-                ),
-                _Spaced(
-                  AppToggleTile(
-                    leading: Icon(Icons.shield_outlined, color: accent),
-                    title: 'Blocking active',
-                    subtitle: 'Master switch for all detection',
-                    value: settings.masterEnabled,
-                    onChanged: (v) =>
-                        unawaited(_setMasterEnabled(context, enabled: v)),
-                  ),
-                ),
-
-                _Spaced(
-                  AppToggleTile(
-                    leading: Icon(Icons.vibration, color: accent),
-                    title: 'Vibrate on block',
-                    subtitle: 'Haptic buzz each time a reel is blocked',
-                    value: settings.vibrationEnabled,
-                    onChanged: (v) =>
-                        context.read<SettingsCubit>().setVibration(enabled: v),
-                  ),
-                ),
-
-                const _AllowanceTile(),
-
-                _NudgeTile(
-                  settings: settings,
-                  onChanged: (v) =>
-                      context.read<SettingsCubit>().setNudgeEnabled(enabled: v),
-                  onTuning: _openNudgeThreshold,
+                PanelGroup(
+                  children: [
+                    FeatureTile(
+                      icon: Icons.hourglass_bottom,
+                      title: 'Daily limit',
+                      subtitle: 'Cap your reel time per day',
+                      onTap: () => context.push(Routes.dailyLimit),
+                    ),
+                    _BlockModeTile(
+                      mode: settings.defaultBlockMode,
+                      onTap: _openBlockMode,
+                    ),
+                    AppToggleTile(
+                      leading: _glyph(context, Icons.shield_outlined),
+                      title: 'Blocking active',
+                      subtitle: 'Master switch for all detection',
+                      value: settings.masterEnabled,
+                      onChanged: (v) =>
+                          unawaited(_setMasterEnabled(context, enabled: v)),
+                    ),
+                    AppToggleTile(
+                      leading: _glyph(context, Icons.vibration),
+                      title: 'Vibrate on block',
+                      subtitle: 'Haptic buzz each time a reel is blocked',
+                      value: settings.vibrationEnabled,
+                      onChanged: (v) => cubit.setVibration(enabled: v),
+                    ),
+                    const _AllowanceTile(),
+                    // The nudge draws in an overlay window, so without
+                    // "Display over other apps" `NudgeOverlay.show` returns
+                    // false and not one card could appear.
+                    _GrantedSwitch(
+                      icon: Icons.timer_outlined,
+                      title: 'Soft nudge',
+                      subtitle:
+                          'A card that says how long you’ve been in a '
+                          'distracting app. Nothing is blocked.',
+                      value: settings.nudgeEnabled,
+                      onChanged: (v) => cubit.setNudgeEnabled(enabled: v),
+                      permission: AppPermission.overlay,
+                      missing: 'No cards can appear until you allow it',
+                    ),
+                    if (settings.nudgeEnabled)
+                      FeatureTile(
+                        icon: Icons.tune,
+                        title: 'Nudge me every',
+                        subtitle: _nudgeTitle(settings),
+                        onTap: _openNudgeThreshold,
+                      ),
+                  ],
                 ),
 
                 // ── Privacy: apps Detoxo must never touch ───────────────────
                 const SectionHeader('Privacy'),
-                FeatureTile(
-                  icon: Icons.privacy_tip_outlined,
-                  title: 'Protected apps',
-                  subtitle:
-                      'Banking & sensitive apps Detoxo completely ignores',
-                  onTap: () => context.push(Routes.protectedApps),
-                ),
-
-                _SuppressionTile(
-                  enabled: settings.suppressNotifications,
-                  onChanged: (v) =>
-                      unawaited(_setSuppressNotifications(context, enabled: v)),
+                PanelGroup(
+                  children: [
+                    FeatureTile(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Protected apps',
+                      subtitle:
+                          'Banking & sensitive apps Detoxo completely ignores',
+                      onTap: () => context.push(Routes.protectedApps),
+                    ),
+                    _GrantedSwitch(
+                      icon: Icons.notifications_off,
+                      title: 'Notification silence',
+                      subtitle: 'Mute apps while they’re blocked',
+                      value: settings.suppressNotifications,
+                      onChanged: (v) => unawaited(
+                        _setSuppressNotifications(context, enabled: v),
+                      ),
+                      permission: AppPermission.notificationListener,
+                      missing: 'Nothing is muted until you allow it',
+                    ),
+                  ],
                 ),
 
                 // ── Security: who can change things & system access ─────────
                 const SectionHeader('Security'),
-                _PinTile(),
-                _PermissionsTile(onTap: _openPermissions),
+                PanelGroup(
+                  children: [
+                    const _PinTile(),
+                    // Edit the configured PIN (type, auto-lock, biometrics).
+                    // The `/pin/setup` route itself is wrapped in
+                    // `PinGuard(scope: settings)`, so no gate here.
+                    if (pinOn)
+                      FeatureTile(
+                        icon: Icons.tune,
+                        title: 'PIN settings',
+                        subtitle: 'Type, auto-lock & biometrics',
+                        onTap: () => context.push(Routes.pinSetup),
+                      ),
+                    _PermissionsTile(onTap: _openPermissions),
+                  ],
+                ),
 
                 // ── General: appearance & app info ──────────────────────────
                 const SectionHeader('General'),
-                FeatureTile(
-                  icon: _themeIcon(settings.themeMode),
-                  title: 'Appearance',
-                  subtitle: 'Theme, background & reel counter',
-                  onTap: () => context.push(Routes.appearance),
+                PanelGroup(
+                  children: [
+                    FeatureTile(
+                      icon: _themeIcon(settings.themeMode),
+                      title: 'Appearance',
+                      subtitle: 'Theme and reel counter',
+                      onTap: () => context.push(Routes.appearance),
+                    ),
+                    AppToggleTile(
+                      leading: _glyph(context, Icons.feedback_outlined),
+                      title: 'Feedback button',
+                      subtitle: 'Show a feedback button in every top bar',
+                      value: settings.showFeedbackButton,
+                      onChanged: (v) => cubit.setShowFeedbackButton(enabled: v),
+                    ),
+                    const _VersionRow(),
+                  ],
                 ),
-                _Spaced(
-                  AppToggleTile(
-                    leading: Icon(Icons.feedback_outlined, color: accent),
-                    title: 'Feedback button',
-                    subtitle: 'Show a feedback button in every top bar',
-                    value: settings.showFeedbackButton,
-                    onChanged: (v) => context
-                        .read<SettingsCubit>()
-                        .setShowFeedbackButton(enabled: v),
-                  ),
-                ),
-                const _VersionBanner(),
 
                 // ── Reset ───────────────────────────────────────────────────
                 const SizedBox(height: AppSpacing.lg),
@@ -306,24 +344,10 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 }
 
-/// Notification silence, rendered truthfully (EVO-036).
-///
-/// The switch has a permission dependency, so "on" and "working" are two
-/// different things: the grant can still be pending on Android's own screen, or
-/// have been revoked from system settings while the switch stayed on. Showing a
-/// plain ON in either case is the app claiming to do something it cannot —
-/// the same shape `ContentCount.bubbleBlocked` solves for the counter bubble.
-///
-/// When the grant is missing the row says so and offers the fix; the permission
-/// state refreshes on every resume, so returning from Android's list clears it.
-/// Soft nudge: the switch, and — when it is on — the tuning row.
-///
-/// Like [_SuppressionTile], "on" and "working" are two different things here.
-/// The nudge draws its card in a `TYPE_APPLICATION_OVERLAY` window, so without
-/// "Display over other apps" `NudgeOverlay.show` returns false and the engine
-/// deliberately reports nothing — the switch would read ON while not one card
-/// could ever appear. This is the same grant, and the same shape, that
-/// `ContentCount.bubbleBlocked` solves for the counter bubble (EVO-022).
+/// A row's leading glyph: 24 px in ink-2, like [FeatureTile]'s.
+Widget _glyph(BuildContext context, IconData icon) =>
+    Icon(icon, size: 24, color: context.tokens.ink2);
+
 /// EVO-053 — how many per-target allowances ("Allow Instagram for 15 minutes")
 /// may be spent per day.
 ///
@@ -343,13 +367,11 @@ class _AllowanceTile extends StatelessWidget {
     final limit = context.select<UnblockCubit, int>(
       (c) => c.state.config.grantLimit,
     );
-    return _Spaced(
-      FeatureTile(
-        icon: Icons.timer_outlined,
-        title: 'Allowances',
-        subtitle: '${_label(limit)} · "Allow this for a while"',
-        onTap: () => _pick(context, limit),
-      ),
+    return FeatureTile(
+      icon: Icons.timer_outlined,
+      title: 'Allowances',
+      subtitle: _label(limit),
+      onTap: () => _pick(context, limit),
     );
   }
 
@@ -360,27 +382,22 @@ class _AllowanceTile extends StatelessWidget {
       title: 'Allowances a day',
       child: Builder(
         builder: (sheetContext) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Wrap(
-              spacing: AppSpacing.xs,
+            PanelGroup(
               children: [
                 for (final o in _options)
-                  AppChip(
-                    label: _label(o),
+                  GlassListTile(
+                    title: _label(o),
                     selected: o == current,
-                    onSelected: () => Navigator.of(sheetContext).pop(o),
+                    onTap: () => Navigator.of(sheetContext).pop(o),
                   ),
               ],
             ),
-            const SizedBox(height: AppSpacing.sm),
-            const InlineHint(
-              icon: Icons.info_outline,
-              text:
-                  'A locked rule already costs an override to lift. This is the '
-                  'other half: how often you can free one app, feed or site for '
-                  'a few minutes before tomorrow.',
+            const _SheetNote(
+              'How often you can free one app, feed or site for a few '
+              'minutes before tomorrow.',
             ),
           ],
         ),
@@ -391,7 +408,7 @@ class _AllowanceTile extends StatelessWidget {
   }
 }
 
-/// Block-mode entry, rendered truthfully like [_NudgeTile]: "Block screen"
+/// Block-mode entry, rendered truthfully like [_GrantedSwitch]: "Block screen"
 /// draws in an overlay window, so without "Display over other apps" the mode
 /// still bounces the reel but no wall can ever appear — say so and offer the
 /// fix. Only a *definite* missing grant counts (EVO-014).
@@ -420,21 +437,38 @@ class _BlockModeTile extends StatelessWidget {
   }
 }
 
-class _NudgeTile extends StatelessWidget {
-  const _NudgeTile({
-    required this.settings,
+/// A switch whose feature needs an Android grant, rendered truthfully
+/// (EVO-036 / EVO-042): "on" and "working" are two different things. The
+/// grant can still be pending on Android's own screen, or revoked from system
+/// settings while the switch stayed on, and a plain ON would be the app
+/// claiming to do something it cannot — the shape `ContentCount.bubbleBlocked`
+/// solves for the counter bubble (EVO-022). So while the switch is on and the
+/// grant is missing, a [PermissionNeededRow] says what is not happening and a
+/// tap asks for the grant; the permission state refreshes on every resume, so
+/// returning from Android's list clears it.
+class _GrantedSwitch extends StatelessWidget {
+  const _GrantedSwitch({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.value,
     required this.onChanged,
-    required this.onTuning,
+    required this.permission,
+    required this.missing,
   });
 
-  final AppSettings settings;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool value;
   final ValueChanged<bool> onChanged;
-  final VoidCallback onTuning;
+  final AppPermission permission;
+
+  /// What does not happen without the grant.
+  final String missing;
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.secondary;
-    final enabled = settings.nudgeEnabled;
     return BlocBuilder<PermissionsCubit, List<PermissionStatus>>(
       builder: (context, _) {
         final cubit = context.read<PermissionsCubit>();
@@ -442,40 +476,21 @@ class _NudgeTile extends StatelessWidget {
         // back to lastKnownGranted (EVO-014), so a flaky channel call never
         // accuses a working setup of being broken.
         final blocked =
-            enabled &&
-            !cubit.effectivelyGranted(cubit.statusFor(AppPermission.overlay));
+            value && !cubit.effectivelyGranted(cubit.statusFor(permission));
         return Column(
           children: [
-            _Spaced(
-              AppToggleTile(
-                leading: Icon(
-                  Icons.timer_outlined,
-                  color: blocked
-                      ? context.tokens.statusText(context.tokens.statusSetup)
-                      : accent,
-                ),
-                title: 'Soft nudge',
-                subtitle:
-                    'A card that says how long you’ve been in a distracting '
-                    'app. Nothing is blocked.',
-                value: enabled,
-                onChanged: onChanged,
-              ),
+            AppToggleTile(
+              leading: _glyph(context, icon),
+              title: title,
+              subtitle: subtitle,
+              value: value,
+              onChanged: onChanged,
             ),
             if (blocked)
               PermissionNeededRow(
-                title: 'Needs “Display over other apps”',
-                subtitle: 'No cards can appear yet — tap to allow',
-                onTap: () => unawaited(
-                  requestPermission(context, AppPermission.overlay),
-                ),
-              ),
-            if (enabled)
-              FeatureTile(
-                icon: Icons.tune,
-                title: 'Nudge me every',
-                subtitle: _nudgeTitle(settings),
-                onTap: onTuning,
+                title: permission.label,
+                subtitle: missing,
+                onTap: () => unawaited(requestPermission(context, permission)),
               ),
           ],
         );
@@ -484,81 +499,30 @@ class _NudgeTile extends StatelessWidget {
   }
 }
 
-class _SuppressionTile extends StatelessWidget {
-  const _SuppressionTile({required this.enabled, required this.onChanged});
+/// A subhead ink-2 line under a sheet's options.
+class _SheetNote extends StatelessWidget {
+  const _SheetNote(this.text);
 
-  final bool enabled;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.secondary;
-    return BlocBuilder<PermissionsCubit, List<PermissionStatus>>(
-      builder: (context, _) {
-        final cubit = context.read<PermissionsCubit>();
-        // Only a *definite* missing grant is a problem. An unknown read is
-        // covered by effectivelyGranted's lastKnownGranted fallback (EVO-014),
-        // so a flaky channel call never accuses a working setup of being broken.
-        final blocked =
-            enabled &&
-            !cubit.effectivelyGranted(
-              cubit.statusFor(AppPermission.notificationListener),
-            );
-        return Column(
-          children: [
-            _Spaced(
-              AppToggleTile(
-                leading: Icon(
-                  Icons.notifications_off,
-                  color: blocked
-                      ? context.tokens.statusText(context.tokens.statusSetup)
-                      : accent,
-                ),
-                title: 'Notification silence',
-                subtitle: 'Mute apps while they’re blocked',
-                value: enabled,
-                onChanged: onChanged,
-              ),
-            ),
-            if (blocked)
-              PermissionNeededRow(
-                title: 'Needs “Notification access”',
-                subtitle: 'Nothing is being muted yet — tap to allow',
-                onTap: () => unawaited(
-                  requestPermission(
-                    context,
-                    AppPermission.notificationListener,
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-/// Adds the standard inter-row gap below rows that don't bake it in themselves
-/// ([FeatureTile] already includes a bottom gap), keeping list rhythm even.
-class _Spaced extends StatelessWidget {
-  const _Spaced(this.child);
-  final Widget child;
+  final String text;
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-    child: child,
+    padding: const EdgeInsets.fromLTRB(4, AppSpacing.sm, 4, 0),
+    child: Text(
+      text,
+      style: AppTypography.subhead.copyWith(color: context.tokens.ink2),
+    ),
   );
 }
 
-// ── App-version banner + update check ─────────────────────────────────────────
+// ── App version + update check ────────────────────────────────────────────────
 
-/// The app-version [InfoBanner], which doubles as the "check for updates"
-/// surface. Tapping it runs a manual check (toasting when already current); when
-/// a newer build is available it reveals a compact [_UpdateButton] that opens the
+/// The app-version row, which doubles as the "check for updates" surface.
+/// Tapping it runs a manual check (toasting when already current); when a newer
+/// build is available it says so and offers an "Update" button that opens the
 /// store. Backed by the screen-local `UpgradeCubit` (see `build`).
-class _VersionBanner extends StatelessWidget {
-  const _VersionBanner();
+class _VersionRow extends StatelessWidget {
+  const _VersionRow();
 
   @override
   Widget build(BuildContext context) {
@@ -575,52 +539,22 @@ class _VersionBanner extends StatelessWidget {
             ? state.status
             : null;
         final version = update?.storeVersion;
-        return InfoBanner(
+        final upgrade = context.read<UpgradeCubit>();
+        return GlassListTile(
+          leading: _glyph(context, Icons.info_outline),
           title: '${AppConstants.appName} v${AppConstants.appVersion}',
-          text: update == null
-              ? 'Take back control of your time and focus'
+          subtitle: update == null
+              ? 'Tap to check for updates'
               : version != null
-              ? 'Version $version is available.'
-              : 'A new version is available.',
-          onTap: () => context.read<UpgradeCubit>().check(manual: true),
+              ? 'Version $version is available'
+              : 'A new version is available',
+          // With an update known, the button is the one action.
+          onTap: update == null ? () => upgrade.check(manual: true) : null,
           trailing: update == null
               ? null
-              : _UpdateButton(
-                  onPressed: () => context.read<UpgradeCubit>().openStore(),
-                ),
+              : SecondaryButton(label: 'Update', onPressed: upgrade.openStore),
         );
       },
-    );
-  }
-}
-
-/// A compact filled "Update" pill for the version banner.
-class _UpdateButton extends StatelessWidget {
-  const _UpdateButton({required this.onPressed});
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return FilledButton(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        minimumSize: Size.zero,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
-        ),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: const StadiumBorder(),
-        textStyle: Theme.of(context).textTheme.labelLarge,
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.system_update, size: 16),
-          SizedBox(width: 6),
-          Text('Update'),
-        ],
-      ),
     );
   }
 }
@@ -634,7 +568,8 @@ const _nudgeMinutes = <int>[5, 10, 15, 30];
 const _nudgeCaps = <int>[2, 4, 6, 10];
 
 String _nudgeTitle(AppSettings s) =>
-    '${s.nudgeThresholdMinutes} min · up to ${s.nudgeDailyCap} per app a day';
+    '${formatHm(Duration(minutes: s.nudgeThresholdMinutes))} · up to '
+    '${s.nudgeDailyCap} per app a day';
 
 IconData _themeIcon(AppThemeMode m) => switch (m) {
   AppThemeMode.system => Icons.brightness_auto,
@@ -642,9 +577,11 @@ IconData _themeIcon(AppThemeMode m) => switch (m) {
   AppThemeMode.dark => Icons.dark_mode,
 };
 
-// ── PIN lock: master switch + edit tile ───────────────────────────────────────
+// ── PIN lock: master switch ─────────────────────────────────────────────────────
 
 class _PinTile extends StatelessWidget {
+  const _PinTile();
+
   /// Master switch. Turning ON opens setup; turning OFF asks for the PIN, then
   /// [confirmPinOff] disables. The switch is bound to `isConfigured`, so a
   /// cancelled turn-off (or a setup the user backs out of) snaps it back.
@@ -659,12 +596,6 @@ class _PinTile extends StatelessWidget {
     await confirmPinOff(context);
   }
 
-  /// Edit the configured PIN (type, auto-lock, biometrics). The `/pin/setup`
-  /// route itself is wrapped in `PinGuard(scope: settings)`, so no gate here.
-  Future<void> _openSettings(BuildContext context) async {
-    await context.push(Routes.pinSetup);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PinCubit, PinConfig>(
@@ -676,30 +607,12 @@ class _PinTile extends StatelessWidget {
           PinType.time => 'Time',
           _ => 'Unknown', // wire-compat types; never render a dangling bullet
         };
-        return Column(
-          children: [
-            _Spaced(
-              AppToggleTile(
-                leading: Icon(
-                  Icons.lock_outline,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                title: 'PIN lock',
-                subtitle: on
-                    ? 'On • $typeLabel PIN'
-                    : 'Off — protect Detoxo with a PIN',
-                value: on,
-                onChanged: (v) => unawaited(_toggle(context, enable: v)),
-              ),
-            ),
-            if (on)
-              FeatureTile(
-                icon: Icons.tune,
-                title: 'PIN settings',
-                subtitle: 'Type, auto-lock & biometrics',
-                onTap: () => _openSettings(context),
-              ),
-          ],
+        return AppToggleTile(
+          leading: _glyph(context, Icons.lock_outline),
+          title: 'PIN lock',
+          subtitle: on ? 'On · $typeLabel PIN' : 'Off',
+          value: on,
+          onChanged: (v) => unawaited(_toggle(context, enable: v)),
         );
       },
     );
@@ -707,16 +620,6 @@ class _PinTile extends StatelessWidget {
 }
 
 // ── Permissions: entry tile + popup ───────────────────────────────────────────
-
-IconData _permissionIcon(AppPermission p) => switch (p) {
-  AppPermission.accessibility => Icons.accessibility_new,
-  AppPermission.overlay => Icons.layers,
-  AppPermission.notifications => Icons.notifications,
-  AppPermission.usageAccess => Icons.bar_chart,
-  AppPermission.batteryOptimization => Icons.battery_charging_full,
-  AppPermission.deviceAdmin => Icons.shield,
-  AppPermission.notificationListener => Icons.notifications_off,
-};
 
 /// Main-screen entry: a single tile summarising permission status; opens the
 /// full list in a popup.
@@ -729,8 +632,8 @@ class _PermissionsTile extends StatelessWidget {
     return BlocBuilder<PermissionsCubit, List<PermissionStatus>>(
       builder: (context, statuses) {
         // Required only, via effectivelyGranted — the same predicate the
-        // funnel's "N of M" row and Continue button use, so the two can never
-        // contradict each other. Counting all of AppPermission.values made
+        // funnel's "n of m on" note and Continue button use, so the two can
+        // never contradict each other. Counting all of AppPermission.values made
         // "All set" unreachable: it demanded uninstall protection and
         // notification access, both of which ship off by design.
         final cubit = context.read<PermissionsCubit>();
@@ -743,9 +646,9 @@ class _PermissionsTile extends StatelessWidget {
           title: 'Permissions',
           subtitle: 'Accessibility, overlay, notifications & more',
           trailing: total == 0
-              ? const Icon(Icons.chevron_right)
+              ? null
               : Pill(
-                  label: allOk ? 'All set' : '$granted/$total',
+                  label: allOk ? 'All set' : '$granted of $total on',
                   tone: allOk ? AppTone.success : AppTone.warning,
                 ),
           onTap: onTap,
@@ -765,40 +668,15 @@ class _PermissionSheet extends StatelessWidget {
     return BlocBuilder<PermissionsCubit, List<PermissionStatus>>(
       builder: (context, statuses) {
         if (statuses.isEmpty) {
-          return const Text('No permissions to manage.');
+          return Text(
+            'No permissions to manage.',
+            style: AppTypography.body.copyWith(color: context.tokens.ink2),
+          );
         }
+        // The funnel's rows, so the two can never disagree.
         return SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final s in statuses)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                  child: GlassListTile(
-                    leading: Icon(
-                      _permissionIcon(s.kind),
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                    title: s.kind.label,
-                    subtitle: s.kind.why,
-                    trailing:
-                        context.read<PermissionsCubit>().effectivelyGranted(s)
-                        ? const Pill(
-                            label: 'Granted',
-                            tone: AppTone.success,
-                            icon: Icons.check,
-                          )
-                        : TextButton(
-                            onPressed: () => requestPermission(context, s.kind),
-                            child: Text(
-                              s.blockedByRestrictedSettings
-                                  ? 'Fix'
-                                  : (s.kind.required ? 'Grant' : 'Enable'),
-                            ),
-                          ),
-                  ),
-                ),
-            ],
+          child: PanelGroup(
+            children: [for (final s in statuses) PermissionRow(s)],
           ),
         );
       },
@@ -872,12 +750,27 @@ class _BlockModeSheet extends StatelessWidget {
 }
 
 /// Picks how often the soft nudge speaks, and how many times a day it may.
+/// It stays open until both have been picked, so one visit sets both.
 ///
 /// The copy is explicit that the threshold is per visit, because "nudge me
 /// every 5 minutes" and "nudge me after 30 minutes today" are different
-/// features and the second one is the Daily limit, one tile up this screen.
-class _NudgeThresholdSheet extends StatelessWidget {
+/// features and the second one is the Daily limit, one row up this screen.
+class _NudgeThresholdSheet extends StatefulWidget {
   const _NudgeThresholdSheet();
+
+  @override
+  State<_NudgeThresholdSheet> createState() => _NudgeThresholdSheetState();
+}
+
+class _NudgeThresholdSheetState extends State<_NudgeThresholdSheet> {
+  bool _minutesPicked = false;
+  bool _capPicked = false;
+
+  void _picked({bool minutes = false, bool cap = false}) {
+    _minutesPicked |= minutes;
+    _capPicked |= cap;
+    if (_minutesPicked && _capPicked) Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -888,27 +781,23 @@ class _NudgeThresholdSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final m in _nudgeMinutes)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                child: OptionTile(
-                  title: '$m minutes',
-                  subtitle: 'Counted from opening the app, not across the day',
-                  selected: settings.nudgeThresholdMinutes == m,
-                  onTap: () {
-                    unawaited(cubit.setNudgeThresholdMinutes(m));
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
-            const SizedBox(height: AppSpacing.md),
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-              child: Text(
-                'Most nudges per app, per day',
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
+            PanelGroup(
+              children: [
+                for (final m in _nudgeMinutes)
+                  GlassListTile(
+                    title: formatHm(Duration(minutes: m)),
+                    selected: settings.nudgeThresholdMinutes == m,
+                    onTap: () {
+                      unawaited(cubit.setNudgeThresholdMinutes(m));
+                      _picked(minutes: true);
+                    },
+                  ),
+              ],
             ),
+            const _SheetNote(
+              'Counted from opening the app, not across the day',
+            ),
+            const SectionHeader('Most nudges per app, per day'),
             Wrap(
               spacing: AppSpacing.xs,
               children: [
@@ -921,7 +810,7 @@ class _NudgeThresholdSheet extends StatelessWidget {
                     selected: settings.nudgeDailyCap == cap,
                     onSelected: () {
                       unawaited(cubit.setNudgeDailyCap(cap));
-                      Navigator.of(context).pop();
+                      _picked(cap: true);
                     },
                   ),
               ],

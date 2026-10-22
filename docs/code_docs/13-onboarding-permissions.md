@@ -153,7 +153,7 @@ The opens line is off for **new installs only**, and this hand-off is the whole 
   | Enum | Label | `why` | Required | Gate-able |
   |------|-------|-------|----------|-----------|
   | `accessibility` | "Accessibility" | "Lets Detoxo detect and block reels & shorts." | **yes** | ✓ |
-  | `overlay` | "Display over apps" | "Shows the block / PIN screen over other apps." | **yes** | ✓ |
+  | `overlay` | "Display over other apps" (Android's own name) | "Shows the block / PIN screen over other apps." | **yes** | ✓ |
   | `notifications` | "Notifications" | "Alerts you if protection stops." | no | — |
   | `usageAccess` | "Usage access" | "Powers app usage limits." | no | — |
   | `batteryOptimization` | "Unrestricted battery" | "Keeps the blocker alive. Pick Detoxo, then \"Don't optimize\"." | no | — |
@@ -241,7 +241,7 @@ The channel methods themselves are thin wrappers over the `com.errorxperts.detox
 - `refresh()` → loads `_repo.statuses()` **and** `_repo.lastKnownGranted()`, then emits (with the restricted-settings rewrite of §3.5 applied).
 - `request(permission)` → calls `_repo.request(...)`, waits **400 ms** (system dialogs/settings are async), then `refresh()`s to reflect the new state.
 - **`statusFor(kind)`** — the live row for one permission, or a default `unknown` row when the list has no entry yet. The one lookup every truthful "Needs X — tap to allow" row and `requestPermission` use, instead of re-implementing the `firstWhere`.
-- **`effectivelyGranted(status)`** — the gate's per-permission truth, public so the UI shares it: `granted`, **or** a live `unknown` reading that is in `lastKnownGranted`. A definitive `denied` is `false`, regardless of history. Shared with the screen so the cards, the "N of M" progress row and the Continue button can never contradict each other (EVO-014).
+- **`effectivelyGranted(status)`** — the gate's per-permission truth, public so the UI shares it: `granted`, **or** a live `unknown` reading that is in `lastKnownGranted`. A definitive `denied` is `false`, regardless of history. Shared with the screen so the rows, the "n of m on" note and the Continue button can never contradict each other (EVO-014).
 - `allRequiredGranted` — the getter the splash gate reads; it simply runs `effectivelyGranted` over every required permission — one flaky channel call at cold start must not send a set-up user back to the setup wall. On an empty state (iOS) `.every` on an empty list is `true`.
 - `needsRestrictedFix` (§3.5) explicitly **never fires for an `unknown` reading** — a channel hiccup is not a refusal and must not be relabelled `permanentlyDenied`.
 
@@ -250,12 +250,12 @@ DI: registered as a global `BlocProvider` in `lib/main.dart` (`PermissionsCubit(
 **`PermissionsScreen`** (`presentation/permissions_screen.dart`) — the guided funnel UI, title **"Set up protection"**:
 
 - A `WidgetsBindingObserver` that calls `PermissionsCubit.refresh()` on `initState` **and** on every `AppLifecycleState.resumed`. This is the key UX move: the user leaves to a system settings screen, flips a toggle, and returns — the list updates live to reflect what they just granted. (Independently of this screen, `AppResumeSync` in `lib/app/app_resume_sync.dart` also runs `PermissionsCubit.refresh()` on **every** app resume, so the persisted granted set stays fresh even when the user never revisits the funnel.)
-- Splits statuses into **"Required to block"** and **"Recommended"** sections (by `kind.required`), each an animated `EntranceList` of `PermissionCard`s.
-- A progress row: a `ProgressBar` plus "*grantedReq* of *totalRequired*" — counted with `cubit.effectivelyGranted`, the **same predicate as the gate**, so the row, the cards and the Continue button can never contradict each other under a flaky (unknown) read.
-- Each card shows a neutral `IconBadge`, the permission `label`, its `why`, the status as a dot and a word (`Pill`: **On** / **Needs access** / **Checking…**; no "Required" pill — the section header says it), and an action wired to `requestPermission(context, status.kind)`. It draws its own panel only when it is not already on a surface (`GlassContainer.surfaceOf`). `granted:` is the card's `effectivelyGranted` value; a **genuinely unknown** status (live `unknown` with no granted history) sets `PermissionCard(unknown: true)`, which renders a neutral **"Checking…"** row — no Grant button, no denied red (EVO-014; the next refresh settles it). Otherwise the action reads **Grant** normally, **Open settings** when `permanentlyDenied` (so a don't-ask-again notification permission points at system settings instead of a dead button), or **Fix this** when `blockedByRestrictedSettings` (`PermissionCard(actionLabel: ...)`). Covered by `test/permission_unknown_ui_test.dart`.
+- One body / ink-2 intro line, then two sections, each a `SectionHeader` over **one** `PanelGroup` of `PermissionRow`s, split by `kind.required`: **"Required to block"** and **"Recommended"**. No progress bar: the count is the Required header's note, "*grantedReq* of *totalRequired* on" — counted with `cubit.effectivelyGranted`, the **same predicate as the gate**, so the note, the rows and the Continue button can never contradict each other under a flaky (unknown) read. Gutters are 20.
+- **`PermissionRow(status)`** (`presentation/permission_actions.dart`) binds one status to a `PermissionCard` — the icon map, `effectivelyGranted`, the unknown / permanently-denied / restricted-settings flags and `requestPermission` — so the funnel and the Settings sheet render the same row.
+- Each row shows a neutral `IconBadge`, the permission `label`, its `why`, the status as a dot and a word (`Pill`: **On** / **Needs access** / **Checking…**; no "Required" pill — the section header says it), and an action wired to `requestPermission(context, status.kind)`. It draws its own panel only when it is not already on a surface (`GlassContainer.surfaceOf`). `granted:` is the card's `effectivelyGranted` value; a **genuinely unknown** status (live `unknown` with no granted history) sets `PermissionCard(unknown: true)`, which renders a neutral **"Checking…"** row — no Grant button, no denied red (EVO-014; the next refresh settles it). Otherwise the action reads **Grant** normally, **Open settings** when `permanentlyDenied` (so a don't-ask-again notification permission points at system settings instead of a dead button), or **Fix this** when `blockedByRestrictedSettings` (`PermissionCard(actionLabel: ...)`). Covered by `test/permission_unknown_ui_test.dart`.
 - Bottom `PrimaryButton`: while `allRequiredGranted` is false it reads **"Grant required permissions"** and is **disabled**; once both required permissions are granted it becomes **"Continue"** and `context.go(Routes.home)`.
 
-Per-permission icons (`_iconFor`, presentation-only; the `why` copy is on the enum — see §3.1):
+Per-permission icons (`PermissionRow._icon`, presentation-only; the `why` copy is on the enum — see §3.1):
 
 | Permission | Icon |
 |------------|------|
@@ -313,13 +313,16 @@ legitimate `permanentlyDenied` path.
 **The UX** is passive: no auto-opening sheet on resume (intrusive, and it would fire
 mid-rebuild). Instead the card's own button becomes **Fix this**, so a stuck user cannot
 miss it — it is the only control there. It opens `RestrictedSettingsSheet`
-(`presentation/widgets/restricted_settings_sheet.dart`): four numbered steps and an
-**Open app info** button that pops the sheet and calls
-`PermissionsCubit.openAppSettings()`.
+(`presentation/widgets/restricted_settings_sheet.dart`): one body / ink-2 line ("Android
+locks a few switches for apps not from the Play Store. Allow them once:"), four numbered
+steps (the number in caption ink-2 inside a 24 px `fillQuiet` circle, the step in body
+ink), one subhead tip for phones that list the option at the bottom of App info, then
+**Open app info** (`PrimaryButton`, pops the sheet and calls
+`PermissionsCubit.openAppSettings()`) and **Not now**.
 
 Copy is **version-agnostic** — the escape hatch is the same ⋮ → *Allow restricted
-settings* on 13/14 and 15+, and only the system dialog's wording differs, so one sentence
-naming both variants covers it. No `sdkInt` branch, and therefore no `deviceInfo()` read.
+settings* on 13/14 and 15+, and only the system dialog's wording differs, so the copy
+stays generic. No `sdkInt` branch, and therefore no `deviceInfo()` read.
 
 The allowance is **per app, not per permission**: one confirmation unblocks all three
 toggles.
@@ -329,7 +332,7 @@ Play-install negative case, and the clear-on-open-settings path).
 
 ### 3.5 Re-entry after onboarding
 
-The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/presentation/settings_screen.dart`): a `_PermissionsTile` summarising status ("All set" / "*granted*/*total*") that opens a `_PermissionSheet` listing every permission with **Grant**/**Enable** actions. Settings also `refresh()`es the cubit on init and on resume, so a user who skipped optional permissions during the funnel can grant them later without re-running onboarding.
+The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/presentation/settings_screen.dart`): a `_PermissionsTile` row in the Security panel whose trailing status reads **"All set"** (status-on dot) or "*granted* of *total* on" (status-setup dot), counting required permissions with `effectivelyGranted`. It opens a `_PermissionSheet`: one `PanelGroup` of the funnel's own `PermissionRow`s, so the sheet's status words and Grant / Open settings / Fix this actions are the funnel's. Settings also `refresh()`es the cubit on init and on resume, so a user who skipped optional permissions during the funnel can grant them later without re-running onboarding.
 
 ---
 
@@ -344,7 +347,7 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 1. Cold launch → `/` splash → `runBootstrap()` loads settings/permissions/pin, seeds the enabled-platform set from installed defaults, then opens `AppGate` and fires the background legs (counter widget, `syncEngineBlocklists()`, rules/limit/streak reloads).
 2. `onboarded == false` → the redirect sends the user to `/onboarding`. They walk **welcome → survey → projection → selection → commitment**, each answer written to `StoreKeys.onboardingProgress` as it is given. Killing the app at any point resumes on that step.
 3. Leaving `commitment` advances the record to `permissions`, seeds the daily limit (dialled value or the 90-minute default), turns the block screen's opens line off and flips `onboarded: true` through `SettingsCubit` — the redirect routes on to `/permissions`.
-4. `/permissions` funnel. User grants **Accessibility** and **Display over apps** (required) via system screens; returning each time re-checks on resume. Optional permissions (notifications, usage, battery, device-admin) offered but not blocking. The redirect leaves them on the screen once the required two are in.
+4. `/permissions` funnel. User grants **Accessibility** and **Display over other apps** (required) via system screens; returning each time re-checks on resume. Optional permissions (notifications, usage, battery, device-admin) offered but not blocking. The redirect leaves them on the screen once the required two are in.
 5. The moment `allRequiredGranted` flips true, `StarterRuleSync` writes **exactly one** rule from the survey, marks the record `completed` and clears it — so the first thing that happens after granting is that Detoxo does something.
 6. **Continue** → `/home`.
 7. Next launch: the bootstrap finds `onboarded == true`, no app-scope PIN (unless one was set), required permissions granted → the redirect lands straight on `/home`. If an app-scope PIN was later configured, gate step 3 diverts to `/pin/lock` first. An **upgrading** install has no progress record at all, which is exactly why completion lives on `AppSettings.onboarded`: it is never re-onboarded.
@@ -375,7 +378,7 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 - `test/routes_registered_test.dart` (every declared path resolves)
 - `lib/features/limits/daily_limit/presentation/daily_limit_cubit.dart` (`DailyLimitCubit.setLimit` — seeds the limit on finish, via the app-wide provider)
 - `lib/features/permissions/permissions.dart`
-- `lib/features/permissions/presentation/permission_actions.dart` (`requestPermission` — the single grant entry point; prominent disclosure + restricted-settings routing)
+- `lib/features/permissions/presentation/permission_actions.dart` (`requestPermission` — the single grant entry point; prominent disclosure + restricted-settings routing; `PermissionRow`, the shared row)
 - `lib/features/permissions/presentation/widgets/restricted_settings_sheet.dart` (`RestrictedSettingsSheet`)
 - `lib/app/app_resume_sync.dart` (app-wide permission re-check on every resume)
 - `lib/app/engine_sync.dart` (`syncEngineBlocklists` — splash + resume blocklist drift repair)

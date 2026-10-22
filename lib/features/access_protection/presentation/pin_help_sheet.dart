@@ -22,31 +22,22 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final muted = text.bodyMedium?.copyWith(color: context.tokens.ink2);
+    final ink2 = context.tokens.ink2;
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Detoxo has no way to unlock this for you. Your PIN never leaves '
-            'this phone and there is no account behind it — which is exactly '
-            'what makes it a real commitment device.',
-            style: muted,
+            'Detoxo can’t unlock it for you: the PIN never leaves this phone. '
+            'Reinstalling Detoxo clears it along with all your settings.',
+            style: AppTypography.body.copyWith(color: ink2),
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            'If you are locked out for good, uninstall Detoxo and install it '
-            'again. That clears the PIN along with your settings, blocklists '
-            'and counts, and you start fresh.',
-            style: muted,
-          ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             'Turned on uninstall protection? Switch it off first in Android’s '
             'Settings → Security → Device admin apps.',
-            style: text.bodySmall?.copyWith(color: context.tokens.ink2),
+            style: AppTypography.subhead.copyWith(color: ink2),
           ),
           const SizedBox(height: AppSpacing.lg),
           PrimaryButton(

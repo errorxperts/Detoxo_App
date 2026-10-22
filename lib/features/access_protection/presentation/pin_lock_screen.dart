@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
+import 'package:detoxo/core/utils/clock_format.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_help_sheet.dart';
@@ -52,19 +53,10 @@ class PinLockScreen extends StatefulWidget {
 
 class _PinLockScreenState extends State<PinLockScreen> {
   /// Entry buffer + error line as notifiers, so a keystroke repaints only the
-  /// dots and the status row — never all twelve (blur-heavy) keys.
+  /// dots and the status row — never all twelve shadowed keys.
   final ValueNotifier<String> _entry = ValueNotifier('');
   final ValueNotifier<String?> _error = ValueNotifier(null);
   Timer? _lockTimer;
-
-  /// The lockout window we've already surfaced as a dialog, so the 1 Hz rebuild
-  /// (and repeated keypad pokes) can't re-fire it. Re-shows when the window changes.
-  DateTime? _shownFor;
-  final AnimatedIconController _lockController = AnimatedIconController();
-  final AnimatedIconController _backspaceController = AnimatedIconController();
-
-  bool get _reduceMotion =>
-      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
   bool get _isForcedAppGate =>
       widget.scope == PinScope.app && widget.onCancel == null;
@@ -90,8 +82,6 @@ class _PinLockScreenState extends State<PinLockScreen> {
     _lockTimer?.cancel();
     _entry.dispose();
     _error.dispose();
-    _lockController.dispose();
-    _backspaceController.dispose();
     super.dispose();
   }
 
@@ -133,11 +123,9 @@ class _PinLockScreenState extends State<PinLockScreen> {
 
   Future<void> _onKey(String digit) async {
     final cubit = context.read<PinCubit>();
-    final config = cubit.state;
-    if (config.isLockedOut) {
-      _showLockoutDialog(config.lockedUntil!);
-      return;
-    }
+    // The keypad is disabled during a lockout; this catches a key that lands
+    // in the frame the window starts. The inline countdown says why.
+    if (cubit.state.isLockedOut) return;
     final expected = cubit.expectedLength;
     if (_entry.value.length >= expected) return;
     AppHaptics.selection();
@@ -154,50 +142,15 @@ class _PinLockScreenState extends State<PinLockScreen> {
       _succeed();
       return;
     }
-    _wrongPinFeedback();
+    // A distinct stronger buzz (gated on the haptics setting); a new
+    // lockout window replaces this line with the live countdown.
+    AppHaptics.error();
     _error.value = 'Incorrect PIN';
     _entry.value = '';
-    // verify() has emitted; read the fresh state to catch a new lockout window.
-    final config = cubit.state;
-    if (config.isLockedOut) _showLockoutDialog(config.lockedUntil!);
-  }
-
-  /// A wrong PIN gets a distinct stronger buzz (gated on the haptics setting)
-  /// plus the existing shake.
-  void _wrongPinFeedback() {
-    AppHaptics.error();
-    if (!_reduceMotion) _lockController.animate();
-  }
-
-  /// Surfaces the cooldown in a sheet, once per distinct lockout window —
-  /// the inline [_LockoutText] remains the live, ticking countdown.
-  void _showLockoutDialog(DateTime until) {
-    if (_shownFor == until) return;
-    _shownFor = until;
-    final diff = until.difference(DateTime.now());
-    final remaining = diff.isNegative ? Duration.zero : diff;
-    AppDialog.show<void>(
-      context: context,
-      title: 'Too many attempts',
-      message: 'Please wait ${formatCountdown(remaining)} before trying again.',
-      icon: Icons.lock_clock,
-      actions: [
-        PrimaryButton(
-          label: 'OK',
-          expand: true,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
-    );
   }
 
   void _backspace() {
     if (_entry.value.isEmpty) return;
-    if (!_reduceMotion) {
-      _backspaceController
-        ..reset()
-        ..animate();
-    }
     _entry.value = _entry.value.substring(0, _entry.value.length - 1);
   }
 
@@ -205,35 +158,30 @@ class _PinLockScreenState extends State<PinLockScreen> {
     await PinHelpSheet.show(context);
   }
 
-  /// Title, supporting line and glyph for the active scope.
-  ({String title, String subtitle, AppIcon icon}) get _copy =>
-      switch (widget.scope) {
-        PinScope.app => (
-          title: 'Enter your PIN',
-          subtitle: 'Unlock Detoxo to continue',
-          icon: AppIcon.pinLock,
-        ),
-        PinScope.settings => (
-          title: 'Enter PIN',
-          subtitle: 'Confirm to change protected settings',
-          icon: AppIcon.shieldCheck,
-        ),
-        PinScope.appLocker => (
-          title: 'Enter PIN',
-          subtitle: 'Confirm to manage locked apps',
-          icon: AppIcon.shieldCheck,
-        ),
-        PinScope.planSwitch || PinScope.detoxoSettings => (
-          title: 'Enter your PIN',
-          subtitle: 'Confirm to continue',
-          icon: AppIcon.pinLock,
-        ),
-      };
+  /// Title and supporting line for the active scope.
+  ({String title, String subtitle}) get _copy => switch (widget.scope) {
+    PinScope.app => (
+      title: 'Enter your PIN',
+      subtitle: 'Unlock Detoxo to continue',
+    ),
+    PinScope.settings => (
+      title: 'Enter PIN',
+      subtitle: 'Confirm to change protected settings',
+    ),
+    PinScope.appLocker => (
+      title: 'Enter PIN',
+      subtitle: 'Confirm to manage locked apps',
+    ),
+    PinScope.planSwitch || PinScope.detoxoSettings => (
+      title: 'Enter your PIN',
+      subtitle: 'Confirm to continue',
+    ),
+  };
 
   @override
   Widget build(BuildContext context) {
     final config = context.watch<PinCubit>().state;
-    final text = Theme.of(context).textTheme;
+    final t = context.tokens;
     final expected = context.read<PinCubit>().expectedLength;
     final copy = _copy;
     // One clock read per build: isLockedOut re-reads DateTime.now() on every
@@ -259,26 +207,18 @@ class _PinLockScreenState extends State<PinLockScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    AppAnimatedIcon(
-                      icon: copy.icon,
-                      size: 52,
-                      controller: _lockController,
-                    ),
+                    const DetoxoLogo(),
                     const SizedBox(height: AppSpacing.md),
                     Text(
                       copy.title,
                       textAlign: TextAlign.center,
-                      style: text.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: AppTypography.title.copyWith(color: t.ink),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       copy.subtitle,
                       textAlign: TextAlign.center,
-                      style: text.bodyMedium?.copyWith(
-                        color: context.tokens.ink2,
-                      ),
+                      style: AppTypography.body.copyWith(color: t.ink2),
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     ValueListenableBuilder<String>(
@@ -297,12 +237,12 @@ class _PinLockScreenState extends State<PinLockScreen> {
                             ? _LockoutText(until: config.lockedUntil!)
                             : ValueListenableBuilder<String?>(
                                 valueListenable: _error,
-                                builder: (_, error, _) => Text(
-                                  error ?? '',
-                                  textAlign: TextAlign.center,
-                                  style: text.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.error,
-                                    fontWeight: FontWeight.w600,
+                                builder: (_, error, _) => Semantics(
+                                  liveRegion: true,
+                                  child: Text(
+                                    error ?? '',
+                                    textAlign: TextAlign.center,
+                                    style: _statusStyle(context),
                                   ),
                                 ),
                               ),
@@ -315,7 +255,6 @@ class _PinLockScreenState extends State<PinLockScreen> {
                       onKey: _onKey,
                       onBackspace: _backspace,
                       onBiometric: _tryBiometric,
-                      backspaceController: _backspaceController,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     SecondaryButton(
@@ -328,12 +267,19 @@ class _PinLockScreenState extends State<PinLockScreen> {
             ),
             if (widget.onCancel != null)
               SafeArea(
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: IconButton(
-                    tooltip: 'Cancel',
-                    icon: const Icon(Icons.close),
-                    onPressed: widget.onCancel,
+                child: Padding(
+                  // Where GlassAppBar puts its back button.
+                  padding: const EdgeInsets.only(
+                    left: AppSpacing.gutter - 2,
+                    top: AppSpacing.xs,
+                  ),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: GlassIconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      semanticLabel: 'Cancel',
+                      onPressed: widget.onCancel,
+                    ),
                   ),
                 ),
               ),
@@ -352,8 +298,7 @@ class _Dots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final t = context.tokens;
     return Semantics(
       label: '$filled of $length digits entered',
       child: ExcludeSemantics(
@@ -362,14 +307,14 @@ class _Dots extends StatelessWidget {
           children: List.generate(
             length.clamp(1, 10),
             (i) => AnimatedContainer(
-              duration: reduceMotion ? Duration.zero : AppDurations.fast,
+              duration: context.motion(AppDurations.fast),
               margin: const EdgeInsets.symmetric(horizontal: 6),
               width: 14,
               height: 14,
               decoration: BoxDecoration(
-                color: i < filled ? scheme.primary : Colors.transparent,
+                color: i < filled ? t.ink : Colors.transparent,
                 border: Border.all(
-                  color: i < filled ? scheme.primary : context.tokens.hairline,
+                  color: i < filled ? t.ink : t.hairline,
                   width: 1.5,
                 ),
                 shape: BoxShape.circle,
@@ -412,19 +357,34 @@ class _LockoutTextState extends State<_LockoutText> {
 
   @override
   Widget build(BuildContext context) {
-    final diff = widget.until.difference(DateTime.now());
+    final now = DateTime.now();
+    final diff = widget.until.difference(now);
     final remaining = diff.isNegative ? Duration.zero : diff;
-    return Text(
-      'Too many attempts. Try again in ${formatCountdown(remaining)}',
-      textAlign: TextAlign.center,
-      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        color: Theme.of(context).colorScheme.error,
-        fontWeight: FontWeight.w600,
+    final until = widget.until;
+    final at = formatLocalTime(context, until.hour * 60 + until.minute);
+    final day = DateUtils.isSameDay(until, now) ? '' : ' tomorrow';
+    // A live region re-announces every change, so TalkBack hears the fixed
+    // end time once instead of a countdown every second.
+    return Semantics(
+      liveRegion: true,
+      label: 'Too many attempts. Try again$day at $at',
+      child: ExcludeSemantics(
+        child: Text(
+          'Too many attempts. Try again in ${formatCountdown(remaining)}',
+          textAlign: TextAlign.center,
+          style: _statusStyle(context),
+        ),
       ),
     );
   }
 }
 
+/// The error and lockout line: subhead words in ink, never red.
+TextStyle _statusStyle(BuildContext context) =>
+    AppTypography.subhead.copyWith(color: context.tokens.ink);
+
+/// Four rows of three: digits on soft raised circles, the biometric shortcut
+/// (or nothing) and Delete as flat glyph keys on the bottom row.
 class _Keypad extends StatelessWidget {
   const _Keypad({
     required this.enabled,
@@ -432,7 +392,6 @@ class _Keypad extends StatelessWidget {
     required this.onKey,
     required this.onBackspace,
     required this.onBiometric,
-    required this.backspaceController,
   });
 
   final bool enabled;
@@ -440,118 +399,100 @@ class _Keypad extends StatelessWidget {
   final ValueChanged<String> onKey;
   final VoidCallback onBackspace;
   final VoidCallback onBiometric;
-  final AnimatedIconController backspaceController;
 
   @override
   Widget build(BuildContext context) {
+    Widget digit(int d) =>
+        _Key(enabled: enabled, onTap: () => onKey('$d'), label: '$d');
+    Widget row(List<Widget> keys) =>
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: keys);
     return SizedBox(
       width: 300,
-      child: GridView.count(
-        crossAxisCount: 3,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: AppSpacing.sm,
-        crossAxisSpacing: AppSpacing.sm,
-        childAspectRatio: 1.3,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: AppSpacing.sm,
         children: [
-          for (var i = 1; i <= 9; i++)
-            _DigitKey(digit: '$i', enabled: enabled, onKey: onKey),
-          // Bottom-left: biometric shortcut when enabled, else empty.
-          if (showBiometric)
-            _IconKey(
+          for (var r = 0; r < 3; r++)
+            row([for (var c = 1; c <= 3; c++) digit(r * 3 + c)]),
+          row([
+            if (showBiometric)
+              _Key(
+                enabled: enabled,
+                onTap: onBiometric,
+                label: 'Unlock with fingerprint or device credential',
+                icon: Icons.fingerprint,
+              )
+            else
+              const SizedBox.square(dimension: _Key.size),
+            digit(0),
+            _Key(
               enabled: enabled,
-              onTap: onBiometric,
-              semanticLabel: 'Unlock with fingerprint or device credential',
-              child: const Icon(Icons.fingerprint, size: 26),
-            )
-          else
-            const SizedBox.shrink(),
-          _DigitKey(digit: '0', enabled: enabled, onKey: onKey),
-          _IconKey(
-            enabled: enabled,
-            onTap: onBackspace,
-            semanticLabel: 'Delete',
-            child: AppAnimatedIcon(
-              icon: AppIcon.backspace,
-              size: 24,
-              controller: backspaceController,
+              onTap: onBackspace,
+              label: 'Delete',
+              icon: Icons.backspace_outlined,
             ),
-          ),
+          ]),
         ],
       ),
     );
   }
 }
 
-class _DigitKey extends StatelessWidget {
-  const _DigitKey({
-    required this.digit,
-    required this.enabled,
-    required this.onKey,
-  });
-
-  final String digit;
-  final bool enabled;
-  final ValueChanged<String> onKey;
-
-  @override
-  Widget build(BuildContext context) {
-    final key = GlassContainer(
-      surface: DxSurface.option,
-      color: context.tokens.fillQuiet,
-      borderRadius: AppRadius.pill,
-      padding: EdgeInsets.zero,
-      child: Center(
-        child: Text(
-          digit,
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
-        ),
-      ),
-    );
-    return Semantics(
-      button: true,
-      enabled: enabled,
-      label: digit,
-      excludeSemantics: true,
-      child: enabled
-          ? AppPressable(haptic: false, onTap: () => onKey(digit), child: key)
-          : Opacity(opacity: 0.4, child: key),
-    );
-  }
-}
-
-class _IconKey extends StatelessWidget {
-  const _IconKey({
+/// One keypad key: a single button node TalkBack can activate, labelled by
+/// [label]. A digit key (no [icon]) is the spec soft button as a circle — the
+/// 145° button gradient with its soft shadow — and its digit in title ink; a
+/// glyph key is flat. Disabled keys fade and announce as disabled.
+class _Key extends StatelessWidget {
+  const _Key({
     required this.enabled,
     required this.onTap,
-    required this.child,
-    required this.semanticLabel,
+    required this.label,
+    this.icon,
   });
+
+  static const double size = 72;
 
   final bool enabled;
   final VoidCallback onTap;
-  final Widget child;
-  final String semanticLabel;
+  final String label;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
-    final key = GlassContainer(
-      surface: DxSurface.option,
-      color: Colors.transparent,
-      borderRadius: AppRadius.pill,
-      padding: EdgeInsets.zero,
-      child: Center(child: child),
-    );
-    return Semantics(
-      button: true,
+    final t = context.tokens;
+    final face = icon == null
+        ? CustomPaint(
+            painter: DxSurfacePainter(
+              radius: AppRadius.brPill,
+              gradient: [t.buttonFrom, t.buttonTo],
+              angle: 145,
+              shadows: t.shadowButton,
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: AppTypography.title.copyWith(
+                  color: t.ink,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          )
+        : Center(child: Icon(icon, size: 26, color: t.ink2));
+    return AppPressable(
+      onTap: onTap,
       enabled: enabled,
-      label: semanticLabel,
-      excludeSemantics: true,
-      child: enabled
-          ? AppPressable(onTap: onTap, child: key)
-          : Opacity(opacity: 0.4, child: key),
+      // Digits buzz from the screen's own selection haptic.
+      haptic: icon != null,
+      pressedScale: 0.95,
+      radius: AppRadius.brPill,
+      semanticLabel: label,
+      child: Opacity(
+        opacity: enabled ? 1 : 0.4,
+        child: ExcludeSemantics(
+          child: SizedBox.square(dimension: size, child: face),
+        ),
+      ),
     );
   }
 }

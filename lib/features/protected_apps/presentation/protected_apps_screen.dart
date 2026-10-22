@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/app_picker_sheet.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/access_protection/access_protection.dart';
 import 'package:detoxo/features/blocking/blocking.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block_repository.dart';
@@ -68,16 +67,7 @@ class _ProtectedAppsViewState extends State<_ProtectedAppsView> {
         // set would be empty (it fails closed, but don't rely on it).
         final ready = !state.isLoading && state.error == null;
         return GlassScaffold(
-          appBar: const GlassAppBar(
-            title: Text('Protected apps'),
-            actions: [
-              InfoButton(
-                'Detoxo automatically pauses all monitoring while you use '
-                'these apps. They are never read, counted, blocked or '
-                'interrupted.',
-              ),
-            ],
-          ),
+          appBar: const GlassAppBar(title: Text('Protected apps')),
           floatingActionButton: GlassFab(
             onPressed: ready ? () => _showAdd(context) : null,
             icon: const Icon(Icons.add_rounded),
@@ -86,10 +76,10 @@ class _ProtectedAppsViewState extends State<_ProtectedAppsView> {
           body: SafeArea(
             child: ListView(
               padding: EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.md,
-                AppSpacing.md,
-                // Clear the extended FAB.
+                AppSpacing.gutter,
+                AppSpacing.sm,
+                AppSpacing.gutter,
+                // Clear the FAB.
                 96 + MediaQuery.viewPaddingOf(context).bottom,
               ),
               children: _sections(context, state),
@@ -137,54 +127,29 @@ class _ProtectedAppsViewState extends State<_ProtectedAppsView> {
     final manual = state.apps.where(matches).toList();
 
     return [
-      const InlineHint(
-        icon: Icons.verified_user_outlined,
-        text:
-            'Your protected apps are never interrupted — Detoxo pauses '
-            'itself while you use them and resumes when you leave.',
+      Text(
+        'Detoxo never reads, counts, blocks or interrupts these apps. It '
+        'pauses while you use them.',
+        style: AppTypography.body.copyWith(color: context.tokens.ink2),
       ),
-      const SizedBox(height: AppSpacing.sm),
       if (state.autoProtected.length + state.apps.length > 8) ...[
+        const SizedBox(height: AppSpacing.md),
         AppSearchField(
           hintText: 'Search protected apps',
           onChanged: (v) => setState(() => _query = v),
         ),
-        const SizedBox(height: AppSpacing.md),
       ],
-      // While searching, empty sections disappear entirely (no bare headers,
-      // no onboarding hints competing with "No matches").
-      if (!searching || manual.isNotEmpty) ...[
+      // No section until the first added app (the FAB is the way in), and
+      // while searching an empty section disappears entirely.
+      if (manual.isNotEmpty) ...[
         const SectionHeader('Your apps'),
-        if (manual.isEmpty)
-          const InlineHint(
-            icon: Icons.add_circle_outline,
-            text:
-                'Apps you add are protected too. Well-known sensitive apps '
-                'below are covered already.',
-          )
-        else
-          for (final app in manual)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _manualCard(context, app),
-            ),
-        const SizedBox(height: AppSpacing.sm),
+        PanelGroup(
+          children: [for (final app in manual) _manualRow(context, app)],
+        ),
       ],
-      if (!searching || auto.isNotEmpty) ...[
+      if (auto.isNotEmpty) ...[
         const SectionHeader('Auto-protected'),
-        if (!searching)
-          const InlineHint(
-            icon: Icons.shield_outlined,
-            text:
-                'Protected automatically — always on. Banking, payment, '
-                'identity and password apps are covered the moment they are '
-                'installed.',
-          ),
-        for (final app in auto)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: _autoCard(app),
-          ),
+        PanelGroup(children: [for (final app in auto) _autoRow(app)]),
       ],
       if (searching && auto.isEmpty && manual.isEmpty)
         const Padding(
@@ -194,18 +159,19 @@ class _ProtectedAppsViewState extends State<_ProtectedAppsView> {
     ];
   }
 
-  /// A user-added entry: deletable, nothing else.
-  Widget _manualCard(BuildContext context, ProtectedApp app) {
-    return AppCard(
-      leading: AppIconAvatar(
-        iconUrl: '',
-        iconBytes: _appIcons?[app.packageName],
-        appName: app.appName,
-      ),
+  Widget _avatar(ProtectedApp app) => AppIconAvatar(
+    iconUrl: '',
+    iconBytes: _appIcons?[app.packageName],
+    appName: app.appName,
+  );
+
+  /// A user-added entry: removable, nothing else.
+  Widget _manualRow(BuildContext context, ProtectedApp app) {
+    return GlassListTile(
+      leading: _avatar(app),
       title: app.appName,
-      subtitle: app.packageName,
       trailing: IconButton(
-        icon: const Icon(Icons.delete_outline),
+        icon: Icon(Icons.delete_outline, color: context.tokens.ink2),
         tooltip: 'Remove ${app.appName}',
         onPressed: () =>
             context.read<ProtectedAppsCubit>().remove(app.packageName),
@@ -213,29 +179,12 @@ class _ProtectedAppsViewState extends State<_ProtectedAppsView> {
     );
   }
 
-  /// A catalog entry: read-only — always protected, no controls.
-  Widget _autoCard(ProtectedApp app) {
-    return AppCard(
-      leading: AppIconAvatar(
-        iconUrl: '',
-        iconBytes: _appIcons?[app.packageName],
-        appName: app.appName,
-      ),
-      title: app.appName,
-      subtitle: app.packageName,
-      trailing: const Icon(
-        Icons.verified_user_outlined,
-        semanticLabel: 'Protected automatically — always on',
-      ),
-      child: Padding(
-        padding: const EdgeInsets.only(top: AppSpacing.xs),
-        child: Wrap(
-          spacing: AppSpacing.xs,
-          children: [Pill(label: app.category.label)],
-        ),
-      ),
-    );
-  }
+  /// A catalog entry: read-only, always protected; the section says so.
+  Widget _autoRow(ProtectedApp app) => GlassListTile(
+    leading: _avatar(app),
+    title: app.appName,
+    subtitle: app.category.label,
+  );
 
   // ── Add flow ──────────────────────────────────────────────────────────────
 

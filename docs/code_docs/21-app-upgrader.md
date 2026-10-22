@@ -84,16 +84,18 @@ Feature-first Clean Architecture, mirroring the sibling `app_feedback`:
   `HomeShell` (not the `MaterialApp.router` `builder:`) so the dialog is shown from a context
   under the go_router `Navigator` (no `navigatorKey` plumbing) and only after the splash →
   onboarding → PIN → permissions gating completes.
-- **Manual check:** the app-version `InfoBanner` on the **Settings** screen
+- **Manual check:** the app-version row, the last row of the **General** panel on the
+  **Settings** screen
   ([`settings_screen.dart`](../../lib/features/settings/presentation/settings_screen.dart), the
-  `_VersionBanner` widget). Settings is a separate route (not under `UpgradeGate`), so it hosts
-  its **own** screen-local `UpgradeCubit` that `..check()`s on open. Tapping the banner runs a
-  `check(manual: true)` (toasting "You're on the latest version" when current); when an update is
-  available the banner reveals a **compact "Update" button** (`_UpdateButton`) that calls
-  `openStore()`. This surface shows the inline button rather than the blocking dialog — the dialog
-  is the launch-gate (`HomeShell`) path only. The `InfoBanner`
-  ([`daily_limit_screen.dart`](../../lib/features/limits/daily_limit/presentation/daily_limit_screen.dart))
-  gained optional `trailing` (the compact button) and `onTap` (the manual check) params for this.
+  `_VersionRow` widget: a `GlassListTile` "Detoxo v1.0.0" / "Tap to check for updates"). Settings
+  is a separate route (not under `UpgradeGate`), so it hosts its **own** screen-local
+  `UpgradeCubit` that `..check()`s on open. Tapping the row runs a `check(manual: true)`
+  (toasting "You're on the latest version" when current); when an update is available the
+  subtitle reads "Version X is available" and the row's trailing slot holds a 48 dp
+  `SecondaryButton` **"Update"** that calls `openStore()` (the row itself is then not a button,
+  so Update is the one action). This surface shows the inline button rather than the blocking
+  dialog — the dialog is the launch-gate (`HomeShell`) path only. (It replaced the
+  `InfoBanner` + 36 px `_UpdateButton` in M6.)
 - **Design system:** [`AppDialog.show`](../../lib/core/design_system/components/dialog.dart)
   passes `dismissible` (default `true`) to
   [`GlassBottomSheet.show`](../../lib/core/design_system/components/overlays.dart), which, when
@@ -140,8 +142,7 @@ by the Play listing tags until one is set.
 - `lib/core/design_system/components/dialog.dart` (`AppDialog.show(dismissible:)` pass-through)
 - `lib/core/di/injector.dart` (`AppUpgradeService` registration)
 - `lib/features/dashboard/presentation/home_shell.dart` (`UpgradeGate` wrap — automatic check)
-- `lib/features/settings/presentation/settings_screen.dart` (`_VersionBanner`/`_UpdateButton` — manual check + compact Update button)
-- `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart` (`InfoBanner` gained `trailing`/`onTap`)
+- `lib/features/settings/presentation/settings_screen.dart` (`_VersionRow` — manual check + the Update button)
 - `pubspec.yaml` (`upgrader` dependency)
 - `test/app_upgrader_test.dart`
 

@@ -12,6 +12,7 @@ import 'package:detoxo/features/access_protection/domain/repositories/pin_reposi
 import 'package:detoxo/features/access_protection/presentation/pin_auto_relock.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_gate.dart';
+import 'package:detoxo/features/access_protection/presentation/pin_lock_screen.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_setup_screen.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:flutter/material.dart';
@@ -342,6 +343,85 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
       expect(result, isFalse);
+    });
+  });
+
+  group('PinLockScreen keypad', () {
+    Future<PinCubit> configured() async {
+      final cubit = PinCubit(_FakePinRepo());
+      await cubit.setup(
+        type: PinType.custom,
+        secret: '1111',
+        scopes: {PinScope.settings},
+      );
+      return cubit;
+    }
+
+    Widget host(PinCubit cubit, {VoidCallback? onUnlocked}) =>
+        BlocProvider.value(
+          value: cubit,
+          child: MaterialApp(
+            theme: AppTheme.dark(),
+            home: PinLockScreen(
+              scope: PinScope.settings,
+              onUnlocked: onUnlocked ?? () {},
+              onCancel: () {},
+            ),
+          ),
+        );
+
+    testWidgets('each key is one button TalkBack can activate', (tester) async {
+      final handle = tester.ensureSemantics();
+      var unlocked = false;
+      await tester.pumpWidget(
+        host(await configured(), onUnlocked: () => unlocked = true),
+      );
+      await tester.pump();
+
+      expect(
+        find.semantics.byLabel('1').evaluate().single,
+        isSemantics(isButton: true, isEnabled: true, hasTapAction: true),
+      );
+      // A semantic tap is TalkBack's double-tap: before the fix the key's
+      // excluding wrapper swallowed it.
+      for (var i = 0; i < 4; i++) {
+        tester.semantics.tap(find.semantics.byLabel('1'));
+        await tester.pump();
+      }
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(unlocked, isTrue);
+      handle.dispose();
+    });
+
+    testWidgets('a lockout is an inline live line, never a dialog', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      final cubit = await configured();
+      for (var i = 0; i < 6; i++) {
+        await cubit.verify('0000');
+      }
+      expect(cubit.state.isLockedOut, isTrue);
+      await tester.pumpWidget(host(cubit));
+      await tester.pump();
+
+      await tester.tap(find.text('1'), warnIfMissed: false);
+      await tester.pump(const Duration(milliseconds: 400));
+      // Only the inline countdown says it: the "Too many attempts" sheet is
+      // gone, and the keys are disabled.
+      expect(find.textContaining('Too many attempts'), findsOneWidget);
+      expect(
+        find.semantics
+            .byLabel(RegExp(r'^Too many attempts\. Try again at '))
+            .evaluate()
+            .single,
+        isSemantics(isLiveRegion: true),
+      );
+      expect(
+        find.semantics.byLabel('1').evaluate().single,
+        isSemantics(isButton: true, hasEnabledState: true, isEnabled: false),
+      );
+      handle.dispose();
     });
   });
 
@@ -1059,12 +1139,13 @@ void main() {
       await openSetup(tester, cubit);
       final firstField = find.byType(TextField).first;
 
-      // Too short.
+      // Too short: an inline line under the fields, not a toast.
       await tester.enterText(firstField, '12');
       await scrollTo(tester, find.text('Save PIN'), 200);
       await tester.tap(find.text('Save PIN'));
       await tester.pump();
       expect(cubit.state.isConfigured, isFalse);
+      expect(find.text('Use at least 4 digits'), findsOneWidget);
 
       // Mismatched confirmation. (Scroll anchor is the unique section header,
       // rendered uppercased; a `.first` finder throws while zero TextFields
@@ -1072,10 +1153,14 @@ void main() {
       await scrollTo(tester, find.text('YOUR PIN'), -200);
       await tester.enterText(firstField, '1234');
       await tester.enterText(find.byType(TextField).last, '9999');
+      // The error tracks the fields: fixing the length clears it at once.
+      expect(find.text('Use at least 4 digits'), findsNothing);
+      expect(find.text('The two PINs differ'), findsOneWidget);
       await scrollTo(tester, find.text('Save PIN'), 200);
       await tester.tap(find.text('Save PIN'));
       await tester.pump();
       expect(cubit.state.isConfigured, isFalse);
+      expect(find.text('The two PINs differ'), findsOneWidget);
 
       // No scope selected.
       await scrollTo(tester, find.text('YOUR PIN'), -200);
@@ -1090,12 +1175,11 @@ void main() {
       await tester.tap(find.text('Save PIN'));
       await tester.pump();
       expect(cubit.state.isConfigured, isFalse);
-
-      // Let the validation toasts time out, then fire flutter_animate's
-      // zero-duration exit-rebuild timer.
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump(const Duration(milliseconds: 400));
-      await tester.pump();
+      expect(find.text('The two PINs differ'), findsNothing);
+      expect(find.text('Pick at least one'), findsOneWidget);
+      // Inline only: no toast to wait out.
+      expect(find.byType(SnackBar), findsNothing);
+      await tester.pump(const Duration(seconds: 1));
     });
   });
 }

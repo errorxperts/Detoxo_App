@@ -1,6 +1,5 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
-import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/presentation/permission_actions.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
@@ -39,16 +38,6 @@ class _PermissionsScreenState extends State<PermissionsScreen>
     }
   }
 
-  IconData _iconFor(AppPermission p) => switch (p) {
-    AppPermission.accessibility => Icons.accessibility_new,
-    AppPermission.overlay => Icons.layers,
-    AppPermission.notifications => Icons.notifications,
-    AppPermission.usageAccess => Icons.bar_chart,
-    AppPermission.batteryOptimization => Icons.battery_charging_full,
-    AppPermission.deviceAdmin => Icons.shield,
-    AppPermission.notificationListener => Icons.notifications_off,
-  };
-
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
@@ -59,52 +48,43 @@ class _PermissionsScreenState extends State<PermissionsScreen>
           final allRequired = cubit.allRequiredGranted;
           final required = statuses.where((s) => s.kind.required).toList();
           final optional = statuses.where((s) => !s.kind.required).toList();
-          // Same predicate as the gate — the "N of M" row, the cards and the
-          // Continue button must never contradict each other under a flaky
-          // (unknown) read.
+          // Same predicate as the gate — the "n of m on" note, the rows and
+          // the Continue button must never contradict each other under a
+          // flaky (unknown) read.
           final grantedReq = required.where(cubit.effectivelyGranted).length;
-          final progress = required.isEmpty
-              ? 1.0
-              : grantedReq / required.length;
 
           return Column(
             children: [
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.md,
-                    AppSpacing.md,
+                    AppSpacing.gutter,
+                    AppSpacing.sm,
+                    AppSpacing.gutter,
                     AppSpacing.md,
                   ),
                   children: [
                     Text(
                       'Grant a few permissions so Detoxo can do its job.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Row(
-                      children: [
-                        Expanded(child: ProgressBar(progress: progress)),
-                        const SizedBox(width: AppSpacing.sm),
-                        Text(
-                          '$grantedReq of ${required.length}',
-                          style: Theme.of(context).textTheme.labelMedium,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    if (required.isNotEmpty) ...[
-                      const _SectionLabel('Required to block'),
-                      EntranceList(
-                        children: [for (final s in required) _card(context, s)],
+                      style: AppTypography.body.copyWith(
+                        color: context.tokens.ink2,
                       ),
-                      const SizedBox(height: AppSpacing.md),
+                    ),
+                    // Each section says what it is, so no row needs a
+                    // "Required" pill; the count is the section's note.
+                    if (required.isNotEmpty) ...[
+                      SectionHeader(
+                        'Required to block',
+                        note: '$grantedReq of ${required.length} on',
+                      ),
+                      PanelGroup(
+                        children: [for (final s in required) PermissionRow(s)],
+                      ),
                     ],
                     if (optional.isNotEmpty) ...[
-                      const _SectionLabel('Recommended'),
-                      EntranceList(
-                        children: [for (final s in optional) _card(context, s)],
+                      const SectionHeader('Recommended'),
+                      PanelGroup(
+                        children: [for (final s in optional) PermissionRow(s)],
                       ),
                     ],
                   ],
@@ -113,7 +93,10 @@ class _PermissionsScreenState extends State<PermissionsScreen>
               SafeArea(
                 top: false,
                 child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.gutter,
+                    vertical: AppSpacing.md,
+                  ),
                   child: PrimaryButton(
                     label: allRequired
                         ? 'Continue'
@@ -128,46 +111,6 @@ class _PermissionsScreenState extends State<PermissionsScreen>
             ],
           );
         },
-      ),
-    );
-  }
-
-  Widget _card(BuildContext context, PermissionStatus status) {
-    final cubit = context.read<PermissionsCubit>();
-    final effective = cubit.effectivelyGranted(status);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: PermissionCard(
-        icon: _iconFor(status.kind),
-        title: status.kind.label,
-        why: status.kind.why,
-        granted: effective,
-        // Genuinely unknown (no granted history): neutral "Checking…", not a
-        // red denied row.
-        unknown: status.state == PermissionState.unknown,
-        permanentlyDenied: status.permanentlyDenied,
-        actionLabel: status.blockedByRestrictedSettings ? 'Fix this' : null,
-        onGrant: () => requestPermission(context, status.kind),
-      ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.label);
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: AppSpacing.sm),
-      child: Text(
-        label.toUpperCase(),
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.8,
-        ),
       ),
     );
   }
