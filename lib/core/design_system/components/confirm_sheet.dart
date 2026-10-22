@@ -32,6 +32,10 @@ import 'package:flutter/material.dart';
 /// commits or toasts: the caller does both after a true, since its commit
 /// can fail.
 abstract final class ConfirmSheet {
+  /// The size of the `icon` callers pass: an `Icon3d` or `DetoxoLogo` that
+  /// fills the 88 well.
+  static const double iconSize = 58;
+
   @visibleForTesting
   static const Key knobKey = ValueKey('ConfirmSheet.knob');
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -371,8 +372,34 @@ abstract final class GlassToast {
     AppTone tone = AppTone.neutral,
     ({String label, VoidCallback onPressed})? action,
   }) {
-    final messenger = ScaffoldMessenger.of(context);
     final mq = MediaQuery.of(context);
+    final duration = mq.accessibleNavigation
+        ? const Duration(seconds: 10)
+        : Duration(seconds: action == null ? 4 : 6);
+    // A sheet or dialog over the page would hide a SnackBar in the page's
+    // Scaffold, so the toast floats above everything instead.
+    final route = ModalRoute.of(context);
+    if (route is PopupRoute || (route != null && !route.isCurrent)) {
+      _FloatingToast.show(
+        context,
+        duration: duration,
+        build: (hide) => _Toast(
+          tone: tone,
+          message: message,
+          action: action == null
+              ? null
+              : (
+                  label: action.label,
+                  onPressed: () {
+                    hide();
+                    action.onPressed();
+                  },
+                ),
+        ),
+      );
+      return;
+    }
+    final messenger = ScaffoldMessenger.of(context);
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -383,9 +410,7 @@ abstract final class GlassToast {
           padding: EdgeInsets.zero,
           clipBehavior: Clip.none,
           persist: false,
-          duration: mq.accessibleNavigation
-              ? const Duration(seconds: 10)
-              : Duration(seconds: action == null ? 4 : 6),
+          duration: duration,
           content: _Toast(
             tone: tone,
             message: message,
@@ -405,6 +430,94 @@ abstract final class GlassToast {
             : null,
       );
   }
+}
+
+/// A toast on the root overlay, for while a sheet or dialog covers the
+/// page: it sits under the status bar, fades in and out, and replaces the one
+/// before it.
+class _FloatingToast extends StatefulWidget {
+  const _FloatingToast({
+    required this.duration,
+    required this.onDone,
+    required this.child,
+  });
+
+  final Duration duration;
+  final VoidCallback onDone;
+  final Widget child;
+
+  static OverlayEntry? _current;
+
+  static void show(
+    BuildContext context, {
+    required Duration duration,
+    required Widget Function(VoidCallback hide) build,
+  }) {
+    if (_current?.mounted ?? false) _current!.remove();
+    late final OverlayEntry entry;
+    void done() {
+      if (_current == entry) _current = null;
+      if (entry.mounted) entry.remove();
+    }
+
+    entry = OverlayEntry(
+      builder: (_) =>
+          _FloatingToast(duration: duration, onDone: done, child: build(done)),
+    );
+    _current = entry;
+    Overlay.of(context, rootOverlay: true).insert(entry);
+  }
+
+  @override
+  State<_FloatingToast> createState() => _FloatingToastState();
+}
+
+class _FloatingToastState extends State<_FloatingToast> {
+  bool _shown = false;
+  late final Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(widget.duration, _hide);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _shown = true);
+    });
+  }
+
+  void _hide() {
+    if (!mounted) return;
+    if (context.motion(AppDurations.normal) == Duration.zero) {
+      widget.onDone();
+    } else {
+      setState(() => _shown = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Positioned(
+    top: MediaQuery.paddingOf(context).top + AppSpacing.xs,
+    left: AppSpacing.gutter,
+    right: AppSpacing.gutter,
+    child: Semantics(
+      container: true,
+      liveRegion: true,
+      child: AnimatedOpacity(
+        opacity: _shown ? 1 : 0,
+        duration: context.motion(AppDurations.normal),
+        onEnd: () {
+          if (!_shown) widget.onDone();
+        },
+        child: Material(type: MaterialType.transparency, child: widget.child),
+      ),
+    ),
+  );
 }
 
 class _Toast extends StatelessWidget {

@@ -39,7 +39,7 @@ Future<bool> requirePin(BuildContext context, PinScope scope) async {
 Future<bool> confirmPinOff(BuildContext context) async {
   final ok = await ConfirmSheet.show(
     context,
-    icon: const DetoxoLogo(height: 58),
+    icon: const DetoxoLogo(height: ConfirmSheet.iconSize),
     title: 'Turn off PIN lock?',
     message: 'Detoxo and its protected settings stop asking for a PIN.',
     action: 'Slide to turn off',

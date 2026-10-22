@@ -51,7 +51,7 @@ class _WebProtectionView extends StatelessWidget {
   }) async {
     final ok = await ConfirmSheet.show(
       context,
-      icon: Icon3d(Assets.images.icons.iconWebBlocker, size: 58),
+      icon: Icon3d(Assets.images.icons.iconWebBlocker, size: ConfirmSheet.iconSize),
       title: title,
       message: message,
       action: 'Slide to turn off',

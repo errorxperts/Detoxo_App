@@ -48,7 +48,7 @@ Future<Duration?> showUnblockDurationSheet(
   var minutes = chips.first;
   final ok = await ConfirmSheet.show(
     context,
-    icon: Icon3d(icon, size: 58),
+    icon: Icon3d(icon, size: ConfirmSheet.iconSize),
     title: title,
     message: message,
     content: _DurationChips(

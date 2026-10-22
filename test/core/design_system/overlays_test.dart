@@ -245,6 +245,48 @@ void main() {
       expect(find.text('Instagram unblocked'), findsNothing);
     });
 
+    testWidgets('over an open sheet it floats on top, not under it', (
+      tester,
+    ) async {
+      var undone = 0;
+      await tester.pumpWidget(
+        _app(
+          (context) => GlassBottomSheet.show<void>(
+            context: context,
+            child: Builder(
+              builder: (sheet) => TextButton(
+                onPressed: () => GlassToast.show(
+                  sheet,
+                  'Couldn’t start',
+                  action: (label: 'Retry', onPressed: () => undone++),
+                ),
+                child: const Text('fail'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('fail'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SnackBar), findsNothing);
+      expect(
+        tester.getRect(find.text('Couldn’t start')).bottom,
+        lessThan(tester.getRect(find.text('fail')).top),
+      );
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+      expect(undone, 1);
+      expect(find.text('Couldn’t start'), findsNothing);
+
+      await tester.tap(find.text('fail'));
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 6));
+      await tester.pumpAndSettle();
+      expect(find.text('Couldn’t start'), findsNothing, reason: 'times out');
+    });
+
     testWidgets('10 s while a screen reader navigates', (tester) async {
       await tester.pumpWidget(
         _app((c) => GlassToast.show(c, 'Saved'), accessibleNavigation: true),

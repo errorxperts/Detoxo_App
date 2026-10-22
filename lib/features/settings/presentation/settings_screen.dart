@@ -105,7 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen>
       context,
       icon: Icon3d(
         Assets.images.icons.iconBlockAll,
-        size: 58,
+        size: ConfirmSheet.iconSize,
         accentTint: true,
       ),
       title: 'Turn off blocking?',
@@ -162,7 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen>
     if (!await requirePin(context, PinScope.settings) || !mounted) return;
     final ok = await ConfirmSheet.show(
       context,
-      icon: const DetoxoLogo(height: 58),
+      icon: const DetoxoLogo(height: ConfirmSheet.iconSize),
       title: 'Reset app data?',
       message:
           'Settings, blocklists, limits and your PIN are erased, and setup '
