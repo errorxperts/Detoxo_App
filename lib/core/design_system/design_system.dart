@@ -11,6 +11,7 @@ export 'adaptive/platform_adaptive.dart';
 // Components
 export 'components/app_icon_avatar.dart';
 export 'components/badges.dart';
+export 'components/blockers.dart';
 export 'components/buttons.dart';
 export 'components/cards.dart';
 export 'components/confirm_sheet.dart';

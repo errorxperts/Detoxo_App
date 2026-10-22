@@ -18,7 +18,6 @@ import 'package:detoxo/features/dashboard/presentation/widgets/blocker_section.d
 import 'package:detoxo/features/dashboard/presentation/widgets/command_center_card.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/dashboard_top_bar.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/mode_selector.dart';
-import 'package:detoxo/features/dashboard/presentation/widgets/rules_card.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
 import 'package:detoxo/features/limits/streak/presentation/streak_cubit.dart';
 import 'package:flutter/material.dart';
@@ -117,7 +116,6 @@ class _DashboardTabState extends State<DashboardTab> {
             const _ModeSection(),
             const SizedBox(height: AppSpacing.md),
             const _SessionBanners(),
-            const RulesCard(),
             const SizedBox(height: AppSpacing.md),
             const BlockerSection(),
           ],

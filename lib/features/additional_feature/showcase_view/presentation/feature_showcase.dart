@@ -53,11 +53,13 @@ void startFeatureTour() => ShowcaseView.get().startShowCase(
 /// Default target gestures are disabled: while the tour runs, a tapped target
 /// must NOT fire its real action (open a dialog, push a route) — advancing
 /// happens only through the tooltip's Next / Skip controls. When the tour is not
-/// running, [child] renders and behaves exactly as before.
+/// running, [child] renders and behaves exactly as before. The spotlight's
+/// corners follow [radius]: the blocker tiles pass [AppRadius.card].
 Widget showcaseTarget({
   required ShowcaseStep step,
   required int index,
   required Widget child,
+  double radius = AppRadius.chip,
 }) {
   return Showcase.withWidget(
     key: step.key,
@@ -66,7 +68,7 @@ Widget showcaseTarget({
       index: index,
       total: featureShowcaseStepCount,
     ),
-    targetBorderRadius: BorderRadius.circular(AppRadius.lg),
+    targetBorderRadius: BorderRadius.circular(radius),
     targetPadding: const EdgeInsets.all(6),
     overlayOpacity: 0.78,
     disableDefaultTargetGestures: true,

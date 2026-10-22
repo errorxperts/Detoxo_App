@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/blocking.dart';
 
 /// Which of the Today screen's four modes is lit: 0 Block All, 1 Conscious,
@@ -12,4 +13,15 @@ int modeIndex(AppSettings s, {required bool pauseLive}) {
     BlockingPlan.oneReel => s.reelAllowance <= 1 ? 3 : 2,
     BlockingPlan.paused => 2,
   };
+}
+
+/// A blocker tile's status: nothing on its list is Not set up; the master
+/// switch off, or every entry off, is Paused; anything else is On.
+BlockerStatus blockerStatus({
+  required int total,
+  required int enabled,
+  required bool masterOn,
+}) {
+  if (total == 0) return BlockerStatus.notSetUp;
+  return masterOn && enabled > 0 ? BlockerStatus.on : BlockerStatus.paused;
 }
