@@ -22,7 +22,7 @@ final GlobalKey _feedbackHelpKey = GlobalKey(
   debugLabel: 'showcase.help.feedback',
 );
 
-/// Replayable guided tours: the dashboard walkthrough (moved here from Settings)
+/// Replayable guided tours: the Today walkthrough (moved here from Settings)
 /// and a self-contained showcase of the real feedback button in the top bar.
 class FeatureTutorialScreen extends StatefulWidget {
   const FeatureTutorialScreen({super.key});
@@ -34,12 +34,10 @@ class FeatureTutorialScreen extends StatefulWidget {
 class _FeatureTutorialScreenState extends State<FeatureTutorialScreen> {
   late final ShowcaseStep _feedbackStep = ShowcaseStep(
     key: _feedbackHelpKey,
-    icon: AppIcon.info,
-    tone: AppTone.accent,
+    icon: Icons.feedback_outlined,
     title: 'Feedback button',
     body:
-        'This is it — tap it any time to capture the screen, draw on it, choose '
-        'Bug or Suggestion, and send it straight to our team.',
+        'Tap it any time to capture the screen, mark it up and send it to us.',
   );
 
   @override
@@ -56,10 +54,10 @@ class _FeatureTutorialScreenState extends State<FeatureTutorialScreen> {
     super.dispose();
   }
 
-  /// Replays the dashboard tour. Its target keys only exist on the dashboard, so
-  /// the reliable trigger is to clear the "seen" flag and return home — the
-  /// dashboard restarts the tour on the flag's true→false edge once front-most.
-  void _replayDashboardTour() {
+  /// Replays the Today tour. Its target keys only exist on the Today tab, so
+  /// the reliable trigger is to clear the "seen" flag and return home — Today
+  /// restarts the tour on the flag's true→false edge once front-most.
+  void _replayTodayTour() {
     unawaited(context.read<SettingsCubit>().setShowcaseSeen(value: false));
     context.go(Routes.home);
   }
@@ -105,52 +103,21 @@ class _FeatureTutorialScreenState extends State<FeatureTutorialScreen> {
         ),
         children: [
           const SectionHeader('Guided tours'),
-          FeatureTile(
-            icon: Icons.tips_and_updates_outlined,
-            title: 'Dashboard tour',
-            subtitle: "Replay the walkthrough of Detoxo's features",
-            onTap: _replayDashboardTour,
-          ),
-          FeatureTile(
-            icon: Icons.feedback_outlined,
-            title: 'Feedback button',
-            subtitle: 'See where it is and how to send us feedback',
-            onTap: () => unawaited(_startFeedbackTour()),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          const _Hint(
-            'The feedback button lives in the top bar. Tap “Feedback button” '
-            'above and we’ll point it out — it turns on automatically.',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// A small muted hint row (leading lightbulb + wrapping text).
-class _Hint extends StatelessWidget {
-  const _Hint(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final muted = context.tokens.ink2;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.lightbulb_outline, size: 16, color: muted),
-          const SizedBox(width: AppSpacing.xs),
-          Expanded(
-            child: Text(
-              text,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: muted),
-            ),
+          PanelGroup(
+            children: [
+              FeatureTile(
+                icon: Icons.tips_and_updates_outlined,
+                title: 'Today tour',
+                subtitle: "Replay the walkthrough of Detoxo's features",
+                onTap: _replayTodayTour,
+              ),
+              FeatureTile(
+                icon: Icons.feedback_outlined,
+                title: 'Feedback button',
+                subtitle: 'Shows where it sits in the top bar and turns it on',
+                onTap: () => unawaited(_startFeedbackTour()),
+              ),
+            ],
           ),
         ],
       ),

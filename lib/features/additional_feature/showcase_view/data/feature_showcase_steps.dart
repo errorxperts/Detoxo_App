@@ -1,4 +1,3 @@
-import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/additional_feature/showcase_view/domain/showcase_step.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/widgets.dart';
@@ -36,12 +35,13 @@ const int featureShowcaseStepCount = 6;
 /// Index 0–3 (the four modes) MUST stay aligned with the Today mode card's
 /// option order — Block All, Conscious, Pause, One Reel — since
 /// `ModeCard.decorateOption` wraps option `i` with `featureShowcaseSteps[i]`.
-/// Index 4–5 are the App Blocker / Web Blocker capsules.
+/// Index 4–5 are the App Blocker / Web Blocker tiles. The four mode steps tint
+/// their badge to the live accent, as the mode card tints its options.
 final List<ShowcaseStep> featureShowcaseSteps = [
   ShowcaseStep(
     key: FeatureShowcaseKeys.blockAll,
     image: Assets.images.icons.iconBlockAll,
-    tone: AppTone.danger,
+    accentTint: true,
     title: 'Block All',
     body:
         'Total focus. Every distracting app and reel is blocked the moment you '
@@ -50,7 +50,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ShowcaseStep(
     key: FeatureShowcaseKeys.conscious,
     image: Assets.images.icons.iconConscious,
-    tone: AppTone.accent,
+    accentTint: true,
     title: 'Conscious',
     body:
         'Earn your scroll. Stay off reels to bank time, then spend it mindfully '
@@ -59,26 +59,25 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ShowcaseStep(
     key: FeatureShowcaseKeys.pause,
     image: Assets.images.icons.iconPause,
-    tone: AppTone.warning,
+    accentTint: true,
     title: 'Pause',
     body:
-        'Need a breather? Unblock reels for a few minutes or a set number of '
-        'reels — then blocking returns to your base mode on its own.',
+        'Need a breather? Unblock reels for a few minutes, then blocking '
+        'returns to your base mode on its own.',
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.oneReel,
     image: Assets.images.icons.iconOneReel,
-    tone: AppTone.accent,
+    accentTint: true,
     title: 'One Reel',
     body:
-        'One and done. Watch a single reel, then Detoxo locks straight back to '
-        'your base mode. Looping or quick-scrolling won’t cost extra — a reel '
-        'only unlocks once you’ve watched it a couple of seconds.',
+        'Watch a single reel, then Detoxo locks straight back to your base '
+        'mode. Quick scrolls don’t use it up: a reel counts after a couple of '
+        'seconds.',
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.appBlocker,
     image: Assets.images.icons.iconAppBlocker,
-    tone: AppTone.accent,
     title: 'App Blocker',
     body:
         'Choose exactly which apps Detoxo guards. Tap any time to manage your '
@@ -87,7 +86,6 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ShowcaseStep(
     key: FeatureShowcaseKeys.webBlocker,
     image: Assets.images.icons.iconWebBlocker,
-    tone: AppTone.success,
     title: 'Web Blocker',
     body:
         'Block distracting and adult websites right in your browser — no VPN '

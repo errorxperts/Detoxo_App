@@ -21,7 +21,8 @@ import 'package:showcaseview/showcaseview.dart';
 /// [onSeen] persists the "seen" flag and fires on BOTH natural completion
 /// (`onFinish`) and dismissal (`onDismiss`, i.e. Skip), so skipping the tour is
 /// remembered too. The barrier blocks stray taps and auto-scroll brings
-/// off-screen targets into view.
+/// off-screen targets into view. The tooltip never bobs: it moves only on its
+/// own entrance, which Reduce Motion skips.
 Widget buildFeatureShowcaseScope({
   required Widget child,
   required VoidCallback onSeen,
@@ -32,11 +33,12 @@ Widget buildFeatureShowcaseScope({
     enableAutoScroll: true,
     blurValue: 1,
     disableBarrierInteraction: true,
+    disableMovingAnimation: true,
     builder: (_) => child,
   );
 }
 
-/// Starts the seven-step tour. Drives the tour through the registered
+/// Starts the six-step tour. Drives the tour through the registered
 /// [ShowcaseView] singleton rather than `ShowCaseWidget.of(context)` so it works
 /// regardless of the caller's position in the tree (the tooltip below is
 /// rendered in the root overlay, with no `ShowCaseWidget` ancestor).
@@ -54,19 +56,45 @@ void startFeatureTour() => ShowcaseView.get().startShowCase(
 /// must NOT fire its real action (open a dialog, push a route) — advancing
 /// happens only through the tooltip's Next / Skip controls. When the tour is not
 /// running, [child] renders and behaves exactly as before. The spotlight's
-/// corners follow [radius]: the blocker tiles pass [AppRadius.card].
+/// corners follow [radius]: the mode options keep [AppRadius.chip], the
+/// blocker tiles pass [AppRadius.card].
 Widget showcaseTarget({
   required ShowcaseStep step,
   required int index,
   required Widget child,
   double radius = AppRadius.chip,
+}) => _target(
+  step: step,
+  index: index,
+  total: featureShowcaseStepCount,
+  radius: radius,
+  child: child,
+);
+
+/// The spotlight + [ShowcaseTooltipCard] shared by both tours. A null [scope]
+/// drives the current default scope (`ShowcaseView.get()`, the dashboard
+/// tour), a named one an independent tour (`getNamed`). The controller is
+/// looked up on tap: the card renders in the root overlay, with no
+/// `ShowCaseWidget` ancestor for an `.of` lookup.
+Widget _target({
+  required ShowcaseStep step,
+  required int index,
+  required int total,
+  required double radius,
+  required Widget child,
+  String? scope,
 }) {
+  ShowcaseView view() =>
+      scope == null ? ShowcaseView.get() : ShowcaseView.getNamed(scope);
   return Showcase.withWidget(
     key: step.key,
+    scope: scope,
     container: ShowcaseTooltipCard(
       step: step,
       index: index,
-      total: featureShowcaseStepCount,
+      total: total,
+      onNext: () => view().next(),
+      onSkip: () => view().dismiss(),
     ),
     targetBorderRadius: BorderRadius.circular(radius),
     targetPadding: const EdgeInsets.all(6),
@@ -102,36 +130,28 @@ void registerScopedShowcase({
     enableAutoScroll: true,
     blurValue: 1,
     disableBarrierInteraction: true,
+    disableMovingAnimation: true,
   );
 }
 
 /// Wraps [child] as a spotlight target bound to [scope] (never the ambient
-/// `currentScope`), rendering the same glass [ShowcaseTooltipCard] as the
-/// dashboard tour. As with [showcaseTarget], the target's own gestures are
-/// disabled while the tour runs.
+/// `currentScope`), rendering the same [ShowcaseTooltipCard] as the dashboard
+/// tour. As with [showcaseTarget], the target's own gestures are disabled
+/// while the tour runs. The spotlight is a pill: the target is a header button.
 Widget scopedShowcaseTarget({
   required String scope,
   required ShowcaseStep step,
   required int index,
   required int total,
   required Widget child,
-}) {
-  return Showcase.withWidget(
-    key: step.key,
-    scope: scope,
-    container: ShowcaseTooltipCard(
-      step: step,
-      index: index,
-      total: total,
-      scope: scope,
-    ),
-    targetBorderRadius: BorderRadius.circular(AppRadius.lg),
-    targetPadding: const EdgeInsets.all(6),
-    overlayOpacity: 0.78,
-    disableDefaultTargetGestures: true,
-    child: child,
-  );
-}
+}) => _target(
+  scope: scope,
+  step: step,
+  index: index,
+  total: total,
+  radius: AppRadius.pill,
+  child: child,
+);
 
 /// Starts the [scope] tour over [keys]. A short delay lets layout settle.
 void startScopedShowcase({
