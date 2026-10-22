@@ -390,7 +390,7 @@ class _LimitLink extends StatelessWidget {
             ? Padding(
                 padding: const EdgeInsets.only(top: AppSpacing.sm),
                 child: Center(
-                  child: GhostButton(
+                  child: SecondaryButton(
                     label: 'Set a daily limit',
                     onPressed: () => unawaited(_setLimit(context)),
                   ),

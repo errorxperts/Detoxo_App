@@ -77,7 +77,7 @@ class _Body extends StatelessWidget {
             },
           ),
           const SizedBox(height: AppSpacing.sm),
-          GhostButton(
+          SecondaryButton(
             label: 'Not now',
             onPressed: () => Navigator.of(context).pop(),
           ),

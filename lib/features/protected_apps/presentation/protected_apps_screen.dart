@@ -78,10 +78,10 @@ class _ProtectedAppsViewState extends State<_ProtectedAppsView> {
               ),
             ],
           ),
-          floatingActionButton: FloatingActionButton.extended(
+          floatingActionButton: GlassFab(
             onPressed: ready ? () => _showAdd(context) : null,
-            icon: const Icon(Icons.add),
-            label: const Text('Add app'),
+            icon: const Icon(Icons.add_rounded),
+            label: 'Add app',
           ),
           body: SafeArea(
             child: ListView(

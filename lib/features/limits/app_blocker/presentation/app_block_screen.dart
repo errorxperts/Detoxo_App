@@ -85,10 +85,10 @@ class _AppBlockViewState extends State<_AppBlockView> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: GlassFab(
         onPressed: () => _showAdd(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add app'),
+        icon: const Icon(Icons.add_rounded),
+        label: 'Add app',
       ),
       body: SafeArea(
         child: BlocBuilder<TargetsCubit, TargetsState>(

@@ -143,7 +143,6 @@ class _SettingsScreenState extends State<SettingsScreen>
           'This wipes your settings, blocklists, limits and PIN, then restarts '
           'onboarding. This cannot be undone.',
       confirmLabel: 'Reset everything',
-      destructive: true,
     );
     if (!ok || !mounted) return;
     await sl<LocalStore>().clearAll();
@@ -266,8 +265,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                 // ── Reset ───────────────────────────────────────────────────
                 const SizedBox(height: AppSpacing.lg),
                 Center(
-                  child: GhostButton(
+                  child: SecondaryButton(
                     label: 'Reset app data',
+                    destructive: true,
                     onPressed: _resetData,
                   ),
                 ),
@@ -637,7 +637,6 @@ class _PinTile extends StatelessWidget {
           'Detoxo and its protected sections will no longer ask for a PIN.',
       confirmLabel: 'Turn off',
       cancelLabel: 'Keep it on',
-      destructive: true,
     );
     if (!ok || !context.mounted) return;
     await context.read<PinCubit>().disable();

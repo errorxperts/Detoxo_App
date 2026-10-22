@@ -133,22 +133,6 @@ class _FeatureTileState extends State<FeatureTile> {
   }
 }
 
-/// A full-width primary button for screen-level call-to-actions.
-class FullWidthButton extends StatelessWidget {
-  const FullWidthButton({
-    required this.label,
-    required this.onPressed,
-    super.key,
-  });
-
-  final String label;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) =>
-      PrimaryButton(label: label, onPressed: onPressed, expand: true);
-}
-
 /// Formats a [Duration] as mm:ss (or h:mm:ss).
 String formatCountdown(Duration d) {
   final h = d.inHours;

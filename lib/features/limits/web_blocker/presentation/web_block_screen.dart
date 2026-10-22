@@ -60,10 +60,10 @@ class _WebBlockView extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: GlassFab(
         onPressed: () => _showSiteSheet(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add website'),
+        icon: const Icon(Icons.add_rounded),
+        label: 'Add website',
       ),
       body: SafeArea(
         child: BlocConsumer<WebBlockCubit, WebBlockState>(

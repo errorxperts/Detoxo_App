@@ -95,7 +95,7 @@ Future<bool> _confirmDisclosure(
     icon: disclosure.icon,
     message: disclosure.message,
     actions: [
-      GhostButton(
+      SecondaryButton(
         label: 'Not now',
         onPressed: () => Navigator.of(context).pop(false),
       ),

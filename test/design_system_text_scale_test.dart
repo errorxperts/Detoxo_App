@@ -33,11 +33,6 @@ Future<void> _pumpLarge(WidgetTester tester, Widget child) async {
 }
 
 void main() {
-  // The Android skin is what ships; without this the branch would follow the
-  // host OS (Cupertino on a Mac, Material on CI).
-  setUp(() => PlatformAdaptive.debugUseCupertino = false);
-  tearDown(() => PlatformAdaptive.debugUseCupertino = null);
-
   group('2.0x text on a 360 dp screen', () {
     testWidgets(
       'a three-label GlassSegmented ellipsizes instead of overflowing',
@@ -98,8 +93,8 @@ void main() {
     testWidgets('a hugging PrimaryButton still lays out in an unbounded Row', (
       tester,
     ) async {
-      // A dialog's actions row gives a non-expanded button unbounded width;
-      // the label's Flexible must stay loose there, not demand a bounded flex.
+      // A row gives a non-expanded button unbounded width; the label's
+      // Flexible must stay loose there, not demand a bounded flex.
       await _pumpLarge(
         tester,
         SingleChildScrollView(

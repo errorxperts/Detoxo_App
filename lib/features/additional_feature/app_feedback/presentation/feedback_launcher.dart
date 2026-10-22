@@ -11,46 +11,22 @@ import 'package:flutter/material.dart';
 /// button, settings tile) a one-liner: `FeedbackLauncher.show(context)`.
 abstract final class FeedbackLauncher {
   static void show(BuildContext context) {
-    // Captured synchronously so we can report errors after the async submit
-    // without touching a possibly-stale BuildContext.
-    final messenger = ScaffoldMessenger.of(context);
     BetterFeedback.of(context).show((UserFeedback userFeedback) async {
       try {
         await sl<FeedbackRepository>().send(
           FeedbackReport.fromUserFeedback(userFeedback),
         );
       } catch (_) {
-        messenger
-          ..hideCurrentSnackBar()
-          ..showSnackBar(_errorSnackBar());
+        // No email app. The trigger (app-bar button, settings tile) is still
+        // on screen once the overlay closes; if it is not, there is nowhere
+        // to toast.
+        if (!context.mounted) return;
+        GlassToast.show(
+          context,
+          "Couldn't open an email app. Reach us at ${AppSupport.supportEmail}",
+          tone: AppTone.danger,
+        );
       }
     });
   }
-
-  /// Glass-styled failure toast, shown when no email app is available. Built
-  /// standalone (rather than via `GlassToast`) so it can run off a captured
-  /// messenger after the async submit.
-  static SnackBar _errorSnackBar() => const SnackBar(
-    behavior: SnackBarBehavior.floating,
-    backgroundColor: Colors.transparent,
-    elevation: 0,
-    content: GlassContainer(
-      surface: DxSurface.glass,
-      padding: EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, size: 20),
-          SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              "Couldn't open an email app. Reach us at ${AppSupport.supportEmail}",
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
 }

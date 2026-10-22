@@ -28,7 +28,6 @@ void main() {
                       'for a PIN.',
                   confirmLabel: 'Turn off',
                   cancelLabel: 'Keep it on',
-                  destructive: true,
                 ),
                 child: const Text('open'),
               ),

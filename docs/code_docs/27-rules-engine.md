@@ -428,8 +428,9 @@ toggles every `Catalog.categoriesWithBehavior(distracting)` id through the pure
 section, whose "Cover every distracting app" toggle renders for schedules only (the resolver never
 widens a limit) — last, so the escalation comes after the rule says what it covers. The editor
 consumes its own refusal toasts (see `RulesScreen`). Validation: ≥ 1 target; ≥ 1 day and
-`start ≠ end` for a schedule; a limit's budget > 0. Delete via
-`AppDialog.confirm(destructive: true)`. The sheets, the override tile, `RemovableChips` and `ruleKindIcon` live in
+`start ≠ end` for a schedule; a limit's budget > 0. Delete is a
+`SecondaryButton(destructive: true)` (its label in the `over` accent text) that asks through
+`AppDialog.confirm`. The sheets, the override tile, `RemovableChips` and `ruleKindIcon` live in
 `presentation/widgets/`; counts and the open-limit headline read `RuleSummary.count`.
 
 **Dashboard** — `RulesCard` (tinted `GlassCard` status row, `AppIcon.rules` = Lucide

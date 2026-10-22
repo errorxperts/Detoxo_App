@@ -25,7 +25,7 @@ abstract final class ReportIssueDialog {
           'button below and it appears in every top bar.',
       content: const _FeedbackButtonToggle(),
       actions: [
-        GhostButton(
+        SecondaryButton(
           label: 'Close',
           onPressed: () => Navigator.of(context).pop(),
         ),

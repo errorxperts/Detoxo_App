@@ -17,8 +17,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// Pause opens the frosted Unblock [GlassBottomSheet]: unblock reels for N
 /// minutes (a Pause) or for N reels, then the base mode returns on its own.
 /// While a Pause runs, the sheet shows the live action (Resume) instead.
-/// Conscious keeps its own dual-state [GlassDialog]. The live countdown lives
-/// in the dashboard hero.
+/// Conscious keeps its own dual-state sheet. The live countdown lives in the
+/// dashboard hero.
 abstract final class SessionDialogs {
   static Future<void> showPause(BuildContext context) =>
       GlassBottomSheet.show<void>(
@@ -27,7 +27,10 @@ abstract final class SessionDialogs {
       );
 
   static Future<void> showConscious(BuildContext context) =>
-      GlassDialog.show<void>(context: context, child: const _ConsciousDialog());
+      GlassBottomSheet.show<void>(
+        context: context,
+        child: const _ConsciousDialog(),
+      );
 }
 
 // ── Unblock: N minutes or N reels, then back to the base mode ────────────────
@@ -465,7 +468,7 @@ class _ConsciousLive extends StatelessWidget {
               style: text.bodySmall?.copyWith(color: context.tokens.ink2),
             ),
             const SizedBox(height: AppSpacing.lg),
-            GhostButton(
+            SecondaryButton(
               label: 'Turn off Conscious',
               onPressed: () {
                 context.read<SettingsCubit>().stopConscious();

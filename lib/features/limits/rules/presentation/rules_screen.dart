@@ -50,10 +50,10 @@ class _RulesScreenState extends State<RulesScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: GlassFab(
         onPressed: () => _newRule(context),
-        icon: const Icon(Icons.add),
-        label: const Text('New rule'),
+        icon: const Icon(Icons.add_rounded),
+        label: 'New rule',
       ),
       body: BlocConsumer<RulesCubit, RulesState>(
         listenWhen: (p, c) => p.error != c.error && c.error != null,

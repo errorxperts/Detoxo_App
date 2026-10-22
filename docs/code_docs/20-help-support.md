@@ -29,7 +29,7 @@ share**, and **Legal** section headers:
 ## 1. Report an issue (`report_issue/`)
 
 [`ReportIssueDialog.show(context)`](../../lib/features/help/report_issue/presentation/report_issue_dialog.dart)
-is a glass `AppDialog` (presentation-only). It explains the bug-report flow, hosts a live
+is an `AppDialog` in the design system's sheet (presentation-only). It explains the bug-report flow, hosts a live
 `AppToggleTile` bound to `settings.showFeedbackButton`
 (`SettingsCubit.setShowFeedbackButton`), and offers **Report a bug now** which pops the dialog
 and calls `FeedbackLauncher.show(context)` — the app-wide `BetterFeedback` overlay captures the

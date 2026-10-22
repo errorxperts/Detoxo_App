@@ -2,13 +2,12 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/additional_feature/app_upgrader/domain/entities/upgrade_status.dart';
 import 'package:flutter/material.dart';
 
-/// The glass "Update available" prompt. Rendered over the app's frosted
-/// [AppDialog] so it matches the design system (upgrader's own Material dialog
-/// is never used).
+/// The "Update available" prompt, an [AppDialog] in the app's sheet
+/// (upgrader's own Material dialog is never used).
 ///
 /// For a blocking update ([UpgradeStatus.isBlocking]) the dialog is
 /// non-dismissible: the only action is "Update now", there is no "Later"/"Skip",
-/// and both the barrier tap and the back button are disabled.
+/// and the barrier tap, the drag and the back button are all disabled.
 ///
 /// Dismissal is handled here; the `onUpdate`/`onLater`/`onSkip` callbacks carry
 /// out the side effect (launch store / persist choice) and are wired to the
@@ -25,12 +24,8 @@ abstract final class AppUpgradeDialog {
     return AppDialog.show<void>(
       context: context,
       // A forced update must not be dismissible.
-      barrierDismissible: canDismiss,
-      blocking: !canDismiss,
+      dismissible: canDismiss,
       icon: Icons.system_update,
-      accent: canDismiss
-          ? null
-          : context.tokens.statusText(context.tokens.statusSetup),
       title: canDismiss ? 'Update available' : 'Update required',
       message: _message(status),
       content: _Body(
@@ -46,7 +41,7 @@ abstract final class AppUpgradeDialog {
       ),
       actions: [
         if (canDismiss)
-          GhostButton(
+          SecondaryButton(
             label: 'Later',
             onPressed: () {
               Navigator.of(context).pop();
@@ -56,6 +51,7 @@ abstract final class AppUpgradeDialog {
         PrimaryButton(
           label: 'Update now',
           icon: Icons.system_update,
+          expand: true,
           onPressed: () {
             // Optional updates dismiss on tap; a blocking dialog stays up so the
             // user remains gated until they actually update.
@@ -125,7 +121,10 @@ class _Body extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Align(
             alignment: Alignment.centerLeft,
-            child: GhostButton(label: 'Skip this version', onPressed: onSkip),
+            child: SecondaryButton(
+              label: 'Skip this version',
+              onPressed: onSkip,
+            ),
           ),
         ],
       ],

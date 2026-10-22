@@ -169,7 +169,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
     if (!_reduceMotion) _lockController.animate();
   }
 
-  /// Surfaces the cooldown as a glass dialog, once per distinct lockout window —
+  /// Surfaces the cooldown in a sheet, once per distinct lockout window —
   /// the inline [_LockoutText] remains the live, ticking countdown.
   void _showLockoutDialog(DateTime until) {
     if (_shownFor == until) return;
@@ -181,11 +181,10 @@ class _PinLockScreenState extends State<PinLockScreen> {
       title: 'Too many attempts',
       message: 'Please wait ${formatCountdown(remaining)} before trying again.',
       icon: Icons.lock_clock,
-      accent: context.tokens.over.main,
       actions: [
         PrimaryButton(
           label: 'OK',
-          tint: context.tokens.over.main,
+          expand: true,
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],
@@ -319,7 +318,10 @@ class _PinLockScreenState extends State<PinLockScreen> {
                       backspaceController: _backspaceController,
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    GhostButton(label: 'Forgot PIN?', onPressed: _forgotPin),
+                    SecondaryButton(
+                      label: 'Forgot PIN?',
+                      onPressed: _forgotPin,
+                    ),
                   ],
                 ),
               ),

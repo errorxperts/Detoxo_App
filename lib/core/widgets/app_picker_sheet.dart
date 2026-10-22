@@ -130,7 +130,7 @@ class _AppPickerBodyState extends State<_AppPickerBody> {
         const SizedBox(height: AppSpacing.sm),
         Expanded(child: _content(context)),
         const SizedBox(height: AppSpacing.sm),
-        GhostButton(
+        SecondaryButton(
           label: "Can't find it? Add manually",
           onPressed: () => setState(() => _manual = true),
         ),
@@ -264,7 +264,7 @@ class _AppPickerBodyState extends State<_AppPickerBody> {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        GhostButton(
+        SecondaryButton(
           label: 'Back to app list',
           onPressed: () => setState(() => _manual = false),
         ),

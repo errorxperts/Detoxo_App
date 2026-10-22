@@ -16,9 +16,8 @@ the prompt can never block launch.
 The feature uses the [`upgrader`](https://pub.dev/packages/upgrader) package (**v13.5.0**) purely
 as the **engine**: it scrapes the Play Store listing for the latest version, compares it to the
 installed build, persists the user's "Later"/"Skip" choices, and launches the store. Detoxo does
-**not** mount `upgrader`'s `UpgradeAlert` widget — the prompt is rendered as the app's own glass
-[`AppDialog`](../../lib/core/design_system/components/dialog.dart) so it matches the design
-system. In `upgrader` 13.x the controller is decoupled from its widget, so driving a custom UI
+**not** mount `upgrader`'s `UpgradeAlert` widget — the prompt is rendered as the app's own
+[`AppDialog`](../../lib/core/design_system/components/dialog.dart), in the design system's sheet. In `upgrader` 13.x the controller is decoupled from its widget, so driving a custom UI
 from it is the sanctioned pattern.
 
 `upgrader` persists its own dismissal state (ignored version / last-alerted timestamp) in **its
@@ -61,11 +60,11 @@ Feature-first Clean Architecture, mirroring the sibling `app_feedback`:
 - [`AppUpgradeDialog`](../../lib/features/additional_feature/app_upgrader/presentation/app_upgrade_dialog.dart)
   — `abstract final class` with `static show(context, status, {onUpdate, onLater, onSkip})`,
   built on `AppDialog.show` (icon `Icons.system_update`, muted version message, optional
-  scrollable "What's new" release-notes box). Optional update → `[GhostButton('Later'),
-  PrimaryButton('Update now')]` plus a subtle "Skip this version". **Blocking** update
-  (`!canDismiss`) → title "Update required", warning accent, **only** "Update now", and
-  `barrierDismissible: false` + `blocking: true` so the barrier tap **and** the back button are
-  disabled; "Update now" does not pop (the user stays gated until they actually update).
+  scrollable "What's new" release-notes box). Optional update → `[SecondaryButton('Later'),
+  PrimaryButton('Update now', expand)]`, stacked with "Update now" on top, plus a subtle "Skip
+  this version". **Blocking** update (`!canDismiss`) → title "Update required", **only** "Update
+  now", and `dismissible: false`, so the barrier tap, the sheet drag **and** the back button are
+  all disabled; "Update now" does not pop (the user stays gated until they actually update).
 - [`UpgradeGate`](../../lib/features/additional_feature/app_upgrader/presentation/upgrade_gate.dart)
   — provides the `UpgradeCubit` (`..check()` on mount) and a `BlocListener` that shows the dialog
   on `updateAvailable` (one-shot guarded) or a "You're on the latest version" `GlassToast` on a
@@ -90,11 +89,11 @@ Feature-first Clean Architecture, mirroring the sibling `app_feedback`:
   is the launch-gate (`HomeShell`) path only. The `InfoBanner`
   ([`daily_limit_screen.dart`](../../lib/features/limits/daily_limit/presentation/daily_limit_screen.dart))
   gained optional `trailing` (the compact button) and `onTap` (the manual check) params for this.
-- **Design system:** [`GlassDialog.show`](../../lib/core/design_system/components/overlays.dart)
-  and [`AppDialog.show`](../../lib/core/design_system/components/dialog.dart) gained
-  `barrierDismissible` (default `true`) and `blocking` (default `false`) params; `blocking` wraps
-  the dialog in `PopScope(canPop: false)`. This is the only shared-component change and is
-  reusable by any future mandatory dialog.
+- **Design system:** [`AppDialog.show`](../../lib/core/design_system/components/dialog.dart)
+  passes `dismissible` (default `true`) to
+  [`GlassBottomSheet.show`](../../lib/core/design_system/components/overlays.dart), which, when
+  false, turns off the barrier tap and the drag and wraps the sheet in `PopScope(canPop: false)`.
+  Any future mandatory prompt reuses it.
 - **Manifest:** none needed — the `<queries>` for `VIEW`+`https` already exists in
   [`AndroidManifest.xml`](../../android/app/src/main/AndroidManifest.xml), so the store launch
   works.
@@ -132,8 +131,8 @@ by the Play listing tags until one is set.
 - `lib/features/additional_feature/app_upgrader/presentation/upgrade_cubit.dart`
 - `lib/features/additional_feature/app_upgrader/presentation/app_upgrade_dialog.dart`
 - `lib/features/additional_feature/app_upgrader/presentation/upgrade_gate.dart`
-- `lib/core/design_system/components/overlays.dart` (`GlassDialog.show` gained `barrierDismissible`/`blocking`)
-- `lib/core/design_system/components/dialog.dart` (`AppDialog.show` pass-through)
+- `lib/core/design_system/components/overlays.dart` (`GlassBottomSheet.show(dismissible:)`)
+- `lib/core/design_system/components/dialog.dart` (`AppDialog.show(dismissible:)` pass-through)
 - `lib/core/di/injector.dart` (`AppUpgradeService` registration)
 - `lib/features/dashboard/presentation/home_shell.dart` (`UpgradeGate` wrap — automatic check)
 - `lib/features/settings/presentation/settings_screen.dart` (`_VersionBanner`/`_UpdateButton` — manual check + compact Update button)

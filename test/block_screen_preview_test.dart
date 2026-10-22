@@ -76,14 +76,14 @@ void main() {
     expect(find.text('HERMANN HESSE'), findsOneWidget);
   });
 
-  testWidgets('Open Detoxo is the app’s own LiquidPill, full and compact', (
+  testWidgets('Open Detoxo is the wall’s lit pill, full and compact', (
     tester,
   ) async {
     for (final compact in [false, true]) {
       await tester.pumpWidget(
         host(BlockScreenPreview(style: style, height: 200, compact: compact)),
       );
-      expect(find.widgetWithText(LiquidPill, 'Open Detoxo'), findsOneWidget);
+      expect(find.text('Open Detoxo'), findsOneWidget);
       expect(tester.takeException(), isNull);
     }
   });

@@ -24,6 +24,12 @@ abstract final class AppDurations {
 
   /// Any accent change cross-fading.
   static const Duration glide = Duration(milliseconds: 1000);
+
+  /// A bottom sheet sliding in or out (Compact Guide sheet).
+  static const Duration sheet = Duration(milliseconds: 600);
+
+  /// The scrim behind a sheet fading in or out.
+  static const Duration scrim = Duration(milliseconds: 450);
 }
 
 /// Curves tuned for a calm focus app — eased, never bouncy.
@@ -54,8 +60,11 @@ abstract final class AppCurves {
   /// A detail row opening, and the ring arc moving.
   static const Curve detail = Cubic(0.2, 0.8, 0.2, 1);
 
-  /// An accent cross-fade (CSS `ease`).
+  /// An accent cross-fade, and the sheet scrim's fade (CSS `ease`).
   static const Curve glide = Curves.ease;
+
+  /// A bottom sheet's slide: fast out, long settle.
+  static const Curve sheet = Cubic(0.32, 0.72, 0, 1);
 }
 
 extension AppMotionX on BuildContext {

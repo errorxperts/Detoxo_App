@@ -521,7 +521,8 @@ class _Header extends StatelessWidget {
 
 /// The exits, top to bottom: [Home | Open Detoxo], then the ghost labels (the
 /// full stage only). Each sits in a 48-tall slot, as the native views do. Open
-/// Detoxo is the app's own [LiquidPill]; Home is an outlined circle.
+/// Detoxo is the native wall's lit pill ([_WallPill]); Home is an outlined
+/// circle.
 class _Buttons extends StatelessWidget {
   const _Buttons({
     required this.copy,
@@ -569,9 +570,8 @@ class _Buttons extends StatelessWidget {
               else if (b.primary) ...[
                 const SizedBox(width: 10),
                 Expanded(
-                  child: LiquidPill(
-                    tint: fill,
-                    onPressed: () {},
+                  child: _WallPill(
+                    fill: fill,
                     child: Text(
                       b.label,
                       maxLines: 1,
@@ -615,6 +615,47 @@ class _Buttons extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// The wall's primary button as `WallButtons.primary` draws it natively
+/// (MIRROR: overlay/WallButtons.kt, LiquidPill): a 44 dp pill on a lit
+/// [fill] sweep with a coloured glow. The wall keeps this skin until it moves
+/// to Frozen Glass with the native track.
+class _WallPill extends StatelessWidget {
+  const _WallPill({required this.fill, required this.child});
+
+  final Color fill;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final hsl = HSLColor.fromColor(fill);
+    HSLColor lit(double d) =>
+        hsl.withLightness((hsl.lightness + d).clamp(0.0, 1.0));
+    return Container(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [lit(0.09).toColor(), fill, lit(-0.13).toColor()],
+          stops: const [0, 0.55, 1],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: fill.withValues(alpha: 0.45),
+            blurRadius: 24,
+            spreadRadius: -6,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 }

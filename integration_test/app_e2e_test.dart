@@ -82,7 +82,7 @@ void main() {
     // 'THEME', not 'Theme': SectionHeader renders `label.toUpperCase()`
     // (core/widgets/common_widgets.dart). find.text matches the rendered string,
     // so every section header in this app is screamed. GlassSegmented and
-    // GhostButton pass their labels through verbatim.
+    // SecondaryButton pass their labels through verbatim.
     expect(
       await waitFor(tester, find.text('THEME')),
       isTrue,
@@ -108,7 +108,7 @@ void main() {
     await tester.tap(find.text('Settings'));
     await settle(tester, frames: 14);
     // 'PROTECTION' (uppercased SectionHeader) is the marker, not the more
-    // obvious 'Reset app data': that GhostButton sits at the BOTTOM of a lazy
+    // obvious 'Reset app data': that SecondaryButton sits at the BOTTOM of a lazy
     // ListView, so it is never built into the element tree and find.text cannot
     // see it without scrolling there — which this walk deliberately will not do.
     expect(

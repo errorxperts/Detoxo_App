@@ -192,7 +192,7 @@ class _OnboardingWalker extends StatelessWidget {
                       AnimatedOpacity(
                         duration: fade,
                         opacity: back == null ? 0 : 1,
-                        child: GhostButton(
+                        child: SecondaryButton(
                           label: 'Back',
                           onPressed: back == null
                               ? null
@@ -215,7 +215,7 @@ class _OnboardingWalker extends StatelessWidget {
                       AnimatedOpacity(
                         duration: fade,
                         opacity: canSkip ? 1 : 0,
-                        child: GhostButton(
+                        child: SecondaryButton(
                           label: 'Skip',
                           onPressed: canSkip
                               ? () => cubit.advance(OnboardingStepId.selection)
@@ -252,7 +252,6 @@ class _OnboardingWalker extends StatelessWidget {
                   ),
                   child: PrimaryButton(
                     label: isLast ? 'Get started' : 'Next',
-                    tint: accent,
                     expand: true,
                     onPressed: _canAdvance(p, targets)
                         ? () => _next(context, p)

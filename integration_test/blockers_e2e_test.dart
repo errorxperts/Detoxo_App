@@ -70,7 +70,7 @@ void main() {
     );
     await step(tester, 'app-blocker');
 
-    await tester.tap(find.widgetWithText(FloatingActionButton, 'Add app'));
+    await tester.tap(find.widgetWithText(GlassFab, 'Add app'));
     await settle(tester, frames: 8);
     // The picker's search field is the last TextField in the tree (the screen
     // behind it may carry its own). Filtering first keeps the YouTube tile
@@ -128,7 +128,7 @@ void main() {
     );
     await step(tester, 'web-blocker');
 
-    await tester.tap(find.widgetWithText(FloatingActionButton, 'Add website'));
+    await tester.tap(find.widgetWithText(GlassFab, 'Add website'));
     await settle(tester, frames: 8);
     await tester.enterText(find.byType(TextField).last, kSite);
     await tester.tap(find.text('Block website'));

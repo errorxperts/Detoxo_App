@@ -1,85 +1,174 @@
-import 'package:detoxo/core/design_system/adaptive/platform_adaptive.dart';
-import 'package:detoxo/core/design_system/components/buttons.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-final Finder _pill = find.descendant(
-  of: find.byType(LiquidPill),
-  matching: find.byType(Container),
-);
-
-BoxDecoration _pillDecoration(WidgetTester tester) =>
-    tester.widget<Container>(_pill).decoration! as BoxDecoration;
-
-Widget _host(Widget child) => MaterialApp(
+Widget _host(Widget child, {ThemeData? theme}) => MaterialApp(
+  theme: theme ?? AppTheme.light(),
   home: Scaffold(body: Center(child: child)),
 );
 
-void main() {
-  // The Android skin is what this file is about; without this the branch would
-  // follow the host OS (Cupertino on a Mac, Material on CI).
-  setUp(() => PlatformAdaptive.debugUseCupertino = false);
-  tearDown(() => PlatformAdaptive.debugUseCupertino = null);
+/// The surface painters under [of]: a button's own skin, if it has one.
+Iterable<DxSurfacePainter> _skins(WidgetTester tester, Finder of) => tester
+    .widgetList<CustomPaint>(
+      find.descendant(of: of, matching: find.byType(CustomPaint)),
+    )
+    .map((c) => c.painter)
+    .whereType<DxSurfacePainter>();
 
-  testWidgets('enabled pill paints a brand gradient + glow and fires taps', (
+/// The painted skin itself, inside the 48 dp target.
+final Finder _skin = find.byWidgetPredicate(
+  (w) => w is CustomPaint && w.painter is DxSurfacePainter,
+);
+
+void main() {
+  const t = AppTokens.light;
+
+  testWidgets('PrimaryButton: the 54 px soft button, ink label, one tap', (
     tester,
   ) async {
     var taps = 0;
     await tester.pumpWidget(
-      _host(
-        LiquidPill(
-          tint: const Color(0xFF6E7BFF),
-          onPressed: () => taps++,
-          child: const Text('Grant'),
-        ),
-      ),
+      _host(PrimaryButton(label: 'Save', onPressed: () => taps++)),
     );
+    final skin = _skins(tester, find.byType(PrimaryButton)).single;
+    expect(skin.gradient, [t.buttonFrom, t.buttonTo]);
+    expect(skin.angle, 145);
+    expect(skin.shadows, t.shadowButton);
+    expect(skin.color, isNull, reason: 'no accent fill');
+    expect(tester.getSize(_skin).height, 54);
+    expect(tester.widget<Text>(find.text('Save')).style!.color, t.ink);
 
-    final deco = _pillDecoration(tester);
-    expect(deco.gradient, isNotNull);
-    expect(deco.boxShadow, isNotEmpty);
-
-    await tester.tap(find.text('Grant'));
+    await tester.tap(find.text('Save'));
     expect(taps, 1);
   });
 
-  testWidgets('disabled pill drops the glow and swallows taps', (tester) async {
+  testWidgets('a disabled PrimaryButton is inert and says so', (tester) async {
+    final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
-      _host(
-        const LiquidPill(
-          tint: Color(0xFF6E7BFF),
-          onPressed: null,
-          child: Text('Grant'),
-        ),
+      _host(const PrimaryButton(label: 'Save', onPressed: null)),
+    );
+    expect(
+      tester.getSemantics(find.byType(PrimaryButton)),
+      isSemantics(
+        label: 'Save',
+        isButton: true,
+        hasEnabledState: true,
+        isEnabled: false,
       ),
     );
-
-    expect(_pillDecoration(tester).boxShadow, isNull);
-    await tester.tap(find.text('Grant'), warnIfMissed: false);
-    // No callback to assert on — reaching here without an exception is the check.
+    expect(
+      tester
+          .widget<Opacity>(
+            find.descendant(
+              of: find.byType(PrimaryButton),
+              matching: find.byType(Opacity),
+            ),
+          )
+          .opacity,
+      0.45,
+    );
+    await tester.tap(find.text('Save'), warnIfMissed: false);
+    semantics.dispose();
   });
 
-  testWidgets('secondary is a shorter outlined pill, not a small hero', (
+  testWidgets('SecondaryButton: ink-2 label, no surface, a 48 dp target', (
     tester,
   ) async {
     await tester.pumpWidget(
-      _host(SecondaryButton(label: 'Grant', onPressed: () {})),
+      _host(SecondaryButton(label: 'Cancel', onPressed: () {})),
     );
+    expect(_skins(tester, find.byType(SecondaryButton)), isEmpty);
+    expect(tester.widget<Text>(find.text('Cancel')).style!.color, t.ink2);
+    final size = tester.getSize(find.byType(SecondaryButton));
+    expect(size.height, greaterThanOrEqualTo(48));
+    expect(size.width, greaterThanOrEqualTo(48));
+  });
 
-    final box = tester.widget<Container>(
-      find.descendant(
-        of: find.byType(SecondaryButton),
-        matching: find.byType(Container),
+  testWidgets('a destructive SecondaryButton is over text, never a fill', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _host(
+        SecondaryButton(
+          label: 'Delete rule',
+          destructive: true,
+          onPressed: () {},
+        ),
       ),
     );
-    final deco = box.decoration! as BoxDecoration;
-    expect(deco.gradient, isNull, reason: 'outlined, not filled brand');
-    expect(deco.boxShadow, isNull, reason: 'only the hero CTA glows');
-    expect(deco.border, isNotNull);
+    expect(_skins(tester, find.byType(SecondaryButton)), isEmpty);
     expect(
-      tester.getSize(find.byType(Container).last).height,
-      lessThan(44),
-      reason: 'shorter than the hero pill',
+      tester.widget<Text>(find.text('Delete rule')).style!.color,
+      t.accentText(t.over),
     );
+  });
+
+  testWidgets('LiquidPill: the accent at kPill under the sheen, and taps', (
+    tester,
+  ) async {
+    var taps = 0;
+    const tint = Color(0xFF3574FA);
+    await tester.pumpWidget(
+      _host(
+        LiquidPill(
+          tint: tint,
+          onPressed: () => taps++,
+          child: const Text('Unblock'),
+        ),
+      ),
+    );
+    final skin = _skins(tester, find.byType(LiquidPill)).single;
+    expect(skin.color, tint.withValues(alpha: t.kPill));
+    expect(skin.gradient, [t.pillHi, t.pillLo]);
+    expect(skin.shadows.last.color, tint.withValues(alpha: t.kPillGlow));
+    expect(tester.getSize(_skin).height, 44);
+    expect(tester.getSize(find.byType(LiquidPill)).height, 48);
+
+    await tester.tap(find.text('Unblock'));
+    expect(taps, 1);
+  });
+
+  testWidgets('GlassFab: a glass pill named by its label', (tester) async {
+    final semantics = tester.ensureSemantics();
+    var taps = 0;
+    await tester.pumpWidget(
+      _host(
+        GlassFab(
+          icon: const Icon(Icons.add_rounded),
+          label: 'Add app',
+          onPressed: () => taps++,
+        ),
+      ),
+    );
+    expect(
+      tester
+          .widget<GlassContainer>(
+            find.descendant(
+              of: find.byType(GlassFab),
+              matching: find.byType(GlassContainer),
+            ),
+          )
+          .surface,
+      DxSurface.glass,
+    );
+    expect(find.bySemanticsLabel('Add app'), findsOneWidget);
+    await tester.tap(find.byType(GlassFab));
+    expect(taps, 1);
+    semantics.dispose();
+  });
+
+  testWidgets('InfoButton opens its message in a sheet; Got it closes it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host(const InfoButton('Resize on your phone')));
+    expect(find.text('Resize on your phone'), findsNothing);
+
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Resize on your phone'), findsOneWidget);
+
+    await tester.tap(find.text('Got it'));
+    await tester.pumpAndSettle();
+    expect(find.text('Resize on your phone'), findsNothing);
   });
 }

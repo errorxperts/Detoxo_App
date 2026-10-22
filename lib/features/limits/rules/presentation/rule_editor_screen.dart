@@ -350,7 +350,11 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
           // draft does not make the button vanish before it is saved.
           if (_isEdit && !(_existing?.locked ?? false)) ...[
             const SizedBox(height: AppSpacing.sm),
-            GhostButton(label: 'Delete rule', onPressed: _delete),
+            SecondaryButton(
+              label: 'Delete rule',
+              destructive: true,
+              onPressed: _delete,
+            ),
           ],
         ],
       ),
@@ -541,7 +545,6 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
                   'an override, twice a week.\n\nThe only way to remove it is '
                   'Settings → Reset app data.',
               confirmLabel: 'Lock it',
-              destructive: true,
             );
             if (ok && mounted) setState(() => _locked = true);
           },
@@ -663,7 +666,6 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
       title: 'Delete this rule?',
       message: 'Its targets are unblocked right away.',
       confirmLabel: 'Delete',
-      destructive: true,
       icon: Icons.delete_outline,
     );
     if (!confirmed || !mounted) return;

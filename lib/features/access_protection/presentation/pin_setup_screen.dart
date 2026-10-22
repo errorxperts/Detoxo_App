@@ -119,7 +119,6 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
           'Detoxo and its protected sections will no longer ask for a PIN.',
       confirmLabel: 'Turn off',
       cancelLabel: 'Keep it on',
-      destructive: true,
     );
     if (ok && mounted) {
       await context.read<PinCubit>().disable();
