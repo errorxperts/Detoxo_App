@@ -406,6 +406,12 @@ it and leave the generic "Couldn't save"). The usage hint renders only
 when the tri-state grant is **known false** — `!= true` flashed "limits cannot enforce" on every
 cold entry, against the repo's own "render a neutral Checking… row" convention.
 
+**Undo toast (C10).** Switching a rule off stays one tap. Once the cubit's state shows it landed
+(`setEnabled` reverts a failed save and the error listener toasts it, so no success toast), a
+`GlassToast` reads **"{rule} off"** with an inline **Undo**, `setEnabled(id, enabled: true)`
+re-resolved by rule id at tap time: a rule deleted meanwhile stays deleted. Turning a rule on is
+direct, with no toast. Deleting a rule stays on the editor's `ConfirmSheet`.
+
 With no rules the screen shows `EmptyState` followed by **Start from a preset** (`RulePreset.all`):
 the FAB is the blank-page entry point, these are the shortcut past it.
 
@@ -505,7 +511,8 @@ document and the wire.
   nothing; a flipped limit starts blocking and arms the package arm, and re-flipping is idempotent.
 - `test/rules_screen_semantics_test.dart` — the `!semantics.parentDataDirty` class from
   `web_block_screen_semantics_test.dart`: a `ruleBoundary` and a toggle flip while the screen is
-  open must not corrupt the semantics tree.
+  open must not corrupt the semantics tree. Plus the C10 Undo toast: "{rule} off" + Undo turns it
+  back on; Undo after a delete is a no-op; turning on and a failed save show no toast.
 - `test/resume_sync_test.dart` pins `RulesCubit.resync()` on the cheap leg;
   `test/plans_pause_curious_test.dart`'s fake engine grew the two new members.
 - Device sanity (not automatable here): a 2-minute schedule on a reel feed raises "Blocked by a

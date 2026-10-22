@@ -67,6 +67,13 @@ class AppBlockCubit extends Cubit<List<AppBlockEntry>> {
     await _commit(next);
   }
 
+  /// Undo for [removeAt]: puts [entry] back at [index] with its fields
+  /// intact. A no-op (false) once its package is listed again.
+  Future<bool> restore(AppBlockEntry entry, int index) async {
+    if (state.any((e) => e.packageName == entry.packageName)) return false;
+    return _commit([...state]..insert(index.clamp(0, state.length), entry));
+  }
+
   /// Persists + fires [onChanged]. A failed save reverts the optimistic emit
   /// and returns false (the web sibling's contract): a green "Added X" over a
   /// lock that never persisted — and was never pushed — is worse than an error.

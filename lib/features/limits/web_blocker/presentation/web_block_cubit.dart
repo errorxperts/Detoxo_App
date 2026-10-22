@@ -141,6 +141,16 @@ class WebBlockCubit extends Cubit<WebBlockState> {
     );
   }
 
+  /// Undo for a removal (a row's Delete or a deselected popular chip): puts
+  /// [entry] back at [index] with its fields intact. A no-op (false) once its
+  /// pattern is listed again.
+  Future<bool> restoreEntry(WebBlockEntry entry, int index) async {
+    if (state.entries.any((e) => e.pattern == entry.pattern)) return false;
+    return _commit(
+      [...state.entries]..insert(index.clamp(0, state.entries.length), entry),
+    );
+  }
+
   // M8: `pauseEntry` / `resumeEntry` are gone. A paused site is a WEBSITE grant
   // in `UnblockCubit` — the same mechanism that frees an app or a reel feed —
   // so the screen calls `grant(...)` / `endEarly(...)` with the entry's pattern

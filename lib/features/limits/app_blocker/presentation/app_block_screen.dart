@@ -190,14 +190,17 @@ class _AppBlockViewState extends State<_AppBlockView> {
                     AppToggle(
                       value: entry.enabled,
                       semanticLabel: 'Block ${entry.appName}',
-                      onChanged: (v) =>
-                          context.read<AppBlockCubit>().toggle(i, enabled: v),
+                      onChanged: (v) => v
+                          ? context.read<AppBlockCubit>().toggle(
+                              i,
+                              enabled: true,
+                            )
+                          : _lockOff(i, entry),
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline),
                       tooltip: 'Remove ${entry.appName}',
-                      onPressed: () =>
-                          context.read<AppBlockCubit>().removeAt(i),
+                      onPressed: () => _remove(i, entry),
                     ),
                   ],
                 ),
@@ -223,6 +226,75 @@ class _AppBlockViewState extends State<_AppBlockView> {
           },
         ),
     ];
+  }
+
+  // C10: switching one thing off (or removing it) stays one tap. The toast
+  // waits until the cubit's state shows the change landed (a failed save
+  // reverts), speaks from this screen (a removed row unmounts with its entry),
+  // and its Undo re-resolves the target at tap time: a target that is gone, or
+  // a screen that closed (the toast outlives the route), means do nothing.
+
+  Future<void> _lockOff(int i, AppBlockEntry entry) async {
+    final cubit = context.read<AppBlockCubit>();
+    int find() => cubit.isClosed
+        ? -1
+        : cubit.state.indexWhere((e) => e.packageName == entry.packageName);
+    await cubit.toggle(i, enabled: false);
+    final at = find();
+    if (!mounted || at < 0 || cubit.state[at].enabled) return;
+    GlassToast.show(
+      context,
+      '${entry.appName} unblocked',
+      action: (
+        label: 'Undo',
+        onPressed: () {
+          final at = find();
+          if (at >= 0) cubit.toggle(at, enabled: true);
+        },
+      ),
+    );
+  }
+
+  Future<void> _remove(int i, AppBlockEntry entry) async {
+    final cubit = context.read<AppBlockCubit>();
+    await cubit.removeAt(i);
+    if (!mounted ||
+        cubit.state.any((e) => e.packageName == entry.packageName)) {
+      return;
+    }
+    GlassToast.show(
+      context,
+      '${entry.appName} removed',
+      action: (
+        label: 'Undo',
+        onPressed: () {
+          if (!cubit.isClosed) cubit.restore(entry, i);
+        },
+      ),
+    );
+  }
+
+  Future<void> _feedOff(BlockTarget target) async {
+    final settings = context.read<SettingsCubit>();
+    final targets = context.read<TargetsCubit>();
+    final id = target.platformId;
+    // A failed save throws out of the commit, so no toast is reached.
+    await settings.togglePlatform(id, enabled: false);
+    if (!mounted || settings.state.enabledPlatformIds.contains(id)) return;
+    GlassToast.show(
+      context,
+      '${target.displayName} unblocked',
+      action: (
+        label: 'Undo',
+        onPressed: () {
+          // An app uninstalled meanwhile has no feed left to block.
+          final live = targets.state.targets.any(
+            (t) => t.platformId == id && t.isInstalled,
+          );
+          if (live) settings.togglePlatform(id, enabled: true);
+        },
+      ),
+    );
   }
 
   /// The same chips the website rows and the block screen use.
@@ -334,8 +406,9 @@ class _AppBlockViewState extends State<_AppBlockView> {
     return BlockAppTile(
       group: group,
       enabledIds: enabledIds,
-      onToggle: (id, {required enabled}) =>
-          context.read<SettingsCubit>().togglePlatform(id, enabled: enabled),
+      onToggle: (id, {required enabled}) => enabled
+          ? context.read<SettingsCubit>().togglePlatform(id, enabled: true)
+          : _feedOff(group.surfaces.firstWhere((t) => t.platformId == id)),
     );
   }
 

@@ -74,6 +74,9 @@ Straight CRUD over the repository:
   (`added` / `invalid` / `sensitive` / `duplicate` / `failed`); defaults
   `appName` to the package when blank. See the screen's toast contract below.
 - `toggle(index, enabled:)` / `removeAt(index)`.
+- `restore(entry, index)` — the screen's Remove Undo: re-inserts the removed
+  entry at its old index with its fields intact; a no-op (`false`) once its
+  package is listed again.
 - `_commit(entries)` — `emit` then `save` (optimistic UI, persist after). A
   **failed save reverts** the emit and returns `false` (so `add` reports
   `failed` and nothing is pushed) — the same contract as `WebBlockCubit`;
@@ -200,12 +203,25 @@ is a *management* surface unifying two systems that **enforce differently**:
    row shows the app's real device icon (from the cached scan; letter-tile
    fallback), an enable toggle and a delete button; when the custom list is
    empty the section is hidden entirely (the FAB is the entry point).
+   **Undo toasts (C10):** switching a lock off and Remove both stay one tap.
+   Once the cubit's state shows the change landed (a failed save reverts, so
+   no toast), a `GlassToast` reads **"{app} unblocked"** / **"{app} removed"**
+   with an inline **Undo**. Undo re-resolves the entry by package at tap time
+   (`toggle(indexOf(package), enabled: true)` / `restore(entry, index)`) and
+   does nothing if it is gone or already back, or once the route-scoped cubit
+   has closed (a toast outlives its route). The toast speaks from the screen's
+   own `State.context`, since a removed row unmounts with its entry. Turning a
+   lock on is direct, with no toast.
 2. **Apps & feeds** — the curated, install-aware catalog of built-in feed
    surfaces. This section is driven by the *blocking* feature's global
    `TargetsCubit` (install-aware target list) and `SettingsCubit`
    (`enabledPlatformIds`), **not** by `AppBlockCubit`. Toggling a row here calls
    `SettingsCubit.togglePlatform(...)` — i.e. it flips a `platforms_config.json`
-   platform on/off, which the native reel/short detection path honors. Browsers
+   platform on/off, which the native reel/short detection path honors.
+   Switching a feed off toasts **"{displayName} unblocked"** with Undo
+   (`togglePlatform(id, enabled: true)`, only while `TargetsCubit` still lists
+   the platform as installed); `SettingsCubit._commit` throws on a failed save,
+   which is what keeps that toast from showing. Browsers
    are split into their own sub-group. A search field appears once there are more
    than 8 targets.
 
@@ -349,6 +365,9 @@ Key operations:
   the site name, `POPULAR` source, and brand color.
 - `toggleEntry` / `removeEntry` / `editEntry` — CRUD; only custom entries are
   editable (re-validated + deduped).
+- `restoreEntry(entry, index)` — the screen's Undo after a removal (Delete or a
+  deselected popular chip): re-inserts the entry at its old index with its
+  fields intact; a no-op (`false`) once its pattern is listed again.
 - `setBlockAdult(value:)` / `setBlockForApps(value:)` — optimistic emit, then
   `_saveSettings` (load-modify-write of `AppSettings` + best-effort
   **`_engine.pushSettings(next)`**). A failed save reverts the toggle and
@@ -466,6 +485,16 @@ Latent since inception, first triggered 2026-08-17 by the first on-device
   shared `DomainValidator.check` rule; the sheet awaits the cubit commit and
   only announces success ("Blocked X") after persist + push landed — a failed
   save reverts the optimistic list and shows the error toast instead.
+- **Undo toasts (C10).** A row switched off, a row's Delete and a deselected
+  popular chip all stay one tap. Once the cubit's state shows the change landed
+  (a failed save reverts and toasts its own error instead), a `GlassToast`
+  reads **"{site} unblocked"** (switch, chip) or **"{site} removed"** (Delete)
+  with an inline **Undo**: `toggleEntry(…, enabled: true)` or
+  `restoreEntry(entry, index)`, re-resolved by pattern at tap time and a no-op
+  if the site is gone, already back, or the screen's cubit has closed. A chip
+  lit by a *custom* entry upgrades it rather than removing it, so it toasts
+  nothing. The toast speaks from `Scaffold.of(context).context` (a deleted row
+  unmounts with its entry). Turning anything on shows no toast.
 
 On-screen explanatory copy is kept to a minimum: the app-bar `InfoButton`
 (tap-to-open `Tooltip`) carries the feature explanation instead of an intro
@@ -716,6 +745,8 @@ must not reach logcat); the `webBlocked` event is consumed by
 - `lib/features/limits/app_blocker/presentation/app_block_screen.dart`
 - `lib/app/app_resume_sync.dart` (resume-time blocklist re-sync)
 - `test/app_block_sync_test.dart`
+- `test/app_block_screen_undo_test.dart` (C10 Undo toasts: lock off, feed off, Remove)
+- `test/web_block_screen_semantics_test.dart` (semantics regressions + C10 Undo toasts: site off, chip, Delete)
 - `lib/core/widgets/app_picker_sheet.dart` (shared installed-app picker)
 - `lib/core/platform_channels/installed_app.dart`
 - `lib/core/utils/package_name.dart` (package-id validation)
