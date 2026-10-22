@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
-import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dart';
+import 'package:detoxo/core/navigation/routes.dart';
+import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 /// Reads and mutates the app-wide [DailyLimitCubit] (provided in `main.dart`),
 /// not a private instance — so a saved limit updates the dashboard ring live.
@@ -27,123 +30,156 @@ class _DailyLimitView extends StatefulWidget {
 }
 
 class _DailyLimitViewState extends State<_DailyLimitView> {
+  /// The slider's unsaved value; null shows the saved limit.
   double? _draftMinutes;
+
+  /// The slider's range: 0 (no limit) to 8 h, in 15-minute steps.
+  static const double _maxMinutes = 480;
+  static const int _stepMinutes = 15;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Daily limit'),
-        actions: const [FeedbackActionButton()],
-      ),
-      body: SafeArea(
-        child: BlocBuilder<DailyLimitCubit, DailyLimit>(
-          builder: (context, limit) {
-            final minutes = _draftMinutes ?? limit.limit.inMinutes.toDouble();
-            final count = context.watch<ContentCounterCubit>().state;
-            final consumed = count.timeToday.inMinutes;
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                SectionCard(
-                  title: 'Today',
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        limit.limit == Duration.zero
-                            ? 'No daily limit set'
-                            : '$consumed of ${limit.limit.inMinutes} min used',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 12),
-                      LinearProgressIndicator(
-                        value: limit.limit == Duration.zero
-                            ? 0
-                            : (consumed / limit.limit.inMinutes).clamp(
-                                0.0,
-                                1.0,
-                              ),
-                        minHeight: 10,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+    final t = context.tokens;
+    final count = context.watch<ContentCounterCubit>().state;
+    final used = count.timeToday;
+    // Only a *definite* missing grant (tri-state, EVO-014): the wall is forced
+    // past the Appearance switch when the limit runs out, but it can never be
+    // drawn without this permission. The tap is the fix.
+    final notice = count.loaded && !count.enabled
+        ? NoticeLine(
+            'Reel counter is off. Turn it on in Appearance to enforce the '
+            'limit.',
+            onTap: () => context.push(Routes.appearance),
+          )
+        : count.overlayGranted == false
+        ? NoticeLine(
+            'Needs “Display over other apps”. Feeds still close at the '
+            'limit; the block screen needs this permission.',
+            onTap: () =>
+                unawaited(context.read<ContentCounterCubit>().requestOverlay()),
+          )
+        : null;
+
+    // GlassScaffold applies the SafeArea itself; the global feedback action
+    // rides on GlassAppBar.
+    return GlassScaffold(
+      appBar: const GlassAppBar(title: Text('Daily limit')),
+      body: BlocBuilder<DailyLimitCubit, DailyLimit>(
+        builder: (context, saved) {
+          final limit = saved.limit;
+          final draft = Duration(
+            minutes: (_draftMinutes ?? limit.inMinutes).round(),
+          );
+          return ListView(
+            // The app bar supplies the top gap, and each section header its
+            // own rhythm.
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.gutter,
+              0,
+              AppSpacing.gutter,
+              AppSpacing.xxl,
+            ),
+            children: [
+              const SectionHeader('Today'),
+              GlassCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      formatHm(used),
+                      style: AppTypography.number.copyWith(color: t.ink),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      limit == Duration.zero
+                          ? 'No daily limit'
+                          : '${formatHm(used)} of ${formatHm(limit)} used',
+                      style: AppTypography.subhead.copyWith(color: t.ink2),
+                    ),
+                    if (limit > Duration.zero) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      _UsageBar(used: used, limit: limit),
                     ],
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                SectionCard(
-                  title: 'Set your daily limit',
-                  child: Column(
-                    children: [
-                      Text(
-                        '${minutes.round()} minutes per day',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      Slider(
-                        value: minutes.clamp(0, 480),
-                        max: 480,
-                        divisions: 96,
-                        label: '${minutes.round()} min',
-                        onChanged: (v) => setState(() => _draftMinutes = v),
-                      ),
-                      const SizedBox(height: 8),
-                      AnimatedIconButton(
-                        label: 'Save limit',
-                        icon: AppIcon.check,
-                        expand: true,
-                        onPressed: () {
-                          context.read<DailyLimitCubit>().setLimit(
-                            Duration(minutes: minutes.round()),
-                          );
-                          setState(() => _draftMinutes = null);
-                          GlassToast.show(
-                            context,
-                            'Daily limit saved.',
-                            tone: AppTone.success,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+              ),
+              const SectionHeader('Daily limit'),
+              GlassCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      draft == Duration.zero
+                          ? 'No daily limit'
+                          : '${formatHm(draft)} a day',
+                      style: AppTypography.headline.copyWith(color: t.ink),
+                    ),
+                    Slider(
+                      value: draft.inMinutes.clamp(0, _maxMinutes).toDouble(),
+                      max: _maxMinutes,
+                      divisions: _maxMinutes ~/ _stepMinutes,
+                      label: formatHm(draft),
+                      // TalkBack reads "3h", not the default percentage.
+                      semanticFormatterCallback: (v) =>
+                          formatHm(Duration(minutes: v.round())),
+                      onChanged: (v) => setState(() => _draftMinutes = v),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    PrimaryButton(
+                      label: 'Save limit',
+                      icon: Icons.check_rounded,
+                      expand: true,
+                      onPressed: () {
+                        context.read<DailyLimitCubit>().setLimit(draft);
+                        setState(() => _draftMinutes = null);
+                        GlassToast.show(
+                          context,
+                          'Daily limit saved',
+                          tone: AppTone.success,
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                if (count.loaded && !count.enabled)
-                  const InfoBanner(
-                    title: 'Reel counter is off',
-                    text:
-                        'The limit is measured by the reel counter, so it '
-                        'cannot be enforced until you turn the counter back on '
-                        'in Appearance.',
-                  )
-                // Only a *definite* missing grant (tri-state, EVO-014): the
-                // wall is forced past the Appearance switch when the limit
-                // runs out, but it can never be drawn without this permission.
-                else if (count.overlayGranted == false)
-                  const InfoBanner(
-                    title: 'Block screen needs “Display over other apps”',
-                    text:
-                        "When today's reel time reaches the limit, Detoxo "
-                        'still closes every reel feed until midnight — but the '
-                        'block screen can only appear once you allow the '
-                        'permission in Settings → Permissions.',
-                  )
-                else
-                  const InfoBanner(
-                    text:
-                        "When today's reel time reaches the limit, Detoxo "
-                        'blocks every reel feed until midnight and shows the '
-                        'block screen in the app, whatever your block mode. A '
-                        'Pause lifts it like any other block.',
-                  ),
-              ],
-            );
-          },
-        ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
+                child: Text(
+                  'Reel feeds stay blocked until midnight once today’s reel '
+                  'time reaches the limit. A Pause lifts it.',
+                  style: AppTypography.subhead.copyWith(color: t.ink2),
+                ),
+              ),
+              ?notice,
+            ],
+          );
+        },
       ),
     );
   }
 }
 
+/// Today's reel time against the limit. The line above it says the same in
+/// words; the bar still names its share for a screen reader.
+class _UsageBar extends StatelessWidget {
+  const _UsageBar({required this.used, required this.limit});
+
+  final Duration used;
+  final Duration limit;
+
+  @override
+  Widget build(BuildContext context) {
+    final share = (used.inMinutes / limit.inMinutes).clamp(0.0, 1.0);
+    return ProgressBar(
+      progress: share,
+      semanticLabel: '${(share * 100).round()}% of the daily limit used',
+    );
+  }
+}
+
+/// Off this screen since the Frozen Glass move: the Settings version row is its
+/// last caller, and it goes once that row does.
 class InfoBanner extends StatelessWidget {
   const InfoBanner({
     required this.text,

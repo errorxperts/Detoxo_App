@@ -32,7 +32,7 @@ Standard feature-first Clean Architecture slice under
 | domain / contract | `domain/repositories/daily_limit_repository.dart` | `DailyLimitRepository` interface (`load` / `save`) |
 | data | `data/repositories/daily_limit_repository_impl.dart` | JSON persistence via `LocalStore` |
 | presentation | `presentation/daily_limit_cubit.dart` | `DailyLimitCubit` — date-signature reset, `setLimit` |
-| presentation | `presentation/daily_limit_screen.dart` | Slider UI, progress card, info banner |
+| presentation | `presentation/daily_limit_screen.dart` | Today hero, limit slider, explainer + notice line |
 
 The public barrel `lib/features/limits/limits.dart` re-exports **only** domain
 entities and repository contracts (`DailyLimit` / `DailyLimitRepository`, and the
@@ -236,18 +236,25 @@ DailyLimit>` that calls `RulesCubit.resync()` whenever `limit` changes.
 
 - Uses the **app-wide** `DailyLimitCubit` (provided in `lib/main.dart`); it no
   longer builds its own `BlocProvider`, so an edit re-emits to the dashboard live.
-- **Today card** — shows `"$used of ${limit} min used"` (or `"No daily limit
-  set"` when `limit == zero`) plus a `LinearProgressIndicator` of
-  `used / limit` clamped to `[0,1]`, where `used` is
+- **Chrome** — a `GlassScaffold` with `GlassAppBar('Daily limit')` (the global
+  feedback action rides on the app bar), and a list of two `SectionHeader` +
+  `GlassCard` sections. Every span reads through `formatHm` ("45m", "3h",
+  "4h 15m").
+- **Today** — `formatHm(used)` in `AppTypography.number`, then
+  `"45m of 3h used"` (or `"No daily limit"` when `limit == zero`) and, with a
+  limit set, a `ProgressBar` of `used / limit` clamped to `[0,1]` whose
+  `semanticLabel` reads "25% of the daily limit used". `used` is
   **`ContentCounterCubit.state.timeToday`** — the native reel-time meter that
   enforces the limit — not `DailyLimit.consumed`.
-- **Set-your-limit card** — a `Slider` from **0 to 480 minutes (8 h)**, `divisions: 96`
-  (→ **5-minute steps**), with a draft (`_draftMinutes`) held in local
-  `setState` until the user taps **Save limit**, which calls
-  `setLimit(Duration(minutes: minutes.round()))`, clears the draft, and shows a
-  "Daily limit saved." **`GlassToast`** (success tone — the design system's
-  toast, not a raw `SnackBar`).
-- **InfoBanner** — see next section.
+- **Daily limit** — the draft in `headline` (`"3h a day"`, or "No daily limit"
+  at 0), then the theme's `Slider` from **0 to 480 minutes (8 h)**,
+  `divisions: 32` (→ **15-minute steps**), labelled and announced in `formatHm`.
+  The draft (`_draftMinutes`) is held in local `setState` until **Save limit**
+  (`PrimaryButton`, check icon), which calls
+  `setLimit(Duration(minutes: …))` directly — no confirmation — clears the
+  draft, and shows a "Daily limit saved" `GlassToast` (success tone).
+- **Explainer + notice** — one `subhead` sentence under the panels, and a
+  `NoticeLine` when something stops the limit from working — see next section.
 
 Reached from **Settings** (`settings_screen.dart` → `context.push(Routes.dailyLimit)`)
 and the **app drawer** (`app_drawer.dart`). Route:
@@ -287,18 +294,20 @@ permission, by riding the rules engine ([27-rules-engine.md](27-rules-engine.md)
 platform Detoxo detects), not whole apps, which is exactly what the ring
 measures. It sits below the Pause gate like every rule: a Pause lifts it. It
 depends on the reel counter: with counting **off**, `timeTodayMs` does not
-accrue and the limit cannot trip — the screen's banner says so
+accrue and the limit cannot trip — the screen's notice line says so
 (`ContentCount.enabled == false` → "Reel counter is off").
 
-The screen's banner is a three-way branch: counter off → "Reel counter is off";
-overlay grant **definitely** missing (`ContentCount.overlayGranted == false`, the
-EVO-014 tri-state) → *"Block screen needs “Display over other apps” — Detoxo
-still closes every reel feed until midnight, but the block screen can only appear
-once you allow the permission"*; otherwise *"When today's reel time reaches the
-limit, Detoxo blocks every reel feed until midnight and shows the block screen in
-the app, whatever your block mode. A Pause lifts it like any other block."* The
-forced wall skips the Appearance switch, never the grant, so the banner must not
-promise it without one.
+The screen always shows the explainer *"Reel feeds stay blocked until midnight
+once today’s reel time reaches the limit. A Pause lifts it."* Under it, at most
+one `NoticeLine`, whose tap is the fix: counter off (`loaded && !enabled`) →
+*"Reel counter is off. Turn it on in Appearance to enforce the limit."* (opens
+`Routes.appearance`); else the overlay grant **definitely** missing
+(`ContentCount.overlayGranted == false`, the EVO-014 tri-state) → *"Needs
+“Display over other apps”. Feeds still close at the limit; the block screen needs
+this permission."* (`ContentCounterCubit.requestOverlay()`). The forced wall
+skips the Appearance switch, never the grant, so the screen must not promise it
+without one. (`InfoBanner` still lives in this file, unused here: the Settings
+version row is its last caller.)
 
 ### The daily limit and a per-target unblock (M8)
 
@@ -407,7 +416,7 @@ date-rollover used for the limit itself (§4). Like the limit, it is a
 - `lib/features/limits/daily_limit/domain/repositories/daily_limit_repository.dart`
 - `lib/features/limits/daily_limit/data/repositories/daily_limit_repository_impl.dart`
 - `lib/features/limits/daily_limit/presentation/daily_limit_cubit.dart`
-- `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart` (uses the app-wide cubit; no inline provider; "used" from `ContentCounterCubit.timeToday`)
+- `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart` (uses the app-wide cubit; no inline provider; "used" from `ContentCounterCubit.timeToday`; test: `test/daily_limit_screen_test.dart`)
 - `lib/features/limits/rules/domain/rule_sync.dart`, `lib/features/limits/rules/domain/usecases/resolve_snapshot.dart` (the `daily_reel_limit` snapshot entry — §6)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/RuleEngine.kt`, `ContentCounter.kt` (`timeTodayMs`) — the native meter (§6)
 - `lib/features/limits/streak/domain/entities/streak.dart` (§8)
