@@ -1,6 +1,9 @@
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/widgets.dart';
 
-/// 4-based spacing scale. Use instead of magic `SizedBox` heights / paddings.
+/// Spacing: a 4-based scale plus the spec's named steps ([inset] … [section],
+/// generated from tool/design). Use instead of magic `SizedBox` heights /
+/// paddings.
 abstract final class AppSpacing {
   static const double xxs = 4;
   static const double xs = 8;
@@ -9,19 +12,27 @@ abstract final class AppSpacing {
   static const double lg = 20;
   static const double xl = 24;
   static const double xxl = 32;
-  static const double xxxl = 48;
+
+  /// Inside the mode card, between its edge and the chip.
+  static const double inset = AppTokens.spaceInset;
+
+  /// Between blocker tiles, and between the tiles and the rules row.
+  static const double gap = AppTokens.spaceGap;
+
+  /// Padding inside tiles.
+  static const double card = AppTokens.spaceCard;
+
+  /// Screen side margins.
+  static const double gutter = AppTokens.spaceGutter;
+
+  /// Above a section title.
+  static const double section = AppTokens.spaceSection;
 
   /// Bottom clearance a scroll view needs so its last item isn't hidden behind
-  /// the floating bottom nav (pill height + offset + breathing room). Add the
-  /// device's bottom safe-area inset on top of this at the call site.
-  static const double floatingNavClearance = 80;
-
-  // Ready-made gaps to cut Column/Row boilerplate.
-  static const SizedBox gapXs = SizedBox(height: xs, width: xs);
-  static const SizedBox gapSm = SizedBox(height: sm, width: sm);
-  static const SizedBox gapMd = SizedBox(height: md, width: md);
-  static const SizedBox gapLg = SizedBox(height: lg, width: lg);
-  static const SizedBox gapXl = SizedBox(height: xl, width: xl);
+  /// the floating tab bar: the spec leaves 132 for the bar, its lift and
+  /// breathing room. Add the device's bottom safe-area inset on top of this at
+  /// the call site.
+  static const double floatingNavClearance = 132;
 }
 
 /// Interactive-control sizing. [controlHeight] is the visual pill height (matches
@@ -36,36 +47,50 @@ abstract final class AppSizes {
 }
 
 /// Corner radii. `lg`=20 matches the legacy Card radius; `md`=14 the input
-/// radius; `pill` for chips and CTAs.
+/// radius; `pill` for chips and CTAs. The spec's named radii ([icon] …
+/// [sheet], [pill]) are generated from tool/design.
 abstract final class AppRadius {
   static const double sm = 10;
   static const double md = 14;
   static const double lg = 20;
   static const double xl = 28;
-  static const double pill = 999;
+
+  /// App icon squircles in a tile's icon stack (site icons are round).
+  static const double icon = AppTokens.radiusIcon;
+
+  /// Selected-mode chip: [card] minus the 8 px inset.
+  static const double chip = AppTokens.radiusChip;
+
+  /// Rows and frosted panels.
+  static const double row = AppTokens.radiusRow;
+
+  /// Blocker tiles and the mode card.
+  static const double card = AppTokens.radiusCard;
+
+  /// Tab bar and the slide track.
+  static const double bar = AppTokens.radiusBar;
+
+  /// Confirm sheet.
+  static const double sheet = AppTokens.radiusSheet;
+
+  /// Pills, buttons, the tab lens, status dots.
+  static const double pill = AppTokens.radiusPill;
 
   static final BorderRadius brSm = BorderRadius.circular(sm);
   static final BorderRadius brMd = BorderRadius.circular(md);
   static final BorderRadius brLg = BorderRadius.circular(lg);
-  static final BorderRadius brXl = BorderRadius.circular(xl);
   static final BorderRadius brPill = BorderRadius.circular(pill);
 
-  /// Tuning knob for [continuous]: how round the squircle is vs the legacy
-  /// circular radius. 1.0 keeps the same numeric radius (slightly tighter,
-  /// smoother corners); raise toward ~1.6 for a rounder squircle.
-  static const double continuousCornerScale = 1.0;
-
-  /// Apple-style continuous ("squircle") border used by every glass surface.
-  /// [pill] radius stays a true [StadiumBorder]; finite radii become a
-  /// [ContinuousRectangleBorder] so corners flow smoothly instead of snapping
-  /// to a circular arc. Pass a [side] to also stroke the edge.
+  /// The border of a surface with corner [radius]: a true [StadiumBorder] at
+  /// [pill], else a [RoundedRectangleBorder] with circular corners (no
+  /// squircle). Pass a [side] to also stroke the edge.
   static ShapeBorder continuous(
     double radius, {
     BorderSide side = BorderSide.none,
   }) {
     if (radius >= pill) return StadiumBorder(side: side);
     return RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(radius * continuousCornerScale),
+      borderRadius: BorderRadius.circular(radius),
       side: side,
     );
   }
@@ -73,12 +98,14 @@ abstract final class AppRadius {
 
 /// Common edge insets so screens stop re-declaring `EdgeInsets.all(16)`.
 abstract final class AppInsets {
-  static const EdgeInsets screen = EdgeInsets.all(AppSpacing.md);
+  /// The spec's screen side margins.
+  static const EdgeInsets screen = EdgeInsets.symmetric(
+    horizontal: AppSpacing.gutter,
+  );
   static const EdgeInsets screenH = EdgeInsets.symmetric(
     horizontal: AppSpacing.md,
   );
   static const EdgeInsets card = EdgeInsets.all(AppSpacing.md);
-  static const EdgeInsets cardLg = EdgeInsets.all(AppSpacing.lg);
   static const EdgeInsets listTile = EdgeInsets.symmetric(
     horizontal: AppSpacing.md,
     vertical: AppSpacing.xxs,

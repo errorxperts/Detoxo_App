@@ -21,9 +21,12 @@
 // Colours are emitted as ARGB ints (Kotlin) / `Color` (Dart) from the SAME
 // parsed value, so the native widget and the Flutter preview can never disagree
 // on a channel. `rgba(r,g,b,a)` alpha is `round(a * 255)`, half up — CSS's rule.
-// ignore_for_file: avoid_print
+// The colour parsing, casing, formatting and write/`--check` helpers are shared
+// with tool/design/gen_design_tokens.dart in tool/tokens_common.dart.
 import 'dart:convert';
 import 'dart:io';
+
+import '../tokens_common.dart';
 
 const _tokensPath = 'tool/home_widget/tokens.json';
 const _kotlinPath =
@@ -64,7 +67,7 @@ Future<void> main(List<String> args) async {
         'Home-widget design tokens: colours as ARGB ints, sizes in design units.',
     rename: _same,
   );
-  final dart = await _formatDart(
+  final dart = await formatDart(
     _dart(
       widget,
       object: 'WidgetTokens',
@@ -72,7 +75,7 @@ Future<void> main(List<String> args) async {
       rename: _same,
     ),
   );
-  final rules = await _formatDart(_rules(widget));
+  final rules = await formatDart(_rules(widget));
   const bubbleDoc =
       'Reel-bubble design tokens (Bubble rules BR-04/05): colours as ARGB ints, '
       'sizes in dp at size 68.';
@@ -83,7 +86,7 @@ Future<void> main(List<String> args) async {
     doc: bubbleDoc,
     rename: _strip,
   );
-  final bubbleDart = await _formatDart(
+  final bubbleDart = await formatDart(
     _dart(
       bubble,
       object: 'BubbleTokens',
@@ -92,58 +95,19 @@ Future<void> main(List<String> args) async {
       rename: _strip,
     ),
   );
-  final outputs = [
-    (_kotlinPath, kotlin),
-    (_dartPath, dart),
-    (_rulesPath, rules),
-    (_bubbleKotlinPath, bubbleKotlin),
-    (_bubbleDartPath, bubbleDart),
-  ];
-
-  if (check) {
-    final drift = <String>[
-      for (final (path, source) in outputs)
-        if (_read(path) != source) path,
-    ];
-    if (drift.isEmpty) {
-      print('home-widget tokens: up to date');
-      return;
-    }
-    stderr.writeln(
-      'home-widget tokens drifted from $_tokensPath:\n  ${drift.join('\n  ')}\n'
-      'Run `dart run tool/home_widget/gen_tokens.dart` and commit the result.',
-    );
-    exit(1);
-  }
-  for (final (path, source) in outputs) {
-    File(path)
-      ..parent.createSync(recursive: true)
-      ..writeAsStringSync(source);
-    print('wrote $path');
-  }
-}
-
-String? _read(String path) {
-  final f = File(path);
-  return f.existsSync() ? f.readAsStringSync() : null;
-}
-
-/// `dart format` the generated Dart so the precommit `fmt` step (which formats
-/// all of lib/) never rewrites it — otherwise `--check` would see drift.
-Future<String> _formatDart(String source) async {
-  final dir = Directory.systemTemp.createTempSync('widget_tokens');
-  try {
-    final file = File('${dir.path}/generated.g.dart')
-      ..writeAsStringSync(source);
-    final result = await Process.run('dart', ['format', file.path]);
-    if (result.exitCode != 0) {
-      stderr.writeln(result.stderr);
-      exit(result.exitCode);
-    }
-    return file.readAsStringSync();
-  } finally {
-    dir.deleteSync(recursive: true);
-  }
+  syncOutputs(
+    [
+      (_kotlinPath, kotlin),
+      (_dartPath, dart),
+      (_rulesPath, rules),
+      (_bubbleKotlinPath, bubbleKotlin),
+      (_bubbleDartPath, bubbleDart),
+    ],
+    check: check,
+    label: 'home-widget tokens',
+    source: _tokensPath,
+    regen: 'dart run tool/home_widget/gen_tokens.dart',
+  );
 }
 
 // ── Model ─────────────────────────────────────────────────────────────────────
@@ -181,14 +145,14 @@ class _Tokens {
       final usage = (t['usage'] as String?) ?? '';
       final value = t['value'];
       if (value is String) {
-        colours.add(_Colour(name, _parseColour(value, name), usage));
+        colours.add(_Colour(name, parseCssColour(value, name), usage));
       } else if (value is Map<String, dynamic>) {
         pairNames.add(name);
         for (final theme in const ['light', 'dark']) {
           final v = value[theme];
           if (v is! String) throw FormatException('$name: missing $theme');
           colours.add(
-            _Colour('$name-$theme', _parseColour(v, name), '$usage ($theme)'),
+            _Colour('$name-$theme', parseCssColour(v, name), '$usage ($theme)'),
           );
         }
       } else {
@@ -263,34 +227,6 @@ class _Tokens {
   );
 }
 
-final _hex = RegExp(r'^#([0-9a-fA-F]{6})$');
-final _rgba = RegExp(
-  r'^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([0-9.]+)\s*\)$',
-);
-
-int _parseColour(String v, String name) {
-  final hex = _hex.firstMatch(v);
-  if (hex != null) return 0xFF000000 | int.parse(hex.group(1)!, radix: 16);
-  final rgba = _rgba.firstMatch(v);
-  if (rgba != null) {
-    int ch(int i) => int.parse(rgba.group(i)!).clamp(0, 255);
-    final a = (double.parse(rgba.group(4)!) * 255 + 0.5).floor().clamp(0, 255);
-    return (a << 24) | (ch(1) << 16) | (ch(2) << 8) | ch(3);
-  }
-  throw FormatException('$name: unsupported colour "$v"');
-}
-
-String _hex8(int argb) =>
-    '0x${argb.toRadixString(16).toUpperCase().padLeft(8, '0')}';
-
-String _upperSnake(String kebab) => kebab.replaceAll('-', '_').toUpperCase();
-
-String _lowerCamel(String kebab) {
-  final parts = kebab.split('-');
-  return parts.first +
-      parts.skip(1).map((p) => p[0].toUpperCase() + p.substring(1)).join();
-}
-
 String _numberLiteral(_Number n, {required bool kotlin}) {
   if (n.isInt) return n.value.toInt().toString();
   final v = n.value.toDouble();
@@ -323,7 +259,7 @@ String _kotlin(
     b
       ..writeln('    /** ${c.usage} */')
       ..writeln(
-        '    const val ${_upperSnake(rename(c.name))}: Int = ${_hex8(c.argb)}.toInt()',
+        '    const val ${upperSnake(rename(c.name))}: Int = ${hex8(c.argb)}.toInt()',
       );
   }
   b.writeln();
@@ -331,8 +267,8 @@ String _kotlin(
     b
       ..writeln('    @JvmField')
       ..writeln(
-        '    val ${_upperSnake(rename(l.name))}: IntArray = intArrayOf('
-        '${l.items.map((i) => _upperSnake(rename(i))).join(', ')})',
+        '    val ${upperSnake(rename(l.name))}: IntArray = intArrayOf('
+        '${l.items.map((i) => upperSnake(rename(i))).join(', ')})',
       );
   }
   b.writeln();
@@ -341,7 +277,7 @@ String _kotlin(
     b
       ..writeln('    /** ${n.usage} */')
       ..writeln(
-        '    const val ${_upperSnake(rename(n.name))}: $type = '
+        '    const val ${upperSnake(rename(n.name))}: $type = '
         '${_numberLiteral(n, kotlin: true)}',
       );
   }
@@ -367,13 +303,13 @@ String _dart(
     b
       ..writeln('  /// ${c.usage}')
       ..writeln(
-        '  static const Color ${_lowerCamel(rename(c.name))} = Color(${_hex8(c.argb)});',
+        '  static const Color ${lowerCamel(rename(c.name))} = Color(${hex8(c.argb)});',
       );
   }
   for (final l in t.lists) {
     b.writeln(
-      '  static const List<Color> ${_lowerCamel(rename(l.name))} = '
-      '[${l.items.map((i) => _lowerCamel(rename(i))).join(', ')}];',
+      '  static const List<Color> ${lowerCamel(rename(l.name))} = '
+      '[${l.items.map((i) => lowerCamel(rename(i))).join(', ')}];',
     );
   }
   for (final n in t.numbers) {
@@ -381,7 +317,7 @@ String _dart(
     b
       ..writeln('  /// ${n.usage}')
       ..writeln(
-        '  static const $type ${_lowerCamel(rename(n.name))} = '
+        '  static const $type ${lowerCamel(rename(n.name))} = '
         '${_numberLiteral(n, kotlin: false)};',
       );
   }
@@ -403,7 +339,7 @@ String _rules(_Tokens t) {
     b
       ..writeln('  /// ${n.usage}')
       ..writeln(
-        '  static const int ${_lowerCamel(n.name)} = '
+        '  static const int ${lowerCamel(n.name)} = '
         '${_numberLiteral(n, kotlin: false)};',
       );
   }

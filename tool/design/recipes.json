@@ -1,0 +1,82 @@
+{
+  "name": "Detoxo recipes",
+  "note": "Values the Detoxo Design System keeps in components/bundle.css rather than tokens.json, copied verbatim (CSS units kept: px, %, deg). Same {name, value, usage} shape as tokens.json, so tool/design/gen_design_tokens.dart reads both with one parser. tokens.json stays a byte copy of the spec; every local decision lives here.",
+  "strength": {
+    "note": "Per-theme strengths of the live accent (bundle.css :root / [data-theme=\"dark\"]).",
+    "tokens": [
+      { "name": "k-option", "value": { "light": "6%", "dark": "14%" }, "usage": "Mode card: the accent mixed into option-base (--option-bg)." },
+      { "name": "k-chip", "value": { "light": "20%", "dark": "40%" }, "usage": "Mode card's selected chip: the accent mixed into option-base (--chip-bg)." },
+      { "name": "k-pill", "value": { "light": "14%", "dark": "30%" }, "usage": "Unblock pill tint: the accent at this alpha." },
+      { "name": "k-pill-glow", "value": { "light": "25%", "dark": "35%" }, "usage": "Unblock pill glow: the accent at this alpha." },
+      { "name": "k-tab", "value": { "light": "16%", "dark": "26%" }, "usage": "Tab lens tint: the accent at this alpha." },
+      { "name": "k-tab-glow", "value": { "light": "34%", "dark": "45%" }, "usage": "Tab lens glow: the accent at this alpha." },
+      { "name": "k-bloom-on", "value": { "light": ".16", "dark": ".3" }, "usage": "Corner glow in an On blocker tile (opacity)." },
+      { "name": "k-bloom-off", "value": { "light": ".06", "dark": ".1" }, "usage": "Corner glow in a Paused or not set up blocker tile (opacity)." },
+      { "name": "k-tile-glow", "value": { "light": "42%", "dark": "55%" }, "usage": "Shadow tint under an On tile: the tile colour at this alpha." },
+      { "name": "k-arc-glow", "value": { "light": ".35", "dark": ".5" }, "usage": "Blurred copy under the ring arc (opacity)." },
+      { "name": "k-amb", "value": { "light": ".16", "dark": ".3" }, "usage": "Ambient light behind the ring (opacity)." },
+      { "name": "k-halo", "value": { "light": "22%", "dark": "30%" }, "usage": "Ring knob halo (--halo): Light mixes the accent main, Dark its light stop, at this alpha." }
+    ]
+  },
+  "color": {
+    "note": "Per-theme component colours (bundle.css :root / [data-theme=\"dark\"]).",
+    "tokens": [
+      { "name": "pill-hi", "value": { "light": "rgba(255,255,255,0.75)", "dark": "rgba(255,255,255,0.18)" }, "usage": "Unblock pill sheen, top of its vertical gradient." },
+      { "name": "pill-lo", "value": { "light": "rgba(255,255,255,0.3)", "dark": "rgba(255,255,255,0.02)" }, "usage": "Unblock pill sheen, bottom of its gradient." },
+      { "name": "lens-hi", "value": { "light": "rgba(255,255,255,0.8)", "dark": "rgba(255,255,255,0.22)" }, "usage": "Tab lens sheen, top of its vertical gradient." },
+      { "name": "lens-lo", "value": { "light": "rgba(255,255,255,0.4)", "dark": "rgba(255,255,255,0.04)" }, "usage": "Tab lens sheen, bottom of its gradient." },
+      { "name": "track-from", "value": { "light": "#dce2ec", "dark": "#0e1018" }, "usage": "Slide track, start of its gradient." },
+      { "name": "track-to", "value": { "light": "#e8ecf3", "dark": "#161927" }, "usage": "Slide track, end of its gradient." },
+      { "name": "knob", "value": { "light": "#ffffff", "dark": "#f7f8fc" }, "usage": "Slide knob fill." },
+      { "name": "well-from", "value": { "light": "#f3f6fb", "dark": "#262b42" }, "usage": "Confirm sheet icon well, centre of its radial gradient." },
+      { "name": "well-to", "value": { "light": "#dfe5ee", "dark": "#13151f" }, "usage": "Confirm sheet icon well, edge of its radial gradient." },
+      { "name": "grabber", "value": { "light": "rgba(20,26,42,0.18)", "dark": "rgba(255,255,255,0.26)" }, "usage": "Sheet grabber bar." },
+      { "name": "button-from", "value": { "light": "#ffffff", "dark": "#262b44" }, "usage": "Soft button, start of its 145° gradient." },
+      { "name": "button-to", "value": { "light": "#e9edf4", "dark": "#181b2a" }, "usage": "Soft button, end of its 145° gradient." }
+    ]
+  },
+  "shadow": {
+    "note": "Per-theme component shadows (bundle.css :root / [data-theme=\"dark\"]). Whole recipes; never mix layers.",
+    "tokens": [
+      { "name": "pill-edge", "value": { "light": "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 0 0 1px rgba(255,255,255,0.65)", "dark": "inset 0 1px 0 rgba(255,255,255,0.34), inset 0 0 0 1px rgba(255,255,255,0.1)" }, "usage": "Unblock pill edge highlights." },
+      { "name": "lens-edge", "value": { "light": "inset 0 1px 0 #ffffff, inset 0 0 0 1px rgba(255,255,255,0.75)", "dark": "inset 0 1px 0 rgba(255,255,255,0.45), inset 0 0 0 1px rgba(255,255,255,0.12)" }, "usage": "Tab lens edge highlights." },
+      { "name": "track-shadow", "value": { "light": "inset 5px 5px 10px rgba(166,180,204,0.6), inset -5px -5px 10px rgba(255,255,255,0.95)", "dark": "inset 6px 6px 12px rgba(0,0,0,0.6), inset -4px -4px 10px rgba(255,255,255,0.045)" }, "usage": "Slide track, pressed in." }
+    ]
+  },
+  "surface": {
+    "note": "Backdrop of the frosted surfaces (bundle.css .dx-glass, .dx-panel, .dx-sheet: blur(N) saturate(M)).",
+    "tokens": [
+      { "name": "glass-blur", "value": "22px", "usage": "Glass controls: backdrop blur." },
+      { "name": "glass-saturate", "value": "180%", "usage": "Glass controls: backdrop saturation." },
+      { "name": "panel-blur", "value": "20px", "usage": "Frosted panel: backdrop blur." },
+      { "name": "panel-saturate", "value": "160%", "usage": "Frosted panel: backdrop saturation." },
+      { "name": "sheet-blur", "value": "30px", "usage": "Confirm sheet: backdrop blur." },
+      { "name": "sheet-saturate", "value": "170%", "usage": "Confirm sheet: backdrop saturation." }
+    ]
+  },
+  "fixed": {
+    "note": "Theme-independent constants of the bundle.css recipes.",
+    "tokens": [
+      { "name": "accent-text-ink", "value": "#0b1020", "usage": "Light coloured text mixes the accent toward this ink (--accent-text: color-mix(in srgb, accent 60%, #0b1020))." },
+      { "name": "accent-text-mix", "value": "40%", "usage": "How far Light coloured text mixes toward accent-text-ink (the ink's share of --accent-text)." },
+      { "name": "arc-mid-mix", "value": "50%", "usage": "Light ring arc middle stop: the accent mixed this far toward its deep stop (--arc-50)." },
+      { "name": "disc-wash", "value": "6%", "usage": "Ring centre disc wash: the accent at this alpha (.dx-disc::before)." },
+      { "name": "icon-base-hue", "value": "214deg", "usage": "Hue of the blue 3D mode icons; hue-rotate(accent hue - 214deg) turns them to the accent." },
+      { "name": "icon-saturate-on", "value": "1.15", "usage": "Selected mode icon: saturate(1.15)." },
+      { "name": "icon-saturate-off", "value": ".7", "usage": "Idle mode icon: saturate(.7)." },
+      { "name": "icon-opacity-off", "value": ".8", "usage": "Idle mode icon opacity." }
+    ]
+  },
+  "typeVariant": {
+    "note": "Named styles derived from a spec style; text-transform stays at the call site.",
+    "tokens": [
+      { "name": "eyebrow", "base": "caption", "letterSpacing": "1.6px", "usage": "Eyebrows and section headers: caption, uppercase, 1.6px tracking (.dx-eyebrow)." }
+    ]
+  },
+  "override": {
+    "note": "Local fixes applied on top of tokens.json; report each one back to the design-system owner.",
+    "tokens": [
+      { "name": "ink-3", "value": { "light": "#7d8699" }, "usage": "Light #7d8699 (3.03:1 on card-to) in place of the spec's #8a93a6, which is 2.55:1 on card-to, below the spec's own 3:1 rule for icons." }
+    ]
+  }
+}

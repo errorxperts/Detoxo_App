@@ -344,7 +344,7 @@ user pops back from either blocker screen, so the captions never go stale.
 ### Glass surfaces — `lib/core/design_system/foundations/`
 
 `GlassContainer` is the one glass primitive; nothing else calls `BackdropFilter`
-directly. It clips a squircle (`AppRadius.continuous`) over a backdrop blur, adds
+directly. It clips a rounded rect (`AppRadius.continuous`) over a backdrop blur, adds
 a top-weighted sheen, and lights the edge with a `LiquidGlassBorder`.
 
 **Glass surfaces cast no drop shadow.** Depth comes from the glass itself — the

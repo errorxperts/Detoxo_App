@@ -1,0 +1,11 @@
+# app_tokens.g.dart is written by tool/design/gen_design_tokens.dart, not by
+# build_runner. source_gen's combining builder declares an `X.g.dart` output for
+# every `X.dart`, and a build deletes declared outputs that already exist on
+# disk, so keep it off app_tokens.dart or `build_runner build` removes the file.
+targets:
+  $default:
+    builders:
+      source_gen:combining_builder:
+        generate_for:
+          exclude:
+            - lib/core/design_system/tokens/app_tokens.dart

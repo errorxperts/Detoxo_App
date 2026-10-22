@@ -60,6 +60,17 @@ file, so `Assets.lottie.*` is only ever a `String` path). Regenerate with
 > so a `.png` → `.webp` swap regenerates to the same identifier and every call site
 > keeps compiling — but only once the file is regenerated.
 
+**Design tokens come from a script, not `build_runner`.** `tool/design/gen_design_tokens.dart`
+turns `tool/design/tokens.json` (a byte copy of the Detoxo Design System spec; never edit it) and
+`tool/design/recipes.json` (the spec `bundle.css` values tokens.json lacks, plus documented local
+overrides such as Light `ink-3` #7d8699) into `lib/core/design_system/tokens/app_tokens.g.dart`
+(a `part` of `app_tokens.dart`) and the native `overlay/DxTokens.kt`. It shares
+`tool/tokens_common.dart` with the home-widget generator `tool/home_widget/gen_tokens.dart`.
+Re-run it after editing either JSON; precommit and `test/core/design_system/design_tokens_test.dart`
+run it with `--check` and fail on drift. The root `build.yaml` keeps source_gen's combining
+builder off `app_tokens.dart`: that builder would otherwise claim `app_tokens.g.dart` as its own
+output and delete it on every `build_runner build`.
+
 `tool/dev.sh` wraps the routine command combos (fresh build, codegen, quality,
 pre-commit, full validation, dependency refresh, reset, FlutterFire, assets,
 launcher icons) — run it bare for a menu or pass an entry name/number.
@@ -269,6 +280,8 @@ belongs in `tool/branding/` for the same reason.
 - `lib/features/blocking/shared/data/models/platform_config_model.freezed.dart`
 - `lib/features/blocking/shared/data/models/platform_config_model.g.dart`
 - `lib/gen/assets.gen.dart`
+- `tool/design/gen_design_tokens.dart`, `tool/design/{tokens,recipes}.json`, `tool/tokens_common.dart`, `build.yaml`
+- `lib/core/design_system/tokens/app_tokens.dart` (+ generated `app_tokens.g.dart`), `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/DxTokens.kt` (generated)
 - `lib/core/design_system/adaptive/adaptive_controls.dart`
 - `lib/core/design_system/foundations/animated_icons.dart`
 - `lib/features/onboarding/presentation/onboarding_screen.dart`
