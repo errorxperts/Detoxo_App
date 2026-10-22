@@ -501,7 +501,7 @@ hydrate);
   means and the tile still opens the editor; on, it reads On; without the grant, Needs access
   opens it); `native_event_reporter_test.dart` (`blockScreenAction` logged, preview skipped;
   `block_triggered` carries `wall`); `test/block_mode_picker_test.dart` (the four-row picker, the
-  selected row reaches Semantics, the entry tile's "Needs Display over other apps" row only without
+  selected row reaches Semantics, the entry tile's "Display over other apps" / "Needs access" row only without
   the grant); `test/domain_test.dart` (`BLOCK_SCREEN` round-trips).
 - Device sanity (not automatable here): wall on an Instagram Reel within the debounce; both edge
   swipes swallowed, also after a rotation; "Back to Instagram · 5" ticks to 0 and unlocks while
@@ -591,7 +591,7 @@ Pinned by `UsageQueryTest`.
 - `lib/features/blocking/block_screen/**`
 - `lib/features/blocking/blocking.dart`
 - `lib/features/blocking/shared/domain/entities/enums.dart` (`planLabel`, `BlockingMode.blockScreen`), `engine_event.dart` (`BlockEvent.wall`)
-- `lib/features/settings/presentation/widgets/block_mode_picker.dart` (`blockModes`, `BlockModeOptions`, `BlockModeTile`, `OptionTile`, `PermissionNeededRow`) and the `_BlockModeSheet` / `_BlockModeTile` wrappers in `settings_screen.dart`
+- `lib/features/settings/presentation/widgets/block_mode_picker.dart` (`blockModes`, `BlockModeOptions` — the modes as selectable rows — `BlockModeTile`, `PermissionNeededRow`) and the `_BlockModeSheet` / `_BlockModeTile` wrappers in `settings_screen.dart`
 - `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart` (the overlay-missing banner branch)
 - `lib/core/design_system/tokens/app_tokens.g.dart` (the spec tokens and palettes), `foundations/accent.dart` (`resolveAccent`, `accentIconFilter`), `components/dx_icons.dart` (`Icon3d`, `DetoxoLogo`), `components/buttons.dart` (`LiquidPill`, `GlassIconButton`), `foundations/glass_container.dart` (`GlassContainer`), `components/list_tiles.dart` (`PanelGroup`)
 - `lib/features/additional_feature/appearance/presentation/appearance_screen.dart` (`_BlockScreenSection`)

@@ -213,12 +213,12 @@ any of the three setters. Native answers it with `refreshNudgeConfig()`, which r
 tracker **in place** — see §3 — subtracts the protected set, and hides any standing card when the
 feature was switched off.
 
-**The Settings row tells the truth about the grant.** `_NudgeTile` reads `AppPermission.overlay`
+**The Settings row tells the truth about the grant.** Its `_GrantedSwitch` reads `AppPermission.overlay`
 through `PermissionsCubit.effectivelyGranted` (the EVO-014 `lastKnownGranted` fallback, so a flaky
-channel read never accuses a working setup) and, when the switch is on without the grant, tints the
-icon and offers "Needs *Display over other apps*". Without it the toggle read ON while
+channel read never accuses a working setup) and, when the switch is on without the grant, adds a
+"Display over other apps" row with the status "Needs access". Without it the toggle read ON while
 `NudgeOverlay.show` returned false on every crossing and the service reported nothing — the same
-shape `_SuppressionTile` (EVO-036) and `ContentCount.bubbleBlocked` (EVO-022) already solve, the
+shape the notification-silence row (the same `_GrantedSwitch`, EVO-036) and `ContentCount.bubbleBlocked` (EVO-022) already solve, the
 latter for this very grant.
 
 New event `type` **`nudgeShown`** — `{package, elapsedMs, thresholdMs}`. Full contract in
