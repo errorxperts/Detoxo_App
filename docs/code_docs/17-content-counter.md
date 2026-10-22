@@ -1047,11 +1047,13 @@ Cross-feature (the migrated counter hub; theme + background live here too):
   tapped to edit; bubble on/off on its card, widget gated by the master), plus the app
   theme (a Light/Dark `GlassSegmented` control + Match system) and background picker.
   `GlassSegmented` (design system, `components/selection.dart`) is the shared
-  liquid-glass segmented control — frosted stadium track with a depth shadow and an
-  accent-lit sliding pill; also used for the Reels-seen today/all-time selector.
-  A tap selects on release, a horizontal drag anywhere on the track scrubs the
-  selection live under the finger (`onChanged` fires as each segment is crossed —
-  a theme picker previews live), the pill swells and brightens while a finger is
-  down, and the label colour/weight tween on the pill's clock; reduce-motion
-  collapses all of it to `Duration.zero`. `selectedIndex: -1` lights nothing (the pill
-  fades out) — the Unblock sheet's quick picks use it for a custom value.
+  Frozen Glass OPTION segmented control — a quiet `fillQuiet` pill track (no shadow)
+  with a solid `optionBase` chip that slides 500 ms on the chip overshoot plus the
+  spec squish; the picked label goes ink-2 → ink and leads with a 16 px check (state
+  is never colour alone). Also used for the Reels-seen today/all-time selector.
+  Each segment is one focusable radio (`AppPressable`: focus ring, Enter/Space, 48 dp
+  floor); a horizontal drag anywhere on the track scrubs the selection live under the
+  finger (`onChanged` fires as each segment is crossed — a theme picker previews
+  live); reduce-motion collapses all of it to `Duration.zero`. `selectedIndex: -1`
+  lights nothing (the chip fades out) — the Unblock sheet's quick picks use it for a
+  custom value.

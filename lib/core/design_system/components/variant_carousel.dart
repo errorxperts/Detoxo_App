@@ -22,10 +22,9 @@ class VariantOption {
 }
 
 /// A compact, horizontally-scrolling picker of style variants — a live preview
-/// per card with the label beneath; the selected card gets an accent ring +
-/// check badge. Used by the counter's bubble / widget editors. The Appearance
-/// background picker is the same shape with the name shown once below the row
-/// (`_BgCard` there) — the next picker of either kind should reuse this one.
+/// per OPTION card with the label beneath; the selected card turns the solid
+/// option base and wears an ink check badge. Used by the counter's bubble /
+/// widget editors.
 class VariantCarousel extends StatelessWidget {
   const VariantCarousel({
     required this.options,
@@ -87,34 +86,28 @@ class _VariantCard extends StatelessWidget {
   final VoidCallback onTap;
   final Widget child;
 
+  /// The selection check badge.
+  static const double _badge = 18;
+
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final accent = Theme.of(context).colorScheme.secondary;
-    final borderWidth = selected ? 2.0 : 1.0;
+    final t = context.tokens;
+    final radius = BorderRadius.circular(AppRadius.chip);
     return AppPressable(
       onTap: onTap,
       selected: selected,
+      radius: radius,
+      // The OPTION card: a solid fill, no border or glow. It stays an
+      // AnimatedContainer, the card the home_widget tests find around the
+      // check.
       child: AnimatedContainer(
-        duration: AppDurations.fast,
+        duration: context.motion(AppDurations.fast),
         curve: AppCurves.standard,
         width: width,
         padding: const EdgeInsets.all(AppSpacing.xs),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          color: context.tokens.fillQuiet,
-          border: Border.all(
-            color: selected ? accent : context.tokens.hairline,
-            width: borderWidth,
-          ),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: accent.withValues(alpha: 0.30),
-                    blurRadius: 12,
-                  ),
-                ]
-              : null,
+          borderRadius: radius,
+          color: selected ? t.optionBase : t.fillQuiet,
         ),
         child: Column(
           children: [
@@ -128,29 +121,25 @@ class _VariantCard extends StatelessWidget {
                       top: 0,
                       right: 0,
                       child: Container(
-                        padding: const EdgeInsets.all(2),
+                        width: _badge,
+                        height: _badge,
                         decoration: BoxDecoration(
-                          color: accent,
+                          color: t.ink,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          Icons.check,
-                          size: 12,
-                          color: Theme.of(context).colorScheme.onSecondary,
-                        ),
+                        child: Icon(Icons.check, size: 12, color: t.bgTop),
                       ),
                     ),
                 ],
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xxs),
             Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: text.labelSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: selected ? accent : context.tokens.ink2,
+              style: AppTypography.tab.copyWith(
+                color: selected ? t.ink : t.ink2,
               ),
             ),
           ],

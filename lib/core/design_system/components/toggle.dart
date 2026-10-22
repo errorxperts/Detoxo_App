@@ -4,12 +4,15 @@ import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
+/// The on/off switch: a 48×28 track, status-on when on and the quiet fill
+/// with a hairline rim when off, with a 20 px thumb (knob on, ink-3 off). No
+/// accent and no glow. The track colour and the thumb's side carry the state:
+/// the Dark knob on status-on is only 1.55:1, so the thumb alone never does.
 class AppToggle extends StatelessWidget {
   const AppToggle({
     required this.value,
     required this.onChanged,
     this.enabled = true,
-    this.activeColor,
     this.label,
     this.semanticLabel,
     super.key,
@@ -18,9 +21,6 @@ class AppToggle extends StatelessWidget {
   final bool value;
   final ValueChanged<bool>? onChanged;
   final bool enabled;
-
-  /// Active-track tint. Defaults to the live (background-adaptive) brand accent.
-  final Color? activeColor;
 
   /// Optional inline label rendered to the left of the switch.
   final String? label;
@@ -34,70 +34,38 @@ class AppToggle extends StatelessWidget {
   static const double _trackH = 28;
   static const double _thumb = 20;
 
-  /// Gap between the track's rim and the thumb.
+  /// Gap between the track's 1 px rim and the thumb.
   static const double _inset = 3;
 
   @override
   Widget build(BuildContext context) {
     final live = enabled && onChanged != null;
-    final glass = context.tokens;
-    final accent = activeColor ?? Theme.of(context).colorScheme.secondary;
+    final t = context.tokens;
+    final duration = context.motion(AppDurations.fast);
 
-    // One tween drives track fill, rim, glow, thumb offset and thumb colour, so
-    // every part of the switch settles on the same fluid curve.
+    // One tween drives the track fill, its rim, the thumb's offset and its
+    // colour, so every part of the switch settles together.
     Widget visual = TweenAnimationBuilder<double>(
       tween: Tween(begin: value ? 1 : 0, end: value ? 1 : 0),
-      duration: AppDurations.fast,
-      curve: AppCurves.fluid,
-      builder: (context, t, _) => Container(
+      duration: duration,
+      curve: AppCurves.standard,
+      builder: (context, v, _) => Container(
         width: _trackW,
         height: _trackH,
         padding: const EdgeInsets.all(_inset),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.lerp(glass.fillQuiet, accent.withValues(alpha: 0.90), t)!,
-              Color.lerp(glass.fillQuiet, accent.withValues(alpha: 0.70), t)!,
-            ],
-          ),
-          border: Border.all(
-            color: Color.lerp(
-              glass.hairline,
-              accent.withValues(alpha: 0.70),
-              t,
-            )!,
-          ),
-          boxShadow: t == 0
-              ? null
-              : [
-                  BoxShadow(
-                    color: accent.withValues(alpha: 0.35 * t),
-                    blurRadius: 10,
-                    spreadRadius: -1,
-                  ),
-                ],
+          borderRadius: AppRadius.brPill,
+          color: Color.lerp(t.fillQuiet, t.statusOn, v),
+          border: Border.all(color: Color.lerp(t.hairline, t.statusOn, v)!),
         ),
         child: Align(
-          alignment: Alignment(-1 + 2 * t, 0),
+          alignment: Alignment(-1 + 2 * v, 0),
           child: Container(
             width: _thumb,
             height: _thumb,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              // Muted-foreground when off, white when on — legible against the
-              // frosted track in both themes and against the accent fill.
-              color: Color.lerp(glass.ink2, Colors.white, t),
-              boxShadow: [
-                BoxShadow(
-                  // Interim knob shadow until the F7b toggle.
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+              color: Color.lerp(t.ink3, t.knob, v),
             ),
           ),
         ),
@@ -106,7 +74,7 @@ class AppToggle extends StatelessWidget {
     // Always wrapped, so going disabled fades rather than snapping.
     visual = AnimatedOpacity(
       opacity: live ? 1 : 0.45,
-      duration: AppDurations.fast,
+      duration: duration,
       child: visual,
     );
 
@@ -119,8 +87,12 @@ class AppToggle extends StatelessWidget {
           enabled: live,
           haptic: false, // selection click, not the default light impact
           pressedScale: hasLabel ? 0.98 : 0.92,
+          radius: AppRadius.brPill,
           semanticLabel: semanticLabel ?? label,
-          minTapTarget: hasLabel ? null : AppSizes.minTapTargetSquare,
+          // The labelled row keeps the 48 dp floor too.
+          minTapTarget: hasLabel
+              ? const Size(0, AppSizes.minTapTarget)
+              : AppSizes.minTapTargetSquare,
           child: hasLabel ? _row(context, visual) : visual,
         ),
       ),
@@ -135,7 +107,10 @@ class AppToggle extends StatelessWidget {
   Widget _row(BuildContext context, Widget toggle) => Row(
     children: [
       Expanded(
-        child: Text(label!, style: Theme.of(context).textTheme.bodyLarge),
+        child: Text(
+          label!,
+          style: AppTypography.label.copyWith(color: context.tokens.ink),
+        ),
       ),
       const SizedBox(width: AppSpacing.sm),
       toggle,

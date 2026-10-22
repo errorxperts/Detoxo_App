@@ -11,11 +11,16 @@ Future<int?> _pump(
   bool expand = true,
   double height = 52,
   int? initial,
+  bool reduceMotion = false,
 }) async {
   var tapped = initial;
   await tester.pumpWidget(
     MaterialApp(
       theme: _theme(),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+        child: child!,
+      ),
       home: Scaffold(
         body: Center(
           child: StatefulBuilder(
@@ -121,6 +126,44 @@ void main() {
     },
   );
 
+  // State is never colour alone (WCAG 1.4.11): the picked segment leads with
+  // a check, and only that one.
+  testWidgets('the picked segment wears the one check glyph', (tester) async {
+    await _pump(tester);
+    final check = find.byIcon(Icons.check_rounded);
+    final mid = tester.getCenter(find.byType(GlassSegmented)).dx;
+    expect(check, findsOneWidget);
+    expect(tester.getCenter(check).dx, lessThan(mid));
+    expect(tester.widget<Icon>(check).size, 16);
+
+    await tester.tap(find.text('All'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(check, findsOneWidget);
+    expect(tester.getCenter(check).dx, greaterThan(mid));
+    expect(tester.widget<Icon>(check).color, tester.element(check).tokens.ink);
+  });
+
+  // A hugging control reserves the check's room on every segment, so picking
+  // another one never changes its width.
+  testWidgets('a hugging control keeps its width across picks', (tester) async {
+    await _pump(tester, expand: false);
+    final before = tester.getSize(find.byType(GlassSegmented)).width;
+    await tester.tap(find.text('All'), warnIfMissed: false);
+    await tester.pumpAndSettle();
+    expect(tester.getSize(find.byType(GlassSegmented)).width, before);
+  });
+
+  testWidgets('under Reduce Motion the chip lands in one frame', (
+    tester,
+  ) async {
+    await _pump(tester, reduceMotion: true);
+    final before = _pillLeft(tester);
+    await tester.tap(find.text('All'), warnIfMissed: false);
+    await tester.pump();
+    expect(_pillLeft(tester), greaterThan(before));
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
   // -1 = a value set elsewhere (a quick-pick row's "custom"): nothing lit.
   testWidgets('-1 selects nothing until a segment is tapped', (tester) async {
     await _pump(tester, initial: -1);
@@ -132,6 +175,7 @@ void main() {
         Tristate.isTrue;
     expect(on('Today'), isFalse);
     expect(on('All'), isFalse);
+    expect(find.byIcon(Icons.check_rounded), findsNothing);
 
     await tester.tap(find.text('All'), warnIfMissed: false);
     await tester.pumpAndSettle();

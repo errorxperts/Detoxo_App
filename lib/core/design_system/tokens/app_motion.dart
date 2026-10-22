@@ -32,17 +32,13 @@ abstract final class AppDurations {
   static const Duration scrim = Duration(milliseconds: 450);
 }
 
-/// Curves tuned for a calm focus app — eased, never bouncy.
+/// Motion curves: calm eases, plus the spec's short overshoots for presses
+/// and sliding chips.
 abstract final class AppCurves {
   static const Curve standard = Curves.easeOutCubic; // entrances
   static const Curve emphasized = Curves.easeInOutCubicEmphasized;
   static const Curve decelerate = Curves.easeOut;
   static const Curve gentle = Curves.easeInOut; // pulses, reversible
-
-  /// Premium, liquid deceleration (approx. easeOutExpo) for signature moments —
-  /// selection pills, hero reveals, the illuminated selected-card glow. Longer,
-  /// smoother settle than [standard] without ever overshooting.
-  static const Curve fluid = Cubic(0.16, 1.0, 0.30, 1.0);
 
   // ── Frozen Glass (bundle.css cubic-beziers) ────────────────────────────────
   /// Press: a short overshoot back to rest.

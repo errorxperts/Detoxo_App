@@ -417,7 +417,8 @@ morning" hint for overnight windows and an error for equal times; TIME_LIMIT →
 shared `showAppPickerSheet` (protected packages marked unavailable, as in the App Blocker), and for
 schedules **Reel feeds** (`ReelFeedSheet` over `ConfigRepository.loadBlockTargets` filtered to
 installed, non-browser targets) and **Websites** (`WebsiteSheet`: `PopularSites` chips + a custom
-host through `DomainValidator.check`, its removable chips announced as "Remove …"); then a
+host through `DomainValidator.check`, its removable chips announced as "Remove …" and `momentary`,
+so they carry no selected state or check beside their close icon); then a
 **Categories** heading over the category chips (`AppCategorySeed.categories` in seed order, one
 outline icon per id from `RuleEditorScreen.categoryIcons`, pinned complete by
 `test/rule_editor_test.dart`) in a two-row `ChipRail` (design system — the web blocker's

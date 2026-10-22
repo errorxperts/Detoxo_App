@@ -58,6 +58,27 @@ void main() {
     );
   });
 
+  testWidgets('the on track is status-on, never the accent', (tester) async {
+    await _pump(tester, initial: true);
+    final track = tester.widget<Container>(
+      find
+          .ancestor(of: find.byType(Align), matching: find.byType(Container))
+          .first,
+    );
+    expect(
+      (track.decoration! as BoxDecoration).color,
+      tester.element(find.byType(AppToggle)).tokens.statusOn,
+    );
+  });
+
+  testWidgets('the labelled row clears the 48dp floor too', (tester) async {
+    await _pump(tester, label: 'Block reels');
+    expect(
+      tester.getSize(find.byType(AppToggle)).height,
+      greaterThanOrEqualTo(AppSizes.minTapTarget),
+    );
+  });
+
   testWidgets('tapping the label row toggles', (tester) async {
     await _pump(tester, label: 'Block reels');
     final off = _thumbLeft(tester);
