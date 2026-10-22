@@ -152,7 +152,7 @@ widget tests, no device needed. A selection, grouped by where business rules liv
 | Permissions | `permissions_restricted_settings_test.dart` (ECM / non-Play install path) |
 | Content counter | `content_counter_test.dart` (snapshot mapping, cubit switches + overlay grant), `counter_style_test.dart` (Dart) · `android/app/src/test/kotlin/…/engine/ReelTrackerTest.kt` (native counting rule, JVM — run by `precommit` when a JDK 17 is present, see [23-testing-runbook.md](23-testing-runbook.md)) |
 | Help & upgrade | `help_test.dart`, `app_upgrader_test.dart`, `legal_web_view_test.dart` |
-| Dashboard widgets | `blocker_tile_test.dart`, `mode_selector_test.dart` |
+| Dashboard widgets | `blocker_tile_test.dart`, `today_copy_test.dart` (ring face, lit mode, mode copy), `today_screen_test.dart` (the Today composition and its taps) |
 | Feedback | `app_feedback_test.dart` |
 | Design system | `test/core/design_system/*` (15 files: design tokens `--check` + spot values, contrast in both themes, theme slots + scheme, glass container roles, pressable, accent fixture + `AccentScope` glide, buttons, overlays (sheet drag / lock, toast), segmented, chip, toggle, chip rail, list tile, progress ring, avatar), `test/app/live_accent_test.dart` (`accentModeOf`), `test/design_system_text_scale_test.dart` (2× text) |
 | Firebase | `test/core/services/firebase/*` (3 files: bloc observer, native event reporter, analytics service) |

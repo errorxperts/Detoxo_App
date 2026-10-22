@@ -4,7 +4,7 @@ import 'package:detoxo/features/blocking/blocking.dart' show BlockingMode;
 import 'package:flutter/material.dart';
 
 /// The block-mode picker and its entry tile, cubit-free so a widget test can
-/// pump them bare (the `ModeSelector` precedent). The Settings screen supplies
+/// pump them bare (the `ModeCard` precedent). The Settings screen supplies
 /// the cubit reads and the permission funnel.
 ///
 /// The picker offers four of `BlockingMode`'s values. `BLOCK_SCREEN` is the

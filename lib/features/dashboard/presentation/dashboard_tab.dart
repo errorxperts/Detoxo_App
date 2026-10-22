@@ -1,12 +1,9 @@
 import 'dart:async';
 
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/core/utils/duration_format.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dart';
 import 'package:detoxo/features/additional_feature/showcase_view/showcase_view.dart';
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
-import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
 import 'package:detoxo/features/blocking/plans/presentation/conscious_cubit.dart';
 import 'package:detoxo/features/blocking/plans/presentation/reel_session_cubit.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/session_dialogs.dart';
@@ -16,10 +13,9 @@ import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart
 import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
 import 'package:detoxo/features/dashboard/presentation/today_copy.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/blocker_section.dart';
-import 'package:detoxo/features/dashboard/presentation/widgets/command_center_card.dart';
-import 'package:detoxo/features/dashboard/presentation/widgets/mode_selector.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
 import 'package:detoxo/features/limits/streak/presentation/streak_cubit.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -94,45 +90,67 @@ class _DashboardTabState extends State<DashboardTab> {
           context.read<ServiceCubit>().refresh(),
           context.read<ContentCounterCubit>().refresh(),
         ]),
-        child: ListView(
-          padding: TabHeader.listPadding(context),
-          children: [
-            TabHeader(
-              title: 'Detoxo',
-              onMenu: widget.onMenu,
-              // Hidden unless the feedback button is switched on.
-              actions: const [FeedbackActionButton()],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const _Hero()
-                .animate()
-                .fadeIn(duration: AppDurations.normal)
-                .slideY(begin: 0.08, end: 0),
-            const SizedBox(height: AppSpacing.lg),
-            const _ModeSection(),
-            const SizedBox(height: AppSpacing.md),
-            const _SessionBanners(),
-            const SizedBox(height: AppSpacing.md),
-            const BlockerSection(),
-          ],
+        // One short page, built whole: every section mounts once, so each
+        // rises in once, and the lights get a box that scrolls with it.
+        child: SingleChildScrollView(
+          child: Stack(
+            children: [
+              // V02 measures the lights from the screen top, headerTop above
+              // the header; this box starts only `inset` above it.
+              const Positioned.fill(
+                top: AppSpacing.inset - AppSpacing.headerTop,
+                child: AmbientLights(),
+              ),
+              Padding(
+                padding: TabHeader.listPadding(context),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TabHeader(
+                      title: 'Detoxo',
+                      onMenu: widget.onMenu,
+                      // Hidden unless the feedback button is switched on.
+                      actions: const [FeedbackActionButton()],
+                    ),
+                    const SizedBox(height: AppSpacing.gap),
+                    const _TodayLive().entrance(),
+                    const SizedBox(height: AppSpacing.section),
+                    const BlockerSection().entrance(
+                      delay: AppDurations.stagger,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// The Command Center hero. Stateful so it can run a 1 Hz ticker while a Pause
-/// session is live — the pause's remaining time decrements every second without
-/// a cubit emit, so the card must tick itself. Conscious self-emits each second
-/// (the native bank is pushed), so it rides the normal rebuild.
-class _Hero extends StatefulWidget {
-  const _Hero();
+/// The modes in tour order: option `i` is feature-tour step `i`.
+final _modes = <ModeOption>[
+  (icon: Assets.images.icons.iconBlockAll, label: 'Block All'),
+  (icon: Assets.images.icons.iconConscious, label: 'Conscious'),
+  (icon: Assets.images.icons.iconPause, label: 'Pause'),
+  (icon: Assets.images.icons.iconOneReel, label: 'One Reel'),
+];
+
+/// Today's live half: the [TimeLeftRing] with the reels and streak line, then
+/// the [ModeCard]. Every word comes from `today_copy.dart`.
+///
+/// Stateful for one 1 Hz ticker, run only while a Pause is live: its time
+/// left falls every second without a cubit emit. Conscious self-emits each
+/// second (the native bank is pushed), so it rides the normal rebuild.
+class _TodayLive extends StatefulWidget {
+  const _TodayLive();
 
   @override
-  State<_Hero> createState() => _HeroState();
+  State<_TodayLive> createState() => _TodayLiveState();
 }
 
-class _HeroState extends State<_Hero> {
+class _TodayLiveState extends State<_TodayLive> {
   Timer? _ticker;
 
   @override
@@ -162,30 +180,69 @@ class _HeroState extends State<_Hero> {
     super.dispose();
   }
 
+  /// Ends a Pause, an N-reel unblock or One Reel now, with no confirm: it
+  /// only makes blocking stricter.
+  Future<void> _blockNow() {
+    final settings = context.read<SettingsCubit>();
+    return settings.state.isPauseContractLive()
+        ? settings.resumeNow()
+        : settings.setPlan(settings.state.baseMode);
+  }
+
+  /// Block All is direct; Conscious opens its sheet, intro or live; Pause
+  /// opens the Session sheet By time; One Reel confirms first. A repeat tap
+  /// on the lit Pause or One Reel blocks now; on Block All it does nothing.
+  Future<void> _select(int i, {required int lit}) async {
+    if (i == lit && i != 1) {
+      if (i != 0) await _blockNow();
+      return;
+    }
+    await switch (i) {
+      0 => context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll),
+      1 => SessionDialogs.showConscious(context),
+      2 => SessionDialogs.showPause(context),
+      _ => _oneReel(),
+    };
+  }
+
+  Future<void> _oneReel() async {
+    final settings = context.read<SettingsCubit>();
+    final ok = await ConfirmSheet.show(
+      context,
+      icon: Icon3d(
+        Assets.images.icons.iconOneReel,
+        size: ConfirmSheet.iconSize,
+        accentTint: true,
+      ),
+      title: 'Watch one reel?',
+      message: 'Reels are blocked again as soon as it ends.',
+      action: 'Slide to unblock',
+      cancel: 'Keep it blocked',
+      tone: ConfirmTone.caution,
+    );
+    if (!ok) return;
+    await settings.setOneReel(count: 1);
+    if (mounted) GlassToast.show(context, 'One reel unblocked');
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsCubit>().state;
     final counter = context.watch<ContentCounterCubit>().state;
     final daily = context.watch<DailyLimitCubit>().state;
     final streak = context.watch<StreakCubit>().state;
+    final reel = context.watch<ReelSessionCubit>().state;
     final now = DateTime.now();
     final pauseLive = settings.isPauseContractLive(now);
     _syncTicker(pauseLive: pauseLive);
 
-    // Screen-time ring: today's usage in monitored social apps vs the user's
-    // daily limit (set during onboarding). No limit → an unfilled gauge.
-    // "Count short videos" off also stops usage-time accrual, so the ring is
-    // unmeasured then — shown as such, never as a reassuring "0m". Before the
-    // first native snapshot (`loaded == false`) `enabled` is only a
-    // placeholder: render the ring normally, but commit nothing on it.
+    // Before the first native snapshot (`loaded == false`) `enabled` is only
+    // a placeholder: render the ring normally, but commit nothing on it.
     final loaded = counter.loaded;
     final measured = counter.enabled;
     final spent = counter.timeToday;
     final limit = daily.limit;
     final hasLimit = limit > Duration.zero;
-    final progress = hasLimit && measured
-        ? (spent.inSeconds / limit.inSeconds).clamp(0.0, 1.0)
-        : 0.0;
     final overLimit = measured && hasLimit && spent >= limit;
     // Advance the "days under your daily limit" streak once today's under/over
     // status is known — post-frame so we don't emit during build. Nothing
@@ -200,276 +257,74 @@ class _HeroState extends State<_Hero> {
         context.read<StreakCubit>().observe(now: now, underLimit: underLimit);
       }
     });
-    final limitLabel = loaded && !measured
-        ? 'Counting off — screen time not measured'
-        : !hasLimit
-        ? 'No daily limit set'
-        : overLimit
-        ? '${formatHm(spent - limit)} over your ${formatHm(limit)} limit'
-        : 'of ${formatHm(limit)}';
 
-    SessionCountdown? countdown;
-    if (pauseLive) {
-      final session = settings.pauseSession!;
-      final remaining = session.remainingIn(now);
-      final total = session.phaseLengthAt(now).inMilliseconds;
-      countdown = SessionCountdown(
-        progress: total <= 0
-            ? 0.0
-            : (remaining.inMilliseconds / total).clamp(0.0, 1.0),
-        remaining: remaining,
-        caption: 'reels allowed',
-        tone: AppTone.warning,
-        icon: AppIcon.pause,
-      );
-    } else if (settings.activePlan == BlockingPlan.curious) {
-      // select over watch: depend only on the four displayed fields, so a
-      // Conscious emission that doesn't change what's shown no longer
-      // rebuilds the hero.
-      // ponytail: the 1 Hz display tick still rebuilds this build method —
-      // the countdown is data in CommandCenterCard's API, not a widget slot.
-      // Give it a slot if profiling ever shows the hero rebuild hurting.
-      final c = context.select(
-        (ConsciousCubit cubit) => (
-          progress: cubit.state.progress,
-          banked: cubit.state.banked,
-          watching: cubit.state.watching,
-          hasAllowance: cubit.state.hasAllowance,
-        ),
-      );
-      countdown = SessionCountdown(
-        progress: c.progress,
-        remaining: c.banked,
-        caption: c.watching
-            ? 'spending'
-            : (c.hasAllowance ? 'banked' : 'earning'),
-      );
-    }
-
+    final lit = modeIndex(settings, pauseLive: pauseLive);
+    final pause = pauseLive ? settings.pauseSession : null;
+    // The native session owns the count; until its first push, the target.
+    final reels = lit == 2 && settings.activePlan == BlockingPlan.oneReel
+        ? reel.active
+              ? (left: reel.remaining, total: reel.allowance)
+              : (left: settings.reelAllowance, total: settings.reelAllowance)
+        : null;
+    final face = ringFace(
+      loaded: loaded,
+      measured: measured,
+      spent: spent,
+      limit: limit,
+      now: now,
+      pause: pause,
+      reels: reels,
+    );
+    final copy = modeCopy(
+      index: lit,
+      masterOn: settings.masterEnabled,
+      now: now,
+      pause: pause,
+      reels: reels,
+      // Only Conscious shows the bank, so only it rebuilds on the bank's tick.
+      conscious: lit == 1
+          ? context.select((ConsciousCubit c) => c.state)
+          : null,
+    );
+    // The stored streak isn't reconciled while counting is off (a resumed
+    // gap resets it), so its provisional count would go stale — dash it.
     final off = loaded && !measured;
-    return CommandCenterCard(
-      timeToday: off ? '—' : formatHm(spent),
-      progress: progress,
-      limitLabel: limitLabel,
-      overLimit: overLimit,
-      statusLabel: _statusLabel(settings, pauseLive: pauseLive),
-      // The stored streak isn't reconciled while counting is off (a resumed
-      // gap resets it), so its provisional count would go stale — dash it.
-      streakValue: off ? '—' : '${streak.count}',
-      reelsValue: off ? '—' : '${counter.today}',
-      countdown: countdown,
-    );
-  }
-}
 
-/// The vertical mode selector below the hero. Watches settings + the live reel
-/// session; Block All / One Reel arm directly, Conscious opens its glass dialog,
-/// Pause opens the Unblock sheet (by time or by reel count).
-class _ModeSection extends StatelessWidget {
-  const _ModeSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final settings = context.watch<SettingsCubit>().state;
-    final reel = context.watch<ReelSessionCubit>().state;
-    final pauseLive = settings.isPauseContractLive(DateTime.now());
-
-    return ModeSelector(
-      selected: DashboardMode.values[modeIndex(settings, pauseLive: pauseLive)],
-      reelSession: reel,
-      onSelect: (mode) => unawaited(_onModeSelect(context, mode)),
-      // Spotlight each mode pill during the feature tour (indices align with
-      // featureShowcaseSteps); identity when the tour isn't running.
-      showcaseBuilder: (mode, child) {
-        final i = switch (mode) {
-          DashboardMode.blockAll => 0,
-          DashboardMode.conscious => 1,
-          DashboardMode.pause => 2,
-          DashboardMode.oneReel => 3,
-        };
-        return showcaseTarget(
-          step: featureShowcaseSteps[i],
-          index: i,
-          child: child,
-        );
-      },
-    );
-  }
-}
-
-/// Block All / One Reel arm directly; Conscious opens its glass dialog; Pause
-/// opens the Unblock sheet (by time or by reel count).
-Future<void> _onModeSelect(BuildContext context, DashboardMode mode) async {
-  switch (mode) {
-    case DashboardMode.blockAll:
-      await context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll);
-    case DashboardMode.oneReel:
-      await context.read<SettingsCubit>().setOneReel(count: 1);
-    case DashboardMode.conscious:
-      await SessionDialogs.showConscious(context);
-    case DashboardMode.pause:
-      await SessionDialogs.showPause(context);
-  }
-}
-
-String _statusLabel(AppSettings settings, {required bool pauseLive}) {
-  if (pauseLive) return 'PAUSED';
-  return planLabel(
-    settings.activePlan,
-    allowance: settings.reelAllowance,
-  ).toUpperCase();
-}
-
-/// Shown beneath the hero while a Pause or Curious contract is live. Owns a
-/// 1 Hz ticker so the remaining time counts down (the cubit only emits on phase
-/// changes, not every second).
-class _SessionBanners extends StatefulWidget {
-  const _SessionBanners();
-
-  @override
-  State<_SessionBanners> createState() => _SessionBannersState();
-}
-
-class _SessionBannersState extends State<_SessionBanners> {
-  Timer? _ticker;
-
-  @override
-  void initState() {
-    super.initState();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _ticker?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final settings = context.watch<SettingsCubit>().state;
-    final now = DateTime.now();
-    final banners = <Widget>[];
-
-    if (settings.isPauseContractLive(now)) {
-      final remaining = settings.pauseSession!.remainingIn(now);
-      banners.add(
-        _AnimatedActionTile(
-          icon: AppIcon.pause,
-          iconColor: context.tokens.statusText(context.tokens.statusSetup),
-          title: 'Paused',
-          // "Reels" not "all apps": whole-app locks hold through a Pause.
-          subtitle: 'Reels allowed • ${formatCountdown(remaining)} left',
-          onTap: () => unawaited(SessionDialogs.showPause(context)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TimeLeftRing(
+          // Remounts once the counter and the limit are read, so the
+          // one-time count-up plays on the real numbers.
+          key: ValueKey(loaded && limitLoaded),
+          eyebrow: face.eyebrow,
+          accentEyebrow: face.accentEyebrow,
+          value: face.value,
+          format: face.format,
+          sub: face.sub,
+          progress: face.progress,
+          blockNow: face.blockNow,
+          onPill: () => unawaited(
+            face.blockNow ? _blockNow() : SessionDialogs.showReels(context),
+          ),
+          reels: off ? null : counter.today,
+          streak: off ? null : streak.count,
         ),
-      );
-    }
-
-    if (settings.activePlan == BlockingPlan.curious) {
-      // Own widget so the 1 Hz Conscious tick rebuilds ONLY this tile, not
-      // the whole banners section.
-      banners.add(const _ConsciousBanner());
-    }
-
-    if (banners.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Column(
-        children: [
-          for (var i = 0; i < banners.length; i++) ...[
-            if (i > 0) const SizedBox(height: AppSpacing.xs),
-            banners[i],
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// The Conscious session banner. Its own widget so the 1 Hz bank tick from
-/// [ConsciousCubit] rebuilds only this tile, not the whole banners section.
-class _ConsciousBanner extends StatelessWidget {
-  const _ConsciousBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.watch<ConsciousCubit>().state;
-    final String title;
-    final String subtitle;
-    if (c.watching) {
-      title = 'Conscious — spending';
-      subtitle = 'Watching • ${formatCountdown(c.banked)} left';
-    } else if (c.hasAllowance) {
-      title = 'Conscious — ready';
-      subtitle = '${formatCountdown(c.banked)} banked • open reels to spend';
-    } else {
-      title = 'Conscious — earning';
-      subtitle = 'Reels blocked • earn ${SessionDefaults.consciousEarnLabel}';
-    }
-    return _AnimatedActionTile(
-      icon: AppIcon.shieldCheck,
-      title: title,
-      subtitle: subtitle,
-      onTap: () => unawaited(SessionDialogs.showConscious(context)),
-    );
-  }
-}
-
-/// A [GlassListTile] whose leading glyph morphs on appear and replays on every
-/// tap. The tile (via `AppPressable`) owns the gesture, so the icon is
-/// controller-driven.
-class _AnimatedActionTile extends StatefulWidget {
-  const _AnimatedActionTile({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.subtitle,
-    this.iconColor,
-  });
-
-  final AppIcon icon;
-  final String title;
-  final String? subtitle;
-  final VoidCallback onTap;
-  final Color? iconColor;
-
-  @override
-  State<_AnimatedActionTile> createState() => _AnimatedActionTileState();
-}
-
-class _AnimatedActionTileState extends State<_AnimatedActionTile> {
-  final AnimatedIconController _controller = AnimatedIconController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onTap() {
-    if (!(MediaQuery.maybeDisableAnimationsOf(context) ?? false)) {
-      _controller
-        ..reset()
-        ..animate();
-    }
-    widget.onTap();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassListTile(
-      leading: AppAnimatedIcon(
-        icon: widget.icon,
-        size: 24,
-        color: widget.iconColor ?? Theme.of(context).colorScheme.secondary,
-        controller: _controller,
-      ),
-      title: widget.title,
-      subtitle: widget.subtitle,
-      trailing: const Icon(Icons.chevron_right),
-      onTap: _onTap,
+        const SizedBox(height: AppSpacing.lg),
+        ModeCard(
+          options: _modes,
+          selectedIndex: lit,
+          onSelected: (i) => unawaited(_select(i, lit: lit)),
+          title: copy.title,
+          detail: copy.detail,
+          // Spotlights each mode during the feature tour; identity otherwise.
+          decorateOption: (i, option) => showcaseTarget(
+            step: featureShowcaseSteps[i],
+            index: i,
+            child: option,
+          ),
+        ),
+      ],
     );
   }
 }

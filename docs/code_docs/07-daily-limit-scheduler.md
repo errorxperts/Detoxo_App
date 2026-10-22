@@ -424,6 +424,5 @@ date-rollover used for the limit itself (§4). Like the limit, it is a
 - `lib/features/settings/presentation/settings_screen.dart` / `lib/features/dashboard/presentation/widgets/app_drawer.dart` (entry points)
 - `lib/features/onboarding/presentation/onboarding_screen.dart` (seeds `limit` on finish via the shared `DailyLimitCubit.setLimit`)
 - `lib/main.dart` (global `DailyLimitCubit` + `StreakCubit` providers)
-- `lib/features/dashboard/presentation/dashboard_tab.dart` (reads `limit` for the ring; observes the under-limit streak and reads its `count`)
-- `lib/features/dashboard/presentation/widgets/command_center_card.dart` (the day-streak stat pill)
+- `lib/features/dashboard/presentation/dashboard_tab.dart` (reads `limit` for the ring; observes the under-limit streak and passes its `count` to the `TimeLeftRing`'s day-streak stat)
 - `test/domain_test.dart` (`DailyLimit reset` group) / `test/streak_test.dart` (streak transitions incl. the DST spring-forward day) / `test/daily_limit_rollover_test.dart` (cubit midnight reset via the injected clock)
