@@ -13,6 +13,7 @@ export 'components/app_icon_avatar.dart';
 export 'components/badges.dart';
 export 'components/buttons.dart';
 export 'components/cards.dart';
+export 'components/confirm_sheet.dart';
 export 'components/dialog.dart';
 export 'components/dx_icons.dart';
 export 'components/feedback.dart';
