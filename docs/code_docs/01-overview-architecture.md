@@ -172,7 +172,7 @@ settings re-push) every time, the heavy config/blocklist re-push at most every
 - Registers every repository **interface → implementation** lazily
   (`ConfigRepository`, `SettingsRepository`, `EngineRepository`,
   `PermissionRepository`, `PinRepository`, the `limits` repos, `InsightsRepository`,
-  `ContentRepository`, the content-counter repos, `FeedbackRepository`, …).
+  the content-counter repos, `FeedbackRepository`, …).
 
 Registering by interface keeps Cubits testable — a fake repo swaps in without
 touching presentation.
@@ -777,7 +777,7 @@ engine/
   ConfigStore.kt                SharedPreferences "detoxo_engine_prefs"
   ContentCounter.kt · ContentCounterStore.kt   decoupled counting + persistence
   WebBlockEngine.kt · BrowserUrlExtractor.kt    address-bar host blocking
-  ServiceEventBus.kt · UsageLadder.kt   (UsageLadder: block screen only)
+  ServiceEventBus.kt
 overlay/
   ContentCounterBubble.kt       WindowManager overlay bubble host (anchor, drag, edge-snap, tap = timer)
   DxTokens.kt · AccentResolver.kt   generated Frozen Glass tokens + the live-accent mirror

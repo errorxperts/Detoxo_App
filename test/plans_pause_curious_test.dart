@@ -1,108 +1,17 @@
 import 'dart:async';
 
-import 'package:detoxo/features/blocking/plans/data/repositories/content_repository_impl.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
-import 'package:detoxo/features/blocking/plans/domain/entities/emoji_band.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/reel_session_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/sessions.dart';
-import 'package:detoxo/features/blocking/plans/presentation/widgets/animated_emoji.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/catalog/catalog.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('EmojiAnimation.fromWire', () {
-    test('parses every wire token case-insensitively', () {
-      expect(EmojiAnimation.fromWire('BREATHING'), EmojiAnimation.breathing);
-      expect(EmojiAnimation.fromWire('shake'), EmojiAnimation.shake);
-      expect(EmojiAnimation.fromWire('FLY'), EmojiAnimation.fly);
-    });
-    test('falls back to breathing on unknown/null', () {
-      expect(EmojiAnimation.fromWire('nope'), EmojiAnimation.breathing);
-      expect(EmojiAnimation.fromWire(null), EmojiAnimation.breathing);
-    });
-  });
-
-  group('EmojiItem / EmojiPlacement matching', () {
-    const a = EmojiItem(
-      id: 'a',
-      rangeMin: 0,
-      rangeMax: 2,
-      emoji: '✨',
-      title: 'Demure',
-      description: '',
-      animation: EmojiAnimation.breathing,
-    );
-    const b = EmojiItem(
-      id: 'b',
-      rangeMin: 3,
-      rangeMax: 5,
-      emoji: '👀',
-      title: 'Side Eye',
-      description: '',
-      animation: EmojiAnimation.scanning,
-    );
-    const placement = EmojiPlacement(
-      placementId: 'P',
-      enabled: true,
-      set: EmojiSet(setId: 's', placementId: 'P', enabled: true, items: [a, b]),
-    );
-
-    test('covers is inclusive at both bounds', () {
-      expect(a.covers(0), isTrue);
-      expect(a.covers(2), isTrue);
-      expect(a.covers(3), isFalse);
-    });
-    test('itemFor picks the band whose range covers the value', () {
-      expect(placement.itemFor(1)?.id, 'a');
-      expect(placement.itemFor(4)?.id, 'b');
-      expect(placement.itemFor(99), isNull);
-    });
-    test('disabled set yields nothing', () {
-      const disabled = EmojiPlacement(
-        placementId: 'P',
-        enabled: true,
-        set: EmojiSet(setId: 's', placementId: 'P', enabled: false, items: [a]),
-      );
-      expect(disabled.itemFor(0), isNull);
-      expect(disabled.isUsable, isFalse);
-    });
-    test('fromBundle reads the first set', () {
-      final p = EmojiPlacement.fromBundle({
-        'emojiSets': [
-          {
-            'setId': 's1',
-            'placementId': 'EMOJI_CURIOUS_PLAN',
-            'enabled': true,
-            'emojis': [
-              {
-                'emojiId': 'e1',
-                'rangeMin': 0,
-                'rangeMax': 5,
-                'emoji': '🎯',
-                'title': 'Stay Sharp',
-                'description': 'x',
-                'animation': 'BREATHING',
-              },
-            ],
-          },
-        ],
-      });
-      expect(p.isUsable, isTrue);
-      expect(p.placementId, 'EMOJI_CURIOUS_PLAN');
-      expect(p.itemFor(3)?.title, 'Stay Sharp');
-    });
-    test('fromBundle on empty json is a safe disabled placement', () {
-      final p = EmojiPlacement.fromBundle(const {});
-      expect(p.isUsable, isFalse);
-    });
-  });
-
   group('PauseSession helpers', () {
     final start = DateTime(2026, 1, 1, 10);
 
@@ -365,32 +274,6 @@ void main() {
       await cubit.setPlan(BlockingPlan.curious);
       expect(cubit.state.activePlan, BlockingPlan.curious);
       expect(cubit.state.pauseSession, isNull);
-    });
-  });
-
-  group('Mindful Countdown widgets', () {
-    testWidgets('AnimatedEmoji builds for all 14 animations', (tester) async {
-      for (final anim in EmojiAnimation.values) {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Center(
-              child: AnimatedEmoji(emoji: '🎯', animation: anim),
-            ),
-          ),
-        );
-        await tester.pump(const Duration(milliseconds: 16));
-        expect(find.text('🎯'), findsOneWidget, reason: 'anim=$anim');
-      }
-      await tester.pumpWidget(const SizedBox()); // dispose tickers
-    });
-  });
-
-  group('ContentRepository emoji bundle (real assets)', () {
-    testWidgets('curious band bucket 0 is "Stay Sharp"', (tester) async {
-      final repo = ContentRepositoryImpl();
-      final items = await repo.emojiFor(EmojiPlacementId.curiousPlan, 0);
-      expect(items, isNotEmpty);
-      expect(items.first.title, 'Stay Sharp');
     });
   });
 }

@@ -332,9 +332,7 @@ a cleanup that drops it is a schema touch and deliberately out of scope here.
 > `AppBlockEntry.dailyLimitMinutes` in the sibling *app_blocker* feature
 > (`lib/features/limits/app_blocker/domain/entities/app_block_entry.dart`) — that
 > is a separate per-app field on the app-block list and is unrelated to this
-> global daily quota. The `DAILY_LIMIT_HERO` emoji band
-> (`emoji_band.dart` / `assets/content/daily_limit_emoji_bands.json`) is likewise
-> just decorative content, not enforcement.
+> global daily quota.
 
 ---
 

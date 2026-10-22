@@ -52,8 +52,7 @@ by `build_runner`, and the generated file imports only `flutter` + `flutter_svg`
 The `flutter_gen` *package* was therefore removed from `dependencies:` — it never
 contributed runtime code. Behaviour is configured by the `flutter_gen:` block in
 `pubspec.yaml` (output `lib/gen/`, `flutter_svg` integration on so SVGs generate as
-`SvgGenImage`; the Lottie integration stays **off** because nothing renders a Lottie
-file, so `Assets.lottie.*` is only ever a `String` path). Regenerate with
+`SvgGenImage`). Regenerate with
 `bash tool/dev.sh assets`.
 
 > **Re-run `fluttergen` after any asset rename.** Accessor names drop the extension,
@@ -176,7 +175,7 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 | `dio` | No HTTP client is instantiated anywhere. This build is offline-first with no backend; `upgrader` brings its own client for the Play version check. | dex / AOT |
 | `liquid_swipe` | Onboarding uses a `PageView`-style flow; `LiquidSwipe` was imported nowhere. | dex / AOT |
 | `ms_undraw` | No `UnDraw` usage — every illustration is a local asset. | dex / AOT |
-| `lottie_tgs` | Nothing renders a Lottie file anywhere in `lib/`. `assets/lottie/` is likewise unreferenced and is a standing cleanup candidate (4.86 MB install / ~0.59 MB download). | dex / AOT |
+| `lottie_tgs` | Nothing rendered a Lottie file anywhere in `lib/`. The unreferenced `assets/lottie/` folder (25 JSON, 4.86 MB install / ~0.59 MB download) was deleted too (Frozen Glass M13). | dex / AOT |
 | `flutter_gen` | A build-time CLI mis-declared as a runtime dependency — see §2. | dex / AOT |
 | `sleek_circular_slider` | Its one user, the old dashboard hero's countdown ring, went with the Today rebuild: a live Pause now counts down in the `TimeLeftRing` (the design system's `ProgressRing`). | dex / AOT |
 | `flutter_floating_bottom_bar` | Its one user, the old hide-on-scroll home bar, went with the Frozen Glass shell: `HomeShell` floats the static glass `AppTabBar` (`components/navigation.dart`) in the `GlassScaffold`'s bottom-bar slot, with no scroll listener. | dex / AOT |
@@ -212,9 +211,10 @@ Re-add any of these only when something actually imports them.
 - `assets/config/` — offline-first config JSON (`platforms_config.json`,
   `initial_config.json`; loaded as `AppConstants.bundledPlatformsConfig` /
   `bundledInitialConfig`).
-- `assets/content/` — content-string bundles (mindful-timer quotes, pause / countdown
-  emojis, curious/Conscious emojis, daily-limit emoji bands, …) and the block screen's
-  motivational quotes (`motivational_quotes.json`, read natively by `overlay/QuoteBook.kt`).
+- `assets/content/` — only the block screen's motivational quotes
+  (`motivational_quotes.json`, read natively by `overlay/QuoteBook.kt`). The five emoji-band
+  JSONs and `mindful_timer_quotes.json` went with the unmounted emoji/quote engine
+  (Frozen Glass M13; [05](05-plans-pause-conscious.md) §8).
 - `assets/images/` — `detox_logo_no_bg.webp` (splash + onboarding hero) and `Detoxo_logo.png`
   (the app logo on the block screen's Quotes design — also read natively, cropped to its mark).
 - `assets/fonts/OFL.txt` — Manrope's licence, registered on the licence page by
@@ -246,8 +246,8 @@ Re-add any of these only when something actually imports them.
   (`<base>.png`, a white glyph on the app's brand-colored tile) plus `a.png`–`z.png`
   letter-tile fallbacks, all **160² quantised PNG**. Rendered by `AppIconAvatar`
   (`app_icon_avatar.dart`).
-- `assets/lottie/` — **unreferenced.** Nothing renders a Lottie file; kept for now,
-  but it is 4.86 MB of install size for dead data. Cleanup candidate.
+- `assets/lottie/` — **removed** (Frozen Glass M13). Nothing rendered its 25 Lottie files
+  (4.86 MB install).
 
 **These are all *directory* entries**, so anything dropped into one of these folders
 ships to every user forever. Keep build-time inputs (launcher-icon artwork, design

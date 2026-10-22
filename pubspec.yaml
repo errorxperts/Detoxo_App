@@ -77,7 +77,6 @@ dependencies:
   # No flutter_gen here: it is a build-time CLI, not a runtime package —
   # lib/gen/assets.gen.dart imports only flutter + flutter_svg. Install it with
   # `brew install FlutterGen/tap/fluttergen` (see tool/dev.sh assets).
-  # No lottie_tgs: nothing renders a Lottie file anywhere in lib/.
 
   # Design system: motion, native iOS controls.
   # No google_fonts: Manrope is bundled (see `fonts:` below), so text never
@@ -131,8 +130,6 @@ dev_dependencies:
 # Regenerate with `fluttergen` (or `bash tool/dev.sh assets`) after ANY asset
 # rename; the accessor name drops the extension, so a .png → .webp swap leaves
 # every call site untouched.
-# Lottie integration stays OFF: nothing renders a Lottie file, so `Assets.lottie.*`
-# is only ever a plain String path.
 flutter_gen:
   output: lib/gen/
   line_length: 80
@@ -183,7 +180,6 @@ flutter:
     # Frozen Glass 3D icons + logo (design-system artifact 8CurH1ViCsKXpFeYNtmMRZ).
     - assets/images/icons/
     - assets/images/social_icon_pack/
-    - assets/lottie/
     - assets/svg/
     # Manrope's OFL licence ships with the font (registered in the licence page).
     - assets/fonts/OFL.txt

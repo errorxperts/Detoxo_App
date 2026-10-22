@@ -12,8 +12,6 @@ import 'package:detoxo/features/analytics/insights/data/repositories/insights_re
 import 'package:detoxo/features/analytics/insights/domain/repositories/insights_repository.dart';
 import 'package:detoxo/features/blocking/block_screen/data/repositories/block_screen_repository_impl.dart';
 import 'package:detoxo/features/blocking/block_screen/domain/repositories/block_screen_repository.dart';
-import 'package:detoxo/features/blocking/plans/data/repositories/content_repository_impl.dart';
-import 'package:detoxo/features/blocking/plans/domain/repositories/content_repository.dart';
 import 'package:detoxo/features/blocking/shared/data/repositories/config_repository_impl.dart';
 import 'package:detoxo/features/blocking/shared/data/repositories/engine_repository_impl.dart';
 import 'package:detoxo/features/blocking/shared/data/repositories/settings_repository_impl.dart';
@@ -120,7 +118,6 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<InsightsRepository>(
       () => InsightsRepositoryImpl(sl(), sl(), sl(), sl()),
     )
-    ..registerLazySingleton<ContentRepository>(ContentRepositoryImpl.new)
     // Block screen (intervention wall) style + editor preview.
     ..registerLazySingleton<BlockScreenRepository>(
       () => BlockScreenRepositoryImpl(sl()),

@@ -28,40 +28,11 @@ class $AssetsConfigGen {
 class $AssetsContentGen {
   const $AssetsContentGen();
 
-  /// File path: assets/content/curious_emojis.json
-  String get curiousEmojis => 'assets/content/curious_emojis.json';
-
-  /// File path: assets/content/daily_limit_emoji_bands.json
-  String get dailyLimitEmojiBands =>
-      'assets/content/daily_limit_emoji_bands.json';
-
-  /// File path: assets/content/mindful_timer_quotes.json
-  String get mindfulTimerQuotes => 'assets/content/mindful_timer_quotes.json';
-
   /// File path: assets/content/motivational_quotes.json
   String get motivationalQuotes => 'assets/content/motivational_quotes.json';
 
-  /// File path: assets/content/pause_countdown_cooldown_emojis.json
-  String get pauseCountdownCooldownEmojis =>
-      'assets/content/pause_countdown_cooldown_emojis.json';
-
-  /// File path: assets/content/pause_countdown_pause_emojis.json
-  String get pauseCountdownPauseEmojis =>
-      'assets/content/pause_countdown_pause_emojis.json';
-
-  /// File path: assets/content/pause_emojis.json
-  String get pauseEmojis => 'assets/content/pause_emojis.json';
-
   /// List of all assets
-  List<String> get values => [
-    curiousEmojis,
-    dailyLimitEmojiBands,
-    mindfulTimerQuotes,
-    motivationalQuotes,
-    pauseCountdownCooldownEmojis,
-    pauseCountdownPauseEmojis,
-    pauseEmojis,
-  ];
+  List<String> get values => [motivationalQuotes];
 }
 
 class $AssetsFontsGen {
@@ -94,114 +65,6 @@ class $AssetsImagesGen {
 
   /// List of all assets
   List<AssetGenImage> get values => [detoxoLogo, detoxLogoNoBg];
-}
-
-class $AssetsLottieGen {
-  const $AssetsLottieGen();
-
-  /// File path: assets/lottie/angry.json
-  String get angry => 'assets/lottie/angry.json';
-
-  /// File path: assets/lottie/bow.json
-  String get bow => 'assets/lottie/bow.json';
-
-  /// File path: assets/lottie/crying.json
-  String get crying => 'assets/lottie/crying.json';
-
-  /// File path: assets/lottie/eating.json
-  String get eating => 'assets/lottie/eating.json';
-
-  /// File path: assets/lottie/glasses.json
-  String get glasses => 'assets/lottie/glasses.json';
-
-  /// File path: assets/lottie/hand up.json
-  String get handUp => 'assets/lottie/hand up.json';
-
-  /// File path: assets/lottie/happy.json
-  String get happy => 'assets/lottie/happy.json';
-
-  /// File path: assets/lottie/horray.json
-  String get horray => 'assets/lottie/horray.json';
-
-  /// File path: assets/lottie/laugh.json
-  String get laugh => 'assets/lottie/laugh.json';
-
-  /// File path: assets/lottie/like.json
-  String get like => 'assets/lottie/like.json';
-
-  /// File path: assets/lottie/love.json
-  String get love => 'assets/lottie/love.json';
-
-  /// File path: assets/lottie/news.json
-  String get news => 'assets/lottie/news.json';
-
-  /// File path: assets/lottie/nighty night.json
-  String get nightyNight => 'assets/lottie/nighty night.json';
-
-  /// File path: assets/lottie/nope.json
-  String get nope => 'assets/lottie/nope.json';
-
-  /// File path: assets/lottie/oh wow.json
-  String get ohWow => 'assets/lottie/oh wow.json';
-
-  /// File path: assets/lottie/please.json
-  String get please => 'assets/lottie/please.json';
-
-  /// File path: assets/lottie/pls wait.json
-  String get plsWait => 'assets/lottie/pls wait.json';
-
-  /// File path: assets/lottie/rock.json
-  String get rock => 'assets/lottie/rock.json';
-
-  /// File path: assets/lottie/sad.json
-  String get sad => 'assets/lottie/sad.json';
-
-  /// File path: assets/lottie/shocked.json
-  String get shocked => 'assets/lottie/shocked.json';
-
-  /// File path: assets/lottie/soul.json
-  String get soul => 'assets/lottie/soul.json';
-
-  /// File path: assets/lottie/thinking.json
-  String get thinking => 'assets/lottie/thinking.json';
-
-  /// File path: assets/lottie/tired.json
-  String get tired => 'assets/lottie/tired.json';
-
-  /// File path: assets/lottie/tongue 2.json
-  String get tongue2 => 'assets/lottie/tongue 2.json';
-
-  /// File path: assets/lottie/tongue.json
-  String get tongue => 'assets/lottie/tongue.json';
-
-  /// List of all assets
-  List<String> get values => [
-    angry,
-    bow,
-    crying,
-    eating,
-    glasses,
-    handUp,
-    happy,
-    horray,
-    laugh,
-    like,
-    love,
-    news,
-    nightyNight,
-    nope,
-    ohWow,
-    please,
-    plsWait,
-    rock,
-    sad,
-    shocked,
-    soul,
-    thinking,
-    tired,
-    tongue2,
-    tongue,
-  ];
 }
 
 class $AssetsSvgGen {
@@ -748,7 +611,6 @@ class Assets {
   static const $AssetsContentGen content = $AssetsContentGen();
   static const $AssetsFontsGen fonts = $AssetsFontsGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
-  static const $AssetsLottieGen lottie = $AssetsLottieGen();
   static const $AssetsSvgGen svg = $AssetsSvgGen();
 }
 

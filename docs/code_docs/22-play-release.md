@@ -94,7 +94,7 @@ Play Console → *App bundle explorer* → **Download size** is the final author
 | 1,874,956 | `dex` | — |
 | 1,158,001 | `assets/…/images` — 118 files | **nothing** |
 | 608,393 | `res` | density |
-| 593,592 | `assets/lottie` — **unreferenced, see below** | **nothing** |
+| 593,592 | `assets/lottie` — unreferenced; removed since (Frozen Glass M13) | **nothing** |
 | 185,406 | `root` | — |
 | 62,101 | `resources.pb` | — |
 | 34,279 | `assets/{content,config,fonts}` | **nothing** |
@@ -124,11 +124,10 @@ lever in this project, ahead of anything in Gradle.
 
 | Item | Cost | Why it is still here |
 |---|---|---|
-| `assets/lottie/` — 25 JSON files | 4.86 MB install / 593,592 B download | Nothing renders a Lottie file. Kept pending a decision on whether animated art returns. |
 | `drift` + `drift_dev` + `sqlite3_flutter_libs` | `libsqlite3.so`, 1,716,840 B **per ABI** | Zero imports; kept as the scaffold for a future relational store. All persistence runs on Hive today. |
 | `flutter_local_notifications`, `app_settings` | registered Android plugins + ~157 KB dex of `j$.time` desugaring | Zero Dart imports; notifications are posted natively. |
 
-Together these are ~2.3 MB of download and ~7 MB of install size. Reclaim them when
+Together these are ~1.7 MB of download and ~2 MB of install size (`assets/lottie/`, the third item measured here, was deleted in Frozen Glass M13). Reclaim them when
 the corresponding scaffolds are ruled out — see
 [14-flutter-package-map.md](14-flutter-package-map.md) §7.
 

@@ -83,12 +83,12 @@ startedAt ──pauseDuration──▶ pauseEnd ──cooldownDuration──▶ 
 
 - `phaseAt(now)` → `SessionPhase.active | cooldown | idle`.
 - `remainingIn(now)` → time left in the current phase (clamped ≥ 0).
-- `cooldownProgressPct(now)` → 0..100 through the cooldown window; drives the cooldown emoji band (`EMOJI_PAUSE_COUNTDOWN_COOLDOWN`).
+- `cooldownProgressPct(now)` → 0..100 through the cooldown window.
 - Serializable (`toJson`/`fromJson`) — it is a field of `AppSettings` and persists across restarts.
 
 ### Current live behaviour: no cooldown wind-down
 
-`SettingsCubit.startPause` constructs the session with **`cooldownDuration: Duration.zero`** and `planToResume: state.baseMode` (the sticky base — Block All *or* Conscious). So today a Pause is: *reel and website blocking suspended for the chosen window (whole-app locks stay enforced — [06] §2, and so does any rule marked **Strict** — [27](27-rules-engine.md) §6), then blocking returns immediately as the base mode* — the cooldown phase and its emoji band are **modelled but not exercised** by the current picker. The cooldown machinery (`cooldownProgressPct`, `EMOJI_PAUSE_COUNTDOWN_COOLDOWN`, `allowInCooldown`) is retained for a future graduated wind-down and should be treated as **planned / follow-up**, not live.
+`SettingsCubit.startPause` constructs the session with **`cooldownDuration: Duration.zero`** and `planToResume: state.baseMode` (the sticky base — Block All *or* Conscious). So today a Pause is: *reel and website blocking suspended for the chosen window (whole-app locks stay enforced — [06] §2, and so does any rule marked **Strict** — [27](27-rules-engine.md) §6), then blocking returns immediately as the base mode* — the cooldown phase is **modelled but not exercised** by the current picker. The cooldown machinery (`cooldownProgressPct`, `allowInCooldown`) is retained for a future graduated wind-down and should be treated as **planned / follow-up**, not live.
 
 ### How Pause reaches the engine (derived enforcement)
 
@@ -393,68 +393,13 @@ Block All). The `reelSessionState` event's `blocked=true` is the sole trigger �
 
 ---
 
-## 8. The emoji-band / mindful-quote content engine
+## 8. Retired: the emoji-band / mindful-quote content engine
 
-Detoxo ships a small **offline dynamic-content engine** that supplies rotating emojis (with animations) and motivational quotes for the mindful-countdown surfaces. It's the offline tier of a `ContentRepository` interface; a remote `fetchcontent` tier could layer behind the same interface later (planned / swap-in).
-
-### 8.1 Placement model
-
-`plans/domain/entities/emoji_band.dart`. Bundled JSON and any future remote response share one schema: a top-level `emojiSets[]`; each set has `setId`, `placementId`, `enabled`, and an `emojis[]` array of **inclusive range-bucketed** items (`rangeMin <= value <= rangeMax`, via `EmojiItem.covers`). Each item carries `emoji`, `title`, `description`, and an `animation` token.
-
-`EmojiPlacementId` (the join key — its `wire` matches the `placementId` in the asset):
-
-| Placement id | Wire | Bundled asset | Bucket value (domain meaning) |
-|---|---|---|---|
-| `planPause` | `EMOJI_PLAN_PAUSE` | `pause_emojis.json` | re-open count |
-| `curiousPlan` | `EMOJI_CURIOUS_PLAN` | `curious_emojis.json` | re-open count |
-| `dailyLimitHero` | `DAILY_LIMIT_HERO` | `daily_limit_emoji_bands.json` | selected daily-limit minutes |
-| `pauseCountdown` | `EMOJI_PLAN_PAUSE_COUNTDOWN` | `pause_countdown_pause_emojis.json` | minutes of the pause window |
-| `pauseCountdownCooldown` | `EMOJI_PAUSE_COUNTDOWN_COOLDOWN` | `pause_countdown_cooldown_emojis.json` | cooldown progress **%** (0..100) |
-| `appLockSession` | `EMOJI_APP_LOCK_SESSION` | *(none — returns empty/disabled)* | — |
-
-Asset shapes (verified counts / ranges):
-
-| Asset | Placement | Items | Range span |
-|---|---|---|---|
-| `curious_emojis.json` | `EMOJI_CURIOUS_PLAN` | 11 | 0..60 |
-| `pause_emojis.json` | `EMOJI_PLAN_PAUSE` | 10 | 0..30 |
-| `pause_countdown_pause_emojis.json` | `EMOJI_PLAN_PAUSE_COUNTDOWN` | 11 | 0..60 |
-| `pause_countdown_cooldown_emojis.json` | `EMOJI_PAUSE_COUNTDOWN_COOLDOWN` | 3 | 0..100 (percent) |
-| `daily_limit_emoji_bands.json` | `DAILY_LIMIT_HERO` | 5 | 0..999999 |
-
-Example item (`curious_emojis.json`, first band):
-
-```json
-{ "emojiId": "curious_2_0", "rangeMin": 0, "rangeMax": 5, "emoji": "🎯",
-  "title": "Stay Sharp", "description": "You opened this for a reason. Don't forget it.",
-  "animation": "BREATHING" }
-```
-
-### 8.2 `ContentRepository`
-
-Interface `plans/domain/repositories/content_repository.dart`; impl `plans/data/repositories/content_repository_impl.dart` (DI singleton in `core/di/injector.dart`). It reads bundled assets **lazily + memoized**, and **degrades safely** — any parse/IO failure returns an empty *disabled* placement (`isUsable == false`) or a single fallback quote, so the countdown UI never crashes.
-
-- `emojiPlacement(id)` → the `EmojiPlacement` (empty-disabled where no asset, e.g. `appLockSession`).
-- `emojiFor(id, threshold)` → items whose inclusive range covers `threshold` (mirrors the verified `emojiForProgress`).
-- `mindfulQuotes()` → the bundled `quotes[]` (**50** entries in `mindful_timer_quotes.json`) **plus 9 hard-coded paired quotes** appended in the impl (`_pairedQuotes`) → 59 total. `randomQuote()` picks one at random.
-
-### 8.3 Animations
-
-`plans/presentation/widgets/animated_emoji.dart` renders a glyph with one of **14** `EmojiAnimation` styles (wire tokens are the upper-case enum names in the JSON, e.g. `"BREATHING"`). `EmojiAnimation.fromWire` is case-insensitive and falls back to a calm `breathing` for unknown/extended values, so a bad server token never breaks the UI. Each style is a closed-form transform driven by one repeating controller; per-motion loop durations:
-
-| Duration | Animations |
-|---|---|
-| 650 ms | `shake`, `quaking` |
-| 900 ms | `flash`, `chaos` |
-| 3200 ms | `lumber` |
-| 2400 ms | `fly`, `slide` |
-| 1800 ms (default) | `breathing`, `scanning`, `melting`, `bouncing`, `waving`, `sinking`, `glow` |
-
-All content widgets honour reduce-motion (still glyph / plain text).
-
-### 8.4 Mount status (accuracy note)
-
-`ContentRepositoryImpl` is DI-registered and the widgets (`AnimatedEmoji`, `QuoteBox`) are built and reduce-motion-aware, but **they are not currently mounted on a live screen** — no presentation code calls `emojiPlacement`/`randomQuote`, and the emoji/quote assets aren't yet wired into the Pause/Conscious surfaces. The live plan surfaces today are the **`SessionDialogs`** and Today's **`TimeLeftRing`** and **`ModeCard`** (§9). Treat the emoji-band/quote engine as **built infrastructure awaiting a screen (planned / follow-up)**, not a live feature. (`daily_limit_emoji_bands.json` / `DAILY_LIMIT_HERO` is consumed by the daily-limit feature — see [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).)
+The offline emoji/quote engine (`ContentRepository`, `EmojiPlacement`, `MindfulQuote`,
+`AnimatedEmoji`, `QuoteBox` and the five emoji JSONs + `mindful_timer_quotes.json`) was never
+mounted on a screen and was deleted in the Frozen Glass migration (M13). The block screen's
+quotes are a separate, live asset: `assets/content/motivational_quotes.json`, read natively by
+`overlay/QuoteBook.kt` ([25](25-block-screen.md) §5b).
 
 ---
 
@@ -466,7 +411,6 @@ All content widgets honour reduce-motion (still glyph / plain text).
 | `CountdownCubit` | `plans/presentation/countdown_cubit.dart` | Generic 1 Hz countdown to a target `DateTime`; emits remaining `Duration` clamped at zero. |
 | `ConsciousCubit` | `plans/presentation/conscious_cubit.dart` | Mirrors the native bank (§5.5). Provided app-wide in `main.dart`; watched by the dashboard. |
 | `ReelSessionCubit` | `plans/presentation/reel_session_cubit.dart` | Mirrors the native One Reel / Unblock session (§7.3). Provided app-wide in `main.dart`; watched by Today (`_TodayLive`), whose ring counts the reels left of an N-reel unblock. |
-| `AnimatedEmoji`, `QuoteBox` | `plans/presentation/widgets/{animated_emoji,quote_box}.dart` | Built content widgets (§8.3/§8.4) — not yet mounted. |
 
 The Today screen (`lib/features/dashboard/presentation/dashboard_tab.dart`, its copy in `today_copy.dart`) is the caller. The ring's **Unblock** pill opens `showReels`; the `ModeCard`'s **Pause** opens `showPause` and **Conscious** opens `showConscious`. **One Reel** goes through a caution `ConfirmSheet` and then `setOneReel(count: 1)`. **Block All** calls `setPlan(blockAll)` directly. While a session runs, the ring shows it: a live Pause counts down from `PauseSession.remainingIn` ("of a 10 min break"), and an N-reel unblock shows `ReelSessionCubit`'s reels left ("of 5 reels"). Its pill turns to **Block now**: `resumeNow()` for a Pause, `setPlan(baseMode)` for reels. A repeat tap on the lit Pause or One Reel blocks now the same way. The lit mode is `modeIndex`: an N-reel unblock lights **Pause**, a single reel lights **One Reel**. The Conscious bank (`ConsciousState.watching` / `banked`) shows in the mode card's description, not on the ring.
 
@@ -488,31 +432,19 @@ The Today screen (`lib/features/dashboard/presentation/dashboard_tab.dart`, its 
 - `lib/features/blocking/plans/domain/entities/session_defaults.dart` — the Session sheet's bounds, defaults and quick picks (By time 1–10 min, By reel count 1–20) + Conscious tuning constants.
 - `lib/features/blocking/plans/domain/entities/conscious_state.dart` — Conscious bank snapshot entity.
 - `lib/features/blocking/plans/domain/entities/reel_session_state.dart` — One Reel / Unblock session snapshot entity (`consumed`/`allowance`/`blocked`/`active`, `remaining`).
-- `lib/features/blocking/plans/domain/entities/emoji_band.dart` — `EmojiAnimation`, `EmojiItem`, `EmojiSet`, `EmojiPlacement`, `EmojiPlacementId`.
-- `lib/features/blocking/plans/domain/entities/mindful_quote.dart` — `MindfulQuote`.
-- `lib/features/blocking/plans/domain/repositories/content_repository.dart` — content interface.
-- `lib/features/blocking/plans/data/repositories/content_repository_impl.dart` — bundled/offline content impl (memoized, safe-degrade).
 - `lib/features/blocking/plans/presentation/conscious_cubit.dart` — native bank mirror.
 - `lib/features/blocking/plans/presentation/reel_session_cubit.dart` — native One Reel / Unblock session mirror.
 - `lib/features/blocking/plans/presentation/countdown_cubit.dart` — generic 1 Hz countdown.
 - `lib/features/blocking/plans/presentation/widgets/session_dialogs.dart` — `showPause` / `showReels` on the `SessionSheet` (By time / By reel count) + Conscious dialog.
 - `lib/core/design_system/components/session_sheet.dart` — the Session blocker sheet both open (stepper or dial, quick picks, note, Start).
-- `lib/features/blocking/plans/presentation/widgets/animated_emoji.dart` — 14 emoji animations.
-- `lib/features/blocking/plans/presentation/widgets/quote_box.dart` — animated quote card.
 - `lib/features/blocking/shared/domain/entities/enums.dart` — `BlockingPlan` (`curious`/`CURIOUS`), `SessionPhase`.
 - `lib/features/blocking/shared/domain/entities/app_settings.dart` — plan state, `baseMode` (sticky base plan), `reelAllowance`, `effectiveNativePlan`, `nativePauseUntil`, pause derivation, legacy migration.
 - `lib/features/blocking/shared/presentation/settings_cubit.dart` — plan state machine, `baseMode` recording, Pause ticker + base-mode revert, One Reel / Unblock auto-revert (`reelSessionStream` sub, `_onReelSession`), `enterConscious` (+ `resetConsciousBank`) / `stopConscious`, `setOneReel`.
 - `lib/features/blocking/shared/data/repositories/engine_repository_impl.dart` — `pushSettings` derivation (+ `reelAllowance`), `resetConsciousBank`, `consciousStream`/`consciousCurrent`, `armReelSession`/`reelSessionStream`/`reelSessionCurrent`.
 - `lib/features/dashboard/presentation/dashboard_tab.dart` — the plan surfaces on Today: the `TimeLeftRing` pill (Unblock → `showReels`, Block now), the `ModeCard` taps (`setPlan`, `showConscious`, `showPause`, the One Reel `ConfirmSheet` → `setOneReel(count: 1)`), the 1 Hz Pause ticker.
 - `lib/features/dashboard/presentation/today_copy.dart` — `modeIndex` (the lit mode), `ringFace` (the ring for a Pause, an N-reel unblock or the day's time), `modeCopy` (the mode card's description, including the Conscious bank).
-- `lib/core/constants/app_constants.dart` — bundled content asset paths, `EngineTimings`.
+- `lib/core/constants/app_constants.dart` — `EngineTimings`.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/accessibility/DetoxoAccessibilityService.kt` — Conscious accountant (`syncConscious`, `accountConscious`, `consciousSnapshot`), One Reel / Unblock gate (`allowReelOrBlock`, `armReelSession`, `reelSessionSnapshot`), Pause `pauseUntil` gate, constants.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/ConfigStore.kt` — bank/pause persistence, `resetConsciousBank`, `reelAllowance`/`reelsConsumed`/`resetReelSession`.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/channels/CommandHandler.kt` — `pushSettings` handler (plan stored verbatim, no bank reset), explicit `resetConsciousBank` command, `consciousState` query, `armReelSession`/`reelSessionState`.
-- `assets/content/curious_emojis.json` — `EMOJI_CURIOUS_PLAN` band.
-- `assets/content/pause_emojis.json` — `EMOJI_PLAN_PAUSE` band.
-- `assets/content/pause_countdown_pause_emojis.json` — `EMOJI_PLAN_PAUSE_COUNTDOWN` band.
-- `assets/content/pause_countdown_cooldown_emojis.json` — `EMOJI_PAUSE_COUNTDOWN_COOLDOWN` band (percent).
-- `assets/content/mindful_timer_quotes.json` — mindful quotes.
 - `assets/content/motivational_quotes.json` — the block screen's Quotes design (100 quotes with writers, `{quotes: [{quote, writer, category}]}`); read **natively** by `overlay/QuoteBook.kt`, not by Dart ([25](25-block-screen.md) §5b).
-- `assets/content/daily_limit_emoji_bands.json` — `DAILY_LIMIT_HERO` band (consumed by daily-limit feature).

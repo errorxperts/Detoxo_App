@@ -146,7 +146,7 @@ widget tests, no device needed. A selection, grouped by where business rules liv
 |---|---|
 | Domain / settings | `domain_test.dart`, `app_settings_test.dart` |
 | Plans & sessions | `plans_pause_curious_test.dart` (pause math + `curious`/Conscious) |
-| Access protection | `access_protection_test.dart`, `usage_ladder_test.dart` (retry-lockout ladder) |
+| Access protection | `access_protection_test.dart` |
 | Blocking & limits | `web_blocker_test.dart`, `blocklist_install_filter_test.dart`, `streak_test.dart` |
 | Protected apps | `protected_apps_test.dart` (catalog, repo salvage/migration, cubit, fail-closed PIN gate, wire contract) |
 | Permissions | `permissions_restricted_settings_test.dart` (ECM / non-Play install path) |
@@ -331,7 +331,7 @@ release.
 - `tool/check_boundaries.sh`
 - `tool/dev.sh` (`t_precommit`: `design_tokens` / `widget_tokens` checks, `native_tests`)
 - `test/core/design_system/`, `test/app/live_accent_test.dart`, `test/design_system_text_scale_test.dart`
-- `test/domain_test.dart`, `test/app_settings_test.dart`, `test/plans_pause_curious_test.dart`, `test/usage_ladder_test.dart`, `test/access_protection_test.dart`, `test/web_blocker_test.dart`, `test/blocklist_install_filter_test.dart`, `test/counter_style_test.dart`, `test/content_counter_test.dart`, `test/app_feedback_test.dart`
+- `test/domain_test.dart`, `test/app_settings_test.dart`, `test/plans_pause_curious_test.dart`, `test/access_protection_test.dart`, `test/web_blocker_test.dart`, `test/blocklist_install_filter_test.dart`, `test/counter_style_test.dart`, `test/content_counter_test.dart`, `test/app_feedback_test.dart`
 - `lib/core/storage/local_store.dart`
 - `lib/features/blocking/shared/data/repositories/config_repository_impl.dart`
 - `lib/features/access_protection/data/repositories/pin_repository_impl.dart`
