@@ -1,53 +1,40 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/additional_feature/showcase_view/domain/showcase_step.dart';
 import 'package:flutter/material.dart';
-import 'package:showcaseview/showcaseview.dart';
 
-/// The glass tooltip rendered beside each highlighted target during the tour:
-/// the step's icon badge, title, body, progress dots, and the Skip / Next
-/// (Done) controls. Fixed-width so the package's auto-placement stays stable
-/// over narrow targets like the mode cells.
+/// The tooltip rendered beside each highlighted target during the tour, in
+/// the sheet material: the step's badge, title, body, the "Step N of M" dots,
+/// and the Skip / Next (Done) controls. Fixed-width so the package's
+/// auto-placement stays stable over narrow targets like the mode options.
 ///
-/// It drives the tour through the `ShowcaseView` singleton, NOT
-/// `ShowCaseWidget.of(context)` — this card is rendered in the root overlay, so
-/// it has no `ShowCaseWidget` ancestor and an `.of` lookup would throw.
-///
-/// [scope] selects which controller the Skip / Next controls drive: `null`
-/// resolves the current default scope (`ShowcaseView.get()`, the dashboard
-/// tour), while a named scope drives an independent tour (`getNamed`) that
-/// coexists with the always-mounted dashboard host without cross-wiring.
+/// It is presentational: [onNext] and [onSkip] drive the tour controller.
+/// It fades in once through `entrance()` and is otherwise still.
 class ShowcaseTooltipCard extends StatelessWidget {
   const ShowcaseTooltipCard({
     required this.step,
     required this.index,
     required this.total,
-    this.scope,
+    required this.onNext,
+    required this.onSkip,
     super.key,
   });
 
   final ShowcaseStep step;
   final int index;
   final int total;
+  final VoidCallback onNext;
+  final VoidCallback onSkip;
 
-  /// Optional named scope. When set, Skip / Next drive `getNamed(scope)`
-  /// instead of the ambient `ShowcaseView.get()`.
-  final String? scope;
-
-  bool get _isLast => index == total - 1;
-
-  ShowcaseView get _view =>
-      scope != null ? ShowcaseView.getNamed(scope!) : ShowcaseView.get();
+  static const double _width = 280;
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final accent = toneColor(context, step.tone);
-
-    final card = SizedBox(
-      width: 280,
+    final t = context.tokens;
+    return SizedBox(
+      width: _width,
       child: GlassContainer(
         surface: DxSurface.sheet,
-        borderRadius: AppRadius.xl,
+        borderRadius: AppRadius.card,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,9 +46,7 @@ class ShowcaseTooltipCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     step.title,
-                    style: text.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: AppTypography.headline.copyWith(color: t.ink),
                   ),
                 ),
               ],
@@ -69,203 +54,78 @@ class ShowcaseTooltipCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               step.body,
-              style: text.bodySmall?.copyWith(
-                color: context.tokens.ink2,
-                height: 1.35,
-              ),
+              style: AppTypography.subhead.copyWith(color: t.ink2),
             ),
             const SizedBox(height: AppSpacing.md),
+            Semantics(
+              label: 'Step ${index + 1} of $total',
+              child: _StepDots(index: index, total: total),
+            ),
+            const SizedBox(height: AppSpacing.xs),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _StepDots(index: index, total: total, color: accent),
-                Row(
-                  children: [
-                    _SkipButton(onTap: _dismiss),
-                    const SizedBox(width: AppSpacing.xs),
-                    _NextButton(
-                      label: _isLast ? 'Done' : 'Next',
-                      isLast: _isLast,
-                      onTap: _next,
-                    ),
-                  ],
+                SecondaryButton(label: 'Skip', onPressed: onSkip),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: PrimaryButton(
+                    label: index == total - 1 ? 'Done' : 'Next',
+                    expand: true,
+                    onPressed: onNext,
+                  ),
                 ),
               ],
             ),
           ],
         ),
       ),
-    );
-
-    return card
-        .animate()
-        .fadeIn(duration: AppDurations.normal)
-        .slideY(begin: 0.06, end: 0, curve: AppCurves.standard);
-  }
-
-  void _next() {
-    AppHaptics.selection();
-    _view.next();
-  }
-
-  void _dismiss() {
-    AppHaptics.light();
-    _view.dismiss();
+    ).entrance();
   }
 }
 
-/// The tooltip's feature badge: a tone-lit circle holding the step's spec 3D
-/// icon at 40, uncropped (the spec never crops its icons), or the step's
-/// animated glyph when it has no 3D icon.
+/// The tooltip's feature badge: the step's spec 3D icon at 56, uncropped
+/// (accent-tinted for the four modes), or a neutral badge holding its glyph.
 class _StepBadge extends StatelessWidget {
   const _StepBadge({required this.step});
 
   final ShowcaseStep step;
 
-  static const double size = 52;
-  static const double _iconSize = 40;
+  static const double _size = 56;
 
   @override
   Widget build(BuildContext context) {
     final image = step.image;
-    return IconBadge(
-      size: size,
-      color: toneColor(context, step.tone),
-      fillAlpha: 0.16,
-      bordered: true,
-      child: image == null
-          ? AppAnimatedIcon(
-              icon: step.icon!,
-              size: size * 0.46,
-              color: toneText(context, step.tone),
-            )
-          : Icon3d(image, size: _iconSize),
-    );
+    if (image == null) return IconBadge(icon: step.icon, size: _size);
+    return Icon3d(image, size: _size, accentTint: step.accentTint);
   }
 }
 
-/// "N of M" progress: a widening accent dot for the active step, muted pills for
-/// the rest.
+/// Progress: a wide ink dot for the active step, hairline dots for the rest.
 class _StepDots extends StatelessWidget {
-  const _StepDots({
-    required this.index,
-    required this.total,
-    required this.color,
-  });
+  const _StepDots({required this.index, required this.total});
 
   final int index;
   final int total;
-  final Color color;
+
+  static const double _dot = 6;
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < total; i++) ...[
-          if (i > 0) const SizedBox(width: 4),
-          AnimatedContainer(
-            duration: AppDurations.fast,
-            curve: AppCurves.standard,
-            width: i == index ? 18 : 6,
-            height: 6,
+          if (i > 0) const SizedBox(width: AppSpacing.xxs),
+          Container(
+            width: i == index ? _dot * 3 : _dot,
+            height: _dot,
             decoration: BoxDecoration(
-              color: i == index ? color : context.tokens.hairline,
-              borderRadius: BorderRadius.circular(3),
+              color: i == index ? t.ink : t.hairline,
+              borderRadius: AppRadius.brPill,
             ),
           ),
         ],
       ],
-    );
-  }
-}
-
-/// Lowest-emphasis "Skip" action — ends the tour via dismiss.
-class _SkipButton extends StatelessWidget {
-  const _SkipButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppPressable(
-      onTap: onTap,
-      haptic: false,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
-        ),
-        child: Text(
-          'Skip',
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: context.tokens.ink2,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Primary CTA — advances the tour (or finishes it on the last step). Mirrors
-/// the brand gradient pill used by the dashboard's selected mode cell.
-class _NextButton extends StatelessWidget {
-  const _NextButton({
-    required this.label,
-    required this.isLast,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool isLast;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return AppPressable(
-      onTap: onTap,
-      haptic: false,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs + 2,
-        ),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [scheme.primary, scheme.secondary],
-          ),
-          borderRadius: AppRadius.brPill,
-          boxShadow: [
-            BoxShadow(
-              color: scheme.secondary.withValues(alpha: 0.35),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: scheme.onPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Icon(
-              isLast ? Icons.check_rounded : Icons.arrow_forward_rounded,
-              size: 16,
-              color: scheme.onPrimary,
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

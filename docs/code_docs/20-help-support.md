@@ -55,28 +55,41 @@ A searchable, category-grouped list of static content that mirrors
 ## 3. Feature tutorials (`feature_tutorial/`)
 
 [`FeatureTutorialScreen`](../../lib/features/help/feature_tutorial/presentation/feature_tutorial_screen.dart)
-offers two replayable tours:
+offers two replayable tours, as two `FeatureTile` rows in one `PanelGroup` under the **Guided
+tours** `SectionHeader` (the old lightbulb hint row is gone; the Feedback button row's subtitle
+says the tour points it out and turns it on):
 
-- **Dashboard tour** (the tile's label) — the walkthrough **moved here from Settings**. Its
+- **Today tour** (the tile's label) — the walkthrough **moved here from Settings**. Its
   target keys only exist on the Today tab, so it replays via the established pattern:
   `SettingsCubit.setShowcaseSeen(value: false)` + `context.go(Routes.home)`; Today's
   (`dashboard_tab.dart`) coordinator restarts the tour on the flag's true→false edge once front-most. The tour is
   **six steps** (`featureShowcaseStepCount = 6`, defined in
   [`feature_showcase_steps.dart`](../../lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart)):
-  it spotlights all **four mode options** — Block All, Conscious, Pause (whose step now covers
-  unblocking by time *or* reel count), **One Reel** (position 4) — in the Today `ModeCard`'s
+  it spotlights all **four mode options** — Block All, Conscious, Pause (a timed break; the
+  ring's Unblock pill owns the reel count), **One Reel** (position 4) — in the Today `ModeCard`'s
   option order at indices 0–3 (wrapped by `ModeCard.decorateOption`, which `dashboard_tab.dart`
   points at `showcaseTarget(step: featureShowcaseSteps[i])`) — then the **App Blocker** and **Web Blocker** tiles at
   `featureShowcaseSteps[4]` / `[5]`. `showcaseTarget(radius:)` rounds the spotlight to its target
-  (`AppRadius.chip` by default; the tiles pass `AppRadius.card`). Each step's badge shows the same
-  spec 3D icon as the widget it points at: `ShowcaseStep.image` is an `AssetGenImage`
+  (`AppRadius.chip` 20 for the mode options by default; the tiles pass `AppRadius.card` 28; the
+  scoped header-button target is a pill). Each step's badge shows the same spec 3D icon as the
+  widget it points at: `ShowcaseStep.image` is an `AssetGenImage`
   (`Assets.images.icons.iconBlockAll`, `iconConscious`, `iconPause` — the stopwatch —,
-  `iconOneReel`, `iconAppBlocker`, `iconWebBlocker` — the globe), drawn by `Icon3d` at 40 inside
-  the 52 tone-lit `IconBadge`, **uncropped** (the spec never crops its icons) and untinted. The
-  old `assets/images/illustration/` art and its circular clip are gone.
-  `ShowcaseStep.icon` is the alternative for a step with no 3D icon — an `AppAnimatedIcon`
-  glyph, used by the feedback coach-mark below. A step asserts that at least one is set;
-  `image` wins when both are.
+  `iconOneReel`, `iconAppBlocker`, `iconWebBlocker` — the globe), drawn bare by `Icon3d` at 56,
+  **uncropped** (the spec never crops its icons). `ShowcaseStep.accentTint` (true for the four
+  mode steps) tints it to the live accent, as the `ModeCard` tints its options; the blocker
+  steps stay untinted like their tiles. `ShowcaseStep.icon` (`IconData`) is the alternative for
+  a step with no 3D icon — a neutral 56 `IconBadge`, used by the feedback coach-mark below. A
+  step asserts that at least one is set; `image` wins when both are. Steps carry no tone.
+- **The tooltip card**
+  ([`ShowcaseTooltipCard`](../../lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart))
+  is presentational: `step`, `index`, `total`, `onNext`, `onSkip`. It is 280 wide in the sheet
+  material (`GlassContainer(surface: DxSurface.sheet, borderRadius: AppRadius.card)`): badge +
+  `headline` ink title, `subhead` ink-2 body, progress dots (the active one a wide ink pill, the
+  rest hairline) inside `Semantics(label: 'Step N of M')`, then a `SecondaryButton` **Skip** (48
+  dp) and an expanded `PrimaryButton` **Next** / **Done** (54). It fades in once through
+  `.entrance()` (skipped under Reduce Motion) and never moves after that: both tour hosts set
+  `disableMovingAnimation: true`, which stops the package's endless 7 px bob (it ignored Reduce
+  Motion), and a custom container gets no package scale animation.
 - **Feedback button** — an independent, single-step coach-mark spotlighting the **real
   top-bar feedback button** (`FeedbackActionButton`), reusing the same `ShowcaseTooltipCard`
   and glass theme as the dashboard tour. Because that button is hidden while
@@ -94,13 +107,18 @@ added to the `showcase_view` feature (kept there so `help/` never imports `showc
 
 - `registerScopedShowcase({scope, onSeen})` → `ShowcaseView.register(scope: …)`.
 - `scopedShowcaseTarget({scope, step, index, total, child})` → `Showcase.withWidget(scope: …)`
-  with a scope-aware `ShowcaseTooltipCard`.
+  with the same `ShowcaseTooltipCard`, through the private `_target` both tours share.
 - `startScopedShowcase({scope, keys})` → `ShowcaseView.getNamed(scope).startShowCase(…)`.
 - `unregisterScopedShowcase(scope)` → `ShowcaseView.getNamed(scope).unregister()`.
 
 See [`feature_showcase.dart`](../../lib/features/additional_feature/showcase_view/presentation/feature_showcase.dart)
 and [`showcase_tooltip_card.dart`](../../lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart)
-(the card gained an optional `scope`; `null` → the default `ShowcaseView.get()`).
+(`_target` resolves the controller on tap: a `null` scope drives `ShowcaseView.get()`, a named
+one `ShowcaseView.getNamed(scope)`; the card renders in the root overlay, with no
+`ShowCaseWidget` ancestor for an `.of` lookup). Test:
+[`feature_tour_card_test.dart`](../../test/feature_tour_card_test.dart) (48 dp Skip/Next, 'Step
+2 of 6', one `onNext` per tap, no scheduled frame after the entrance or under Reduce Motion, 2×
+text in both themes, `disableMovingAnimation` on both hosts).
 
 ## 4. Share an idea (`share_ideas/`)
 
@@ -140,7 +158,7 @@ Both tiles push the same reusable
   `LegalWebViewScreen` with the `AppLegal` URLs).
 - The **Help & support** drawer tile in
   [`app_drawer.dart`](../../lib/features/dashboard/presentation/widgets/app_drawer.dart).
-- The **Dashboard tour** tile + `_replayShowcase` were **removed** from
+- The tour tile (now **Today tour**) + `_replayShowcase` were **removed** from
   [`settings_screen.dart`](../../lib/features/settings/presentation/settings_screen.dart) (they
   now live on the Feature tutorials screen). The "Feedback button" toggle stays in Settings.
 - No new DI (`FeedbackRepository` is already registered); FAQ content is static.
@@ -167,9 +185,10 @@ Both tiles push the same reusable
 - `lib/core/constants/app_constants.dart` (`AppLegal` URLs)
 - `pubspec.yaml` (`webview_flutter` dependency)
 - `lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart` (6-step keys/order/content, the spec icons)
-- `lib/features/additional_feature/showcase_view/domain/showcase_step.dart` (`image` 3D icon / `icon` glyph badge art)
-- `lib/features/additional_feature/showcase_view/presentation/feature_showcase.dart` (scoped-tour helpers)
-- `lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart` (optional `scope`; `_StepBadge` draws `Icon3d` at 40)
+- `lib/features/additional_feature/showcase_view/domain/showcase_step.dart` (`image` 3D icon / `icon` glyph badge art, `accentTint`)
+- `lib/features/additional_feature/showcase_view/presentation/feature_showcase.dart` (both hosts with `disableMovingAnimation`, scoped-tour helpers, shared `_target`)
+- `lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart` (sheet-material card, `onNext` / `onSkip`; `_StepBadge` draws `Icon3d` at 56)
+- `test/feature_tour_card_test.dart`
 - `lib/core/design_system/components/dx_icons.dart` (`Icon3d`), `assets/images/icons/` (the tour's badge art)
 - `lib/features/additional_feature/showcase_view/showcase_view.dart` (barrel doc)
 - `lib/core/navigation/routes.dart`
