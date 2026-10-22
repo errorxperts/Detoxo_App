@@ -622,8 +622,8 @@ WidgetPayload ─▶ WidgetModel ─▶ WidgetFace ×6 (layout only) ─▶ Widg
   `ponytail:` older launchers show the one static preview
   (`content_counter_widget_preview.xml`) for all six.
 - **Old pieces.** The single-face `WidgetStyleSpec` / `drawLines` renderer and
-  the per-reel 1 s throttle are gone. The block screen's palette moved to
-  `overlay/BlockScreenPalette.kt` ([25](25-block-screen.md)); colour helpers to
+  the per-reel 1 s throttle are gone. The block screen draws from the
+  generated Frozen Glass tokens ([25](25-block-screen.md)); colour helpers live in
   `widget/ColorMath.kt`. There is **no `home_widget` plugin**.
 
 **Rules compliance (by intent).** DS-01 tiers (`tierOf`: 0, then one per 100
@@ -969,13 +969,6 @@ Native (Android, `android/app/src/main/kotlin/com/errorxperts/detoxo/…`):
   `widget/ColorMath.kt`, `widget/BrandTint.kt` (the theme's hue per role and the
   usage ramp), `widget/WidgetTokens.kt` (generated from
   `tool/home_widget/tokens.json` by `tool/home_widget/gen_tokens.dart`).
-- `overlay/BlockScreenPalette.kt` — the block screen's palette (`Palette` /
-  `wallPalette`; `legibleOn` / `legibleFill` / `onColorFor` live in
-  `BlockScreenRenderer.kt`; [25](25-block-screen.md)).
-- `lib/features/content_counter/content_counter_appearance/presentation/widgets/widget_palette.dart`
-  — `WallPalette` / `wallPaletteFor` (the Quotes wall's flat grounds; the accent only tints
-  the dark one), `legibleOn`, `onColorFor` and `legibleFill`, the Flutter mirror of that
-  palette, used by the block-screen preview; exported from the barrel.
 - `lib/features/content_counter/content_counter_appearance/presentation/widgets/stage_carousel.dart` (`StageSurface` (bubble stage), `StagePage`, `RailThumb`)
 - `engine/ContentCounter.kt` — `todayCount()` is also read by the block screen
   for its "N reels today" line (−1 when counting is off, so a stale number is

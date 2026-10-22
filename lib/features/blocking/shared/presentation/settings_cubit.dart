@@ -130,7 +130,7 @@ class SettingsCubit extends Cubit<AppSettings> {
       _commit((s) => s.copyWith(showFeedbackButton: enabled));
 
   /// Appearance preference. Pushed natively with the settings: the block
-  /// screen's look (Face Down light, Spotlight dark) follows it.
+  /// screen follows it, light or dark.
   Future<void> setThemeMode(AppThemeMode mode) =>
       _commit((s) => s.copyWith(themeMode: mode));
 

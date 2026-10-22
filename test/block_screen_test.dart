@@ -4,7 +4,6 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/platform_channels/engine_channel.dart';
 import 'package:detoxo/features/blocking/blocking.dart';
 import 'package:detoxo/features/blocking/shared/data/repositories/engine_repository_impl.dart';
-import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -227,9 +226,9 @@ void main() {
         plan: BlockingPlan.blockAll,
       );
       final copy = BlockScreenCopy.from(p.sanitised(), style);
-      expect(copy.reason, 'Locked in your App blocker');
+      expect(copy.reason, 'Locked in your App Blocker');
       expect(copy.stats, isEmpty);
-      expect(copy.meta, 'Locked in your App blocker');
+      expect(copy.meta, 'Locked in your App Blocker');
       expect(copy.buttons.map((b) => b.label), ['Go home', 'Open Detoxo']);
       final allow = BlockScreenCopy.from(
         p.copyWith(offersUnblock: true).sanitised(),
@@ -263,14 +262,11 @@ void main() {
         'Open Detoxo',
         'Back to Chrome · 5',
       ]);
-      expect(
-        copy.spotlightLine,
-        'Chrome is resting. Move your finger to find the light.',
-      );
-      expect(copy.faceDownLine, isNot(contains('example.test')));
+      expect(copy.line, 'Chrome can wait. Your peace can’t.');
+      expect(copy.line, isNot(contains('example.test')));
     });
 
-    test('a website wall names the host', () {
+    test('a website wall names the host and its Web Blocker list', () {
       const web = BlockScreenPayload(
         referenceType: BlockReferenceType.website,
         referenceId: 'reddit.com',
@@ -278,10 +274,9 @@ void main() {
         appLabel: 'Chrome',
         blockReason: BlockReason.webRule,
       );
-      expect(
-        BlockScreenCopy.from(web, style).faceDownLine,
-        'reddit.com can wait. Your peace can’t.',
-      );
+      final copy = BlockScreenCopy.from(web, style);
+      expect(copy.line, 'reddit.com can wait. Your peace can’t.');
+      expect(copy.reason, 'On your Web Blocker list');
     });
 
     test('showCount off drops the count line only', () {
@@ -301,112 +296,79 @@ void main() {
         copy.meta,
         'Block All is on · 12 reels today · Instagram opened 7 times today',
       );
-      expect(copy.faceDownLine, 'Instagram can wait. Your peace can’t.');
-      expect(
-        copy.spotlightLine,
-        'Instagram is resting. Move your finger to find the light.',
-      );
+      expect(copy.line, 'Instagram can wait. Your peace can’t.');
     });
   });
 
-  group('the wall palette', () {
+  group('the wall reads', () {
     double contrast(Color a, Color b) {
       final la = a.computeLuminance();
       final lb = b.computeLuminance();
       return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
     }
 
-    const fallback = Color(0xFF1C3D78); // BrandTint.FALLBACK
-    // Every accent the wall can take: each palette main of both themes (the
-    // live accent comes next), plus the native pre-push fallback.
-    final primaries = {
-      for (final t in const [AppTokens.light, AppTokens.dark])
-        for (final p in t.palettes) p.main,
-      fallback,
+    // [text] (maybe translucent, as Dark ink-2 is) on the opaque [ground].
+    double reads(Color text, Color ground) =>
+        contrast(Color.alphaBlend(text, ground), ground);
+
+    // The same sweep as BlockScreenGeometryTest, on the generated Dart
+    // tokens: each palette main of the theme and the live accent's warm steps.
+    Set<Color> accents(AppTokens t) => {
+      for (final p in t.palettes) p.main,
+      for (final used in const [0.0, 0.6, 0.85, 1.0]) ...[
+        resolveAccent(t, AccentMode.none, used: used).main,
+        resolveAccent(t, AccentMode.blockAll, used: used).main,
+        resolveAccent(
+          t,
+          AccentMode.pause,
+          used: used,
+          pauseLeft: Duration.zero,
+        ).main,
+      ],
     };
 
-    test('ink, muted and the accent as a label read on both grounds', () {
-      for (final accent in primaries) {
-        for (final dark in [false, true]) {
-          final p = wallPaletteFor(dark: dark, accent: accent);
-          final at = '$accent, dark: $dark';
-          expect(
-            contrast(p.ink, p.ground),
-            greaterThanOrEqualTo(7),
-            reason: at,
-          );
-          expect(
-            contrast(p.muted, p.ground),
-            greaterThanOrEqualTo(4.5),
-            reason: at,
-          );
-          final label = legibleOn(accent, ground: p.ground, ink: p.ink);
-          expect(
-            contrast(label, p.ground),
-            greaterThanOrEqualTo(4.5),
-            reason: at,
-          );
-        }
-      }
-    });
+    for (final t in const [AppTokens.light, AppTokens.dark]) {
+      final theme = t.brightness.name;
 
-    test('Face Down is the board ground; Spotlight carries the accent', () {
-      final light = wallPaletteFor(dark: false, accent: fallback);
-      expect(light.ground, const Color(0xFFECEFF4));
-      expect(light.ink, const Color(0xFF12151B));
-      expect(light.muted, const Color(0xFF5A6170));
-      final mint = wallPaletteFor(dark: true, accent: const Color(0xFF37DFA0));
-      final pink = wallPaletteFor(dark: true, accent: const Color(0xFFFF6FB0));
-      expect(mint.ground, isNot(pink.ground));
-      // The dark wall's ink and muted, for every accent a dark app uses.
-      for (final palette in AppTokens.dark.palettes) {
-        final p = wallPaletteFor(dark: true, accent: palette.main);
-        expect(contrast(p.ink, p.ground), greaterThanOrEqualTo(17));
-        expect(contrast(p.muted, p.ground), greaterThanOrEqualTo(7.8));
-      }
-    });
+      test(
+        '$theme: ink on the ground, ink-2 on the panel under the ambient',
+        () {
+          expect(reads(t.ink, t.bgTop), greaterThanOrEqualTo(4.5));
+          expect(reads(t.ink, t.bgBottom), greaterThanOrEqualTo(4.5));
+          // The panel's text is 84 from the ambient's centre: .09 / .048 there.
+          final k = t.kAmb * (1 - 84 / 120);
+          for (final accent in accents(t)) {
+            final lit = Color.alphaBlend(accent.withValues(alpha: k), t.bgTop);
+            for (final panel in [t.panelTop, t.panelBottom]) {
+              final under = Color.alphaBlend(panel, lit);
+              expect(
+                reads(t.ink2, under),
+                greaterThanOrEqualTo(4.5),
+                reason: '$accent',
+              );
+            }
+          }
+        },
+      );
 
-    test('legibleOn darkens Sky on the light wall, leaves ink alone', () {
-      const sky = Color(0xFF2F6BFF);
-      final p = wallPaletteFor(dark: false, accent: sky);
-      expect(contrast(sky, p.ground), lessThan(4.5)); // 3.9:1
-      final label = legibleOn(sky, ground: p.ground, ink: p.ink);
-      expect(label, isNot(sky));
-      expect(contrast(label, p.ground), greaterThanOrEqualTo(4.5));
-      expect(legibleOn(p.ink, ground: p.ground, ink: p.ink), p.ink);
-    });
-
-    test('every palette main gives the primary button legible text', () {
-      for (final t in const [AppTokens.light, AppTokens.dark]) {
-        for (final palette in t.palettes) {
-          final fill = legibleFill(palette.main);
-          final at = '${palette.main}, ${t.brightness.name}';
-          expect(
-            contrast(onColorFor(fill), fill),
-            greaterThanOrEqualTo(4.5),
-            reason: at,
-          );
-          // Only Light over-main (#e5384f) needs darkening.
-          if (palette.main != AppTokens.light.over.main) {
-            expect(fill, palette.main, reason: at);
+      test('$theme: ink on the Open Detoxo pill for every accent', () {
+        for (final accent in accents(t)) {
+          for (final ground in [t.bgTop, t.bgBottom]) {
+            final base = Color.alphaBlend(
+              accent.withValues(alpha: t.kPill),
+              ground,
+            );
+            for (final sheen in [t.pillHi, t.pillLo]) {
+              expect(
+                reads(t.ink, Color.alphaBlend(sheen, base)),
+                greaterThanOrEqualTo(4.5),
+                reason: '$accent',
+              );
+            }
           }
         }
-      }
-    });
-
-    test('the native fallback brand is already legible', () {
-      expect(legibleFill(fallback), fallback);
-    });
-  });
-
-  group('onColorFor', () {
-    test('navy on a light fill, white on a deep one', () {
-      const navy = Color(0xFF0B1326);
-      expect(onColorFor(const Color(0xFF12A594)), navy);
-      expect(onColorFor(const Color(0xFF44E2CD)), navy);
-      expect(onColorFor(const Color(0xFF30A46C)), navy); // green
-      expect(onColorFor(const Color(0xFFC63A3E)), Colors.white); // deep red
-    });
+      });
+    }
   });
 
   group('BlockScreenStyle', () {

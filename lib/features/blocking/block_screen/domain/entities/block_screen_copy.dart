@@ -55,8 +55,8 @@ class BlockScreenCopy {
               : 'You’ve watched your ${p.allowance} reels',
         _ => 'Block All is on',
       },
-      BlockReason.appBlock => 'Locked in your App blocker',
-      BlockReason.webRule => 'On your website blocklist',
+      BlockReason.appBlock => 'Locked in your App Blocker',
+      BlockReason.webRule => 'On your Web Blocker list',
       BlockReason.adult => 'Adult content (18+)',
       BlockReason.dailyLimit => 'Your daily limit is used up',
       BlockReason.schedule => 'Blocked by a schedule',
@@ -78,11 +78,11 @@ class BlockScreenCopy {
         : p.displayName.isNotEmpty
         ? p.displayName
         : 'This app';
-    // The ghost exit counts down before it unlocks (EVO-025): the preview
+    // The way back counts down before it unlocks (EVO-025): the preview
     // shows it as the wall first appears, "Back to Instagram · 5", dimmed.
     final delay = style.backDelaySec;
-    // Home as an icon beside Open Detoxo (the filled one), then the ghosts.
-    // An app wall has no way back in.
+    // Home as an icon beside Open Detoxo (the accent pill), then the text
+    // exits. An app wall has no way back in.
     final buttons = <BlockScreenButton>[
       const BlockScreenButton('Go home', 'GO_HOME', icon: true),
       if (p.offersOpenApp)
@@ -123,15 +123,8 @@ class BlockScreenCopy {
   /// Who the wall's lines name ("Instagram can wait").
   final String name;
 
-  /// The title on a light wall (Face Down).
-  static const faceDownTitle = 'Put it face down.';
-
-  /// The line under the quote on Face Down…
-  String get faceDownLine => '$name can wait. Your peace can’t.';
-
-  /// …and on Spotlight.
-  String get spotlightLine =>
-      '$name is resting. Move your finger to find the light.';
+  /// The line under the quote panel (`wall_line`).
+  String get line => '$name can wait. Your peace can’t.';
 
   /// The reason and every stat as one muted line, under the sub-line.
   String get meta => [reason, ...stats].where((s) => s.isNotEmpty).join(' · ');

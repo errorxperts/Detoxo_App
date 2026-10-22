@@ -14,15 +14,17 @@ class _MockSettings extends Mock implements SettingsCubit {}
 
 class _MockCounter extends Mock implements ContentCounterCubit {}
 
-/// The block screen in the Flutter mirror: the app theme picks the look (Face
-/// Down light, Spotlight dark), motion only on the full stage, the app's own
-/// primary button — and the editor's one panel of options.
+/// The block screen in the Flutter mirror: one Frozen Glass layout in both
+/// themes, the reason's 3D icon, the entrance once and nothing after it —
+/// and the editor's panels of options.
 void main() {
   const style = BlockScreenStyle.defaults();
 
   // The off filter is always mounted; switched on it is the identity.
   bool greyed(WidgetTester tester) =>
-      tester.widget<ColorFiltered>(find.byType(ColorFiltered)).colorFilter !=
+      tester
+          .widget<ColorFiltered>(find.byType(ColorFiltered).first)
+          .colorFilter !=
       const ColorFilter.matrix(<double>[
         1, 0, 0, 0, 0, //
         0, 1, 0, 0, 0,
@@ -35,7 +37,7 @@ void main() {
     bool still = true,
     Brightness brightness = Brightness.light,
   }) => MaterialApp(
-    theme: ThemeData(brightness: brightness),
+    theme: brightness == Brightness.light ? AppTheme.light() : AppTheme.dark(),
     home: Builder(
       builder: (context) => MediaQuery(
         data: MediaQuery.of(context).copyWith(disableAnimations: still),
@@ -44,62 +46,15 @@ void main() {
     ),
   );
 
-  testWidgets('a light app theme draws Face Down', (tester) async {
-    await tester.pumpWidget(
-      host(const BlockScreenPreview(style: style, height: 640)),
-    );
-    expect(find.text('Put it face down.'), findsOneWidget);
-    expect(find.text('Instagram can wait. Your peace can’t.'), findsOneWidget);
-    expect(
-      find.text(
-        'Block All is on · 12 reels today · Instagram opened 7 times today',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Dalai Lama'), findsOneWidget);
-    expect(find.byIcon(Icons.home_rounded), findsOneWidget);
-    expect(find.text('Back to Instagram · 5'), findsOneWidget);
-  });
+  Icon3d hero(WidgetTester tester) => tester.widget<Icon3d>(
+    find.descendant(
+      of: find.byType(BlockScreenPreview),
+      matching: find.byType(Icon3d),
+    ),
+  );
 
-  testWidgets('a dark app theme draws Spotlight', (tester) async {
-    await tester.pumpWidget(
-      host(
-        const BlockScreenPreview(style: style, height: 640),
-        brightness: Brightness.dark,
-      ),
-    );
-    expect(find.text('Put it face down.'), findsNothing);
-    expect(
-      find.text('Instagram is resting. Move your finger to find the light.'),
-      findsOneWidget,
-    );
-    expect(find.text('HERMANN HESSE'), findsOneWidget);
-  });
-
-  testWidgets('Open Detoxo is the wall’s lit pill, full and compact', (
-    tester,
-  ) async {
-    for (final compact in [false, true]) {
-      await tester.pumpWidget(
-        host(BlockScreenPreview(style: style, height: 200, compact: compact)),
-      );
-      expect(find.text('Open Detoxo'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    }
-  });
-
-  testWidgets('the logo ships in the bundle the native wall reads', (
-    tester,
-  ) async {
-    final data = await tester.runAsync(
-      () => rootBundle.load('assets/images/Detoxo_logo.png'),
-    );
-    expect(data!.lengthInBytes, greaterThan(0));
-  });
-
-  testWidgets('both walls draw the app logo once it has decoded', (
-    tester,
-  ) async {
+  testWidgets('one layout in both themes: the wordmark, the quote panel, the '
+      'line, the meta and the exits', (tester) async {
     for (final b in Brightness.values) {
       await tester.pumpWidget(
         host(
@@ -107,68 +62,157 @@ void main() {
           brightness: b,
         ),
       );
-      await tester.runAsync(
-        () => precacheImage(
-          const ResizeImage(
-            AssetImage('assets/images/Detoxo_logo.png'),
-            width: 512,
-          ),
-          tester.element(find.byType(BlockScreenPreview)),
-        ),
-      );
-      await tester.pump();
-      expect(tester.takeException(), isNull);
-      // The board under the off filter: the recorder can't push its layer.
+      expect(find.text('Detoxo'), findsOneWidget, reason: '$b');
+      expect(find.byType(DetoxoLogo), findsOneWidget);
       expect(
-        find.descendant(
-          of: find.byType(BlockScreenPreview),
-          matching: find.byType(FittedBox),
+        find.text(
+          'Do not let the behavior of others destroy your inner peace.',
         ),
-        paints..drawImageRect(),
+        findsOneWidget,
       );
+      expect(find.text('DALAI LAMA'), findsOneWidget);
+      expect(
+        find.text('Instagram can wait. Your peace can’t.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'Block All is on · 12 reels today · Instagram opened 7 times today',
+        ),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(LiquidPill, 'Open Detoxo'), findsOneWidget);
+      expect(find.byIcon(Icons.home_rounded), findsOneWidget);
+      expect(find.text('Back to Instagram · 5'), findsOneWidget);
+      // A plan block shows its mode icon, in the accent.
+      expect(hero(tester).accentTint, isTrue);
+      expect(tester.takeException(), isNull);
     }
   });
 
-  testWidgets('the stage holds still under Remove animations', (tester) async {
-    for (final b in Brightness.values) {
-      await tester.pumpWidget(
-        host(
-          const BlockScreenPreview(style: style, height: 640),
-          brightness: b,
-        ),
-      );
-      await tester.pumpAndSettle(); // a live loop would time out here
-    }
-  });
-
-  testWidgets('the stage moves; a compact card never runs a ticker', (
+  testWidgets('the icon follows the block reason, as natively (heroIconFor)', (
     tester,
   ) async {
+    BlockScreenPayload wall(
+      BlockReason reason, {
+      BlockingPlan? plan,
+      int n = 1,
+    }) => BlockScreenPayload(
+      referenceType: BlockReferenceType.app,
+      referenceId: 'com.a',
+      displayName: 'A',
+      blockReason: reason,
+      plan: plan,
+      allowance: n,
+    );
+    // The same table as FrozenGlassTest.everyBlockReasonHasItsOwnIconAndEveryIconShips.
+    final table = {
+      wall(BlockReason.plan, plan: BlockingPlan.blockAll): (
+        'icon-block-all',
+        true,
+      ),
+      wall(BlockReason.plan): ('icon-block-all', true),
+      wall(BlockReason.plan, plan: BlockingPlan.curious): (
+        'icon-conscious',
+        true,
+      ),
+      wall(BlockReason.plan, plan: BlockingPlan.oneReel): (
+        'icon-one-reel',
+        true,
+      ),
+      wall(BlockReason.plan, plan: BlockingPlan.oneReel, n: 3): (
+        'icon-pause',
+        true,
+      ),
+      wall(BlockReason.appBlock): ('icon-app-blocker', false),
+      wall(BlockReason.webRule): ('icon-web-blocker', false),
+      wall(BlockReason.adult): ('icon-web-blocker', false),
+      wall(BlockReason.schedule): ('icon-blocker-rules', false),
+      wall(BlockReason.dailyLimit): ('icon-blocker-rules', false),
+    };
+    for (final MapEntry(key: p, value: (name, mode)) in table.entries) {
+      await tester.pumpWidget(
+        host(BlockScreenPreview(style: style, payload: p, height: 640)),
+      );
+      expect(
+        hero(tester).asset.path,
+        'assets/images/icons/$name.webp',
+        reason: '${p.blockReason} ${p.plan} ${p.allowance}',
+      );
+      expect(hero(tester).accentTint, mode, reason: name);
+    }
+  });
+
+  testWidgets(
+    'the compact card: the header, a short quote and the button row',
+    (tester) async {
+      for (final b in Brightness.values) {
+        await tester.pumpWidget(
+          host(
+            const BlockScreenPreview(style: style, height: 150, compact: true),
+            still: false,
+            brightness: b,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Detoxo'), findsOneWidget);
+        expect(find.text('Lost time is never found again.'), findsOneWidget);
+        expect(find.widgetWithText(LiquidPill, 'Open Detoxo'), findsOneWidget);
+        expect(find.byType(Icon3d), findsNothing);
+        expect(find.textContaining('Back to'), findsNothing);
+        expect(tester.takeException(), isNull);
+      }
+    },
+  );
+
+  testWidgets('the art ships in the bundle the native wall reads', (
+    tester,
+  ) async {
+    for (final name in [
+      'detoxo-logo',
+      'icon-block-all',
+      'icon-conscious',
+      'icon-pause',
+      'icon-one-reel',
+      'icon-app-blocker',
+      'icon-web-blocker',
+      'icon-blocker-rules',
+    ]) {
+      final data = await tester.runAsync(
+        () => rootBundle.load('assets/images/icons/$name.webp'),
+      );
+      expect(data!.lengthInBytes, greaterThan(0), reason: name);
+    }
+  });
+
+  testWidgets('the entrance plays once, then the stage rests', (tester) async {
     await tester.pumpWidget(
       host(const BlockScreenPreview(style: style, height: 640), still: false),
     );
-    // Past both fade-ups (1.2 s, writer 1.5 s): only the loop can still ask
-    // for frames.
-    await tester.pump(const Duration(seconds: 2));
-    await tester.pump(const Duration(milliseconds: 16));
-    expect(tester.binding.hasScheduledFrame, isTrue);
+    expect(tester.binding.hasScheduledFrame, isTrue); // the quote fading up
+    await tester.pumpAndSettle(); // nothing loops: this returns
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
 
+  testWidgets('under Remove animations nothing moves at all', (tester) async {
     for (final b in Brightness.values) {
+      // A fresh tree per theme: Material's own theme-change tween is not
+      // the stage's.
+      await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpWidget(
         host(
-          const BlockScreenPreview(style: style, height: 150, compact: true),
-          still: false,
+          const BlockScreenPreview(style: style, height: 640),
           brightness: b,
         ),
       );
-      await tester.pumpAndSettle();
-      expect(find.text('Put it face down.'), findsNothing);
-      expect(find.textContaining('Back to'), findsNothing);
+      await tester.pump();
+      expect(tester.binding.hasScheduledFrame, isFalse);
     }
   });
 
-  testWidgets('switched off, the preview greys out under an Off badge and '
-      'holds still', (tester) async {
+  testWidgets('switched off, the preview greys out under an Off badge', (
+    tester,
+  ) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
       host(
@@ -185,18 +229,17 @@ void main() {
       find.bySemanticsLabel(RegExp(r'^Block screen preview, off\. ')),
       findsOneWidget,
     );
-    await tester.pumpAndSettle(); // no loop runs while off
+    await tester.pumpAndSettle();
     semantics.dispose();
   });
 
-  testWidgets('switching off eases to grey and stops the loop; on brings '
-      'both back', (tester) async {
+  testWidgets('switching off eases to grey; on brings it back', (tester) async {
     Widget preview({required bool on}) => host(
       BlockScreenPreview(style: BlockScreenStyle(enabled: on), height: 640),
       still: false,
     );
     await tester.pumpWidget(preview(on: true));
-    await tester.pump(const Duration(seconds: 2)); // past the fade-ups
+    await tester.pumpAndSettle();
     expect(find.text('Off'), findsNothing);
     expect(greyed(tester), isFalse);
 
@@ -207,11 +250,9 @@ void main() {
     expect(find.text('Off'), findsOneWidget);
 
     await tester.pumpWidget(preview(on: true));
-    await tester.pump(const Duration(milliseconds: 400)); // the grey eases out
-    await tester.pump(const Duration(milliseconds: 16));
+    await tester.pumpAndSettle();
     expect(greyed(tester), isFalse);
     expect(find.text('Off'), findsNothing);
-    expect(tester.binding.hasScheduledFrame, isTrue); // the loop runs again
   });
 
   group('the editor', () {
@@ -255,35 +296,42 @@ void main() {
           ),
         ),
       );
-      await tester.pump(); // no pumpAndSettle: the ambient background loops
+      await tester.pumpAndSettle();
     }
 
     SecondaryButton tryIt(WidgetTester tester) => tester.widget(
       find.widgetWithText(SecondaryButton, 'Try it on your phone'),
     );
 
-    testWidgets('its own switch, then three options; no Design, Background '
-        'or Theme picker', (tester) async {
+    testWidgets('its own switch, then three options on panels; no look '
+        'picker, no Face Down or Spotlight', (tester) async {
       await pumpEditor(tester);
 
       expect(find.text('Show block screen'), findsOneWidget);
       expect(find.text('For app & website blocks'), findsOneWidget);
-      expect(find.text('Spotlight · follows your app theme'), findsOneWidget);
+      expect(find.text('Follows your app theme'), findsOneWidget);
       expect(find.text('Try it on your phone'), findsOneWidget);
       expect(tryIt(tester).onPressed, isNotNull);
       expect(find.byType(InfoButton), findsOneWidget);
+      expect(
+        tester.widget<InfoButton>(find.byType(InfoButton)).message,
+        'Shows a quote when something is blocked. It follows your app theme. '
+        'Off, app and website blocks show a short message instead.',
+      );
       expect(find.text('OPTIONS'), findsOneWidget);
+      expect(find.byType(PanelGroup), findsNWidgets(2));
       for (final gone in [
         'DESIGN',
         'BACKGROUND',
         'THEME',
         'Classic',
-        'Quotes',
         'Auto',
         'Color by usage',
       ]) {
         expect(find.text(gone), findsNothing, reason: gone);
       }
+      expect(find.textContaining('Face Down'), findsNothing);
+      expect(find.textContaining('Spotlight'), findsNothing);
       expect(find.text('Needs Usage access'), findsOneWidget);
       // Each row is one TalkBack node: its caption is read with its switch.
       final semantics = tester.ensureSemantics();

@@ -31,9 +31,9 @@ class _MockCounter extends Mock implements ContentCounterCubit {}
 
 class _MockBlockScreen extends Mock implements BlockScreenStyleCubit {}
 
-/// The Appearance hub's block-screen tile: switched off it still opens the
-/// editor (where the same switch lives), and its status says what "off"
-/// means.
+/// The Appearance hub's block-screen tile: the wall's compact preview;
+/// switched off it still opens the editor (where the same switch lives), and
+/// its status says what "off" means.
 void main() {
   setUp(() async {
     await sl.reset();
@@ -103,6 +103,11 @@ void main() {
       'still opens the editor', (tester) async {
     await pumpHub(tester, const BlockScreenStyle(enabled: false));
 
+    // The tile shows the wall's compact crop.
+    expect(
+      find.byWidgetPredicate((w) => w is BlockScreenPreview && w.compact),
+      findsOneWidget,
+    );
     expect(status(offHint), findsOneWidget);
     expect(tester.widget<AppPressable>(editCard).enabled, isTrue);
     await tester.tap(editCard);

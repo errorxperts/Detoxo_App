@@ -1,14 +1,13 @@
 package com.errorxperts.detoxo.overlay
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.PixelFormat
-import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
+import android.text.TextUtils
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
@@ -18,6 +17,10 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.errorxperts.detoxo.R
+import com.errorxperts.detoxo.engine.ConfigStore
+import com.errorxperts.detoxo.engine.UsageQuery
+import com.errorxperts.detoxo.widget.Manrope
+import com.errorxperts.detoxo.widget.WidgetBitmapRenderer
 import kotlin.math.roundToInt
 
 /**
@@ -36,6 +39,11 @@ import kotlin.math.roundToInt
  * The permission handling, the recheck throttle and the teardown are the ones
  * [ContentCounterBubble] already proved — same window family, same failure
  * modes. All view work runs on the main Looper.
+ *
+ * The look is the app's Frozen Glass kit in the app's own theme (light or
+ * dark, as the wall: [wallIsDark]): the sheet colours composited OPAQUE over
+ * the ground ([DxTheme.opaqueSheet]), because translucent glass over a
+ * third-party feed cannot promise 4.5:1; Manrope throughout.
  */
 object NudgeOverlay {
 
@@ -102,13 +110,15 @@ object NudgeOverlay {
         return try {
             wm(context).addView(card, lp)
             view = card
-            card.alpha = 0f
-            card.translationY = dp(context, 24f).toFloat()
-            card.animate()
-                .alpha(1f).translationY(0f)
-                .setInterpolator(DecelerateInterpolator())
-                .setDuration(220)
-                .start()
+            if (!reduceMotion(context)) {
+                card.alpha = 0f
+                card.translationY = dp(context, 24f).toFloat()
+                card.animate()
+                    .alpha(1f).translationY(0f)
+                    .setInterpolator(DecelerateInterpolator())
+                    .setDuration(220)
+                    .start()
+            }
             mainHandler.postDelayed(autoDismiss, VISIBLE_MS)
             true
         } catch (t2: Throwable) {
@@ -153,23 +163,27 @@ object NudgeOverlay {
         onLeave: () -> Unit,
     ): View {
         val minutes = (elapsedMs / 60_000L).toInt().coerceAtLeast(1)
+        val theme = DxTheme(wallIsDark(ConfigStore(context).appThemeMode, WidgetBitmapRenderer.isSystemDark(context)))
+        val density = context.resources.displayMetrics.density
         val row = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(context, 20f).toFloat()
-                setColor(CARD_BG)
-                setStroke(dp(context, 1f), CARD_STROKE)
-            }
-            elevation = dp(context, 8f).toFloat()
+            // ponytail: the window is exactly the card (that is the passthrough
+            // contract), so the glass's outer drop shadow would only be clipped:
+            // the card keeps its inset edge layers. A margin for the shadow would
+            // swallow feed taps around the card.
+            background = DxDrawable(
+                fill = theme.opaqueSheet,
+                radiusPx = DxTokens.RADIUS_ROW * density,
+                shadows = theme.shadowGlass.filter { it.inset }.toTypedArray(),
+                density = density,
+            )
             val padH = dp(context, 18f)
             val padV = dp(context, 14f)
             setPadding(padH, padV, dp(context, 10f), padV)
             // Tapping the card itself dismisses it, so the user never has to aim
             // for the ✕ mid-scroll. Labelled because that makes the container
-            // an activatable target in its own right (the wall's card does the
-            // same in BlockScreenRenderer).
+            // an activatable target in its own right.
             contentDescription = context.getString(
                 R.string.nudge_card_a11y,
                 label,
@@ -182,19 +196,24 @@ object NudgeOverlay {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, WRAP, 1f)
         }
+        // The compact title: "Instagram · 15m", the app's own duration form.
         lines.addView(
             TextView(context).apply {
-                text = context.getString(R.string.nudge_title, label, minutes)
-                setTextColor(TEXT_ACCENT)
-                setTypeface(Typeface.DEFAULT_BOLD)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+                text = context.getString(R.string.nudge_title, label, UsageQuery.formatHm(elapsedMs))
+                setTextColor(theme.ink)
+                typeface = Manrope.bold(context)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, DxTokens.LABEL_SIZE)
+                fontFeatureSettings = "'tnum'"
+                maxLines = 1
+                ellipsize = TextUtils.TruncateAt.END
             },
         )
         lines.addView(
             TextView(context).apply {
                 text = context.getString(R.string.nudge_body)
-                setTextColor(TEXT_MUTED)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+                setTextColor(theme.ink2)
+                typeface = Manrope.semiBold(context)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, DxTokens.SUBHEAD_SIZE)
             },
         )
         row.addView(lines)
@@ -206,13 +225,14 @@ object NudgeOverlay {
         row.addView(
             TextView(context).apply {
                 text = context.getString(R.string.nudge_leave)
-                setTextColor(TEXT_ACCENT)
-                setTypeface(Typeface.DEFAULT_BOLD)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                setTextColor(theme.ink)
+                typeface = Manrope.bold(context)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, DxTokens.LABEL_SIZE)
                 gravity = Gravity.CENTER
+                // A quiet pill: the app's fill-quiet, round at any height.
                 background = GradientDrawable().apply {
-                    cornerRadius = dp(context, 14f).toFloat()
-                    setColor(ACTION_BG)
+                    cornerRadius = dp(context, 24f).toFloat()
+                    setColor(theme.fillQuiet)
                 }
                 val h = dp(context, 14f)
                 setPadding(h, dp(context, 8f), h, dp(context, 8f))
@@ -230,7 +250,7 @@ object NudgeOverlay {
             TextView(context).apply {
                 text = "✕"
                 contentDescription = context.getString(R.string.nudge_dismiss)
-                setTextColor(TEXT_MUTED)
+                setTextColor(theme.ink2)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
                 gravity = Gravity.CENTER
                 // 48 dp is Android's minimum touch target — the wall's buttons
@@ -268,10 +288,4 @@ object NudgeOverlay {
     /** Above the gesture bar, clear of most bottom navigation. */
     private const val BOTTOM_MARGIN_DP = 96f
 
-    // The brand's dark-glass card, matching the wall and the counter bubble.
-    private val CARD_BG = Color.parseColor("#F0141B2E")
-    private val CARD_STROKE = Color.parseColor("#5544E2CD")
-    private val TEXT_ACCENT = Color.parseColor("#FF44E2CD")
-    private val TEXT_MUTED = Color.parseColor("#FFB8C0D9")
-    private val ACTION_BG = Color.parseColor("#2244E2CD")
 }

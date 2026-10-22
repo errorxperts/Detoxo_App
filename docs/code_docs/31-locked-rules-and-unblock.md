@@ -191,7 +191,10 @@ The tap that says "let me in" now asks its own question, where the block
 happened. `BlockScreenRenderer` renders a **5 / 15 / 30 / 60** row that replaces
 the trigger button in place; `ACTION_UNBLOCK` only reveals it (and is still
 posted, so analytics keeps the intent separate from the choice), and
-`ACTION_UNBLOCK_5` … `_60` carry the answer.
+`ACTION_UNBLOCK_5` … `_60` carry the answer. Since the Frozen Glass restyle the row
+comes with the app's wait + slide (`SlideToConfirmView`, [25](25-block-screen.md) §5):
+5 min is picked, a chip only changes the pick, and only the slide confirmed after its
+5 s wait posts `ACTION_UNBLOCK_<picked>`.
 
 Pressing a button on a wall blocking Instagram used to take the user *out of
 Instagram and into Detoxo* — the outcome the wall was already producing — and

@@ -3,10 +3,12 @@
 Written from shipped source. The block screen is the full-screen native window Detoxo raises at
 the moment of a block — instead of the invisible BACK/HOME press plus a 1.5 s toast it used to be.
 It shows a motivational quote, names the app and **why** it was blocked, today's reel count, how
-often the app was opened today, and the honest ways out. There is one design, **Quotes** (§5b),
-in two looks that follow the app's own theme: "Face Down" when Detoxo is light, "Spotlight" when it
-is dark. Its buttons are the app's pre-Frozen-Glass skins (the lit `LiquidPill`, the outlined
-secondary, the ghost text) drawn natively, in the theme primary. Specs:
+often the app was opened today, and the honest ways out. There is one design (§5b): one
+**Frozen Glass** layout for both themes — the app's own light or dark tokens, generated into
+`overlay/DxTokens.kt` — painted in the **live accent** the Today screen shows at that moment
+(`AccentResolver.forWall`, §6), with the app's button language drawn natively (a glass Home
+circle, the accent "Open Detoxo" pill, calm text exits) and the app's **wait + slide** for "Allow
+for a while". Nothing loops: the entrance plays once and the wall holds still. Specs:
 [`superpowers/specs/2026-10-16-block-screen-quotes-design.md`](../superpowers/specs/2026-10-16-block-screen-quotes-design.md)
 and its follow-up
 [`2026-10-16-block-screen-quotes-only-design.md`](../superpowers/specs/2026-10-16-block-screen-quotes-only-design.md)
@@ -85,7 +87,8 @@ The renderer reports a token; the overlay posts `blockScreenAction` (§7) and th
 | `GO_HOME` | `hide()` + `goHome()` (`ACTION_MAIN` + `CATEGORY_HOME` + `NEW_TASK` — works with no Activity and no service). The Home icon (content description "Go home") |
 | `OPEN_APP` | `hide()` + `launchDetoxo()` (`getLaunchIntentForPackage` + `NEW_TASK \| SINGLE_TOP`, `overlay/OverlayWindows.kt`) |
 | `DISMISS` | `hide()`. On a **REEL** wall the ghost exit is the only `DISMISS` source, so when it still reads "Back to {app}" (not relabelled, not a preview — both read **before** `detach()` clears them) the overlay then calls `DetoxoAccessibilityService.openAppHome(packageName, platformId)`: it taps the platform's `homeTabId` (Instagram's `feed_tab`, §5b) in the app's own window — already on it → nothing, so an open feed is not scrolled to the top — and restarts the app at its root (`Intent.makeRestartActivityTask`) when the tab bar is not on screen (BACK left the user in a DM thread). No `homeTabId`, a protected app, or the service down → the wall just closed. "Dismiss" only closes |
-| `UNBLOCK` | **M8**: writes `ConfigStore.pendingUnblock = "TYPE\|id"`, then `hide()` + `launchDetoxo()` — the `OPEN_APP` shape. Dart drains it with `takePendingUnblock` (read-and-clear) and opens the duration sheet. A consumable prefs key rather than the event, because on a cold start the EventChannel sink does not exist when the action is posted. `preview` never writes: the style editor's sample wall must not arm a real unblock ([31](31-locked-rules-and-unblock.md) §5) |
+| `UNBLOCK` | **EVO-050**: nothing is written and the wall stays up — the renderer reveals the durations and the slide in place (§5); the token is still posted so analytics counts the intent apart from the choice |
+| `UNBLOCK_<m>` | The confirmed slide, with the picked chip's minutes. `onUnblockPicked` writes the grant natively (`ConfigStore.appendGrant`, which also records the row for Dart's `takeNativeGrants`), refreshes the service's temporary unblocks and takes the wall down — no app switch, no PIN, no launch. If that write fails it falls back to M8's hand-off (`setPendingUnblock` + `launchDetoxo()`; Dart drains it with `takePendingUnblock`) rather than drop the tap. `preview` never writes: the style editor's sample wall must not arm a real unblock ([31](31-locked-rules-and-unblock.md) §5) |
 
 Every exit above is the user's own, and goes through `close()`: a real wall is removed at once,
 so the app beneath takes the very next touch; Try it's wall (`preview`) fades out instead
@@ -158,58 +161,72 @@ screens), on the launcher, or in the app the reel was opened from (the ghost exi
 there). Leaving by any other route — a notification into a third app — takes the wall down. After
 an app block the wall stays over the launcher until Home / "Open Detoxo".
 
-## 5. Renderer — `overlay/BlockScreenRenderer.kt`, `overlay/WallButtons.kt`
+## 5. Renderer — `overlay/BlockScreenRenderer.kt`, `overlay/WallButtons.kt`, `overlay/SlideToConfirmView.kt`
 
 `BlockScreenRenderer.build(context, payload, spec, appTheme, quote, animateIn, onAction): View`
-returns a `FrameLayout`: the Quotes backdrop `QuoteWallView` (child 0, tagged `TAG_WALL`, §5b) and
-the button column on top. The brightness is the pure `wallIsDark(appTheme, isSystemDark)` (§6),
-the accent the static spec brand for it (`ContentCounterStore.brand(dark)`, which Dart pushes
-once at start as `brandLight` / `brandDark`, [17](17-content-counter.md)), the palette
-`wallPalette(dark, accent)`. The backdrop's `reservedBottom` is fed the column's laid-out height,
-so the text never draws into the buttons at any font scale; the overlay's `setOpens` reaches the
-backdrop as a `QuoteWallView`.
+returns a `FrameLayout`: the backdrop `QuoteWallView` (child 0, tagged `TAG_WALL`, §5b) and the
+button column on top. The brightness is the pure `wallIsDark(appTheme, isSystemDark)` (§6), the
+tokens `DxTheme(dark)` ([§ the kit](#the-native-frozen-glass-kit--overlayfrozenglasskt)), the
+accent `AccentResolver.forWall(context, dark)[0]` — computed once per build, so a standing wall
+does not glide, and an in-place rebuild picks up a change — and the hero icon
+`heroIconFor(blockReason, plan, allowance)`. The accent paints only three things: the ambient
+light, the Open Detoxo pill and a mode icon's hue. The backdrop's `reservedBottom` is fed the
+column's laid-out height and its `topInset` the status bar, so the text clears both at any font
+scale; the overlay's `setOpens` reaches the backdrop as a `QuoteWallView`.
 
 - **Buttons — the app's own, drawn natively** (`WallButtons`, after `buttons.dart`). Every
   control is a real `android.widget.Button` / `ImageButton` (TalkBack gets one focusable target
-  each, with a `contentDescription`), **48 dp tall** — the app's tap floor, the native
-  `AppPressable.minTapTarget` — with its visual inset inside it, a ripple masked to that visual
-  (ink α .16), and `AppPressable`'s press: a per-view `StateListAnimator` scaling to 0.96 over
-  90 ms each way.
+  each, with a `contentDescription`), **48 dp tall** — the app's tap floor — with its visual inset
+  inside it, and `AppPressable`'s press: a per-view `StateListAnimator` over 400 ms on
+  `PathInterpolator(.34, 1.56, .64, 1)`, glass growing to 1.06 and the rest pressing to .975. No
+  ripple. Under "Remove animations" (`reduceMotion`) no press animator is installed at all.
 
   | Control | Look |
   |---|---|
-  | **Open Detoxo** (`primary`) | `LiquidPill` as a `Drawable`: a 44 dp pill of `legibleFill(accent)` swept top-left → bottom-right from lit (HSL lightness +0.09, `ColorUtils`) through the fill at .55 to shade (−0.13); a lit rim (a 1 dp `SweepGradient`, the native copy of the app's pre-Frozen-Glass pill edge: key light white α .9 at the top-left, bounce α .495 at the bottom-right, the glass border token elsewhere) and its 0.8 dp inner stroke; label Manrope Bold 15 in `onColorFor(fill)`. Elevation 6 dp on the pill's own outline (`getOutline`); on API 28+ the shadow takes the fill (the app's coloured glow). Nothing above it clips (`clipChildren` / `clipToPadding = false`) |
-  | **Home** (`home`) | the pre-Frozen-Glass outlined button as a 44 dp circle: fill accent α .12, a 1 dp ring α .45, `ic_wall_home` at 20 dp; content description "Go home" |
-  | **Back to {app}**, **Allow for a while** (`ghost`) | Text only, Manrope Bold 14 |
-  | the **5 / 15 / 30 / 60 min** chips (`chip`) | 36 dp outlined brand pills, Manrope Bold 13, 8 dp apart |
+  | **Open Detoxo** (`primary`) | the spec accent pill (`.dx-pill`, the app's `LiquidPill`) as a `DxDrawable`, 44 dp inside the flexible 48 dp slot: base `accent @ k-pill` (.14 / .30), the `pill-hi → pill-lo` sheen, `pill-edge` hairlines and the glow `0 10 24 accent @ k-pill-glow` pre-rendered; label Manrope Bold 15 (`label`) in ink, padding 16 / 20. Nothing above it clips (`clipChildren` / `clipToPadding = false`) |
+  | **Home** (`home`) | a 44 dp glass circle (`GlassIconButton`): `glass-top → glass-bottom` and `shadow-glass` as a `DxDrawable`, `ic_wall_home` at 20 dp in ink; content description "Go home" |
+  | **Back to {app}**, **Allow for a while** (`text`) | text only, Manrope Bold 15 in ink-2 (`SecondaryButton`); the countdown keeps its α .55 + disabled (§2) |
+  | the **5 / 15 / 30 / 60 min** chips (`chip`) | 36 dp pills in 48 dp slots, 8 dp apart: `fill-quiet` + ink-2, or once picked (`select`) the solid `option-base` + a 16 dp `ic_dx_check` + ink; `isSelected` reaches TalkBack |
 
-  The glyph and the ghost labels take `legibleOn(accent, ground, ink)`: the accent, blended toward
-  the ink in 3 % steps until it reads at 4.5:1 on the ground (on the light wall it deepens Sky,
-  Teal and Rose a little; on the dark one it lifts only the never-pushed fallback navy). A chip's
-  label is made legible on the chip's own fill instead (`outlinedFill`: the accent at α .12 over
-  the ground), and a big font scale shrinks all four labels alike so each stays whole
-  (`fitChips`: "60 min" needs 82 dp at 2× where a 360 dp phone gives its label 64). Every `RippleDrawable` stacks its layers (`PADDING_MODE_STACK`) — built in code it
-  nests them, which would inset Home's and a chip's mask a second time. Order,
-  top to bottom: a row **[Home | Open Detoxo]**; 6 dp below it **Back to {app}** (tagged
+  Order, top to bottom: a row **[Home | Open Detoxo]**; 6 dp below it **Back to {app}** (tagged
   `TAG_BACK` for the countdown and relabel, §2; not on an app wall — the app is already
-  HOME-bounced); **Allow for a while** — which, since EVO-050, expands **in place** into the chip
-  row (it takes the trigger's slot and fades in over 200 ms; TalkBack's focus moves to the first
-  chip, and a chip ignores taps for a double-tap timeout, so a double tap on the trigger cannot pick
-  a duration) rather than launching Detoxo, so the decision is made on the wall (see [31](31-locked-rules-and-unblock.md) §5). It renders only when
+  HOME-bounced); **Allow for a while**. The column pads 20 dp at the sides (the gutter) and 20 dp
+  plus the navigation inset at the bottom (`setOnApplyWindowInsetsListener`; the window draws
+  under the system bars).
+- **Allow for a while = the app's wait + slide** (user decision, 2026-10-21). Since EVO-050 the
+  tap expands **in place** rather than launching Detoxo, so the decision is made on the wall (see
+  [31](31-locked-rules-and-unblock.md) §5): the chip row takes the trigger's slot with **5 min
+  picked**, and 12 dp below it the `SlideToConfirmView`, both fading in over 200 ms; the slide's
+  5 s wait starts then. TalkBack's focus moves to the picked chip; a chip ignores taps for a
+  double-tap timeout (it only changes the pick now, but the pick must be the user's); a big font
+  scale shrinks all four labels alike, the check included (`fitChips`: "60 min" needs 82 dp at 2×
+  where a 360 dp phone gives its label 64). The slide mirrors the app's `ConfirmSheet`:
+
+  | Part | Spec |
+  |---|---|
+  | Track | 64 dp, radius 32: `track-from → track-to` + `track-shadow` (blurred insets, pre-rendered); label padding 66 / 18, `button` 16/20 ExtraBold, scaled down to fit |
+  | Wait (5 s) | the knob (56 dp at 4, 4) in `DxTheme.waitKnob` — Light the knob at 55 %, Dark the track mixed 18 % toward the knob (`ConfirmSheet.waitKnob`) — shows the seconds in ink-2; the track reads "Take a breath…" (`wall_breath`). `postDelayed` ticks against `SystemClock.uptimeMillis()`, never an Animator, so "Remove animations" still waits 5 s |
+  | Ready | the white knob with a white .5 → 0 sheen over its top 60 %, a zero-blur inset (0, −2) black 5 % and an outer (0, 8) blur 18 `tone-caution-b` @ 35 %; `ic_dx_chevrons_right` 24 in `tone-caution-knob`; "Slide to unblock"; one nudge 0 → 10 → 0 over 600 ms (skipped under "Remove animations") |
+  | Drag | travel = width − 64. The caution fill (`a → b @ .55 → c`) runs to the knob's far edge; the label is painted twice, ink-2 clipped to the bare track and `tone-caution-ink` clipped to the fill. At ≥ 88 % (`slideConfirms`) "Release to confirm" + a `CLOCK_TICK` haptic. A drag on the knob calls `requestDisallowInterceptTouchEvent(true)` |
+  | Release < 88 % | springs back over 400 ms on the press curve (the system scales it to nothing under "Remove animations") |
+  | Release ≥ 88 % | the knob runs to the end with `ic_dx_check` and "Confirmed"; `CONFIRM` haptic (API 30+, `VIRTUAL_KEY` below); after **1000 ms** it posts `UNBLOCK_<picked>` into the unchanged `onUnblockPicked` (§2) |
+  | Tap | "Slide all the way →" for 1.5 s |
+  | Accessibility | reported as `android.widget.Button`; during the wait disabled, described "Slide to unblock, available in N seconds" (`wall_slide_wait` plurals) and refreshed each tick, with no live region; after it enabled, and `performClick` (TalkBack's double tap, Switch Access) confirms |
+
+  There is no "Keep it blocked" button and no wait ring: Home, Back and Open Detoxo are the ways
+  out, and the knob's seconds show the wait. "Allow for a while" renders only when
   `offersUnblock`, which since M8 is true at the **non-strict** trigger sites only: an App Blocker
   lock and a non-strict package rule yes, the strict arm no, a reel block `!rule.strict`, and a
   website hit only when `match == RULE && !webEngine.matchesAdult(host)` — a host on **both** the
-  user's blocklist and the 18+ set would otherwise get a button that mints a grant the adult walk
+  user's blocklist and the 18+ set would otherwise get a slide that mints a grant the adult walk
   immediately overrules. `ADULT` is already forced false by `sanitised()`
-  ([31](31-locked-rules-and-unblock.md) §5). The column pads 24 dp at the sides and 20 dp plus
-  the navigation inset at the bottom (`setOnApplyWindowInsetsListener`; the window draws under the
-  system bars).
-- **Contrast** (pure, pinned by the JVM test): `onColorFor(fill)` is navy or white, whichever
-  reads; `legibleFill` darkens the fill toward navy in 3 % steps until that text reaches 4.5:1 —
-  of the theme primaries only Sky (`#2F6BFF`, white 4.499:1) needs it; `legibleOn` as above.
-  Both hold against the flat fill: the `LiquidPill` sweep lifts the ground under a white label's
-  first letters (Sky and Teal read about 4:1 there — above the 3:1 that 15 sp bold needs),
-  exactly as on the app's own buttons — a design-system property, not the wall's.
+  ([31](31-locked-rules-and-unblock.md) §5).
+- **Contrast** (pure, pinned by the JVM test for both themes and every accent the wall can take —
+  each palette main and the resolver's warm steps): ink on both ground ends; ink and ink-2 on the
+  panel over the ground under the ambient at 84 dp; ink on the pill composite at its hi and lo
+  ends; ink-2 on a chip's fill-quiet; ink on the picked chip's option base; ink-2 on the track
+  ends and the countdown on the waiting knob; the tone ink on the caution stops; and the glyphs
+  (Home on glass, the chevrons on the knob) at 3:1.
 - **Entrance** (`animateIn`, a newly raised wall): the root fades 0 → 1 over 220 ms
   (decelerating) while the column rises 16 dp; the quote fades up (§5b). An in-place rebuild — a
   carried quote (§5b) — passes false, so nothing flashes. "Remove animations" scales both to
@@ -217,98 +234,66 @@ backdrop as a `QuoteWallView`.
   its 220 ms; the upgrade path is fading the window's own alpha.
 - **Copy** (`WallCopy`): `headline` reuses `toast_blocked` ("%1$s is blocked by Detoxo") /
   `toast_blocked_adult` — it is not drawn, but leads the wall's spoken description; reasons
-  `wall_reason_*` — including `wall_reason_schedule_until` / `wall_reason_daily_limit_until`, used
-  when the payload's `unlocksAtMs > 0` so a rule wall reads "Blocked by a schedule · Unlocks at
-  5:30 PM" instead of stopping at the reason (EVO-028; the time is rendered with
-  `DateFormat.getTimeFormat(context)`, i.e. the device's 12/24-hour setting); stats
-  `wall_count_today` (plurals), `wall_bank` (mm:ss), `wall_allowance_left` (plurals),
-  `wall_opens_today` (plurals, "Instagram opened 7 times today"); `name` (§5b). All in
-  `res/values/strings.xml`. The plan's own label (`planLabel(token, allowance)`, `"CURIOUS"` →
-  "Conscious") is no longer on the wall — the reason line names the plan — but stays a pure
-  file-level function for the home widgets; the wire token `curious` never reaches a screen,
-  asserted natively and in Dart.
-- **Palette**: `overlay/BlockScreenPalette.kt` — `Palette(ground, ink, muted)` from the pure
-  `wallPalette(dark, accent)`: the canvas boards' flat grounds. Face Down is `#ECEFF4` with ink
-  `#12151B` (15.9:1) and muted `#5A6170` (5.4:1); Spotlight is near-black with a breath of the
-  accent (`blend(accent, #07090E, .07)`, as the board's mint-black `#0B1510` carries its mint),
-  ink `blend(accent, #FFFFFF, .06)` (≥ 17:1) and muted `blend(accent, #AEB6C6, .14)` (≥ 7.8:1) for
-  every theme primary. `blend` / `withAlpha` come from `widget/ColorMath.kt`,
-  `WidgetBitmapRenderer.isSystemDark` the night-mode fallback.
-- Typeface: Manrope Bold / ExtraBold from the Flutter assets (`widget/Manrope.kt`) for the
-  wordmark, title, writer and every button; the system sans for the sub-line and meta; the system
-  serif for the quote. Sizes via `TypedValue` sp, so the platform font scale applies.
+  `wall_reason_*` ("Locked in your App Blocker", "On your Web Blocker list") — including
+  `wall_reason_schedule_until` / `wall_reason_daily_limit_until`, used when the payload's
+  `unlocksAtMs > 0` so a rule wall reads "Blocked by a schedule · Unlocks at 5:30 PM" instead of
+  stopping at the reason (EVO-028; the time is the pure `clockLabel(hour, minute,
+  DateFormat.is24HourFormat)`: the device's 12/24-hour setting, a zero minute dropped on a 12-hour
+  clock as Dart's `formatLocalTime` does); stats `wall_count_today` (plurals), `wall_bank`
+  (mm:ss), `wall_allowance_left` (plurals), `wall_opens_today` (plurals, "Instagram opened 7 times
+  today"); `name` (§5b). All in `res/values/strings.xml`, mirrored by Dart `BlockScreenCopy`. The
+  plan's own label (`planLabel(token, allowance)`, `"CURIOUS"` → "Conscious") is not on the wall —
+  the reason line names the plan — but stays a pure file-level function for the home widgets; the
+  wire token `curious` never reaches a screen, asserted natively and in Dart.
+- Typeface: Manrope from the Flutter assets (`widget/Manrope.kt`) for everything — ExtraBold for
+  title-xl, title, headline and button; Bold for label and the eyebrow; SemiBold for body and
+  subhead — with tabular figures (`'tnum'`). Sizes via `TypedValue` sp, so the platform font scale
+  applies. No serif, no system sans.
 - `ponytail:` content renders on a Canvas, so the wall cannot reuse the Flutter design system —
-  `WallButtons` redraws its buttons natively; the upgrade path (a Flutter-rendered wall) costs a
-  second engine and is blocked by the single-process invariant.
+  the kit redraws its surfaces natively from the same generated tokens; the upgrade path (a
+  Flutter-rendered wall) costs a second engine and is blocked by the single-process invariant.
 
-## 5b. The Quotes design — `overlay/QuoteWall.kt`, `overlay/QuoteBook.kt`
+## 5b. The design — `overlay/QuoteWall.kt`, `overlay/QuoteBook.kt`
 
-One design, in the look the app's theme gives it, from the claude.ai canvas boards "32 · Face
-Down" and "19 · Spotlight". The text is the compact set (sp / dp; the preview uses the same
-numbers): 24 at the sides, 48 at the top, 12 above the buttons.
+One Frozen Glass layout for both themes; only the token values change. Units dp / sp, at the
+20 dp gutter, top down:
 
-- **Face Down** (a light wall): a centred column — the app logo (20 dp) + wordmark (Manrope
-  ExtraBold 16), a 150 × 290 dp phone card that turns face down and back on an 8 s loop (the
-  board's keyframes in the pure `flipDegrees(t, ease)`: face up to 30 %, face down by 42 %, held to
-  82 %, home by 94 %, eased by `PathInterpolator(.6, 0, .3, 1)` per segment), "Put it face down."
-  (`wall_facedown_title`, ExtraBold 24, ≤ 2 lines), the quote in serif italic 18, its writer
-  (Bold 13, muted, 6 dp under it), then the foot. Groups are 14 dp apart. The card's front is a
-  dark screen with two drifting pink / blue blobs and three feed bars; its back shows a camera bump
-  and the app logo. The floor shadow narrows and fades with the pure `turnedAway(degrees)` =
-  (1 − cos θ) / 2.
-- **Spotlight** (a dark wall): leading-aligned; the logo (22 dp, with a soft accent glow) +
-  wordmark (Bold 15); a 16 dp dot grid and a large app logo show only near a soft light, which
-  follows the finger and, idle, drifts on the pure `lissajousX` / `lissajousY` (the board's
-  x = w/2 + 0.31w·sin 0.8t, y = 0.47h + 0.24h·sin 0.5t), easing back onto the path after a finger
-  lifts. The quote is serif 24, its writer Bold 11 UPPERCASE with 0.1 tracking, 12 dp under it;
-  groups are 16 dp apart. The line reads "{name} is resting. Move your finger to find the light."
-  (`wall_spotlight_line`).
-- **The foot** (both): the line ("{name} can wait. Your peace can’t." — `wall_facedown_line` —
-  or Spotlight's), 13 regular muted, then **one meta line**: the reason and every stat joined with
-  " · " ("Block All is on · 12 reels today · Instagram opened 7 times today"), 12 regular muted,
-  ≤ 3 lines, 3 dp below. The stats that land late (`extraStats`, below) join it. The wall's
-  spoken description keeps them as separate sentences — a screen reader may say "dot".
-- **Entrance**: on a newly raised wall (`fadeIn`) the quote fades up 10 dp over 1.2 s on both
-  looks and its writer follows 0.3 s later; the frame loop runs at least until that ends (1.5 s),
-  so a Face Down wall whose phone is hidden still finishes it. A rebuild draws them settled.
+| # | Element | Recipe |
+|---|---|---|
+| 0 | Ground | `bg-top → bg-bottom`, a vertical `LinearGradient` built on a size change |
+| 1 | Ambient light | the accent at `k-amb` (.16 / .30), radial, linear falloff to clear at **120 dp**, centred on the well, drawn only with the well; static |
+| 2 | Header | from `max(54, status bar + 8)`: `detoxo-logo.webp` at 23 × 44 with its `logo-glow` (Dark σ 8 in brand light-blue; Light σ 1 + σ 10 at y + 4 — `DxArt` masks, never a recolour of the logo), 10 dp, then "Detoxo" in `title-xl` 34/40 ExtraBold, ink |
+| 3 | Icon well | 24 below the header: an 88 circle, `RadialGradient` at (35 %, 30 %) with radius .955 × 88 (CSS farthest corner), `well-from → well-to`, no accent ring; the reason's 3D icon at 58 (`heroIconFor`: a plan block its mode — Block All / Conscious / One Reel, or Pause for an N-reel unblock — App Blocker, Web Blocker for a website or an adult hit, Blocker rules for a schedule or the daily limit). A mode icon is hue-rotated to the accent (`accentIconMatrix`: CSS `hue-rotate(hue(main) − 214°) saturate(1.15)`); the others keep their colour |
+| 4 | Quote panel | 24 below the well: a frosted panel (`panel-top → panel-bottom` + `shadow-card`, radius 28, padding 16) as a `DxDrawable`; the quote in `title` 22/28 ExtraBold, ink, start-aligned; the writer 12 below as the `eyebrow` (12/16 Bold, uppercase, 1.6 tracking, ink-2) |
+| 5 | Line | 16 below the panel: "{name} can wait. Your peace can’t." (`wall_line`), `body` 14/20 SemiBold, ink-2, ≤ 2 lines |
+| 6 | Meta | 6 below: the reason and every stat joined with " · " ("Block All is on · 12 reels today · Instagram opened 7 times today"), `subhead` 13/18 SemiBold, ink-2, ≤ 3 lines. The stats that land late (`extraStats`) join it; the spoken description keeps them as separate sentences |
+
+Line heights are the style's own (`StaticLayout` line spacing = line height − `fontSpacing`).
+**Why the ambient's radius is 120:** the nearest ink-2 text (the panel's) is 44 + 24 + 16 = 84 dp
+from its centre, where the light is at most .30 × (1 − 84/120) = .09, which keeps ink-2 on the
+panel at 4.5:1 for every accent (`ambientAlphaAt`, pinned by the JVM sweep).
+
+**Fit**, measured on a size, inset, reserve or stats change by the pure `wallFit(room, …)`, in
+order: drop the well (and the ambient with it); the quote from `title` to `headline` 17/22;
+ellipsise the quote; drop the writer; drop the header — so text never runs into the buttons in
+landscape or at 2× (TalkBack still reads all of it).
+
+**Entrance**: on a newly raised wall (`fadeIn`) the quote fades up 10 dp over 1.2 s on
+`PathInterpolator(.25, .1, .25, 1)` and its writer follows 0.3 s later. The frame loop is
+`postInvalidateOnAnimation()` only while that runs (t < 1.5 s); a rebuild draws them settled, and
+"Remove animations" (`reduceMotion`) draws them settled at once. Nothing else moves: the Face Down
+phone, the Spotlight light and every loop of the 2026-10-16 design are gone.
+
+**Smoothness.** StaticLayouts, shaders and the panel's drawable are built on a size, inset,
+reserve or stats change — never per frame; a frame is draw calls. No `saveLayer`, no blur on the
+hardware canvas: the panel's shadow is a half-scale software bitmap (`DxDrawable`, released when
+the view detaches) and the logo's glow `extractAlpha` masks. No backdrop blur either — behind the
+panel is our own gradient, where a blur is invisible (`ponytail:` add `RenderEffect` on API 31+ if
+imagery ever sits behind it).
 
 `{name}` is `WallCopy.name`: the app for reel and app walls, the host for a website, the browser
-for an adult hit (never named). The logo is `assets/images/Detoxo_logo.png` (a 1024² RGBA square
-with a transparent margin), decoded once per process from the Flutter assets by `DetoxoLogo` and
-cropped to `LOGO_CROP` — the visible logo plus a 16 px margin, pinned against the asset by
-`QuoteWallTest`; no logo (a missing asset) → none drawn, never a failure. The logo is white: on
-the light wall and the card's light back it would vanish, so there it is recoloured
-(`PorterDuffColorFilter(SRC_IN)`) to `legibleOn(accent, …)`, as the board's coloured logo is;
-Spotlight's header keeps it white. Spotlight's big logo is a `BitmapShader` in the accent
-(`SRC_IN`, as the board hue-shifts its logo to the wall's colour) kept only where the light's
-falloff has alpha (`ComposeShader(…, DST_IN)`, built fresh each frame: on API 24–25 one built once
-would keep the mask's old native shader), at most α .157 (`LIT_LOGO_ALPHA`): the writer and meta
-can sit on the glow (`GLOW_ALPHA`, α .14) and the logo at once, and it keeps the muted text at
-4.5:1 there for every theme primary, with margin (`0x2B` is the edge; JVM-pinned). Colours otherwise: the palette's ground and text; the accent for the
-dots and glow; the phone keeps its own.
-`ponytail:` the first wall decodes the 1024² PNG on the main thread (tens of ms) and the ~1.2 MB
-crop stays resident; the upgrade path is an io-thread decode at service connect, or a pre-cropped
-asset.
-
-**Fit**, measured on a size / reserve / stats change: the phone scales 1 → 0.5 (`phoneScale`),
-then hides; then the quote shrinks (Face Down to 13 sp, Spotlight to 14 sp); then it is cut with an
-ellipsis; and if a landscape or small wall at a big font scale is still too tall, the Face Down
-title goes, then the writer, so the quote never runs into the foot (TalkBack still reads both).
-
-**Smoothness.** StaticLayouts, shaders and paths are built on a size, reserve or stats change —
-never per frame. A frame sets a few unit `RadialGradient` local matrices (re-assigned to their
-paints: API 24–25 copy the shader at `setShader`), one `android.graphics.Camera` matrix
-(location −900 dp / 72 — Camera units are 72-dpi inches), Spotlight's one `ComposeShader` for the
-lit logo, and issues draw calls; the dots are a
-`drawCircle` loop over the grid points within the light's radius. No `saveLayer`, no clip under
-the camera matrix and no blur filter (each costs, or is ignored, on the GPU renderer below
-API 28): every soft edge is a gradient. The loop is `postInvalidateOnAnimation()` from `onDraw`
-while attached; "Remove animations" (`reduceMotion`, animator duration scale 0) stops it — Face
-Down rests face up, Spotlight's light sits at the centre and a finger still moves it (each move
-invalidates once). The preview reads Flutter's `disableAnimations`, which Android feeds from the
-*transition* scale: "Remove animations" zeroes both, but zeroing only one scale in Developer
-options lets one side move while the other holds still. `ponytail:` the loop runs for as long as the wall stands; the upgrade path is
-pausing it after a minute without a touch.
+for an adult hit (never named). The art (`DxArt`) is decoded once per process from
+`flutter_assets/assets/images/icons/`; a missing file draws nothing and never fails.
 
 **Quotes.** `QuoteBook` reads `flutter_assets/assets/content/motivational_quotes.json` (100
 quotes, `{quotes: [{quote, writer, …}]}`) once per process — the `Manrope.kt` pattern — and draws
@@ -335,7 +320,11 @@ directly (`WallCopy` renders it) so "Try it" mirrors the Flutter preview.
 Native is the single source of truth: `ConfigStore.blockScreenStyleJson` (key `block_screen_style`
 in `detoxo_engine_prefs`, default `""`), parsed by `BlockScreenStyleSpec.fromJson` — `enabled`
 (default **true**), `showCount`, `showOpens` (default true), `backDelaySec` (default **5**, clamped
-0–60; 0 = instant); malformed → defaults. A map persisted before 2026-10-16 may still hold
+0–60; 0 = instant); malformed → defaults. **New installs start with `showOpens` off**: the
+onboarding hand-off writes `BlockScreenStyleCubit.setShowOpens(show: false)` before
+`setOnboarded` ([13](13-onboarding-permissions.md)); the entity and native defaults stay `true`,
+so an upgraded install, which never walks onboarding again, keeps its stored choice, and a Reset
+app data run comes back through the hand-off like a fresh install. A map persisted before 2026-10-16 may still hold
 `theme`, `background`, `design` and `accentByUsage`: they are ignored, and the next save drops
 them. Read once per new wall in `show()`, never per accessibility event and not for an
 already-standing wall.
@@ -344,8 +333,8 @@ There is no theme or background choice: the wall **follows the app**. Dart pushe
 with the settings (`themeMode`, whitelisted into `ConfigStore.appThemeMode`, key
 `app_theme_mode`); the pure `wallIsDark(appTheme, systemDark)` reads LIGHT / DARK from it and falls
 back to the device's night mode for "Match system" or a store that was never pushed. The Flutter
-preview reads the app theme's brightness. The accent is always the theme primary for that
-brightness (`ContentCounterStore.brand(dark)`, §5).
+preview reads the app theme's brightness. The accent is the live one the Today screen shows
+(`AccentResolver.forWall`, below); the preview takes `context.accent`, from the same inputs.
 
 Dart (`lib/features/blocking/block_screen/`):
 
@@ -353,12 +342,12 @@ Dart (`lib/features/blocking/block_screen/`):
 |---|---|---|
 | domain | `entities/block_screen_style.dart` | `BlockScreenStyle` (Equatable): `enabled`, `showCount`, `showOpens`, `backDelaySec` (clamped 0–60); `fromWire` tolerant of wrong-typed fields and of the keys an older build wrote (`theme`, `background`, `design`, `accentByUsage` — ignored); `toWire` writes the four |
 | domain | `entities/block_screen_payload.dart` | `BlockScreenPayload` (incl. `packageName`, `opensToday`), `BlockReferenceType`, `BlockReason`, `.preview()` (a zero count shows the sample 12). The native payload also carries `unlocksAtMs` (EVO-028) — native-internal, it never crosses the channel |
-| domain | `entities/block_screen_copy.dart` | `BlockScreenCopy.from(payload, style)` — the Flutter mirror of `WallCopy` (MIRROR CONTRACT): `headline` (spoken only), `reason`, the stats incl. the opens line, `meta` (the reason and stats joined with " · "), the button set — Home (`BlockScreenButton.icon`), Open Detoxo (`primary`), the ghost "Back to {app}" `locked` with its "· 5" label while the countdown runs (not on an app wall), "Allow for a while" — and `name` / `faceDownTitle` / `faceDownLine` / `spotlightLine` |
+| domain | `entities/block_screen_copy.dart` | `BlockScreenCopy.from(payload, style)` — the Flutter mirror of `WallCopy` (MIRROR CONTRACT): `headline` (spoken only), `reason`, the stats incl. the opens line, `meta` (the reason and stats joined with " · "), the button set — Home (`BlockScreenButton.icon`), Open Detoxo (`primary`), the ghost "Back to {app}" `locked` with its "· 5" label while the countdown runs (not on an app wall), "Allow for a while" — and `name` / `line` |
 | domain | `repositories/block_screen_repository.dart` | `style()`, `setStyle()`, `preview(payload)`, `hide()` |
 | data | `repositories/block_screen_repository_impl.dart` | over `EngineChannel`: `blockScreenStyle` / `setBlockScreenStyle` / `showBlockScreen` / `hideBlockScreen` |
 | presentation | `block_screen_style_cubit.dart` | app-wide (`main.dart`); emit now, 120 ms debounced push, dirty-guard against a late hydrate (`CounterAppearanceCubit` shape); `setEnabled`, `setShowCount`, `setShowOpens`, `setBackDelay(on:)` (5 / 0), `preview(payload)` for "Try it" (pushes an edit still in the debounce first) |
-| presentation | `block_screen_style_screen.dart` | route `Routes.blockScreenStyle` = `/block-screen/style`: an ⓘ `InfoButton` in the app bar (the 100 quotes; the look follows the app theme; change it under Appearance; what off leaves to a toast); a **Show block screen** switch at the top — the hub card's own, in one `GlassCard`, caption "For app & website blocks"; one big live preview (the user's current plan and allowance, selected as two-field records so counter ticks don't rebuild the editor) cross-fading on a theme flip; the hint "Face Down / Spotlight · follows your app theme"; **Try it on your phone** (disabled while off or without the grant, with the `NoticeLine` fix under it); **Options** — one `GlassCard` of three flat switch rows (`_SwitchRow`, hairlines between): Reel count today, Times opened today ("Needs Usage access"), Wait 5 seconds to go back; each row is one `MergeSemantics` node, so TalkBack reads a caption with its own switch; while the block screen is off the options fade and their switches announce as disabled (`_SwitchRow.enabled`) |
-| presentation | `widgets/block_screen_preview.dart` | Flutter mirror of the wall, drawn on a fixed board in native dp (360 × 780, or the Appearance card's 352 × 220 `compact` crop: header, the quote in 2 lines, the button row) that a `FittedBox` scales to `height`, text scaling off inside — so every size is the native one; `IgnorePointer` + `ExcludeFocus`, one `Semantics` label. Brightness from the app theme, accent `context.tokens.brand.main` (the static spec brand), palette `wallPaletteFor` + `legibleOn` / `onColorFor` / `legibleFill` from `content_counter_appearance/.../widget_palette.dart`. Open Detoxo is `_WallPill`, a private copy of the native `LiquidPill` drawable (the app's own `LiquidPill` is now the Frozen Glass accent pill; the wall keeps its skin until the native track restyles it); Home an outlined circle; the ghost labels text (a locked one at 55 %). `_Wall` runs one ticker, only on the full stage and never under "Remove animations"; `_PhonePainter` / `_SpotlightPainter` / `_LogoPainter` mirror `QuoteWall.kt` (the idle drift only — a finger would fight the editor's scroll), the canvas's sample quotes (sr 46 / sr 48; the compact Spotlight card takes the short sr 62, which its two lines hold), the foot in the system sans as natively; the foot eases through `AnimatedSize` + `AnimatedSwitcher`. The logo from `ResizeImage(AssetImage('assets/images/Detoxo_logo.png'), width: 512)`, cropped by `_logoCrop` (the native `LOGO_CROP`), recoloured on the light wall, Spotlight's lit through a `saveLayer` + `dstIn` gradient. Switched off (`style.enabled` false) it eases over 300 ms to a 60 % greyscale — through an always-mounted `ColorFiltered`, the identity while on, so a toggle never rebuilds the wall and replays the quote's fade-up — an **Off** `AppBadge` fades in, the label reads "Block screen preview, off.", and the ticker pauses on its frame and resumes from it. Approximations: the quote does not shrink (its `maxLines` is the guard), and Face Down's spare height goes to the phone slot rather than around the quote |
+| presentation | `block_screen_style_screen.dart` | route `Routes.blockScreenStyle` = `/block-screen/style`: an ⓘ `InfoButton` in the app bar ("Shows a quote when something is blocked. It follows your app theme. Off, app and website blocks show a short message instead."); a **Show block screen** switch at the top — the hub card's own, on one `PanelGroup`, caption "For app & website blocks"; one big live preview (the user's current plan and allowance, selected as two-field records so counter ticks don't rebuild the editor) on a quiet `fill-quiet` stage, cross-fading on a theme flip; the hint "Follows your app theme"; **Try it on your phone** (disabled while off or without the grant, with the `NoticeLine` fix under it); **Options** — a `SectionHeader` over one `PanelGroup` of three flat switch rows (`_SwitchRow`, in the `GlassListTile` metrics: 56 min height, an ink-2 glyph, `label` title, `subhead` caption): Reel count today, Times opened today ("Needs Usage access"), Wait 5 seconds to go back; each row is one `MergeSemantics` node, so TalkBack reads a caption with its own switch; while the block screen is off the options fade and their switches announce as disabled (`_SwitchRow.enabled`) |
+| presentation | `widgets/block_screen_preview.dart` | Flutter mirror of the wall (public API frozen: `style`, `payload`, `height`, `compact`), drawn on a fixed board in native dp (360 × 780, or the Appearance card's 352 × 220 `compact` crop: the header, a two-line quote at `headline` size on the panel, the button row) that a `FittedBox` scales to `height`, text scaling off inside — so every size is the native one; `IgnorePointer` + `ExcludeFocus`, one `Semantics` label. The same layout as §5b on DS widgets and the generated `AppTokens`: the `bg-top → bg-bottom` ground; the ambient `RadialGradient(accent.main @ kAmb)` of radius 120 on the well; `DetoxoLogo(height: 44)` + "Detoxo" in `AppTypography.titleXl`; the 88 well (`well-from → well-to` at (−.3, −.4), radius .955) with `Icon3d(58, accentTint:)` for a mode icon — the private `_heroIcon` mirrors Kotlin's `heroIconFor`, with the same table in both tests; the quote on a `GlassContainer` panel (radius 28) in `AppTypography.title` (`maxLines` is the guard) with its writer as the uppercase `eyebrow`; the line (`body`) and meta (`subhead`) in ink-2; `GlassIconButton(Icons.home_rounded)`, `LiquidPill(tint: context.accent.main)` "Open Detoxo" and the text exits in `label` ink-2 (a locked one at 55 %). The accent is `context.accent`, the live one. The entrance plays once on the full stage — the quote fades up 10 dp over 1.2 s and the writer 0.3 s later, through `context.motion` (nothing under Reduce Motion) — and then nothing moves: no ticker, so `pumpAndSettle` returns. Switched off (`style.enabled` false) it eases over 300 ms to a 60 % greyscale — through an always-mounted `ColorFiltered`, the identity while on, so a toggle never rebuilds the wall and replays the fade-up — an **Off** `AppBadge` fades in, and the label reads "Block screen preview, off." |
 
 The plan label itself lives with the enum — `planLabel(BlockingPlan?, {allowance})` in
 `blocking/shared/domain/entities/enums.dart` — and the dashboard status label and the Unblock
@@ -385,7 +374,7 @@ The `blocking.dart` barrel exports the block-screen cubit and preview (the `cont
 precedent) so the Appearance hub reaches them without a boundary violation; the editor screen is
 routed, so `app_router.dart` imports it directly.
 
-### The live accent, natively (ready, not yet wired)
+### The live accent, natively
 
 `overlay/AccentResolver.kt` mirrors Dart's `resolveAccent`
 (`lib/core/design_system/foundations/accent.dart`): mode (none / Block All / Conscious /
@@ -393,8 +382,42 @@ Pause / One Reel), today's share of the daily limit and a live Pause's time left
 accent palette (main, light, deep) for a theme, from the generated `DxTokens.PALETTE_*`. It
 works in Double with one final half-up rounding, not `widget/ColorMath.blend`, so both sides
 agree to the bit: `test/fixtures/accent_cases.json` (46 rows, from an independent Python
-model) drives `AccentResolverTest.kt` and `test/core/design_system/accent_test.dart`. The wall
-still takes the static brand; the block-screen restyle wires the resolver in.
+model) drives `AccentResolverTest.kt` and `test/core/design_system/accent_test.dart`.
+
+`AccentResolver.forWall(ctx, dark)` reads the inputs from a bare Context, so a preview works
+with the service dead:
+- the mode: `modeOf(ReelWidgetSync.plan(ctx), now)` — none while blocking is off, a live Pause
+  (`pauseUntil > now`), `BLOCK_ALL` → Block All, `CURIOUS` → Conscious, `ONE_REEL` → One Reel for
+  an allowance of 1 and Pause above it, `PAUSED` → Pause, an unknown token → none. This is Dart's
+  `accentModeOf` row for row; the fixture's `modes` rows drive both `AccentResolverTest` and
+  `test/app/live_accent_test.dart` (a token Dart cannot hold is native only);
+- the share used: `usedFraction(ContentCounterStore.enabled, timeTodayMs(DateKeys.today(now)),
+  limit)` in whole seconds, as the Today ring divides `inSeconds`, where the limit is the
+  `RuleEngine.DAILY_REEL_LIMIT_ID` entry of `reelLimits()` (never `soonestReelLimitMs`, which
+  counts rule windows too);
+- a live Pause's time left (`pauseUntil − now`); none for an N-reel unblock.
+
+`payload.plan` is never read: `sanitised()` blanks it for every non-plan block.
+
+### The native Frozen Glass kit — `overlay/FrozenGlass.kt`
+
+The wall and the soft nudge draw from the generated `DxTokens` through one file:
+- **Pure helpers** (file-level, no Android types, so the JVM test loads them): `cssLine` (the CSS
+  gradient line, as Dart's), `blurRadius` (a CSS blur is a Gaussian sigma of blur / 2, and
+  HWUI's radius is `(sigma − 0.5) / 0.57735`), `hueOf` and `hueRotateSaturate` /
+  `accentIconMatrix` (the CSS Filter Effects `hue-rotate · saturate` matrix, hand-built — never
+  `ColorMatrix.setRotate`), `clockLabel` (12-hour "11 PM" / "7:30 AM", 24-hour "23:00"),
+  `heroIconFor` (the block reason's 3D icon), `ambientAlphaAt`, `slideConfirms` (≥ 88 %),
+  `waitSecondsLeft`, `alphaOver`, `contrastRatio`, and `DxTheme(dark)`, the tokens of one theme
+  under the Dart field names, with `waitKnob` mirroring `ConfirmSheet.waitKnob`.
+- **`DxDrawable`** — one surface (`fill`, `angleDeg`, `base`, `radiusPx`, `shadows`, `inset`):
+  the fill shader, zero-blur inset layers as exact `Path.op` hairlines, and every blurred layer
+  drawn once into a half-scale software bitmap (`BlurMaskFilter` is ignored on the hardware
+  canvas below API 28). All built in `onBoundsChange`; the bitmaps go when the drawable is
+  hidden. No backdrop blur at any API level.
+- **`DxArt`** — the 3D icons and `detoxo-logo.webp` from `flutter_assets/assets/images/icons/`,
+  decoded once per process (null-safe), and the logo's `logo-glow` per theme as
+  `extractAlpha` masks drawn in the layer colour (never a recolour of the logo).
 
 ## 7. Channel delta
 
@@ -425,22 +448,24 @@ deep-link landing on the dashboard is M6's shell work.
 ## 9. Tests
 
 - JVM (`android/app/src/test/.../overlay/BlockScreenGeometryTest.kt`, in the precommit gate):
-  `overlayFlags() == 808`; `stripWidthPx` at both SDK branches; `onColorFor` / `contrastRatio`
-  (`primaryButtonTextFollowsItsFill`); the `planLabel` table and the "never contains `curious`"
+  `overlayFlags() == 808`; `stripWidthPx` at both SDK branches; the `planLabel` table and the "never contains `curious`"
   sweep; `sanitised()` for adult and app-block payloads; `fromMap` null cases; the style spec —
   defaults (on, count + opens shown, 5 s), every field parsed with the delay clamped, and a map
   saved before 2026-10-16 still parsing with its `theme` / `background` / `design` /
-  `accentByUsage` ignored; the two-argument `wallIsDark` table; `wallPalette` for every theme
-  primary plus the fallback navy (ink ≥ 7:1, muted ≥ 4.5:1 on both grounds); `legibleOn` reaching
-  4.5:1 for every primary on both walls and leaving a legible one alone, and a chip's label
-  reaching it on the chip's own fill; the muted text at 4.5:1 under Spotlight's light (ground +
-  glow + lit logo) for every dark primary; `legibleFill`.
+  `accentByUsage` ignored; the two-argument `wallIsDark` table; and the contrast sweep (§5) over
+  both themes × every accent the wall can take (each palette main, and `AccentResolver.resolve` at
+  used 0 / .6 / .85 / 1 for no mode, Block All and a Pause in its last second) — every text pair
+  at 4.5:1, the glyphs at 3:1.
   `overlay/WallPolicyTest.kt` pins the wall rule: Block screen mode walls and other modes do not,
   a forced block walls in every mode but never over a `NONE` navigation, forced = daily limit /
   schedule / Conscious bank at zero, and the Appearance switch is skipped by forced walls and by a
-  reel wall in the chosen mode — never by an app or website wall. `overlay/QuoteWallTest.kt`
-  (`flipDegrees` keyframes, `turnedAway`, the Lissajous start and bounds, `phoneScale` 1 → 0.5 →
-  hidden, `LOGO_CROP` holds the asset's whole visible logo — decoded with the host JVM's ImageIO),
+  reel wall in the chosen mode — never by an app or website wall.
+  `overlay/FrozenGlassTest.kt` (`cssLine` at 180° / 90° / 145°, `blurRadius`, `hueOf`, the identity
+  matrix, the dark Pause matrix turning the 214° blue icon warm, `clockLabel`, `heroIconFor` and every
+  icon shipping as RIFF/WEBP, `wallFit` shedding the well, the size, lines, the writer and the
+  header in that order, the 88 % threshold and `waitSecondsLeft`, `ambientAlphaAt`, `alphaOver`,
+  the waiting knob), `overlay/AccentResolverTest.kt` (every `cases` row, every `modes` row, an ended
+  Pause, `usedFraction`),
   `overlay/QuoteBookTest.kt` (the real shipped asset: 100 quotes, none blank, ≤ 220 chars;
   garbage → empty; a pick never repeats the last and can land anywhere first),
   `engine/DetectionConfigTest.kt` (the real config: Instagram's wall surfaces name
@@ -450,24 +475,29 @@ deep-link landing on the dashboard is M6's shell work.
   does not (the real `org.json` is on the unit-test classpath).
 - Dart: `test/block_screen_test.dart` — the payload (round-trips, the sample-12 rule, adult
   anonymisation, the plan rule of `sanitised()`), `planLabel`, `BlockScreenCopy` (Conscious never
-  "curious", the locked ghost label, the opens line and its toggle, Unblock-5, an app wall keeps
-  Home and Open Detoxo with no way back in, an adult wall is unnamed and offers the browser back, a
-  website names the host, `showCount`, `meta`), the wall palette (ink / muted / `legibleOn` on both
-  grounds for every spec palette main of both themes and the fallback, Face Down's board ground,
-  Spotlight's accent breath, `legibleFill` for every main — only Light over-main darkens), `onColorFor`, `BlockScreenStyle` (defaults, a
+  "curious", the locked label of the way back, the opens line and its toggle, Unblock-5, an app
+  wall keeps Home and Open Detoxo with no way back in and reads "Locked in your App Blocker", an
+  adult wall is unnamed and offers the browser back, a website names the host and "On your Web
+  Blocker list", `showCount`, `meta`, `line`), "the wall reads" (the native sweep on the Dart
+  tokens via `Color.alphaBlend`: ink on the ground, ink-2 on the panel under the ambient at
+  84 dp — .09 Dark / .048 Light — and ink on the Open Detoxo pill, for each palette main and the
+  live accent's warm steps, both themes), `BlockScreenStyle` (defaults, a
   round-trip writing its four keys only, old keys ignored, `backDelaySec` clamping and tolerance),
   and that the settings push carries `themeMode`; `test/block_screen_cubit_test.dart` (hydrate,
   debounce, dirty guard, `enabled=false` push, the 5 s / instant back delay, Try it right after the
 switch pushes it first — and only once — while nothing pending goes straight to the wall, failed
 hydrate);
-  `test/block_screen_preview_test.dart` (light → Face Down, dark → Spotlight, Open Detoxo is a
-  wall pill full and compact, the logo ships in the bundle and both walls draw it once decoded,
-  the stage holds still under "Remove animations" and moves otherwise, a compact card never runs a
-  ticker, and the editor's three switches drive the cubit with no Design / Background / Theme
-  picker left, each row one TalkBack node with its caption; switched off the preview greys under
-  an **Off** badge and stops its loop, and on brings both back; the editor's own switch, Try it and
-  the options disabled while off, and a missing grant fixed in place by the `NoticeLine`);
-  `test/appearance_block_screen_card_test.dart` (switched off, the hub tile's status says what off
+  `test/block_screen_preview_test.dart` (one layout in Light and Dark: the "Detoxo" wordmark and
+  `DetoxoLogo`, the quote and its uppercase writer, the line and the meta, `LiquidPill` "Open
+  Detoxo", `Icons.home_rounded`, the counted way back, one `Icon3d` tinted for a plan wall; the
+  icon per block reason, the same table as `FrozenGlassTest`; the compact card; the logo and the
+  seven icon WebPs load from `rootBundle`; the entrance plays once and `pumpAndSettle` returns
+  with no frame scheduled, and under "Remove animations" nothing is scheduled at all; switched off
+  the preview greys under an **Off** badge, and on brings it back; the editor's own switch and
+  three options on panels drive the cubit, with its `InfoButton` copy and no look picker, Face
+  Down or Spotlight left, each row one TalkBack node with its caption; Try it and the options
+  disabled while off, and a missing grant fixed in place by the `NoticeLine`);
+  `test/appearance_block_screen_card_test.dart` (the compact preview; switched off, the hub tile's status says what off
   means and the tile still opens the editor; on, it reads On; without the grant, Needs access
   opens it); `native_event_reporter_test.dart` (`blockScreenAction` logged, preview skipped;
   `block_triggered` carries `wall`); `test/block_mode_picker_test.dart` (the four-row picker, the
@@ -488,16 +518,23 @@ hydrate);
   a reel block walls only in the **Block screen** mode — and still does with the Appearance switch
   off; a spent daily limit, a schedule and a drained Conscious bank wall in every mode with the
   switch off; Block screen mode with the overlay grant revoked toasts the platform name; toggling
-  the Appearance switch while a forced wall stands keeps it up. Quotes: app Light → Face Down,
-  app Dark → Spotlight, "Match system" follows the device; the theme primary colours Open Detoxo,
-  the Home ring and the labels; Open Detoxo's shadow takes its colour on API 28+ and is not clipped;
-  every control squishes on press; a new wall fades in and its buttons rise, an in-place rebuild
-  does not flash; the flip and the light hold 60 fps
-  (`dumpsys gfxinfo`, also on an API 24–27 device); a finger moves the light; "Remove animations"
-  stills both; a new quote per wall, the same one across an in-place rebuild; "Back to Instagram"
-  lands on the feed from the Reels tab and a profile, restarts Instagram from a DM thread, and
-  reads "Dismiss" (just closes) on the launcher; TalkBack reads the quote; at font scale 2× the
-  phone hides before the quote shrinks.
+  the Appearance switch while a forced wall stands keeps it up. The look: Try it in Light and
+  Dark, "Match system" following the device, for every block reason (its 3D icon; a plan wall's
+  mode icon in the accent) on API 24–27 and a recent device; the accent matches the Today screen
+  (Block All indigo, Conscious, a Pause warming over its last 2 minutes, the daily limit warming
+  toward `over`) on the ambient, Open Detoxo and the mode icon only; the logo keeps its colours
+  with its glow; the panel's and the pill's shadows are soft and not clipped; glass grows and the
+  rest presses on touch, nothing scales under "Remove animations"; a new wall fades in and its
+  buttons rise, the quote fades up once and then nothing draws (`dumpsys gfxinfo`), an in-place
+  rebuild does not flash; a new quote per wall, the same one across an in-place rebuild. Allow for
+  a while: the chips (5 min picked) and the slide appear in place, the knob counts 5 s — also with
+  `animator_duration_scale 0` — then a slide past 88 % confirms and the grant holds, an earlier
+  release springs back, a tap hints; TalkBack lands on the picked chip and a double tap on the
+  slide after the wait confirms, Switch Access too; at 2× font and in landscape the wall sheds the
+  well, the quote size, its lines, the writer and the header before any text meets the buttons;
+  the shadow bitmaps stay under 3 MB (`dumpsys meminfo`). "Back to Instagram" lands on the feed
+  from the Reels tab and a profile, restarts Instagram from a DM thread, and reads "Dismiss"
+  (just closes) on the launcher; TalkBack reads the quote.
 
 ## 10. Play policy notes
 
@@ -535,27 +572,28 @@ Pinned by `UsageQueryTest`.
 ## Source files
 
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenOverlay.kt` (`show`, `close` / `fadeOutPreview`, `detach`, the countdown and relabel)
-- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenRenderer.kt` (payload, style spec, `planLabel`, `contrastRatio`, `onColorFor`, `legibleFill`, `legibleOn`, `wallIsDark`, `build`, the button column with `addUnblock` / `fitChips`, `WallCopy`)
-- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/WallButtons.kt` (`WallButtons`: `primary` / `home` / `ghost` / `chip`, the press squish, the stacked `ripple`; `OUTLINED_FILL` / `outlinedFill`; the `LiquidPill` drawable)
-- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/QuoteWall.kt` (`QuoteWallView`, `flipDegrees`, `turnedAway`, `lissajousX` / `lissajousY`, `phoneScale`, `GLOW_ALPHA` / `LIT_LOGO_ALPHA`, `reduceMotion`, `LOGO_CROP`, `DetoxoLogo`), `overlay/QuoteBook.kt` (`Quote`, `QuoteBook`), `res/drawable/ic_wall_home.xml`, `assets/content/motivational_quotes.json`, `assets/images/Detoxo_logo.png`
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenRenderer.kt` (payload, style spec, `planLabel`, `wallIsDark`, `build`, the button column with `addUnblock` / `fitChips`, `WallCopy` with `clockAt`)
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/WallButtons.kt` (`WallButtons`: `primary` / `home` / `text` / `chip` + `select`, the press animators), `overlay/SlideToConfirmView.kt` (the wait + slide)
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/QuoteWall.kt` (`QuoteWallView`, `reduceMotion`), `overlay/QuoteBook.kt` (`Quote`, `QuoteBook`), `res/drawable/ic_wall_home.xml`, `ic_dx_check.xml`, `ic_dx_chevrons_right.xml`, `assets/content/motivational_quotes.json`, `assets/images/icons/*.webp` (the 3D icons and `detoxo-logo.webp`)
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/FrozenGlass.kt` (the pure helpers, `DxTheme`, `DxDrawable`, `DxArt`), `overlay/AccentResolver.kt` (`resolve`, `modeOf`, `usedFraction`, `forWall`), `overlay/DxTokens.kt` (generated)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/WallPolicy.kt` (`forced`, `reelWall`, `bypassesSwitch`, `MODE_BLOCK_SCREEN`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/OverlayWindows.kt` (`overlayType` — shared with the bubble and the nudge — and `launchDetoxo`, used only by the wall)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/accessibility/DetoxoAccessibilityService.kt` (`openAppHome`, `tapInApp`, `appRoot`, `raiseWall`, `reelPayload`, `appLabel`, `platformName`, `appBlockStaysOver`, `backStaysOver`, `prevForegroundPkg`, `a11yPkgs`, `screenOffReceiver`, `tearDownOverlays`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/channels/CommandHandler.kt` (six arms, `jsonToMap`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/UsageQuery.kt` (`hasAccess`, `opensToday`, `startOfDay`, `countOpens`)
-- `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/ConfigStore.kt` (`blockScreenStyleJson`, `appThemeMode`), `engine/ContentCounterStore.kt` (`brand(dark)`)
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/ConfigStore.kt` (`blockScreenStyleJson`, `appThemeMode`, `appendGrant`), `engine/ContentCounterStore.kt` (`enabled`, `timeTodayMs`, `reelLimits` — the accent's inputs)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/DetectionConfig.kt` (`PlatformRule.platformName`, `homeTabId`), `assets/config/platforms_config.json` (`homeTabId` on Instagram's wall surfaces)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/ContentCounter.kt` (`todayCount()`)
-- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenPalette.kt` (`Palette` / `wallPalette`), `widget/ColorMath.kt` (`blend` / `withAlpha`), `widget/WidgetBitmapRenderer.kt` (`isSystemDark`)
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/widget/ColorMath.kt` (`blend` / `withAlpha`), `widget/WidgetBitmapRenderer.kt` (`isSystemDark`), `widget/ReelWidgetSync.kt` (`plan`), `engine/RuleEngine.kt` (`DAILY_REEL_LIMIT_ID`)
 - `android/app/src/main/res/values/strings.xml` (`wall_*`)
-- `android/app/src/test/kotlin/com/errorxperts/detoxo/overlay/BlockScreenGeometryTest.kt`, `WallPolicyTest.kt`, `QuoteWallTest.kt`, `QuoteBookTest.kt`, `engine/UsageQueryTest.kt`, `engine/DetectionConfigTest.kt`, `widget/Fixtures.kt` (`repoFile`)
+- `android/app/src/test/kotlin/com/errorxperts/detoxo/overlay/BlockScreenGeometryTest.kt`, `FrozenGlassTest.kt`, `AccentResolverTest.kt`, `WallPolicyTest.kt`, `QuoteBookTest.kt`, `engine/UsageQueryTest.kt`, `engine/DetectionConfigTest.kt`, `widget/Fixtures.kt` (`repoFile`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/channels/CommandHandler.kt` (`BLOCK_MODES` / `THEME_MODES` whitelists on `pushSettings`)
 - `lib/features/blocking/block_screen/**`
 - `lib/features/blocking/blocking.dart`
 - `lib/features/blocking/shared/domain/entities/enums.dart` (`planLabel`, `BlockingMode.blockScreen`), `engine_event.dart` (`BlockEvent.wall`)
 - `lib/features/settings/presentation/widgets/block_mode_picker.dart` (`blockModes`, `BlockModeOptions`, `BlockModeTile`, `OptionTile`, `PermissionNeededRow`) and the `_BlockModeSheet` / `_BlockModeTile` wrappers in `settings_screen.dart`
 - `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart` (the overlay-missing banner branch)
-- `lib/features/content_counter/content_counter_appearance/presentation/widgets/widget_palette.dart` (`WallPalette` / `wallPaletteFor`, `legibleOn`, `onColorFor`, `legibleFill`), `lib/core/design_system/tokens/app_tokens.g.dart` (the spec palettes)
+- `lib/core/design_system/tokens/app_tokens.g.dart` (the spec tokens and palettes), `foundations/accent.dart` (`resolveAccent`, `accentIconFilter`), `components/dx_icons.dart` (`Icon3d`, `DetoxoLogo`), `components/buttons.dart` (`LiquidPill`, `GlassIconButton`), `foundations/glass_container.dart` (`GlassContainer`), `components/list_tiles.dart` (`PanelGroup`)
 - `lib/features/additional_feature/appearance/presentation/appearance_screen.dart` (`_BlockScreenSection`)
 - `lib/core/design_system/components/buttons.dart` (`SecondaryButton` — one tree for both states, so going disabled fades and keeps its 48 dp floor — and `InfoButton`, which opens its copy in a sheet; the editor uses them), `components/toggle.dart` (`AppToggle`, which fades to disabled too), `components/feedback.dart` (`AppReveal`, `NoticeLine`), `components/badges.dart` (`AppBadge`, the preview's Off), `foundations/motion.dart` (`AppPressable`'s press)
 - `lib/core/constants/channel_constants.dart`, `lib/core/platform_channels/engine_channel.dart`

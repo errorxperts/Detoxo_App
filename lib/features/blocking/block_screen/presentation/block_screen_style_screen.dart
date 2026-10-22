@@ -11,9 +11,9 @@ import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// The block screen's editor: one big live preview of the look the app theme
-/// gives it (Face Down when light, Spotlight when dark), "Try it on your
-/// phone", which raises the real wall over this screen, and one panel of
+/// The block screen's editor: its switch on a panel, one big live preview of
+/// the wall (one layout, in the app theme and the live accent), "Try it on
+/// your phone", which raises the real wall over this screen, and one panel of
 /// options. Reads the app-wide `BlockScreenStyleCubit` (shared with the
 /// Appearance hub); the preview reflects the user's current plan.
 class BlockScreenStyleScreen extends StatelessWidget {
@@ -26,13 +26,9 @@ class BlockScreenStyleScreen extends StatelessWidget {
         title: Text('Block screen'),
         actions: [
           InfoButton(
-            'Each block shows one of 100 built-in quotes, a new one every '
-            'time. The look follows your app theme — Face Down when it’s '
-            'light, Spotlight when it’s dark. Change the theme under '
-            'Appearance.\n\nSwitched off, app and website blocks show a '
-            'short toast instead. Daily limits, schedules, an empty '
-            'Conscious bank and the Block screen mode for reels still '
-            'show it.',
+            'Shows a quote when something is blocked. It follows your app '
+            'theme. Off, app and website blocks show a short message '
+            'instead.',
           ),
         ],
       ),
@@ -62,14 +58,6 @@ class _Body extends StatelessWidget {
       todayCount: today,
     );
     final cubit = context.read<BlockScreenStyleCubit>();
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final text = Theme.of(context).textTheme;
-
-    final hairline = Divider(
-      height: 1,
-      thickness: 1,
-      color: context.tokens.hairline,
-    );
 
     return BlocBuilder<BlockScreenStyleCubit, BlockScreenStyle>(
       builder: (context, style) {
@@ -84,23 +72,24 @@ class _Body extends StatelessWidget {
           children: [
             // The same switch as the Appearance card's, so the screen that
             // shows the wall can also turn it off and on.
-            GlassCard(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: _SwitchRow(
-                icon: Icons.front_hand_rounded,
-                title: 'Show block screen',
-                caption: 'For app & website blocks',
-                value: on,
-                onChanged: (v) => cubit.setEnabled(enabled: v),
-              ),
+            PanelGroup(
+              children: [
+                _SwitchRow(
+                  icon: Icons.front_hand_rounded,
+                  title: 'Show block screen',
+                  caption: 'For app & website blocks',
+                  value: on,
+                  onChanged: (v) => cubit.setEnabled(enabled: v),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
             _PreviewStage(style: style, payload: payload),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              '${dark ? 'Spotlight' : 'Face Down'} · follows your app theme',
+              'Follows your app theme',
               textAlign: TextAlign.center,
-              style: text.bodySmall?.copyWith(color: context.tokens.ink2),
+              style: AppTypography.subhead.copyWith(color: context.tokens.ink2),
             ),
             const SizedBox(height: AppSpacing.sm),
             // Waits for the switch, and for the overlay grant the line under
@@ -124,36 +113,31 @@ class _Body extends StatelessWidget {
                   : null,
             ),
             const SectionHeader('Options'),
-            GlassCard(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: Column(
-                children: [
-                  _SwitchRow(
-                    icon: Icons.movie_filter_rounded,
-                    title: 'Reel count today',
-                    value: style.showCount,
-                    enabled: on,
-                    onChanged: (v) => cubit.setShowCount(show: v),
-                  ),
-                  hairline,
-                  _SwitchRow(
-                    icon: Icons.repeat_rounded,
-                    title: 'Times opened today',
-                    caption: 'Needs Usage access',
-                    value: style.showOpens,
-                    enabled: on,
-                    onChanged: (v) => cubit.setShowOpens(show: v),
-                  ),
-                  hairline,
-                  _SwitchRow(
-                    icon: Icons.hourglass_bottom_rounded,
-                    title: 'Wait 5 seconds to go back',
-                    value: style.backDelaySec > 0,
-                    enabled: on,
-                    onChanged: (v) => cubit.setBackDelay(on: v),
-                  ),
-                ],
-              ),
+            PanelGroup(
+              children: [
+                _SwitchRow(
+                  icon: Icons.movie_filter_rounded,
+                  title: 'Reel count today',
+                  value: style.showCount,
+                  enabled: on,
+                  onChanged: (v) => cubit.setShowCount(show: v),
+                ),
+                _SwitchRow(
+                  icon: Icons.repeat_rounded,
+                  title: 'Times opened today',
+                  caption: 'Needs Usage access',
+                  value: style.showOpens,
+                  enabled: on,
+                  onChanged: (v) => cubit.setShowOpens(show: v),
+                ),
+                _SwitchRow(
+                  icon: Icons.hourglass_bottom_rounded,
+                  title: 'Wait 5 seconds to go back',
+                  value: style.backDelaySec > 0,
+                  enabled: on,
+                  onChanged: (v) => cubit.setBackDelay(on: v),
+                ),
+              ],
             ),
           ],
         );
@@ -175,9 +159,9 @@ Future<void> _tryIt(BuildContext context, BlockScreenPayload payload) async {
   );
 }
 
-/// The glass stage under the big preview. Each look is pinned to the theme it
-/// was drawn in, so when the app theme flips the old one cross-fades into the
-/// new instead of snapping.
+/// The quiet stage under the big preview. Each picture is pinned to the theme
+/// it was drawn in, so when the app theme flips the old one cross-fades into
+/// the new instead of snapping.
 class _PreviewStage extends StatelessWidget {
   const _PreviewStage({required this.style, required this.payload});
 
@@ -191,11 +175,7 @@ class _PreviewStage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [context.tokens.fillQuiet, context.tokens.fillQuiet],
-        ),
+        color: context.tokens.fillQuiet,
         border: Border.all(color: context.tokens.hairline),
       ),
       child: Center(
@@ -218,9 +198,10 @@ class _PreviewStage extends StatelessWidget {
   }
 }
 
-/// One option in a panel: a flat row (the panel is the surface), not an
-/// `AppToggleTile`, which brings its own glass. Not [enabled] (the block
-/// screen switched off), it fades and its switch announces as disabled.
+/// One option on a panel: a flat row in the `GlassListTile` metrics (the
+/// panel is the surface). Not [enabled] (the block screen switched off), it
+/// fades and its switch announces as disabled, and its caption is read with
+/// its own switch.
 class _SwitchRow extends StatelessWidget {
   const _SwitchRow({
     required this.icon,
@@ -240,49 +221,53 @@ class _SwitchRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final t = context.tokens;
     // One TalkBack node per row — title, caption and switch — so a caption is
     // read with its own switch, not lumped into the panel's text.
     return MergeSemantics(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Row(
-          children: [
-            Expanded(
-              child: AnimatedOpacity(
-                opacity: enabled ? 1 : 0.45,
-                duration: AppDurations.fast,
-                child: Row(
-                  children: [
-                    IconBadge(icon: icon),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: text.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (caption != null)
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 56),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: AnimatedOpacity(
+                  opacity: enabled ? 1 : 0.45,
+                  duration: context.motion(AppDurations.fast),
+                  child: Row(
+                    children: [
+                      Icon(icon, color: t.ink2),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              caption!,
-                              style: text.bodySmall?.copyWith(
-                                color: context.tokens.ink2,
-                              ),
+                              title,
+                              style: AppTypography.label.copyWith(color: t.ink),
                             ),
-                        ],
+                            if (caption != null)
+                              Text(
+                                caption!,
+                                style: AppTypography.subhead.copyWith(
+                                  color: t.ink2,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            AppToggle(value: value, enabled: enabled, onChanged: onChanged),
-          ],
+              const SizedBox(width: AppSpacing.sm),
+              AppToggle(value: value, enabled: enabled, onChanged: onChanged),
+            ],
+          ),
         ),
       ),
     );

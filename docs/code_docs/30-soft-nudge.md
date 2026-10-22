@@ -141,12 +141,27 @@ is its own window, deliberately **not** the [block screen](25-block-screen.md):
 A wall's job is to interrupt; a nudge's job is the opposite — it must never take a tap the user
 meant for the feed. Shared with the bubble and the wall: `overlayType()` from `OverlayWindows.kt`,
 the `Settings.canDrawOverlays` guard with its `OVERLAY_RECHECK_MS` throttle and one-shot warning,
-and the `removeView`-swallowing teardown. The card is a `LinearLayout` with a rounded
-`GradientDrawable` — no custom `onDraw`; copy is in `res/values/strings.xml` as `nudge_title` /
-`nudge_body` / `nudge_dismiss`.
+and the `removeView`-swallowing teardown. The card is a `LinearLayout` — no custom `onDraw`;
+copy is in `res/values/strings.xml` as `nudge_title` / `nudge_body` / `nudge_dismiss`.
 
-The card carries one action, **Leave** (`goHome`), a ✕, and a whole-card tap that dismisses. All
-three touch targets take the wall's 48 dp floor, and the card has a TalkBack label of its own.
+**The look** is the app's Frozen Glass kit ([25](25-block-screen.md), `overlay/FrozenGlass.kt`)
+in the app's own theme: light or dark by `wallIsDark(ConfigStore.appThemeMode, isSystemDark)`,
+as the wall. The card is a `DxDrawable` of radius 22 (`radius-row`) filled with
+`DxTheme.opaqueSheet` — the sheet colours (`sheet-top` / `sheet-bottom`) composited **opaque**
+over the ground's ends — because translucent glass over a third-party feed could not promise
+4.5:1; pinned for ink, ink-2 and the Leave pill in both themes by `BlockScreenGeometryTest`. It
+keeps `shadow-glass`'s inset edge layers; its outer drop shadow is left out
+(`ponytail:` the window is exactly the card — that is the passthrough contract — so the shadow
+would only be clipped, and a margin for it would swallow feed taps around the card). Type is
+Manrope with tabular figures: the title in `label` 15 Bold ink, compact — "Instagram · 15m"
+(`nudge_title`, `UsageQuery.formatHm`, the app's duration form) — the body in `subhead` 13
+SemiBold ink-2. No teal and no system font is left.
+
+The card carries one action, **Leave** (`goHome`) — a `fill-quiet` pill in `label` ink, at least
+48 dp — a ✕ in ink-2 (48 × 48), and a whole-card tap that dismisses. All three touch targets take
+the wall's 48 dp floor, and the card has a TalkBack label of its own ("Instagram for 15 minutes.
+Tap to dismiss."). It enters with a 24 dp rise and fade over 220 ms, skipped under "Remove
+animations" (`reduceMotion`).
 
 **The two overlays never coexist**, in both directions. `tickNudge` short-circuits on
 `BlockScreenOverlay.isShowing()`, and `raiseWall` calls `NudgeOverlay.hide()` — needed because the
@@ -263,6 +278,9 @@ Added after the post-ship audit: an unchanged config push keeps the day's tally 
 session; a changed step restarts the stay; disabling clears it; a protected app is not in the watch
 list; a backwards clock ends the stay instead of wedging it.
 
+`overlay/BlockScreenGeometryTest.kt` — the card's look: `DxTheme.opaqueSheet` is opaque, and
+ink, ink-2 and ink on the Leave pill's `fill-quiet` read at 4.5:1 on it in both themes.
+
 `test/nudge_config_test.dart` — the Dart half: the three fields' defaults, JSON round-trip, a
 pre-M7 blob upgrading to off, independent `copyWith`; and that the watch list is exactly the
 catalog's distracting packages and excludes everything else.
@@ -277,11 +295,13 @@ list carries only distracting packages.
 ```
 android/app/src/main/kotlin/com/errorxperts/detoxo/engine/NudgeTracker.kt
 android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/NudgeOverlay.kt
+android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/FrozenGlass.kt   (DxTheme.opaqueSheet, DxDrawable)
 android/app/src/main/kotlin/com/errorxperts/detoxo/accessibility/DetoxoAccessibilityService.kt
 android/app/src/main/kotlin/com/errorxperts/detoxo/engine/ConfigStore.kt
 android/app/src/main/kotlin/com/errorxperts/detoxo/channels/CommandHandler.kt
 android/app/src/main/res/values/strings.xml
 android/app/src/test/kotlin/com/errorxperts/detoxo/engine/NudgeTrackerTest.kt
+android/app/src/test/kotlin/com/errorxperts/detoxo/overlay/BlockScreenGeometryTest.kt
 
 lib/features/blocking/shared/domain/nudge_sync.dart
 lib/features/blocking/shared/domain/entities/app_settings.dart

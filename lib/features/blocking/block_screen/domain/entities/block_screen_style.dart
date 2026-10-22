@@ -5,8 +5,8 @@ import 'package:equatable/equatable.dart';
 /// Persisted natively in `ConfigStore` (`block_screen_style`, as JSON) and
 /// pushed over `setBlockScreenStyle`; the native renderer and the Flutter
 /// `BlockScreenPreview` both render from these fields. The look is not here:
-/// the wall follows the app theme (Face Down when it is light, Spotlight when
-/// it is dark) and takes the theme primary as its accent.
+/// the wall follows the app theme, light or dark, and takes the live accent
+/// the Today screen shows.
 class BlockScreenStyle extends Equatable {
   const BlockScreenStyle({
     this.enabled = true,
