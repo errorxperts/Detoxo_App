@@ -1,5 +1,4 @@
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/widgets/app_picker_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,6 +67,42 @@ void main() {
     await tester.tap(find.text('Add (2)'));
     await tester.pumpAndSettle();
     expect(result, [_apps[0], _apps[2]]);
+  });
+
+  testWidgets('rows sit flat on the sheet: no panel of their own', (
+    tester,
+  ) async {
+    await pumpAndOpen(tester, unavailable: {'com.b.bravo': 'Added'});
+    for (final app in _apps) {
+      // The only glass above a row is the sheet itself.
+      expect(
+        find.ancestor(
+          of: find.text(app.appName),
+          matching: find.byType(GlassContainer),
+        ),
+        findsOneWidget,
+        reason: app.appName,
+      );
+    }
+    expect(find.widgetWithText(AppBadge, 'Added'), findsOneWidget);
+  });
+
+  testWidgets('a picked row shows the list-tile check; the CTA counts it', (
+    tester,
+  ) async {
+    await pumpAndOpen(tester);
+    expect(find.byIcon(Icons.check_rounded), findsNothing);
+    await tester.tap(find.text('Alpha'));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.widgetWithText(GlassListTile, 'Alpha'),
+        matching: find.byIcon(Icons.check_rounded),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+    expect(find.text('Add (1)'), findsOneWidget);
   });
 
   testWidgets('selection state is exposed to screen readers', (tester) async {

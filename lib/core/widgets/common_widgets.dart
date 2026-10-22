@@ -6,48 +6,30 @@ export 'package:detoxo/core/design_system/components/feedback.dart'
 export 'package:detoxo/core/design_system/components/section_header.dart'
     show SectionHeader;
 
-/// Shared composites kept at their original names/APIs so the ~13 screens that
-/// already use them keep compiling — now reskinned over the glass design system.
+/// Shared composites kept at their original names/APIs so the screens that
+/// already use them keep compiling — now drawn in the Frozen Glass idiom.
 /// New screens should prefer the design-system components directly
-/// (`GlassCard`, `StatCard`, `GlassListTile`, `PrimaryButton`, …).
+/// (`PanelGroup`, `GlassListTile`, `SectionHeader`, `PrimaryButton`, …).
 
-/// A titled, padded glass section used across screens.
+/// A panel body: one padded panel with an optional title over [child].
 class SectionCard extends StatelessWidget {
-  const SectionCard({
-    required this.child,
-    this.title,
-    this.trailing,
-    this.padding = const EdgeInsets.all(14),
-    super.key,
-  });
+  const SectionCard({required this.child, this.title, super.key});
 
   final Widget child;
   final String? title;
-  final Widget? trailing;
-  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     return GlassContainer(
-      padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (title != null) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title!,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                ?trailing,
-              ],
+            Text(
+              title!,
+              style: AppTypography.label.copyWith(color: context.tokens.ink),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
           ],
           child,
         ],
@@ -60,17 +42,15 @@ class SectionCard extends StatelessWidget {
 // (components/feedback.dart, components/section_header.dart) and are re-exported
 // above so existing `common_widgets.dart` importers keep compiling.
 
-/// A labelled navigation tile for the "more features" list. Pass [animatedIcon]
-/// for a morphing badge glyph that plays on appear and replays on every tap;
-/// [icon] is the static fallback for un-migrated call sites.
-class FeatureTile extends StatefulWidget {
+/// A labelled navigation row: a [GlassListTile] with an ink-2 [icon]. Put a
+/// run of them in a `PanelGroup`; [trailing] replaces the row's chevron.
+class FeatureTile extends StatelessWidget {
   const FeatureTile({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
     this.trailing,
-    this.animatedIcon,
     super.key,
   });
 
@@ -79,56 +59,15 @@ class FeatureTile extends StatefulWidget {
   final String subtitle;
   final VoidCallback onTap;
   final Widget? trailing;
-  final AppIcon? animatedIcon;
-
-  @override
-  State<FeatureTile> createState() => _FeatureTileState();
-}
-
-class _FeatureTileState extends State<FeatureTile> {
-  final AnimatedIconController _iconController = AnimatedIconController();
-
-  @override
-  void dispose() {
-    _iconController.dispose();
-    super.dispose();
-  }
-
-  void _onTap() {
-    if (widget.animatedIcon != null &&
-        !(MediaQuery.maybeDisableAnimationsOf(context) ?? false)) {
-      _iconController
-        ..reset()
-        ..animate();
-    }
-    widget.onTap();
-  }
 
   @override
   Widget build(BuildContext context) {
-    final accent = Theme.of(context).colorScheme.secondary;
-    final leading = widget.animatedIcon != null
-        ? AppAnimatedIcon(
-            icon: widget.animatedIcon!,
-            size: 20,
-            color: accent,
-            controller: _iconController,
-          )
-        : Icon(widget.icon, size: 20, color: accent);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: GlassListTile(
-        onTap: _onTap,
-        leading: IconBadge(
-          size: 38,
-          shape: BoxShape.rectangle,
-          fillAlpha: 0.16,
-          child: leading,
-        ),
-        title: widget.title,
-        subtitle: widget.subtitle,
-        trailing: widget.trailing ?? const Icon(Icons.chevron_right),
-      ),
+    return GlassListTile(
+      onTap: onTap,
+      leading: Icon(icon, size: 24, color: context.tokens.ink2),
+      title: title,
+      subtitle: subtitle,
+      trailing: trailing,
     );
   }
 }
@@ -159,9 +98,7 @@ class InlineHint extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: context.tokens.ink2),
+              style: AppTypography.subhead.copyWith(color: context.tokens.ink2),
             ),
           ),
         ],

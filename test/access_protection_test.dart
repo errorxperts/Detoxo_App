@@ -1016,9 +1016,11 @@ void main() {
 
     // The setup body is a lazy ListView: offscreen rows have no elements yet,
     // so targets below the fold need scrollUntilVisible, not ensureVisible.
+    // It scrolls until the target is hit-testable, not merely built: a row in
+    // the cache extent below the fold has an element but can't take a tap.
     Future<void> scrollTo(WidgetTester tester, Finder finder, double delta) =>
         tester.scrollUntilVisible(
-          finder,
+          finder.hitTestable(),
           delta,
           scrollable: find.byType(Scrollable).first,
         );
@@ -1032,7 +1034,7 @@ void main() {
 
       await tester.enterText(find.byType(TextField).first, '2468');
       await tester.enterText(find.byType(TextField).last, '2468');
-      await scrollTo(tester, find.text('Hide screen in Recents'), 200);
+      await scrollTo(tester, toggleIn('Hide screen in Recents'), 200);
       await tester.tap(toggleIn('Hide screen in Recents'));
       await tester.pump();
       await scrollTo(tester, find.text('Save PIN'), 200);

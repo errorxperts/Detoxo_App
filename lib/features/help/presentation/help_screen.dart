@@ -32,7 +32,6 @@ class HelpScreen extends StatelessWidget {
           ),
           FeatureTile(
             icon: Icons.help_outline,
-            animatedIcon: AppIcon.info,
             title: 'FAQ',
             subtitle: 'Answers to common questions',
             onTap: () => context.push(Routes.helpFaq),

@@ -182,11 +182,13 @@ is a *management* surface unifying two systems that **enforce differently**:
    FAB opens the shared installed-app picker (`core/widgets/app_picker_sheet.dart`
    → `showAppPickerSheet`): a searchable, multi-select bottom sheet of the
    device's launchable apps (icon + name + package, from
-   `EngineRepository.installedApps()` — cached process-wide). Apps already in the
-   custom list show an "Added" pill and can't be re-picked, and **protected
-   apps can't be blocked** (one role per app): catalog packages show an
-   "Auto-protected" pill, user-protected packages (loaded from
-   `ProtectedAppsRepository` before the sheet opens) a "Protected" pill. A
+   `EngineRepository.installedApps()` — cached process-wide), drawn as flat
+   `GlassListTile` rows on the sheet with hairlines between them; a picked row
+   shows the tile's check and the CTA counts the picks ("Block (1)"). Apps already
+   in the custom list show an "Added" badge (`AppBadge.label`) and can't be
+   re-picked, and **protected apps can't be blocked** (one role per app): catalog
+   packages show an "Auto-protected" badge, user-protected packages (loaded from
+   `ProtectedAppsRepository` before the sheet opens) a "Protected" badge. A
    manual name + package form remains as the fallback for apps the system hides
    (work profiles, engine unavailable) — it enforces the same `unavailable` map
    (inline hint + disabled confirm), keeps any list selections when confirming,
