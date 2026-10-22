@@ -2,12 +2,15 @@ import 'dart:math' as math;
 
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/utils/duration_format.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 /// An interactive radial gauge for picking a daily short-form-video limit —
 /// drag (or tap) anywhere on the 270° arc to set the value, which animates in
-/// the centre. Deliberately mirrors the dashboard's screen-time ring so the
-/// number the user sets here reads as "the ring you'll fill each day".
+/// the centre. Drawn in the dashboard ring's materials (`ProgressRing`: groove,
+/// track, three-stop brand arc with its blurred copy, white knob and halo,
+/// raised disc) so the number the user sets here reads as "the ring you'll
+/// fill each day". Every measure is the spec's 300 px ring scaled to [size].
 ///
 /// Controlled: it renders [value] and reports drags via [onChanged]; the parent
 /// owns the state. Accessible via a Semantics slider (increase/decrease step).
@@ -18,7 +21,6 @@ class ScreenTimeDial extends StatefulWidget {
     this.min = const Duration(minutes: 15),
     this.max = const Duration(hours: 5),
     this.step = const Duration(minutes: 15),
-    this.accent,
     this.size = 260,
     super.key,
   });
@@ -28,7 +30,6 @@ class ScreenTimeDial extends StatefulWidget {
   final Duration min;
   final Duration max;
   final Duration step;
-  final Color? accent;
   final double size;
 
   @override
@@ -46,8 +47,7 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
   int get _minM => widget.min.inMinutes;
   int get _maxM => widget.max.inMinutes;
 
-  double get _fraction =>
-      ((widget.value.inMinutes - _minM) / (_maxM - _minM)).clamp(0.0, 1.0);
+  double get _fraction => _fractionOf(widget.value).clamp(0.0, 1.0);
 
   /// Maps a touch point to a 0..1 position along the arc and commits it.
   void _handle(Offset local) {
@@ -77,17 +77,45 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
     }
   }
 
-  void _nudge(int steps) =>
-      _commit(_fraction + steps * widget.step.inMinutes / (_maxM - _minM));
+  void _nudge(int steps) => _commit(_fractionOf(_stepped(steps)));
+
+  /// The value [steps] steps away, clamped to the range.
+  Duration _stepped(int steps) => Duration(
+    minutes: (widget.value.inMinutes + steps * widget.step.inMinutes).clamp(
+      _minM,
+      _maxM,
+    ),
+  );
+
+  double _fractionOf(Duration d) => (d.inMinutes - _minM) / (_maxM - _minM);
+
+  static List<DxShadow> _scale(List<DxShadow> shadows, double k) => [
+    for (final s in shadows)
+      DxShadow(
+        color: s.color,
+        offset: s.offset * k,
+        blur: s.blur * k,
+        spread: s.spread * k,
+        inset: s.inset,
+      ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    final t = context.tokens;
+    final p = t.brand;
+    final dark = t.brightness == Brightness.dark;
+    final size = widget.size;
+    final k = size / 300;
+    final disc = 224 * k;
     return Semantics(
       slider: true,
       label: 'Daily limit',
       value: formatHm(widget.value),
+      // Both or neither: a slider announcing its value must announce the
+      // step either way too (the framework asserts on it).
+      increasedValue: formatHm(_stepped(1)),
+      decreasedValue: formatHm(_stepped(-1)),
       onIncrease: () => _nudge(1),
       onDecrease: () => _nudge(-1),
       child: GestureDetector(
@@ -100,30 +128,77 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
           _handle(d.localPosition);
         },
         onPanUpdate: (d) => _handle(d.localPosition),
-        child: SizedBox(
-          width: widget.size,
-          height: widget.size,
+        child: SizedBox.square(
+          dimension: size,
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Animate the arc/thumb to the snapped position; the centre text
-              // updates immediately.
-              TweenAnimationBuilder<double>(
-                tween: Tween<double>(end: _fraction),
-                duration: reduce ? Duration.zero : AppDurations.fast,
-                curve: AppCurves.standard,
-                builder: (context, f, _) => CustomPaint(
-                  size: Size.square(widget.size),
-                  painter: _DialPainter(
-                    fraction: f,
-                    accent:
-                        widget.accent ??
-                        Theme.of(context).colorScheme.secondary,
-                    trackColor: context.tokens.hairline,
+              CustomPaint(
+                size: Size.square(size),
+                painter: DxSurfacePainter(
+                  radius: BorderRadius.circular(size / 2),
+                  gradient: [t.ringGrooveFrom, t.ringGrooveTo],
+                  angle: 145,
+                  shadows: _scale(t.shadowGroove, k),
+                ),
+              ),
+              // The arc glides to the snapped position on its own layer; the
+              // centre text updates immediately.
+              RepaintBoundary(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(end: _fraction),
+                  duration: context.motion(AppDurations.fast),
+                  curve: AppCurves.standard,
+                  builder: (context, f, _) => CustomPaint(
+                    size: Size.square(size),
+                    painter: _DialPainter(
+                      fraction: f,
+                      k: k,
+                      track: t.ringTrack,
+                      arc: dark
+                          ? [p.light, p.main, p.deep]
+                          : [
+                              p.main,
+                              Color.lerp(p.main, p.deep, AppTokens.arcMidMix)!,
+                              p.deep,
+                            ],
+                      glow: t.kArcGlow,
+                      halo: (dark ? p.light : p.main).withValues(
+                        alpha: t.kHalo,
+                      ),
+                      knobShadow: t.knobShadow,
+                    ),
                   ),
                 ),
               ),
-              _center(context, text, reduce: reduce),
+              SizedBox.square(
+                dimension: disc,
+                child: CustomPaint(
+                  painter: DxSurfacePainter(
+                    radius: BorderRadius.circular(disc / 2),
+                    gradient: [t.ringDiscFrom, t.ringDiscTo],
+                    angle: 145,
+                    shadows: _scale(t.shadowDisc, k),
+                  ),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: p.main.withValues(alpha: AppTokens.discWash),
+                    ),
+                    child: Center(
+                      // The disc less its spec 10 px margin; scales down
+                      // rather than overflowing at large text sizes.
+                      child: SizedBox.square(
+                        dimension: (224 - 20) * k,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: _center(context),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -131,43 +206,29 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
     );
   }
 
-  Widget _center(BuildContext context, TextTheme text, {required bool reduce}) {
+  Widget _center(BuildContext context) {
+    final t = context.tokens;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          'PER DAY',
-          style: text.labelSmall?.copyWith(
-            color: widget.accent ?? Theme.of(context).colorScheme.secondary,
-            letterSpacing: 2,
-            fontSize: 11,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
+        Text('PER DAY', style: AppTypography.eyebrow.copyWith(color: t.ink2)),
+        const SizedBox(height: 6),
         Text(
           formatHm(widget.value),
-          style: text.displaySmall?.copyWith(
-            fontWeight: FontWeight.w800,
-            height: 1,
-            color: context.tokens.ink,
-          ),
+          style: AppTypography.number.copyWith(color: t.ink),
         ),
-        const SizedBox(height: AppSpacing.sm),
+        const SizedBox(height: AppSpacing.xs),
         AnimatedOpacity(
-          duration: reduce ? Duration.zero : AppDurations.normal,
+          duration: context.motion(AppDurations.normal),
           opacity: _interacted ? 0 : 1,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.touch_app_outlined,
-                size: 14,
-                color: context.tokens.ink2,
-              ),
+              Icon(Icons.touch_app_outlined, size: 14, color: t.ink2),
               const SizedBox(width: 4),
               Text(
                 'Drag to set',
-                style: text.labelSmall?.copyWith(color: context.tokens.ink2),
+                style: AppTypography.caption.copyWith(color: t.ink2),
               ),
             ],
           ),
@@ -177,95 +238,99 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
   }
 }
 
+/// The 270° track, the arc with its blurred copy, and the knob. The ring
+/// measures of `ProgressRing` (radius 131, stroke 24, halo 17, knob 9), on the
+/// gauge's span instead of the full circle.
 class _DialPainter extends CustomPainter {
-  _DialPainter({
+  const _DialPainter({
     required this.fraction,
-    required this.accent,
-    required this.trackColor,
+    required this.k,
+    required this.track,
+    required this.arc,
+    required this.glow,
+    required this.halo,
+    required this.knobShadow,
   });
 
   final double fraction;
-  final Color accent;
-  final Color trackColor;
+  final double k;
+  final Color track;
+  final List<Color> arc;
+  final double glow;
+  final Color halo;
+  final Color knobShadow;
 
   static const double _start = math.pi * 3 / 4;
   static const double _sweep = math.pi * 3 / 2;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final stroke = size.width * 0.075;
     final center = size.center(Offset.zero);
-    final radius = (size.width - stroke) / 2 - 2;
+    final radius = 131 * k;
     final rect = Rect.fromCircle(center: center, radius: radius);
-
-    // Faint full-gauge track.
+    final stroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 24 * k
+      ..strokeCap = StrokeCap.round;
     canvas.drawArc(
       rect,
       _start,
       _sweep,
       false,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = stroke
-        ..strokeCap = StrokeCap.round
-        ..color = trackColor,
+      Paint.from(stroke)..color = track,
     );
 
     final sweep = _sweep * fraction.clamp(0.0, 1.0);
-    if (fraction > 0) {
+    if (sweep > 0) {
+      // Left to right: the gauge is symmetric about the vertical, so the arc
+      // runs main → deep from its start at 7:30 to its end at 4:30.
+      Shader shader(List<Color> colors) =>
+          LinearGradient(colors: colors).createShader(rect);
       canvas
-        // Ambient bloom behind the fill.
         ..drawArc(
           rect,
           _start,
           sweep,
           false,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = stroke + 6
-            ..strokeCap = StrokeCap.round
-            ..color = accent.withValues(alpha: 0.30)
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
+          Paint.from(stroke)
+            ..shader = shader([
+              for (final c in arc) c.withValues(alpha: c.a * glow),
+            ])
+            ..maskFilter = MaskFilter.blur(BlurStyle.normal, 9 * k),
         )
-        // Bright brand-gradient fill.
         ..drawArc(
           rect,
           _start,
           sweep,
           false,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = stroke
-            ..strokeCap = StrokeCap.round
-            ..color = accent,
+          Paint.from(stroke)..shader = shader(arc),
         );
     }
 
-    // Draggable thumb: glow, white knob, accent ring.
-    final ang = _start + sweep;
-    final tip = center + Offset(math.cos(ang), math.sin(ang)) * radius;
+    // The knob in the arc's rotated frame (as `ProgressRing` draws it), so its
+    // shadow keeps the spec offset: +1.5 along the travel, +2 toward the centre.
+    final top = Offset(0, -radius);
     canvas
+      ..save()
+      ..translate(center.dx, center.dy)
+      ..rotate(_start + sweep + math.pi / 2)
+      ..drawCircle(top, 17 * k, Paint()..color = halo)
       ..drawCircle(
-        tip,
-        stroke * 0.85,
-        Paint()
-          ..color = accent.withValues(alpha: 0.45)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+        top + Offset(1.5 * k, 2 * k),
+        9.5 * k,
+        Paint()..color = knobShadow,
       )
-      ..drawCircle(tip, stroke * 0.6, Paint()..color = Colors.white)
-      ..drawCircle(
-        tip,
-        stroke * 0.6,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5
-          ..color = accent,
-      );
+      ..drawCircle(top, 9 * k, Paint()..color = Colors.white)
+      ..restore();
   }
 
   @override
   bool shouldRepaint(_DialPainter old) =>
       old.fraction != fraction ||
-      old.accent != accent ||
-      old.trackColor != trackColor;
+      old.k != k ||
+      old.track != track ||
+      !listEquals(old.arc, arc) ||
+      old.glow != glow ||
+      old.halo != halo ||
+      old.knobShadow != knobShadow;
 }

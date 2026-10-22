@@ -139,18 +139,28 @@ Future<Finder> reachHome(
 
   if (landed == 0) {
     await step('onboarding');
+    // Skip lands on the feed picks, not past onboarding. Next goes live once
+    // the target scan seeds the default picks (or finds nothing to pick), so
+    // keep tapping it until the commitment shows; Get started then hands off.
     await tester.tap(find.text('Skip'));
-    // Two hops, not one: _finish persists `onboarded`, seeds the daily limit,
-    // then bounces through the SPLASH so SettingsCubit re-bootstraps from the
-    // flag it just wrote (see onboarding_screen.dart) — the splash gate is
-    // what finally lands on /permissions. A fixed settle races that.
+    final commitment = find.text('DAILY CEILING');
+    final deadline = DateTime.now().add(const Duration(seconds: 45));
+    while (commitment.evaluate().isEmpty && DateTime.now().isBefore(deadline)) {
+      await settle(tester);
+      final next = find.text('Next');
+      if (next.evaluate().isNotEmpty) await tester.tap(next);
+    }
+    expect(commitment, findsOneWidget, reason: 'Next never left the picks');
+    await tester.tap(find.text('Get started'));
+    // The hand-off flips `onboarded`; the gate's redirect lands on
+    // /permissions (or /home when both grants already stuck).
     expect(
       await waitForAny(tester, [
         permissions,
         home,
       ], timeout: const Duration(seconds: 45)),
       isNot(-1),
-      reason: 'Skip did not leave onboarding',
+      reason: 'Get started did not leave onboarding',
     );
   }
 
@@ -182,7 +192,7 @@ Future<Finder> reachHome(
   );
   await step('home');
 
-  // The 7-step tour auto-starts on the first /home when hasSeenFeatureShowcase
+  // The 6-step tour auto-starts on the first /home when hasSeenFeatureShowcase
   // is false, with disableBarrierInteraction + disableDefaultTargetGestures —
   // it swallows every dashboard tap until Skip. Absent on an already-toured
   // device, hence conditional.

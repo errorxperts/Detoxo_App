@@ -4,6 +4,8 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/services/firebase/firebase.dart';
+import 'package:detoxo/core/utils/clock_format.dart';
+import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/features/blocking/blocking.dart';
 import 'package:detoxo/features/limits/limits.dart';
 import 'package:detoxo/features/onboarding/domain/entities/onboarding_progress.dart';
@@ -13,13 +15,12 @@ import 'package:detoxo/features/onboarding/presentation/onboarding_cubit.dart';
 import 'package:detoxo/features/onboarding/presentation/steps/projection_step.dart';
 import 'package:detoxo/features/onboarding/presentation/steps/selection_step.dart';
 import 'package:detoxo/features/onboarding/presentation/steps/survey_step.dart';
-import 'package:detoxo/features/onboarding/presentation/widgets/caught_hero.dart';
 import 'package:detoxo/features/onboarding/presentation/widgets/screen_time_dial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-/// The first run: a linear, persisted step machine over the ambient gradient.
+/// The first run: a linear, persisted step machine on the ground gradient.
 ///
 /// The machine itself is [OnboardingCubit]; this screen is the walker that
 /// renders whatever step the cubit is on. Because every step lives inside this
@@ -51,15 +52,6 @@ class OnboardingScreen extends StatelessWidget {
 
 class _OnboardingWalker extends StatelessWidget {
   const _OnboardingWalker();
-
-  /// Accent per step — the three-colour arc on spec palettes: brand, then
-  /// Conscious teal, then Block All indigo.
-  static Color _accent(AppTokens t, OnboardingStepId step) => switch (step) {
-    OnboardingStepId.welcome || OnboardingStepId.survey => t.brand.main,
-    OnboardingStepId.projection ||
-    OnboardingStepId.selection => t.conscious.main,
-    _ => t.blockAll.main,
-  };
 
   /// Whether Next is available. Only two steps gate: the survey needs its
   /// required answers, and the selection needs at least one feed — unless there
@@ -134,14 +126,21 @@ class _OnboardingWalker extends StatelessWidget {
   /// `AppGate` and the router redirects away on the spot, and a crash in the
   /// gap must leave an armed record rather than a user who is onboarded with
   /// nothing waiting to be created.
+  ///
+  /// The block screen's "opened N times today" line starts off here, so only
+  /// new installs get the calmer wall: an upgraded install never walks this
+  /// again and keeps its stored choice, and the entity and native defaults
+  /// stay on.
   Future<void> _handOff(BuildContext context, OnboardingProgress p) async {
     final cubit = context.read<OnboardingCubit>();
     final settings = context.read<SettingsCubit>();
     final dailyLimit = context.read<DailyLimitCubit>();
+    final style = context.read<BlockScreenStyleCubit>();
     final router = GoRouter.of(context);
     AppHaptics.success();
     await dailyLimit.setLimit(Duration(minutes: p.dailyLimitMinutes));
     await cubit.advance(OnboardingStepId.permissions);
+    style.setShowOpens(show: false);
     // Through the cubit, not the repository: the barrel now exports it, so the
     // old raw-repo write (and the splash round-trip that stopped a stale cubit
     // state from clobbering the flag on the next commit) is gone.
@@ -157,7 +156,6 @@ class _OnboardingWalker extends StatelessWidget {
     return BlocBuilder<OnboardingCubit, OnboardingProgress>(
       builder: (context, p) {
         final cubit = context.read<OnboardingCubit>();
-        final accent = _accent(context.tokens, p.step);
         final back = cubit.previousStep;
         // Watched, not read: the selection step's Next unlocks when the target
         // scan comes back empty, so the CTA has to rebuild when it lands.
@@ -238,7 +236,7 @@ class _OnboardingWalker extends StatelessWidget {
                         center:
                             p.step == OnboardingStepId.welcome ||
                             p.step == OnboardingStepId.projection,
-                        child: _step(p, accent),
+                        child: _step(p),
                       ),
                     ),
                   ),
@@ -266,15 +264,15 @@ class _OnboardingWalker extends StatelessWidget {
     );
   }
 
-  Widget _step(OnboardingProgress p, Color accent) => switch (p.step) {
-    OnboardingStepId.welcome => _WelcomeStep(accent: accent),
+  Widget _step(OnboardingProgress p) => switch (p.step) {
+    OnboardingStepId.welcome => const _WelcomeStep(),
     OnboardingStepId.survey => SurveyStep(progress: p),
     OnboardingStepId.projection => ProjectionStep(progress: p),
     OnboardingStepId.selection => SelectionStep(progress: p),
     // `permissions` and `completed` are hand-off states, not screens — but the
     // record advances to `permissions` a beat before the redirect fires, so
     // holding the last real step here keeps that beat from flashing blank.
-    _ => _CommitmentStep(progress: p, accent: accent),
+    _ => _CommitmentStep(progress: p),
   };
 }
 
@@ -312,37 +310,36 @@ class _StepBody extends StatelessWidget {
   }
 }
 
-/// The first step: the coded hero, the headline and one line of promise.
+/// The first step: the logo, the headline and one line of promise. Still:
+/// it rises in once with the step and never moves again.
 class _WelcomeStep extends StatelessWidget {
-  const _WelcomeStep({required this.accent});
-
-  final Color accent;
+  const _WelcomeStep();
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final t = context.tokens;
     return EntranceList(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        CaughtHero(accent: accent),
+        const DetoxoLogo(height: 96),
         const SizedBox(height: AppSpacing.xl),
         Text(
           'Take your time back',
           textAlign: TextAlign.center,
-          style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+          style: AppTypography.titleXl.copyWith(color: t.ink),
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'You didn’t decide to watch 80 reels — the feed did. Detoxo spots '
-          'them the second they play and pulls you back out, right inside the '
-          'apps you already use.',
+          'Detoxo spots reels the moment they play and pulls you back out, '
+          'right inside the apps you already use.',
           textAlign: TextAlign.center,
-          style: text.bodyLarge?.copyWith(color: context.tokens.ink),
+          style: AppTypography.body.copyWith(color: t.ink2),
         ),
-        const SizedBox(height: AppSpacing.lg),
-        const Pill(
-          label: 'Blocks the reels, not the app',
-          tone: AppTone.accent,
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          'Blocks the reels, not the app',
+          textAlign: TextAlign.center,
+          style: AppTypography.subhead.copyWith(color: t.ink2),
         ),
       ],
     );
@@ -350,77 +347,64 @@ class _WelcomeStep extends StatelessWidget {
 }
 
 /// The last walked step: what the user is committing to, in their own terms
-/// (one header + one panel), and the daily-limit dial under its own header.
+/// (one header + one panel row), and the daily-limit dial under its own header.
 class _CommitmentStep extends StatelessWidget {
-  const _CommitmentStep({required this.progress, required this.accent});
+  const _CommitmentStep({required this.progress});
 
   final OnboardingProgress progress;
-  final Color accent;
 
   /// The promise, rendered FROM the preset that `starterRule` will actually
   /// stamp — not restated in prose. The hours already live in `RulePreset`, and
   /// `starter_rule.dart` exists precisely so there is one copy of them; writing
-  /// "22:00" here again would be a third, in the one place no test asserts it.
-  /// The icon is keyed off the same shape, so the card reads at a glance.
-  ({IconData icon, String text}) get _rule {
+  /// "10 PM" here again would be a third, in the one place no test asserts it.
+  /// The icon is keyed off the same shape, so the row reads at a glance.
+  ({IconData icon, String title, String detail}) _rule(BuildContext context) {
     final template = starterPreset(progress.mattersMost).template;
     final schedule = template.schedule;
     if (schedule == null) {
-      final minutes = template.thresholdMs ~/ 60000;
       return (
         icon: Icons.hourglass_bottom_rounded,
-        text:
-            '$minutes minutes of feed a day. After that the feeds you picked '
-            'stop opening until tomorrow.',
+        title:
+            '${formatHm(Duration(milliseconds: template.thresholdMs))} of feed '
+            'a day',
+        detail: 'After that the feeds you picked stop opening until tomorrow.',
       );
     }
     final daily = schedule.days.length == 7;
     return (
       icon: daily ? Icons.bedtime_rounded : Icons.work_rounded,
-      text:
+      title:
           '${daily ? 'Every day' : 'Weekdays'} from '
-          '${RuleSchedule.formatHHmm(schedule.startMin)}, the feeds you picked '
-          'stop opening — until ${RuleSchedule.formatHHmm(schedule.endMin)}.',
+          '${formatLocalTime(context, schedule.startMin)} to '
+          '${formatLocalTime(context, schedule.endMin)}',
+      detail: 'The feeds you picked stop opening in these hours.',
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final t = context.tokens;
     final name = progress.name;
-    final rule = _rule;
+    final rule = _rule(context);
     return EntranceList(
       children: [
         Text(
           name == null ? 'Here’s the deal' : 'Here’s the deal, $name',
-          style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SectionHeader('Your first rule'),
-        GlassCard(
-          child: Row(
-            children: [
-              IconBadge(
-                icon: rule.icon,
-                color: accent,
-                bordered: true,
-                fillAlpha: 0.20,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  rule.text,
-                  style: text.bodyMedium?.copyWith(color: context.tokens.ink),
-                ),
-              ),
-            ],
-          ),
+        GlassListTile(
+          leading: Icon(rule.icon, color: t.ink2),
+          title: rule.title,
+          subtitle: rule.detail,
         ),
         const SectionHeader('Daily ceiling'),
         Center(
           child: ScreenTimeDial(
             value: Duration(minutes: progress.dailyLimitMinutes),
             onChanged: context.read<OnboardingCubit>().setDailyLimit,
-            accent: accent,
             size: 240,
           ),
         ),

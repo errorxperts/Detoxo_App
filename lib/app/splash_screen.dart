@@ -1,6 +1,5 @@
 import 'package:detoxo/app/bootstrap.dart';
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 /// The brand moment shown while [runBootstrap] hydrates the app.
@@ -26,54 +25,30 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final t = context.tokens;
+    // Everything rises in once; nothing loops. The spinner is the design
+    // system's, held still under Reduce Motion.
     return GlassScaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Image.asset(
-                    Assets.images.detoxLogoNoBg.path,
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.contain,
-                  ),
-                )
-                .animate()
-                .fadeIn(duration: AppDurations.fast)
-                .scaleXY(begin: 0.85, end: 1, curve: Curves.easeOutBack),
+            const Padding(
+              padding: EdgeInsets.all(AppSpacing.xl),
+              child: DetoxoLogo(height: 120),
+            ).entrance(),
             const SizedBox(height: AppSpacing.xl),
             Text(
-                  'Detoxo',
-                  style: text.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                )
-                .animate()
-                .fadeIn(
-                  delay: AppDurations.stagger,
-                  duration: AppDurations.fast,
-                )
-                .slideY(begin: 0.2, end: 0),
+              'Detoxo',
+              style: AppTypography.titleXl.copyWith(color: t.ink),
+            ).entrance(delay: AppDurations.stagger),
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Reclaim your attention',
-              style: text.bodyMedium,
-            ).animate().fadeIn(
-              delay: AppDurations.stagger * 2,
-              duration: AppDurations.fast,
-            ),
+              style: AppTypography.body.copyWith(color: t.ink2),
+            ).entrance(delay: AppDurations.stagger * 2),
             const SizedBox(height: AppSpacing.xxl),
-            SizedBox(
-              width: 26,
-              height: 26,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-            ).animate().fadeIn(delay: AppDurations.stagger * 3),
+            const LoadingState().entrance(delay: AppDurations.stagger * 3),
           ],
         ),
       ),

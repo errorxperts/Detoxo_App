@@ -68,10 +68,8 @@ class SurveyStep extends StatelessWidget {
                       key: ValueKey(progress.band),
                       child: Text(
                         'About $days days a year',
-                        style: text.labelMedium?.copyWith(
-                          color: context.tokens.accentText(
-                            context.tokens.brand,
-                          ),
+                        style: AppTypography.subhead.copyWith(
+                          color: context.tokens.ink2,
                         ),
                       ).entrance(),
                     )
@@ -180,39 +178,26 @@ class _TextAnswerState extends State<_TextAnswer> {
 
   @override
   Widget build(BuildContext context) {
-    // The prompt is no longer a sibling Text, and a collapsed decoration's
-    // hintText is only announced while the field is empty — so once the user
-    // types, the field would have no label at all. Name it explicitly.
+    // The prompt is no longer a sibling Text, and a hintText is only
+    // announced while the field is empty — so once the user types, the field
+    // would have no label at all. Name it explicitly. The theme's input
+    // decoration draws the quiet fill and the focus ring; no glass around it.
     return Semantics(
       textField: true,
       label: widget.label,
-      child: GlassContainer(
-        surface: DxSurface.option,
-        color: context.tokens.fillQuiet,
-        borderRadius: AppRadius.md,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
-        ),
-        child: TextField(
-          controller: _controller,
-          // Bounded like every other input in the app (rule_editor_screen uses
-          // the same 40): this is persisted and rendered into a headline.
-          maxLength: 40,
-          buildCounter:
-              (_, {required currentLength, required isFocused, maxLength}) =>
-                  null,
-          textCapitalization: TextCapitalization.words,
-          textInputAction: TextInputAction.done,
-          style: Theme.of(context).textTheme.bodyLarge,
-          decoration: InputDecoration.collapsed(
-            hintText: widget.hint,
-            hintStyle: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(color: context.tokens.ink2),
-          ),
-          onChanged: widget.onAnswer,
-        ),
+      child: TextField(
+        controller: _controller,
+        // Bounded like every other input in the app (rule_editor_screen uses
+        // the same 40): this is persisted and rendered into a headline.
+        maxLength: 40,
+        buildCounter:
+            (_, {required currentLength, required isFocused, maxLength}) =>
+                null,
+        textCapitalization: TextCapitalization.words,
+        textInputAction: TextInputAction.done,
+        style: AppTypography.body.copyWith(color: context.tokens.ink),
+        decoration: InputDecoration(hintText: widget.hint),
+        onChanged: widget.onAnswer,
       ),
     );
   }

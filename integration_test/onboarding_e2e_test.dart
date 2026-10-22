@@ -7,6 +7,8 @@
 //
 // ONE `testWidgets` only, never `pumpAndSettle` — see app_e2e_test.dart. The
 // walk ends on the permissions hand-off and grants nothing.
+import 'package:detoxo/core/di/injector.dart';
+import 'package:detoxo/features/blocking/blocking.dart';
 import 'package:detoxo/features/onboarding/presentation/widgets/screen_time_dial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -98,5 +100,10 @@ void main() {
     );
     await landed(tester);
     await step(tester, 'onb-handoff');
+
+    // A new install starts with the wall's "opened N times today" line off;
+    // the debounced push has long landed after the settles above.
+    final style = await sl<BlockScreenRepository>().style();
+    expect(style.showOpens, isFalse, reason: 'hand-off left showOpens on');
   });
 }

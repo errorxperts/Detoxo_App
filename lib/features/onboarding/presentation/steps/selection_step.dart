@@ -8,9 +8,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// Pick the feeds to protect. Requires at least one — a first run that ends
 /// with nothing selected has produced nothing.
 ///
-/// Renders through the blocklist's own [BlockAppTile] / [BlockAppGroup], so
-/// Instagram's Feed / Reels / Stories collapse under one tile here exactly as
-/// they do on the blocklist screen, and the two can never drift apart.
+/// Renders through the blocklist's own [BlockAppTile] / [BlockAppGroup] in one
+/// [PanelGroup], so Instagram's Feed / Reels / Stories collapse under one row
+/// here exactly as they do on the blocklist screen, and the two can never
+/// drift apart.
 class SelectionStep extends StatefulWidget {
   const SelectionStep({required this.progress, super.key});
 
@@ -110,11 +111,11 @@ class _SelectionStepState extends State<SelectionStep> {
                 const SizedBox(width: AppSpacing.sm),
                 // Flips on the same rebuild the toggle triggers — and says why
                 // Next is dark while nothing is picked.
-                Pill(
-                  label: n == 0
-                      ? 'Pick at least one'
-                      : '$n feed${n == 1 ? '' : 's'} guarded',
-                  tone: n == 0 ? AppTone.neutral : AppTone.accent,
+                Text(
+                  n == 0 ? 'Pick at least one' : '$n on',
+                  style: AppTypography.subhead.copyWith(
+                    color: context.tokens.ink2,
+                  ),
                 ),
               ],
             ),
@@ -125,15 +126,16 @@ class _SelectionStepState extends State<SelectionStep> {
               style: text.bodyMedium?.copyWith(color: context.tokens.ink2),
             ),
             const SizedBox(height: AppSpacing.lg),
-            for (final group in BlockAppGroup.from(installed))
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                child: BlockAppTile(
-                  group: group,
-                  enabledIds: picked,
-                  onToggle: _toggle,
-                ),
-              ),
+            PanelGroup(
+              children: [
+                for (final group in BlockAppGroup.from(installed))
+                  BlockAppTile(
+                    group: group,
+                    enabledIds: picked,
+                    onToggle: _toggle,
+                  ),
+              ],
+            ),
           ],
         );
       },
