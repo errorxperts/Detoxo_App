@@ -233,9 +233,10 @@ class _SegmentLabel extends StatelessWidget {
             Flexible(
               child: Padding(
                 // Breathing room so a label never touches the chip's rim
-                // when the control hugs its content.
+                // when the control hugs its content; kept to 8 so a third of
+                // a 360 dp track still fits "System".
                 padding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md + (on ? 0 : _checkRoom / 2),
+                  horizontal: AppSpacing.xs + (on ? 0 : _checkRoom / 2),
                 ),
                 child: Text(
                   segment.label,
