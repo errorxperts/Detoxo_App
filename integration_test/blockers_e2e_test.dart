@@ -53,6 +53,11 @@ Future<void> openTile(WidgetTester tester, String title) async {
   await settle(tester, frames: 10);
 }
 
+/// The screens by their app-bar titles: the dashboard tiles that open them
+/// carry the same words.
+final appBlocker = find.widgetWithText(GlassAppBar, 'App Blocker');
+final webBlocker = find.widgetWithText(GlassAppBar, 'Web Blocker');
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -64,7 +69,7 @@ void main() {
     // ── App Blocker: add YouTube via the installed-app picker ───────────────
     await openTile(tester, 'App Blocker');
     expect(
-      await waitFor(tester, find.text('Block apps')),
+      await waitFor(tester, appBlocker),
       isTrue,
       reason: 'App Blocker screen did not open',
     );
@@ -92,7 +97,10 @@ void main() {
       isTrue,
       reason: 'custom section did not appear after adding YouTube',
     );
-    expect(find.text(kYouTube), findsOneWidget, reason: 'YouTube row missing');
+    // The row shows no package id; its Remove button is the unique handle
+    // (the curated section also renders "YouTube").
+    final ytRemove = find.byTooltip('Remove YouTube');
+    expect(ytRemove, findsOneWidget, reason: 'YouTube row missing');
     final savedApps = await sl<AppBlockRepository>().load();
     expect(
       savedApps.where((e) => e.packageName == kYouTube && e.enabled),
@@ -104,15 +112,15 @@ void main() {
     // Driver: launches YouTube, expects `blocked app_block in <pkg> via HOME`.
     await probe(tester, 'app');
     expect(
-      await waitFor(tester, find.text('Block apps')),
+      await waitFor(tester, appBlocker),
       isTrue,
       reason: 'did not come back to the App Blocker screen after the probe',
     );
 
     // Cleanup: remove the lock (pushes an explicit [] to native).
-    await tester.tap(find.byTooltip('Remove YouTube'));
+    await tester.tap(ytRemove);
     expect(
-      await waitForGone(tester, find.text(kYouTube)),
+      await waitForGone(tester, ytRemove),
       isTrue,
       reason: 'YouTube row did not go away',
     );
@@ -122,7 +130,7 @@ void main() {
     // ── Web Blocker: add example.com, get blocked, pause, get through ───────
     await openTile(tester, 'Web Blocker');
     expect(
-      await waitFor(tester, find.text('Website blocker')),
+      await waitFor(tester, webBlocker),
       isTrue,
       reason: 'Web Blocker screen did not open',
     );
@@ -138,16 +146,16 @@ void main() {
       isTrue,
       reason: 'add-website sheet did not close',
     );
-    // Scoped to the row card: once the first block lands, the stats section
-    // also renders the host as plain text ("Most blocked: example.com").
-    final row = find.widgetWithText(AppCard, kSite);
+    // Scoped to the row: once the first block lands, the stats section also
+    // renders the host as plain text ("Most blocked: example.com").
+    final row = find.widgetWithText(GlassListTile, kSite);
     expect(await waitFor(tester, row), isTrue, reason: 'site row missing');
     await step(tester, 'web-blocker-added');
 
     // Driver: opens https://example.com in Chrome, expects `web-blocked`.
     await probe(tester, 'web');
     expect(
-      await waitFor(tester, find.text('Website blocker')),
+      await waitFor(tester, webBlocker),
       isTrue,
       reason: 'did not come back to the Web Blocker screen after the probe',
     );
@@ -191,7 +199,7 @@ void main() {
     // Driver: opens the site again, expects NO `web-blocked` line.
     await probe(tester, 'web-paused');
     expect(
-      await waitFor(tester, find.text('Website blocker')),
+      await waitFor(tester, webBlocker),
       isTrue,
       reason: 'did not come back to the Web Blocker screen after the probe',
     );

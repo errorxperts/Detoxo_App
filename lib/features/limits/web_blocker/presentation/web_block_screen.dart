@@ -1,12 +1,12 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/routes.dart';
-import 'package:detoxo/core/utils/clock_format.dart';
+import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block_repository.dart';
-import 'package:detoxo/features/limits/rules/domain/usecases/rule_summary.dart';
 import 'package:detoxo/features/limits/unblock/domain/entities/temporary_unblock.dart';
 import 'package:detoxo/features/limits/unblock/presentation/unblock_cubit.dart';
+import 'package:detoxo/features/limits/unblock/presentation/widgets/allowed_until.dart';
 import 'package:detoxo/features/limits/unblock/presentation/widgets/unblock_duration_sheet.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/entities/popular_site.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/entities/web_block_entry.dart';
@@ -23,9 +23,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
-/// Manage website blocking: one-tap popular-site chips (led by a Protection
-/// pill that opens the batch-protection screen), a searchable custom
-/// blocklist, and a stats dashboard. Enforcement runs natively by reading the
+/// Manage website blocking: one-tap popular-site chips, a Protection row that
+/// opens the batch-protection screen, a searchable custom blocklist, and a
+/// stats dashboard. Enforcement runs natively by reading the
 /// browser address bar and pressing back on a blocked domain.
 class WebBlockScreen extends StatelessWidget {
   const WebBlockScreen({super.key});
@@ -52,12 +52,11 @@ class _WebBlockView extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassScaffold(
       appBar: const GlassAppBar(
-        title: Text('Website blocker'),
+        title: Text('Web Blocker'),
         actions: [
           InfoButton(
-            'Blocks distracting sites in any supported browser — Detoxo reads '
-            'the address bar and backs you out of the page. Tap a popular '
-            'site, add your own, or open Protection to block whole categories.',
+            'Detoxo reads the address bar and backs you out of blocked sites. '
+            'Tap a popular site, add your own, or open Protection.',
           ),
         ],
       ),
@@ -83,33 +82,40 @@ class _WebBlockView extends StatelessWidget {
             // The list has no right padding so the chip rows can scroll off the
             // screen edge; every other child adds it back.
             Widget inset(Widget child) => Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.md),
+              padding: const EdgeInsets.only(right: AppSpacing.gutter),
               child: child,
             );
+            final count = state.entries.length;
             return ListView(
               padding: EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.md,
+                AppSpacing.gutter,
+                0,
                 0,
                 96 + MediaQuery.viewPaddingOf(context).bottom,
               ),
               children: [
-                if (state.hasStats) ...[
-                  inset(_StatsSection(stats: state.stats)),
-                  const SizedBox(height: AppSpacing.xs),
-                ],
+                // The one entrance: the stats appear with the first block,
+                // often while the screen is open. Nothing else replays on the
+                // emits that follow.
+                if (state.hasStats)
+                  inset(_StatsSection(stats: state.stats)).entrance(),
                 inset(const SectionHeader('Popular sites')),
                 _PopularChips(state: state),
+                const SizedBox(height: AppSpacing.md),
+                inset(_ProtectionRow(activeCount: state.protectionCount)),
                 inset(
                   SectionHeader(
-                    state.hasEntries
-                        ? 'Your blocklist (${state.entries.length})'
-                        : 'Your blocklist',
+                    'Your blocklist',
+                    note: !state.hasEntries
+                        ? null
+                        : count == 1
+                        ? '1 site'
+                        : '$count sites',
                   ),
                 ),
                 inset(_Blocklist(state: state)),
                 if (state.unsupportedBrowsers.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.xs),
                   inset(
                     _UnsupportedBrowsersNotice(
                       browsers: state.unsupportedBrowsers,
@@ -153,71 +159,70 @@ class _StatsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // No `crossAxisAlignment: stretch` here: this Row sits in a
-            // ListView, so its height is unbounded — stretch hands the cards
-            // an infinite height constraint and layout aborts the frame
-            // (blank body, then per-frame `!semantics.parentDataDirty` spam).
-            // The three cards are identical, so they match heights anyway.
+    final t = context.tokens;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // No `crossAxisAlignment: stretch` here: this Row sits in a
+          // ListView, so its height is unbounded — stretch hands the cards
+          // an infinite height constraint and layout aborts the frame
+          // (blank body, then per-frame `!semantics.parentDataDirty` spam).
+          // The three cards are identical, so they match heights anyway.
+          Row(
+            children: [
+              Expanded(
+                child: StatCard(
+                  label: 'Blocked today',
+                  value: stats.blockedToday,
+                  icon: Icons.block,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: StatCard(
+                  label: 'Total blocked',
+                  value: stats.totalBlocked,
+                  icon: Icons.public_off,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: StatCard(
+                  label: 'Focus saved',
+                  text: formatHm(Duration(minutes: stats.focusMinutesSaved)),
+                  icon: Icons.timer_outlined,
+                ),
+              ),
+            ],
+          ),
+          if (stats.mostBlockedHost != null) ...[
+            const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
-                Expanded(
-                  child: StatCard(
-                    label: 'Blocked today',
-                    value: stats.blockedToday,
-                    icon: Icons.block,
-                  ),
+                Icon(Icons.trending_up, size: 16, color: t.ink2),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  'Most blocked: ',
+                  style: AppTypography.subhead.copyWith(color: t.ink2),
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: StatCard(
-                    label: 'Total blocked',
-                    value: stats.totalBlocked,
-                    icon: Icons.public_off,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: StatCard(
-                    label: 'Focus saved',
-                    value: stats.focusMinutesSaved,
-                    unit: 'min',
-                    icon: Icons.timer_outlined,
+                Flexible(
+                  child: Text(
+                    stats.mostBlockedHost!,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.subhead.copyWith(
+                      color: t.ink,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
             ),
-            if (stats.mostBlockedHost != null) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Icon(Icons.trending_up, size: 16, color: context.tokens.ink2),
-                  const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    'Most blocked: ',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: context.tokens.ink2),
-                  ),
-                  Flexible(
-                    child: Text(
-                      stats.mostBlockedHost!,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
           ],
-        )
-        .animate()
-        .fadeIn(duration: AppDurations.normal)
-        .slideY(begin: 0.05, end: 0, curve: AppCurves.standard);
+        ],
+      ),
+    );
   }
 }
 
@@ -226,7 +231,7 @@ class _StatsSection extends StatelessWidget {
 /// looks protective about a browser where nothing is enforced. Only rendered
 /// when native actually answered and the list is non-empty — silence means
 /// "all covered" or "couldn't ask", and inventing a warning for the second
-/// would be its own kind of lie.
+/// would be its own kind of lie. The tap explains why.
 class _UnsupportedBrowsersNotice extends StatelessWidget {
   const _UnsupportedBrowsersNotice({required this.browsers});
 
@@ -234,80 +239,43 @@ class _UnsupportedBrowsersNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final names = browsers.join(', ');
-    return Semantics(
-      label: 'Not covered: $names. Blocking does not apply in these browsers.',
-      excludeSemantics: true,
-      child: AppCard(
-        leading: IconBadge(
-          icon: Icons.warning_amber_outlined,
-          color: context.tokens.statusText(context.tokens.statusSetup),
-          shape: BoxShape.rectangle,
-        ),
-        title: 'Not covered: $names',
-        subtitle:
-            "Detoxo can't read the address bar in "
+    final title = 'Not covered: ${browsers.join(', ')}';
+    return NoticeLine(
+      title,
+      onTap: () => AppDialog.show<void>(
+        context: context,
+        title: title,
+        message:
+            'Detoxo can’t read the address bar in '
             '${browsers.length == 1 ? 'this browser' : 'these browsers'}, so '
-            'your blocklist and the 18+ filter do not apply there.',
+            'your blocklist and the 18+ filter don’t apply there.',
       ),
     );
   }
 }
 
-// ── Protection pill: batch protections live on their own screen ─────────────
-/// Leads the popular-sites row but is deliberately not an [AppChip]: it is
-/// always seed-tinted with a trailing chevron so it reads as "opens a screen",
-/// not "toggles a site". Shows how many batch protections are on.
-class _ProtectionChip extends StatelessWidget {
-  const _ProtectionChip({required this.activeCount});
+// ── Protection row: batch protections live on their own screen ──────────────
+/// One flat row under the popular sites: "Protection", how many batch
+/// protections are on, and the chevron that says it opens a screen. One
+/// button node, so TalkBack reads and activates it in one go.
+class _ProtectionRow extends StatelessWidget {
+  const _ProtectionRow({required this.activeCount});
 
   final int activeCount;
 
   @override
   Widget build(BuildContext context) {
-    final seed = context.tokens.brand.main;
-    Future<void> open() async {
-      final cubit = context.read<WebBlockCubit>();
-      await context.push<void>(Routes.webProtection);
-      // The sub-screen edits the same persisted settings; re-load so this
-      // pill's count is fresh when the user comes back.
-      await cubit.load();
-    }
-
-    return Semantics(
-      label:
-          'Protection, $activeCount of ${WebBlockState.protectionTotal} on, '
-          'opens screen',
-      button: true,
-      excludeSemantics: true,
-      child: AppPressable(
-        onTap: open,
-        pressedScale: 0.94,
-        minTapTarget: const Size(0, AppSizes.minTapTarget),
-        child: GlassContainer(
-          surface: DxSurface.option,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.xs,
-          ),
-          borderRadius: AppRadius.pill,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.shield_outlined, size: 16, color: seed),
-              const SizedBox(width: AppSpacing.xxs),
-              Text(
-                activeCount > 0 ? 'Protection · $activeCount' : 'Protection',
-                style: Theme.of(
-                  context,
-                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(width: AppSpacing.xxs),
-              const Icon(Icons.chevron_right, size: 16),
-            ],
-          ),
-        ),
-      ),
+    return GlassListTile(
+      leading: Icon(Icons.shield_outlined, color: context.tokens.ink2),
+      title: 'Protection',
+      subtitle: '$activeCount of ${WebBlockState.protectionTotal} on',
+      onTap: () async {
+        final cubit = context.read<WebBlockCubit>();
+        await context.push<void>(Routes.webProtection);
+        // The sub-screen edits the same persisted settings; re-load so this
+        // row's count is fresh when the user comes back.
+        await cubit.load();
+      },
     );
   }
 }
@@ -322,14 +290,12 @@ class _PopularChips extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<WebBlockCubit>();
     final active = state.activePopularIds;
-    // Two rows sharing one horizontal scroll; the Protection pill opens the
-    // first row and the "Add website" chip closes the second, so each row
-    // carries one extra chip and the split is an even half.
+    // Two rows sharing one horizontal scroll; the "Add website" chip closes
+    // the second.
     return ChipRail(
       // The list has no right padding so the rail can scroll off the screen
       // edge; only the far end of the scroll keeps a gutter.
-      padding: const EdgeInsets.only(right: AppSpacing.md),
-      leading: _ProtectionChip(activeCount: state.protectionCount),
+      padding: const EdgeInsets.only(right: AppSpacing.gutter),
       trailing: AppChip(
         label: 'Add website',
         icon: Icons.add,
@@ -364,7 +330,7 @@ class _PopularChips extends StatelessWidget {
             },
           ),
       ],
-    ).animate().fadeIn(duration: AppDurations.normal);
+    );
   }
 }
 
@@ -424,14 +390,9 @@ class _Blocklist extends StatelessWidget {
         else
           // Only one swipe pane open at a time across the list.
           SlidableAutoCloseBehavior(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: PanelGroup(
               children: [
-                for (final entry in entries)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: _BlocklistRow(entry: entry),
-                  ),
+                for (final entry in entries) _BlocklistRow(entry: entry),
               ],
             ),
           ),
@@ -449,15 +410,15 @@ class _BlocklistRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<WebBlockCubit>();
     final isCustom = entry.source == WebBlockSource.custom;
-    final site = PopularSites.byPrimaryDomain(entry.pattern);
+    final t = context.tokens;
     final color = entry.brandColor != null
         ? Color(entry.brandColor!)
-        : Theme.of(context).colorScheme.secondary;
-    // M8: the pause window is a grant now, so it comes from UnblockCubit's
+        : t.tileWeb;
+    // M8: the allow window is a grant now, so it comes from UnblockCubit's
     // DERIVED `active` list rather than from `DateTime.now()` at build time.
     // That matters: a cubit emit when the grant lapses actually rebuilds this
-    // row, where a build-time clock read left a dead "Paused until 14:05" pill
-    // on screen until something unrelated happened.
+    // row, where a build-time clock read left a dead "Allowed until 14:05"
+    // line on screen until something unrelated happened.
     final grant = context.select<UnblockCubit, TemporaryUnblock?>(
       (c) => c.state.activeFor(
         UnblockTargetType.website,
@@ -466,19 +427,10 @@ class _BlocklistRow extends StatelessWidget {
       ),
     );
     final paused = grant != null;
-    // Device 12/24-hour preference, like every other time the app reads back
-    // (the window is picked in this app's own sheet).
-    // "Until 10:30 PM", not "Allowed until …": Pill caps itself at 0.4x screen
-    // width, and the longer label ellipsised away the only datum it carries at
-    // ordinary text scale. `RuleSummary.clock` adds the weekday when the window
-    // ends tomorrow, which a bare clock silently dropped.
-    String pausedLabel() =>
-        'Until '
-        '${RuleSummary.clock(grant!.endMs, DateTime.now(), time: (m) => formatLocalTime(context, m))}';
 
     // How many actions the pane holds decides how far it opens.
     final actionCount = 1 + (entry.enabled ? 1 : 0) + (isCustom ? 1 : 0);
-    // Disabled and paused rows read at a glance via a dimmed badge.
+    // Disabled and paused rows read at a glance via a dimmed site letter.
     final dimmed = paused || !entry.enabled;
     // No outer clip: Slidable clips its own pane to the drag ratio, and each
     // action carries its own rounded surface.
@@ -495,7 +447,7 @@ class _BlocklistRow extends StatelessWidget {
             _RowAction(
               icon: paused ? Icons.play_arrow : Icons.timer_outlined,
               label: paused ? 'Resume' : 'Allow',
-              tone: context.tokens.statusText(context.tokens.statusSetup),
+              tone: t.statusText(t.statusSetup),
               semanticLabel: paused
                   ? 'Resume blocking ${entry.label}'
                   : 'Allow ${entry.label} for a while',
@@ -514,14 +466,14 @@ class _BlocklistRow extends StatelessWidget {
             _RowAction(
               icon: Icons.edit_outlined,
               label: 'Edit',
-              tone: context.tokens.brand.main,
+              tone: t.brand.main,
               semanticLabel: 'Edit ${entry.label}',
               onPressed: (context) => _showSiteSheet(context, entry: entry),
             ),
           _RowAction(
             icon: Icons.delete_outline,
             label: 'Delete',
-            tone: context.tokens.over.main,
+            tone: t.over.main,
             semanticLabel: 'Remove ${entry.label}',
             onPressed: (_) => _removeSite(
               context,
@@ -533,14 +485,14 @@ class _BlocklistRow extends StatelessWidget {
         ],
       ),
       child: Builder(
-        // The swipe pane is the only route to Pause/Edit/Delete, and a screen
+        // The swipe pane is the only route to Allow/Edit/Delete, and a screen
         // reader cannot swipe. Tap opens the same pane, so the tap target has
         // to SAY that — otherwise TalkBack announces a bare "example.com,
         // button" and those actions are unreachable.
         builder: (rowContext) => MergeSemantics(
           child: Semantics(
             hint: 'Opens allow, edit and delete actions',
-            child: AppCard(
+            child: AppPressable(
               // Tap toggles the pane: swipe discoverability + a non-swipe path.
               onTap: () {
                 final slidable = Slidable.of(rowContext);
@@ -551,45 +503,49 @@ class _BlocklistRow extends StatelessWidget {
                   slidable.close();
                 }
               },
-              leading: AnimatedOpacity(
-                opacity: dimmed ? 0.45 : 1,
-                duration: AppDurations.fast,
-                child: IconBadge(
-                  icon: site?.icon ?? Icons.public,
-                  color: color,
-                  shape: BoxShape.rectangle,
-                  fillAlpha: 0.18,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  GlassListTile(
+                    leading: AnimatedOpacity(
+                      opacity: dimmed ? 0.45 : 1,
+                      duration: context.motion(AppDurations.fast),
+                      child: SiteLetter(entry.label, color: color, size: 34),
+                    ),
+                    title: entry.label,
+                    // Popular rows show the domain under the brand name;
+                    // custom rows' title already IS the domain.
+                    subtitle: isCustom ? null : entry.pattern,
+                    trailing: AppToggle(
+                      value: entry.enabled,
+                      semanticLabel: 'Block ${entry.label}',
+                      onChanged: (v) => v
+                          ? cubit.toggleEntry(entry, enabled: true)
+                          : _siteOff(context, entry),
+                    ),
+                  ),
+                  if (paused)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        _textInset,
+                        0,
+                        AppSpacing.md,
+                        AppSpacing.sm,
+                      ),
+                      child: AllowedUntil(grant),
+                    ),
+                ],
               ),
-              title: entry.label,
-              // Popular rows show the domain under the brand name; custom rows'
-              // title already IS the domain. Pause gets its own pill below.
-              subtitle: isCustom ? null : entry.pattern,
-              trailing: AppToggle(
-                value: entry.enabled,
-                semanticLabel: 'Block ${entry.label}',
-                onChanged: (v) => v
-                    ? cubit.toggleEntry(entry, enabled: true)
-                    : _siteOff(context, entry),
-              ),
-              // Row keeps the Pill intrinsic-width in AppCard's stretch column.
-              child: paused
-                  ? Row(
-                      children: [
-                        Pill(
-                          label: pausedLabel(),
-                          tone: AppTone.warning,
-                          icon: Icons.timer_outlined,
-                        ),
-                      ],
-                    )
-                  : null,
             ),
           ),
         ),
       ),
     );
   }
+
+  /// Where the row's title starts: the row inset, the 34 site letter and its
+  /// gap. The allow line indents to it.
+  static const double _textInset = AppSpacing.md + 34 + AppSpacing.sm;
 }
 
 /// One swipe action as its own rounded surface — same radius as the row card,
@@ -642,10 +598,7 @@ class _RowAction extends StatelessWidget {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: tone,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTypography.caption.copyWith(color: tone),
                 ),
               ],
             ),

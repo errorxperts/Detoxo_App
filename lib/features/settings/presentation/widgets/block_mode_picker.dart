@@ -92,7 +92,6 @@ class PermissionNeededRow extends StatelessWidget {
         ),
         title: title,
         subtitle: subtitle,
-        trailing: const Icon(Icons.chevron_right),
         onTap: onTap,
       ),
     );
