@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_lock_screen.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
@@ -29,6 +30,26 @@ Future<bool> requirePin(BuildContext context, PinScope scope) async {
     ),
   );
   return ok ?? false;
+}
+
+/// The one "Turn off PIN lock?" confirm (Settings' switch and the setup
+/// screen's None). A critical [ConfirmSheet]; after the slide it disables the
+/// lock and toasts. Resolves to whether the lock is now off. It asks for no
+/// PIN itself: callers gate it with [requirePin], or sit behind a [PinGuard].
+Future<bool> confirmPinOff(BuildContext context) async {
+  final ok = await ConfirmSheet.show(
+    context,
+    icon: const DetoxoLogo(height: 58),
+    title: 'Turn off PIN lock?',
+    message: 'Detoxo and its protected settings stop asking for a PIN.',
+    action: 'Slide to turn off',
+    cancel: 'Keep it on',
+    tone: ConfirmTone.critical,
+  );
+  if (!ok || !context.mounted) return false;
+  await context.read<PinCubit>().disable();
+  if (context.mounted) GlassToast.show(context, 'PIN lock turned off');
+  return true;
 }
 
 /// Wraps a screen so it is revealed only after the PIN for [scope] is entered.

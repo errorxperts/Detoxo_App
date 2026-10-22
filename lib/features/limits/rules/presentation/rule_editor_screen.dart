@@ -15,6 +15,7 @@ import 'package:detoxo/features/limits/rules/presentation/widgets/removable_chip
 import 'package:detoxo/features/limits/rules/presentation/widgets/rule_kind_icon.dart';
 import 'package:detoxo/features/limits/rules/presentation/widgets/website_sheet.dart';
 import 'package:detoxo/features/protected_apps/protected_apps.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -661,18 +662,22 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
   }
 
   Future<void> _delete() async {
-    final confirmed = await AppDialog.confirm(
-      context: context,
-      title: 'Delete this rule?',
-      message: 'Its targets are unblocked right away.',
-      confirmLabel: 'Delete',
-      icon: Icons.delete_outline,
+    final rule = _existing!;
+    final confirmed = await ConfirmSheet.show(
+      context,
+      icon: Icon3d(Assets.images.icons.iconBlockerRules, size: 58),
+      title: 'Delete ${rule.name}?',
+      message: 'Its apps and sites unblock right away.',
+      action: 'Slide to delete',
+      cancel: 'Keep the rule',
+      tone: ConfirmTone.critical,
     );
     if (!confirmed || !mounted) return;
     final cubit = context.read<RulesCubit>();
-    final ok = await cubit.remove(_existing!.id);
+    final ok = await cubit.remove(rule.id);
     if (!mounted) return;
     if (ok) {
+      GlassToast.show(context, '${rule.name} deleted');
       context.pop();
     } else {
       // Read the cubit's own message, like `_save` does: "this rule is locked"

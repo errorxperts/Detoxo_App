@@ -97,7 +97,10 @@ void main() {
     expect(cubit.state.isConfigured, isTrue);
   });
 
-  testWidgets('Turn off via None + confirm does not crash', (tester) async {
+  testWidgets('Turn off via None + the ConfirmSheet does not crash', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
     final repo = _FakePinRepo();
     await repo.save(_configuredCustom());
     final cubit = PinCubit(repo)..emit(_configuredCustom());
@@ -113,15 +116,20 @@ void main() {
     await settle(tester);
     expect(tester.takeException(), isNull, reason: 'after picking None');
 
-    // Save now turns the lock off → confirm dialog.
+    // Save now turns the lock off → the ConfirmSheet.
     await tester.tap(find.text('Turn off PIN lock'));
     await settle(tester);
-    expect(tester.takeException(), isNull, reason: 'opening confirm dialog');
+    expect(tester.takeException(), isNull, reason: 'opening the sheet');
     expect(find.text('Turn off PIN lock?'), findsOneWidget);
 
-    await tester.tap(find.text('Turn off'));
+    // The 5 s wait, then the slide (TalkBack's double-tap on the knob).
+    await tester.pump(const Duration(seconds: 5));
+    await settle(tester);
+    tester.semantics.tap(find.semantics.byLabel('Slide to turn off'));
+    await tester.pump(const Duration(seconds: 1));
     await settle(tester);
     expect(tester.takeException(), isNull, reason: 'confirming turn-off');
     expect(cubit.state.isConfigured, isFalse);
+    semantics.dispose();
   });
 }
