@@ -207,7 +207,6 @@ class _SettingsScreenState extends State<SettingsScreen>
                 const SectionHeader('Protection'),
                 FeatureTile(
                   icon: Icons.hourglass_bottom,
-                  animatedIcon: AppIcon.dailyLimit,
                   title: 'Daily limit',
                   subtitle: 'Cap your reel time per day',
                   onTap: () => context.push(Routes.dailyLimit),
@@ -696,7 +695,6 @@ class _PinTile extends StatelessWidget {
             if (on)
               FeatureTile(
                 icon: Icons.tune,
-                animatedIcon: AppIcon.pinLock,
                 title: 'PIN settings',
                 subtitle: 'Type, auto-lock & biometrics',
                 onTap: () => _openSettings(context),
@@ -742,7 +740,6 @@ class _PermissionsTile extends StatelessWidget {
         final allOk = total > 0 && granted == total;
         return FeatureTile(
           icon: Icons.verified_user_outlined,
-          animatedIcon: AppIcon.shieldCheck,
           title: 'Permissions',
           subtitle: 'Accessibility, overlay, notifications & more',
           trailing: total == 0

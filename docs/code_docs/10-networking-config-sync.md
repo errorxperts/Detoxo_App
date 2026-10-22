@@ -27,8 +27,8 @@ assets:
   - assets/content/
 ```
 
-The `assets/content/` set (quotes / emoji bands) is unrelated dynamic content
-loaded by a separate `ContentRepository`; it is not part of config sync.
+The `assets/content/` set (the block screen's `motivational_quotes.json`, read
+natively by `overlay/QuoteBook.kt`) is unrelated content; it is not part of config sync.
 
 > **Naming note:** `AppConstants` carries a doc comment referring to a
 > `core/config` package for environment values (API base URL, ad ids, billing

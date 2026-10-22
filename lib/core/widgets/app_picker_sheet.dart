@@ -6,14 +6,15 @@ import 'package:flutter/material.dart';
 export 'package:detoxo/core/platform_channels/installed_app.dart';
 
 /// Multi-select installed-app picker in a [GlassBottomSheet]: searchable list
-/// of the device's launchable apps (icon + name + package), with already-added
+/// of the device's launchable apps (icon + name + package) as flat rows on the
+/// sheet — a picked row shows the [GlassListTile] check — with already-added
 /// apps shown dimmed and unselectable, and a manual name+package form as the
 /// fallback for apps the system hides (work profiles, engine unavailable, iOS).
 ///
 /// Returns the picked apps — a manual entry returns a single icon-less
 /// [InstalledApp] — or null when dismissed.
 ///
-/// [unavailable] maps a package name to the pill label explaining why it can't
+/// [unavailable] maps a package name to the badge label explaining why it can't
 /// be picked again ('Added', 'Protected', 'Auto-protected'…). Enforced in the
 /// list and in the manual form — an unavailable package can't be confirmed.
 ///
@@ -179,12 +180,17 @@ class _AppPickerBodyState extends State<_AppPickerBody> {
 
     return ListView.separated(
       itemCount: filtered.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-      itemBuilder: (context, i) => _tile(context, filtered[i]),
+      // Flat rows split by inset hairlines, as in a PanelGroup.
+      separatorBuilder: (_, _) => const Divider(
+        height: 1,
+        indent: AppSpacing.md,
+        endIndent: AppSpacing.md,
+      ),
+      itemBuilder: (_, i) => _tile(filtered[i]),
     );
   }
 
-  Widget _tile(BuildContext context, InstalledApp app) {
+  Widget _tile(InstalledApp app) {
     final reason = widget.unavailable[app.packageName];
     if (reason != null) {
       return GlassListTile(
@@ -196,7 +202,7 @@ class _AppPickerBodyState extends State<_AppPickerBody> {
         ),
         title: app.appName,
         subtitle: app.packageName,
-        trailing: Pill(label: reason),
+        trailing: AppBadge.label(reason),
       );
     }
 
@@ -210,10 +216,6 @@ class _AppPickerBodyState extends State<_AppPickerBody> {
       ),
       title: app.appName,
       subtitle: app.packageName,
-      trailing: Icon(
-        selected ? Icons.check_circle_rounded : Icons.circle_outlined,
-        color: selected ? Theme.of(context).colorScheme.primary : null,
-      ),
       onTap: () => setState(() {
         if (selected) {
           _selected.remove(app.packageName);

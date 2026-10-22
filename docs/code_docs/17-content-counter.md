@@ -473,8 +473,8 @@ pull reply additionally carries `timeTotalMs`; no new method/event name was adde
   the unflushed usage tail is included) and, while open, a **1 Hz `Handler`
   tick** steps the display by `BubbleGeometry.nextShownSeconds` (`ponytail:` the
   store accrues only between events < 12 s apart, so the display leads it by at
-  most 12 s and follows a drop, e.g. midnight, immediately). The bubble no
-  longer uses `UsageLadder` — colour is the **tier** in the theme's hue (below).
+  most 12 s and follows a drop, e.g. midnight, immediately). Colour is the
+  **tier** in the theme's hue (below).
 - **Time pill.** A white pill (ink `#111A2E`, 1 px outline in the tier ring
   colour) 8 dp above the body shows the short watch time (`48m`, `1h 12m`,
   `2h`) for **3 s on appear and on each tier-up**, then folds down; hidden
@@ -636,17 +636,12 @@ payload pinned by `test/fixtures/home_widget_{cases,payloads}.json` on both
 sides · IM-03 the count budget + visible-key dedupe · IM-04 midnight job ·
 IM-07 theme · IM-08 tap routing · IM-09 corrupt data renders Empty.
 
-### 5.3 Shared usage ladder — `engine/UsageLadder.kt` ↔ `usage_ladder.dart`
+### 5.3 Usage ladder (removed)
 
-Both the color band (green → brown-red) and the emoji ladder step once **per 50
-reels** and cap at **500** (`kUsageCap` / `CAP`). The Dart source of truth
-(`content_counter_core/domain/usage_ladder.dart`) and the native mirror
-(`engine/UsageLadder.kt`) must stay **byte-identical**. Nothing reads them now: the
-block screen's "Colour by usage" was the last reader and went with the
-Quotes-only wall (2026-10-16); the home widgets (DS-01 tiers, §5.2) and the
-bubble (same tiers, §5.1) never did. Both copies stay until the pending bubble
-commits land, then go.
-`bandIndexFor(count) = count.clamp(0, 500) ~/ 50` → 0..10.
+The green → brown-red colour band and emoji ladder (`usage_ladder.dart` ↔
+`engine/UsageLadder.kt`) lost their last reader when the block screen dropped
+"Colour by usage" (2026-10-16), and were deleted in the Frozen Glass migration (M13). The
+home widgets and the bubble colour by the DS-01 tiers (§5.1, §5.2).
 
 ---
 
@@ -932,7 +927,6 @@ Native (Android, `android/app/src/main/kotlin/com/errorxperts/detoxo/…`):
   target ids for `matches()`).
 - `receivers/WatchdogJobService.kt` — the 15-min job is also the widgets'
   `HEARTBEAT`.
-- `engine/UsageLadder.kt` — the color-band + emoji ladders (native mirror; no reader since the block screen dropped "Colour by usage" — kept until the bubble commits land).
 - `engine/RuleEngine.kt` — `soonestReelLimitMs`, `reelMetersJson`,
   `DAILY_REEL_LIMIT_ID` (the Time limit widget's source).
 - `overlay/ContentCounterBubble.kt` — the window host: anchor + envelope
@@ -1002,7 +996,6 @@ Dart (`lib/…`):
 - `features/content_counter/content_counter_core/domain/entities/app_content_count.dart`
 - `features/content_counter/content_counter_core/domain/entities/counter_appearance.dart`
 - `features/content_counter/content_counter_core/domain/entities/counter_style_enums.dart`
-- `features/content_counter/content_counter_core/domain/usage_ladder.dart`
 - `features/content_counter/content_counter_core/domain/brand_tint.dart` — the theme's hue per role and the usage ramp (mirror of `widget/BrandTint.kt`; `test/fixtures/brand_tints.json`, `test/counter_ramp_test.dart`).
 - `features/content_counter/content_counter_core/domain/repositories/content_counter_repository.dart`
 - `features/content_counter/content_counter_core/domain/repositories/counter_appearance_repository.dart`
@@ -1031,7 +1024,7 @@ Dart (`lib/…`):
 
 Tests: `test/content_counter_test.dart` (snapshot mapping, catalog fallback,
 `watch()` filtering, cubit switch / grant paths),
-`test/counter_style_test.dart`, the bubble's `test/bubble_{model,painter,preview,style_screen}_test.dart` + `test/svg_path_test.dart` (shared fixture `test/fixtures/bubble_cases.json`; native `overlay/bubble/*Test`), `test/usage_ladder_test.dart`, the home widgets'
+`test/counter_style_test.dart`, the bubble's `test/bubble_{model,painter,preview,style_screen}_test.dart` + `test/svg_path_test.dart` (shared fixture `test/fixtures/bubble_cases.json`; native `overlay/bubble/*Test`), the home widgets'
 `test/home_widget_{payload,model,preview,cubit,screen}_test.dart` +
 `test/widget_tap_listener_test.dart` (the shared fixtures in `test/fixtures/`),
 and the native `ReelTrackerTest`, `ContentCounterStoreTest` and

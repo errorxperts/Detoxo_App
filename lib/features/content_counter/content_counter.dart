@@ -22,7 +22,6 @@ export 'content_counter_core/domain/entities/counter_appearance.dart';
 export 'content_counter_core/domain/entities/counter_style_enums.dart';
 export 'content_counter_core/domain/repositories/content_counter_repository.dart';
 export 'content_counter_core/domain/repositories/counter_appearance_repository.dart';
-export 'content_counter_core/domain/usage_ladder.dart';
 export 'content_counter_core/presentation/content_counter_cubit.dart';
 export 'content_counter_core/presentation/counter_appearance_cubit.dart';
 export 'home_content_counter/domain/entities/plan_state.dart';

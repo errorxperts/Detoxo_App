@@ -107,7 +107,6 @@ class _FeatureTutorialScreenState extends State<FeatureTutorialScreen> {
           const SectionHeader('Guided tours'),
           FeatureTile(
             icon: Icons.tips_and_updates_outlined,
-            animatedIcon: AppIcon.info,
             title: 'Dashboard tour',
             subtitle: "Replay the walkthrough of Detoxo's features",
             onTap: _replayDashboardTour,

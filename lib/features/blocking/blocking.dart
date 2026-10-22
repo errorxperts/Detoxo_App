@@ -18,9 +18,7 @@ export 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.da
 export 'package:detoxo/features/blocking/blocklist/presentation/widgets/block_app_tile.dart';
 // Live engine status + the native block counters, read by the Activity tab.
 export 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
-export 'package:detoxo/features/blocking/plans/domain/entities/mindful_quote.dart';
 export 'package:detoxo/features/blocking/plans/domain/entities/sessions.dart';
-export 'package:detoxo/features/blocking/plans/domain/repositories/content_repository.dart';
 export 'package:detoxo/features/blocking/shared/domain/entities/app_notice.dart';
 export 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 export 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';

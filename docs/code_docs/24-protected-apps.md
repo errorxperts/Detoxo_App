@@ -139,11 +139,12 @@ state is unknown the whole catalog renders). The FAB opens the shared
 installed-app picker (`core/widgets/app_picker_sheet.dart` →
 `showAppPickerSheet`): a searchable, multi-select bottom sheet of the device's
 launchable apps (icon + name + package, from
-`EngineRepository.installedApps()` — cached process-wide). Catalog apps show an
-"Auto-protected" pill, manual entries a "Protected" pill, and custom-blocked
-apps (loaded from the app_blocker feature's `AppBlockRepository` before the
-sheet opens) a "Blocked" pill — an app has one role, protected *or* blocked —
-all dimmed and unselectable. A manual name + package form remains as the
+`EngineRepository.installedApps()` — cached process-wide), as flat rows on the
+sheet where a picked row shows a check. Catalog apps show an "Auto-protected"
+badge, manual entries a "Protected" badge, and custom-blocked apps (loaded from
+the app_blocker feature's `AppBlockRepository` before the sheet opens) a
+"Blocked" badge — an app has one role, protected *or* blocked — all dimmed and
+unselectable. A manual name + package form remains as the
 fallback for apps the system hides; it enforces the same `unavailable` map
 (inline hint + disabled confirm), keeps any list selections when confirming,
 and configures the package field like the web-blocker host field
