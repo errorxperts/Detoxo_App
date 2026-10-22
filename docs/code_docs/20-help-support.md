@@ -119,15 +119,15 @@ says the tour points it out and turns it on):
   `disableMovingAnimation: true`, which stops the package's endless 7 px bob (it ignored Reduce
   Motion), and a custom container gets no package scale animation.
 - **Feedback button** — an independent, single-step coach-mark spotlighting the **real
-  top-bar feedback button** (`FeedbackActionButton`), reusing the same `ShowcaseTooltipCard`
-  and glass theme as the dashboard tour. Because that button is hidden while
+  top-bar feedback button** (`FeedbackActionButton`), reusing the same sheet-material
+  `ShowcaseTooltipCard` as the Today tour. Because that button is hidden while
   `showFeedbackButton` is off, tapping the tile enables it first
   (`SettingsCubit.setShowFeedbackButton(enabled: true)`) so there is something to point at.
   The screen supplies its own **keyed** `FeedbackActionButton` in the app bar and sets
   `GlassAppBar(globalActions: false)` to suppress the auto-appended global copy (avoiding a
   duplicate); the coach-mark's `GlobalKey` is attached to that instance.
 
-Because `showcaseview` 5.1.0 is scope-based and the dashboard's default-scope host stays mounted
+Because `showcaseview` 5.1.0 is scope-based and the home shell's default-scope host stays mounted
 under pushed routes, the feedback tour uses an explicit **named scope** rather than a second
 `ShowCaseWidget` (which would hijack the shared `currentScope`). The screen registers the scope
 in `initState` and unregisters it in `dispose`, driving it by name. This is powered by helpers

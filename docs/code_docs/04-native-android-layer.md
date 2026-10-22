@@ -363,7 +363,7 @@ Provider metadata (`res/xml/content_counter_widget_info.xml`, shared by all six)
 ### `<queries>` (package visibility, Android 11+)
 
 - `PROCESS_TEXT` (`text/plain`) and `MAIN` — general app visibility; the `MAIN` entry is what lets `installedPackages` enumerate launchable apps. This is now the *only* mechanism: `QUERY_ALL_PACKAGES` was removed.
-- `VIEW` with `https` and `http` schemes — browser visibility for the website blocker.
+- `VIEW` with `https` and `http` schemes — browser visibility for the Web Blocker.
 
 ---
 

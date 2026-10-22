@@ -139,7 +139,7 @@ Android device. The agent-facing runbook is `.claude/skills/detoxo-auto-test/SKI
 Artifacts land in `build/qa/` (gitignored via `/build/`).
 
 ### Layer 1 — Dart (runs today: `flutter test`)
-**100 test files / 1,183 passing tests** (one skipped; 2026-10-22) under `test/` — pure Dart +
+**115 test files / 1,376 passing tests** (one skipped; 2026-10-23) under `test/` — pure Dart +
 widget tests, no device needed. A selection, grouped by where business rules live:
 
 | Area | Tests |
@@ -152,9 +152,9 @@ widget tests, no device needed. A selection, grouped by where business rules liv
 | Permissions | `permissions_restricted_settings_test.dart` (ECM / non-Play install path) |
 | Content counter | `content_counter_test.dart` (snapshot mapping, cubit switches + overlay grant), `counter_style_test.dart` (Dart) · `android/app/src/test/kotlin/…/engine/ReelTrackerTest.kt` (native counting rule, JVM — run by `precommit` when a JDK 17 is present, see [23-testing-runbook.md](23-testing-runbook.md)) |
 | Help & upgrade | `help_test.dart`, `app_upgrader_test.dart`, `legal_web_view_test.dart` |
-| Dashboard widgets | `blocker_tile_test.dart`, `today_copy_test.dart` (ring face, lit mode, mode copy), `today_screen_test.dart` (the Today composition and its taps) |
+| Today (dashboard) widgets | `blocker_tile_test.dart`, `today_copy_test.dart` (ring face, lit mode, mode copy), `today_screen_test.dart` (the Today composition and its taps) |
 | Feedback | `app_feedback_test.dart` |
-| Design system | `test/core/design_system/*` (15 files: design tokens `--check` + spot values, contrast in both themes, theme slots + scheme, glass container roles, pressable, accent fixture + `AccentScope` glide, buttons, overlays (sheet drag / lock, toast), segmented, chip, toggle, chip rail, list tile, progress ring, avatar), `test/app/live_accent_test.dart` (`accentModeOf`), `test/design_system_text_scale_test.dart` (2× text) |
+| Design system | `test/core/design_system/*` (21 files: design tokens `--check` + spot values, contrast in both themes, theme slots + scheme, glass container roles, pressable, accent fixture + `AccentScope` glide, buttons, overlays (sheet drag / lock, toast), segmented, chip, toggle, chip rail, list tile, progress ring, 3D icons / glyphs / logo, mode card, ConfirmSheet, Session sheet, Today ring, tab bar + `TabHeader`, avatar), `test/app/live_accent_test.dart` (`accentModeOf`), `test/design_system_text_scale_test.dart` (2× text) |
 | Firebase | `test/core/services/firebase/*` (3 files: bloc observer, native event reporter, analytics service) |
 
 `flutter analyze` is clean.
@@ -168,15 +168,17 @@ widget tests, no device needed. A selection, grouped by where business rules liv
 > the source trees it owns (`lib test integration_test test_driver`) instead of `.`.
 
 ### Layer 2 — on-device integration
-`integration_test/` holds four tests plus the shared `qa_walk.dart` helper, all requiring a real
+`integration_test/` holds six tests plus the shared `qa_walk.dart` helper, all requiring a real
 engine (never plain `flutter test`):
 
 | File | Boots app? | Purpose |
 |---|---|---|
-| `pin_dialog_test.dart` | no — widget subtree + fakes | native `cupertino_native` platform-view layout |
+| `pin_dialog_test.dart` | no — widget subtree + fakes | the `confirmPinOff` ConfirmSheet on a real engine: layout, the 5 s wait, the semantics confirm |
 | `pin_setup_flow_test.dart` | no — widget subtree + fakes | PIN setup / turn-off flow on a real engine |
 | `app_e2e_test.dart` | **yes — `app.main()`** | splash → onboarding → permissions → home → showcase → drawer walk, theme flip |
-| `app_perf_test.dart` | **yes — `app.main()`** | frame timeline over a dashboard scroll (`flutter drive` only) |
+| `onboarding_e2e_test.dart` | **yes — `app.main()`** | every onboarding step with a screenshot, ending on the permissions hand-off (a not-yet-onboarded device) |
+| `blockers_e2e_test.dart` | **yes — `app.main()`** | App Blocker + Web Blocker walk with real block probes (`qa.sh blockers`) |
+| `app_perf_test.dart` | **yes — `app.main()`** | frame timeline over a Today scroll (`flutter drive` only) |
 
 `app_e2e_test.dart` is the only thing that exercises the real boot path — `Firebase.initializeApp`,
 `configureDependencies()`, Hive, go_router gating and the native MethodChannel. It branches on
@@ -188,10 +190,10 @@ it and `always_use_package_imports` forbids the relative import; both files carr
 `// ignore:`, which beats two divergent copies of `bootApp()`.
 
 Constraints that shape every on-device test:
-- **Settle by fixed frames on a real boot (`settle()`).** `GlassScaffold` is a static gradient
-  now, so a widget test of one screen can `pumpAndSettle` again, but the boot walk still meets
-  looping animations (the splash spinner, onboarding's `CaughtHero`) that never let the frame
-  queue drain.
+- **Settle by fixed frames on a real boot (`settle()`).** Nothing in the app loops any more, so a
+  widget test of one screen can `pumpAndSettle` again, but the boot walk still meets the splash's
+  indeterminate `LoadingState` spinner, which turns for as long as animations are on and never
+  lets the frame queue drain (it holds still only under Reduce Motion).
 - **Only one test per file may call `app.main()`.** `configureDependencies()` uses
   `registerSingleton` with no `allowReassignment` and nothing calls `sl.reset()`.
 - **`app.main()` hijacks the harness's error handling.** `installGlobalHandlers()` replaces
@@ -201,9 +203,9 @@ Constraints that shape every on-device test:
 - **`flutter test -d` uninstalls the app when it finishes**, wiping Hive and the accessibility
   grant. Every run therefore starts from a fresh install, which is why the walk branches on the
   screen it lands on and why `perf` re-runs `prep`.
-- **`find.text` matches the rendered string** — `SectionHeader` uppercases (`'THEME'`), the nav
-  pill is `Semantics(label:)`-only (the dashboard marker is `'Block All'`), and widgets below a
-  lazy sliver are never built at all.
+- **`find.text` matches the rendered string** — `SectionHeader` uppercases (`'THEME'`), the
+  `AppTabBar` renders both tab names on every home screen, so tab names are never screen markers
+  (the Today marker is `'Block All'`), and widgets below a lazy sliver are never built at all.
 
 ### Layer 3 — performance
 `bash tool/qa.sh perf` measures cold start (`am start -W`), Dart startup
@@ -284,7 +286,7 @@ release.
   optimisation list instead of the policy-restricted one-tap dialog.
 - **Device admin.** `DetoxoDeviceAdminReceiver` (uninstall protection + `lockNow`) is subject to
   device-admin policy and OEM behavior; use it sparingly and disclose it.
-- **Overlays.** The content-counter bubble uses `SYSTEM_ALERT_WINDOW` (Display over apps) with a
+- **Overlays.** The content-counter bubble uses `SYSTEM_ALERT_WINDOW` (Display over other apps) with a
   `TYPE_APPLICATION_OVERLAY` → `TYPE_PHONE` fallback — its own policy/OEM constraints apply.
 - **`QUERY_ALL_PACKAGES` — removed.** `queryLaunchablePackages()` only needs the manifest's
   `<queries>` MAIN entry, so the restricted permission (and its Console declaration) was dropped
@@ -309,7 +311,8 @@ release.
   at bundled local assets. `assets/config/initial_config.json` was rewritten: the inherited
   notification ids, prior-vendor CTA PDF, community link and dead package references, the
   third-party `inhouseNativeAdConfig` promo and the foreign `admobConfig` ad units are all gone.
-  `assets/content/pause_countdown_pause_emojis.json` was rebranded too (6 user-visible strings).
+  `assets/content/pause_countdown_pause_emojis.json` was rebranded too (6 user-visible strings);
+  it has since been deleted with the unmounted emoji engine (Frozen Glass M13).
   The repo now contains **zero** prior-app / prior-vendor names in any file, folder, asset or doc
   — including the orphaned `android/*.iml` IDE module file, which was deleted.
 - **Boundary check package prefix — done.** Repointed at the real package. Fixing it revealed **12

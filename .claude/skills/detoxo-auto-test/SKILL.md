@@ -326,7 +326,7 @@ These all cost a run to find. None are guessable from the source.
 - **Widgets below a lazy sliver do not exist.** `Reset app data` sits at the bottom of Settings'
   `ListView(children:)` and is never built into the element tree, so `find.text` cannot see it
   without scrolling. Use `'PROTECTION'` at the top instead.
-- **`DashboardTopBar` is the first child of the dashboard `ListView`** — the header scrolls away.
+- **`TabHeader` is the first child of the Today scroll view** (`dashboard_tab.dart`) — the header scrolls away.
   After the showcase tour the drawer button sits above the viewport clip: `find.byIcon` matches it
   but `tap()` misses with *"would not hit test on the specified widget"*. `openDrawer()` snaps the
   list to 0 first, with `jumpTo` — a drag at the top fires the `RefreshIndicator`.

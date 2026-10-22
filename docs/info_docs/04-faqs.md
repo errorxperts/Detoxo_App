@@ -39,19 +39,19 @@ protected app still notifies you normally, always.
 
 If you installed Detoxo from an APK rather than the Play Store, Android blocks a few powerful switches until you confirm you meant to enable them. You'll see *"Restricted setting"* or *"App was denied access"*.
 
-Open **Settings → Apps → Detoxo**, tap the **⋮** menu at the top right, and choose **"Allow restricted settings"** (on some phones it's at the bottom of the App info page instead). Then come back to Detoxo and tap **Grant** again. It's a one-time confirmation and unlocks every affected switch at once.
+Open **Settings → Apps → Detoxo**, tap the **⋮** (three-dot) menu at the top right, and choose **"Allow restricted settings"** (on some phones it's at the bottom of the App info page instead). Then come back to Detoxo and tap **Grant** again. It's a one-time confirmation and unlocks every affected switch at once.
 
 The ⋮ entry usually shows up only after you've tried the blocked switch once. Detoxo also notices when a grant isn't taking and offers a **"Fix this"** button that jumps you to the right screen. Installing from the Play Store avoids this entirely — see [Permissions explained](03-permissions-explained.md#if-a-switch-wont-turn-on).
 
 ## How does Detoxo actually stop me from scrolling?
 
-When Detoxo detects a short-video feed, it pulls you out of it and — in the **Block screen** mode (Settings → When a reel is detected), or whenever your daily limit is used up — shows its **block screen**: a calm full-screen card with a short motivational quote, a line that names the app you were in (say, "Instagram can wait. Your peace can't."), why it was blocked (your plan, your App blocker list, your website blocklist) and today's reel count. The standard action underneath is a simple **Back** press — the same as if you'd tapped your phone's back button — which closes the feed. (An optional short vibration can confirm it happened.)
+When Detoxo detects a short-video feed, it pulls you out of it and — in the **Block screen** mode (Settings → When a reel is detected), or whenever your daily limit is used up — shows its **block screen**: a calm full-screen card with a short motivational quote, a line that names the app you were in (say, "Instagram can wait. Your peace can't."), why it was blocked (your mode, your App Blocker, your Web Blocker list) and today's reel count. The standard action underneath is a simple **Back** press — the same as if you'd tapped your phone's back button — which closes the feed. (An optional short vibration can confirm it happened.)
 
 The block screen always gives you a way out: the **Home** button (⌂), **Open Detoxo**, or **Back to Instagram** (or whichever app). On Instagram that button takes you to its home feed — Detoxo taps Instagram's Home tab for you, or reopens Instagram on the feed if you'd ended up deep in a chat; for other apps it drops you on the app's previous screen so you can carry on with messages, search and the rest. **Back to …** counts down for five seconds before it unlocks — long enough for the block to register before the reflex tap — while the other two work at once; you can drop the wait under **Appearance → Block screen → Options**. If the exit already dropped you on your home screen or in the app you came from, that button just reads **Dismiss**. Swiping back from the screen's edges is deliberately ignored while it is up. Depending on your setup, the action can instead **close the app** or **lock the app**, but a back-press is the default and the least disruptive; those modes bounce you out without the card. If the "Display over other apps" permission is missing, Detoxo falls back to a short toast.
 
 ## A full screen appeared when a reel was blocked — how do I get out, or turn it off?
 
-That's the block screen. Tap the **Home** button (⌂) to leave, **Open Detoxo** to jump into the app, or **Back to …** to return to the app you were in (on Instagram, to its home feed) once its five-second wait is over. To stop it appearing on reel blocks, pick another mode under **Settings → When a reel is detected**; the switch under **Settings → Appearance → Block screen** governs the card for app and website blocks (those then go back to the short toast). A used-up daily limit, a schedule you set, or an empty Conscious bank shows the card regardless of either — the only way to stop those is to remove the rule. The same card lets you choose whether it shows today's reel count and how many times you've opened the app today (that line needs the **Usage access** permission and simply stays away without it), and whether the wait is on — with a live preview and a **Try it on your phone** button. Its look and colour follow Detoxo's own theme: change the theme under **Appearance** and the block screen follows.
+That's the block screen. Tap the **Home** button (⌂) to leave, **Open Detoxo** to jump into the app, or **Back to …** to return to the app you were in (on Instagram, to its home feed) once its five-second wait is over. To stop it appearing on reel blocks, pick another mode under **Settings → When a reel is detected**; the switch under **Settings → Appearance → Block screen** governs the card for app and website blocks (those then go back to the short toast). A used-up daily limit, a schedule you set, or an empty Conscious bank shows the card regardless of either — the only way to stop those is to remove the rule. The same page lets you choose whether it shows today's reel count and how many times you've opened the app today (that line needs the **Usage access** permission, simply stays away without it, and starts off on a new install), and whether the wait is on — with a live preview and a **Try it on your phone** button. Its look follows Detoxo's own theme, light or dark, and its colour follows your current mode, as on the Today screen.
 
 ## What's the difference between Block All, One Reel, Unblock, Conscious, and Pause?
 
@@ -63,7 +63,7 @@ These are the ways Detoxo can behave. You pick whichever fits your goal from the
 | **One Reel** | *Temporary.* Lets a single reel play, then returns to your base mode. Scrolling to the next reel is what ends the peek. Each time you tap **One Reel**, a short confirm asks you to wait a few seconds and slide; each slide re-arms one reel. |
 | **Unblock** | *Temporary.* You decide how many reels to release: tap **Unblock** on the Today ring, pick a count (1–20) with − / + or a quick pick, and tap **Start**. You can watch that many, then it returns to your base mode — tap **Unblock** and start a new count to watch more. |
 | **Conscious** | An "earn-as-you-abstain" **base** mode. You build up a small allowance of watch-time by *staying off* reels (about 1 minute banked for every 10 minutes away, up to 10 minutes saved). While you have allowance, reels play; when it runs out, blocking kicks back in until you've earned more. It keeps you honest without a hard wall. |
-| **Pause** | *Temporary.* A short, deliberate break. Tap **Pause**, choose a window (1–10 minutes) on its dial or a quick pick, and tap **Start**; during it, reels and blocked websites are allowed. When the timer runs out, it returns to your base mode. (Apps you've fully locked on the Block apps screen stay locked through a Pause.) |
+| **Pause** | *Temporary.* A short, deliberate break. Tap **Pause**, choose a window (1–10 minutes) on its dial or a quick pick, and tap **Start**; during it, reels and blocked websites are allowed. When the timer runs out, it returns to your base mode. (Apps you've fully locked on the App Blocker screen stay locked through a Pause.) |
 
 Two of these **stick** — **Block All** and **Conscious** are your *base* mode — and three are **temporary** overrides (**One Reel**, **Unblock**, **Pause**) that auto-return to whichever base mode you were on once they finish. (See "What happens after One Reel, Unblock, or Pause finishes?" below.)
 
@@ -101,15 +101,15 @@ To protect your battery, a widget refreshes **every 10 reels and at each colour 
 
 ## How does Detoxo measure my daily "screen time"?
 
-The ring on your home screen shows how much time you've spent today in the social apps Detoxo watches, filling toward your daily limit. That time is measured **entirely on your device**, using the **same Accessibility permission** the blocker already uses — there's **no extra permission** and nothing is sent anywhere. Detoxo simply notices while one of those apps is active in the foreground and adds up the time.
+The ring on the **Today** tab shows how much time you have left today in the social apps Detoxo watches before your daily limit (or, with no limit set, how much you've spent). That time is measured **entirely on your device**, using the **same Accessibility permission** the blocker already uses — there's **no extra permission** and nothing is sent anywhere. Detoxo simply notices while one of those apps is active in the foreground and adds up the time.
 
 Because it works from those on-screen signals, it counts your *active* time well but can **undercount long, silent playback** — for example a video left playing untouched, which produces very little on-screen activity. So treat the number as a close, honest estimate rather than a stopwatch. It resets at the start of each new day, together with your reel count.
 
-If you want the exact figure instead, **Activity → Insights** shows your whole-phone screen time taken straight from Android's own records — the same numbers as Settings → Digital Wellbeing. The two answer different questions: the ring is time in the social apps Detoxo watches (and drives your limit), Insights is your whole day, every app.
+If you want the exact figure instead, the **Insights** tab shows your whole-phone screen time taken straight from Android's own records — the same numbers as Settings → Digital Wellbeing. The two answer different questions: the ring is time in the social apps Detoxo watches (and drives your limit), Insights is your whole day, every app.
 
-## What's in Activity → Insights, and why is it sometimes empty?
+## What's in Insights, and why is it sometimes empty?
 
-Insights shows your real screen time for today: the total, how much of it was on distracting apps, how many times you picked up your phone, how often you switched apps, and which apps took the most time. It reads Android's own screen-time records, so it should match Digital Wellbeing.
+Insights shows your real screen time for today: the total, how much of it was on distracting apps, how many times you picked up your phone and when you first did, how often you switched apps, and which apps took the most time. It reads Android's own screen-time records, so it should match Digital Wellbeing.
 
 It needs the optional **Usage access** permission. If you haven't granted it, Insights shows a **Grant** button and **no numbers at all** — on purpose. A screen of zeros would look identical to a genuinely quiet day, and we'd rather show you nothing than something wrong.
 
@@ -119,19 +119,19 @@ Two things worth knowing: Android counts an app as "in use" whenever it's on scr
 
 No. Your screen-time totals, your per-app breakdown, your pickups — all of it is calculated and stored **on your device only**, in Detoxo's local storage, and none of it goes into the anonymous diagnostics described above.
 
-Two things we'd rather say than leave you to assume. Apps you've marked as **protected** (your bank, UPI or password manager) are left out of the app list entirely and are never written down — their time still counts toward your total, but they're never named. And Detoxo's local data is currently part of Android's normal app backup, so with Google backup switched on it can be copied to your Google account the way any app's data is; excluding it is on our list.
+Two things we'd rather say than leave you to assume. Apps you've marked as **protected** (your bank, UPI or password manager) are left out of the app list entirely and are never written down — their time still counts toward your total, but they're never named. And Detoxo opts out of Android's cloud backup, so none of it is copied to your Google account.
 
 Insights is also completely free; there's no paywall on knowing how you spend your own time.
 
 ## How do I set or change my daily limit?
 
-You first set a daily limit during setup by dragging a dial (the "Here's the deal" step). To change it any time, open **Settings → Daily limit** (or tap the pinned row at the top of **Rules**), drag the slider, and tap **Save limit** (0 means "no limit"). Your home-screen ring updates **immediately** and fills toward whatever you set. When today's reel time reaches the limit, Detoxo **blocks every reel feed until midnight** — the block screen says "Your daily limit is used up", and it appears whatever block mode you chose — while the rest of each app keeps working. A Pause lifts it like any other block. The limit is measured by the reel counter, so it can only be enforced while the counter is on.
+You first set a daily limit during setup by dragging a dial (the "Here's the deal" step). To change it any time, open **Settings → Daily limit** (or tap the pinned row at the top of **Blocker rules**), drag the slider (up to 8 hours, in 15-minute steps), and tap **Save limit** (0 means no limit). Your home-screen ring updates **immediately** and fills toward whatever you set. When today's reel time reaches the limit, Detoxo **blocks every reel feed until midnight** — the block screen says "Your daily limit is used up", and it appears whatever block mode you chose — while the rest of each app keeps working. A Pause lifts it like any other block. The limit is measured by the reel counter, so it can only be enforced while the counter is on.
 
 ## Detoxo created a rule for me — where did it come from?
 
-That's your **starter rule**, set up from what you said mattered most during first-run setup: *sleeping properly* gets you a nightly 22:00–07:00 block, *focus* gets weekdays 09:00–17:00, and the rest get a 30-minute daily budget. It covers the feeds you picked, and it is written the moment you grant the required permissions — not before, because a rule that cannot be enforced yet is a rule that does nothing.
+That's your **starter rule**, set up from what you said mattered most during first-run setup: *sleeping properly* gets you a nightly 10 PM–7 AM block, *focus* gets weekdays 9 AM–5 PM, and the rest get a 30m daily budget (times follow your phone's 12- or 24-hour setting). It covers the feeds you picked, and it is written the moment you grant the required permissions — not before, because a rule that cannot be enforced yet is a rule that does nothing.
 
-It's an ordinary rule with nothing special about it: open **Rules** to change the hours, swap the apps, switch it off, or delete it. If you were already using Detoxo before this feature existed, no rule was created for you.
+It's an ordinary rule with nothing special about it: open **Blocker rules** to change the hours, swap the apps, switch it off, or delete it. If you were already using Detoxo before this feature existed, no rule was created for you.
 
 ---
 
@@ -143,11 +143,11 @@ No. Every answer is saved the moment you give it, and the step you're on is reme
 
 ## What are rules, and how do I create one?
 
-Rules are blocks with a clock. Tap the **Rules** card on your dashboard. With no rules yet, the quickest start is **Start from a preset** — *Work hours*, *Sleep*, *Dinner* or *Doomscroll budget* opens a rule already filled in for you to adjust and save. Otherwise tap **New rule** and pick a **Schedule** (block during set hours on chosen days — an end time before the start time means overnight), a **Daily time limit** (a budget of minutes, then blocked until midnight) or an **Open limit** (a number of launches a day, then blocked until midnight). Then choose what it covers under **Block**: specific apps, and — for schedules — reel feeds and websites; below those, swipe the two rows of category chips (Short-form video, Social, Games…), where **All distracting** picks every distracting category in one tap. Each rule has an on/off switch and shows where you stand ("Active now", "22/30 min", "Next Mon 09:00"). You can keep up to 50.
+Rules are blocks with a clock. Tap **Blocker rules** at the bottom of the **Today** tab. With no rules yet, the quickest start is **Start from a preset** — *Work hours*, *Sleep*, *Dinner* or *Reel budget* opens a rule already filled in for you to adjust and save. Otherwise tap **New rule** and pick a **Schedule** (block during set hours on chosen days — an end time before the start time means overnight), a **Time limit** (a daily budget, then blocked until midnight) or an **Open limit** (a number of launches a day, then blocked until midnight). Then choose what it covers under **Block**: specific apps, and — for schedules — reel feeds and websites; below those, swipe the two rows of category chips (Short-form video, Social, Games…), where **All distracting** picks every distracting category in one tap. Each rule has an on/off switch and shows where you stand ("Active now", "22m of 30m", "Next Mon 9 AM"). You can keep up to 50.
 
 ## My time limit ran out but the app opened anyway — why?
 
-Time and open limits are counted from Android's own usage records, and Detoxo re-checks them in the background about every 15 minutes, so a budget now runs out and starts blocking **without you opening Detoxo**. Two things can still delay it: the check runs on that 15-minute rhythm, so a block can land a few minutes after the budget is technically gone, and limits need **Usage access** — the Rules screen offers a button to grant it if a limit can't count. Schedules never have this gap; they are planned a week ahead and fire on time on their own.
+Time and open limits are counted from Android's own usage records, and Detoxo re-checks them in the background about every 15 minutes, so a budget now runs out and starts blocking **without you opening Detoxo**. Two things can still delay it: the check runs on that 15-minute rhythm, so a block can land a few minutes after the budget is technically gone, and limits need **Usage access** — the Blocker rules screen offers a button to grant it if a limit can't count. Schedules never have this gap; they are planned a week ahead and fire on time on their own.
 
 ## Can I turn Usage access off to get around a limit?
 
@@ -161,15 +161,15 @@ Locked rules are rationed separately, and always: lifting one costs an override,
 
 ## Where can I see what's currently unblocked?
 
-The **Today** tab shows an **Allowed right now** card, just under **Blockers**, whenever something is — the app, feed or site, when it goes back to being blocked, and a resume button to end it early. It isn't there when nothing is allowed. The **Insights** tab also shows how many overrides you've spent this period and the reasons you gave.
+Under the **Blockers** heading on the **Today** tab, each thing you've allowed gets a row — the app, feed or site, *Allowed until …*, and a **Block now** button to end it early. The rows aren't there when nothing is allowed. Once you've used an override, the **Insights** tab shows how many you have left this week.
 
 ## Does Pause switch my rules off too?
 
-Yes for normal rules, for the length of the Pause — a Pause is your break button and lifts schedules and limits the same way it lifts reel blocking. Two exceptions: apps you locked in **Block apps** stay locked through a Pause, and so does any rule you mark **Strict**.
+Yes for normal rules, for the length of the Pause — a Pause is your break button and lifts schedules and limits the same way it lifts reel blocking. Two exceptions: apps you locked in the **App Blocker** stay locked through a Pause, and so does any rule you mark **Strict**.
 
 ## What does "Strict" do on a rule?
 
-It removes your own escape hatch. A strict rule keeps blocking apps, reel feeds **and websites** even while Detoxo is paused — it's for the rules you set precisely because you know future-you will want to skip them. The switch is in each rule's editor and is off by default, so nothing changes unless you turn it on.
+It removes your own escape hatch: strict rules keep blocking apps, reel feeds **and websites** even during a Pause. The switch is in each rule's editor and is off by default, so nothing changes unless you turn it on.
 
 ## The block screen now tells me when I get the app back
 
@@ -177,15 +177,15 @@ Yes — when a schedule or a daily limit raises the wall, it says when it lifts:
 
 ## Where do the quotes on the block screen come from?
 
-Every block screen shows a short quote and its author — about work, success, peace of mind, time and achievement. Detoxo ships 100 of them inside the app and picks a different one each time the card appears (never the same one twice in a row); nothing is downloaded. When Detoxo's theme is light the card is *Face Down* — a phone that turns itself over — and when it is dark *Spotlight*, a soft light you can move with your finger. Both hold still if you've turned off animations in your phone's accessibility settings.
+Every block screen shows a short quote and its author — about work, success, peace of mind, time and achievement. Detoxo ships 100 of them inside the app and picks a different one each time the card appears (never the same one twice in a row); nothing is downloaded. The card follows Detoxo's theme, light or dark: the quote sits in a frosted panel, and after it fades in once nothing on the screen moves.
 
 ## What is the "day streak" on the Today tab?
 
 The **day streak** under the Today ring, beside your reels count, is how many days in a row you've stayed **under your daily limit**. It ticks up each day you finish under the limit and resets if you go over or skip a day — a gentle motivator to keep your scrolling in check. It's counted on your device while the app is open; nothing is uploaded.
 
-## The floating bubble needs "Display over apps" — why?
+## The floating bubble needs "Display over other apps" — why?
 
-The little counter bubble floats on top of whatever app you're in, so Android asks for the **Display over apps** permission (sometimes shown as "Draw over other apps") before it can appear. Counting works everywhere without it; you just won't see the bubble. The same permission draws the **block screen** — without it, blocking still works but you get a short toast instead of the full-screen card.
+The little counter bubble floats on top of whatever app you're in, so Android asks for the **Display over other apps** permission (some phones call it "Draw over other apps") before it can appear. Counting works everywhere without it; you just won't see the bubble. The same permission draws the **block screen** — without it, blocking still works but you get a short toast instead of the full-screen card.
 
 If the bubble or the block screen is switched on but the permission is missing, its status on the Appearance screen reads **Needs access**. Tap it to open the setting; it changes back to **On** once granted. The block screen's own page shows the same warning under **Try it on your phone**.
 
@@ -195,7 +195,7 @@ A single tap flips the bubble to today's watch time as a running clock (e.g. `1:
 
 ## Can I see how many reels I have left?
 
-Yes — during a **One Reel** or **Unblock** session, the floating bubble doubles as an unlock countdown. It shows a teal "**N left**" badge with how many reels you still have to watch, ticking down as you scroll. When the session finishes (or you switch back to **Block All** or **Conscious**), the bubble **goes back to showing today's total reel count** on its own. This needs the counter bubble to be enabled, and it only appears while you're actually on a reel. You'll also see a matching remaining-count badge on the active **One Reel** / **Unblock** pill on the home screen.
+Yes — during a **One Reel** or **Unblock** session, the floating bubble doubles as an unlock countdown. It shows a teal "**N left**" badge with how many reels you still have to watch, ticking down as you scroll. When the session finishes (or you switch back to **Block All** or **Conscious**), the bubble **goes back to showing today's total reel count** on its own. This needs the counter bubble to be enabled, and it only appears while you're actually on a reel. During an **Unblock**, the ring on the **Today** tab counts down the reels you have left too.
 
 ## Will Detoxo drain my battery?
 
@@ -203,14 +203,14 @@ No, the impact is small. Detoxo is built to be light: it only reacts briefly whe
 
 You will see a permanent, silent notification ("Detoxo is active") in your tray. That notification is required by Android to keep the blocker alive in the background — it's a status marker, not an alert, and it makes no sound.
 
-## The dashboard (or a permission card) briefly says "Checking…" — is something wrong?
+## A permission card briefly says "Checking…" — is something wrong?
 
 No. Right after launch, Detoxo may not have heard back from Android yet about a permission or the protection service, so instead of guessing it shows a neutral **"Checking…"** on the setup screen's permission cards. It settles within a moment, and it never means something was revoked or turned off. (Detoxo deliberately doesn't flash "Protection off" or "denied" during that moment — a false alarm you learn to ignore would hide the real one.)
 
 ## Can Detoxo hide notifications from apps I've blocked?
 
 Yes — switch on **Settings → Privacy → Notification silence**. While it's on, an app you've
-locked in the App blocker, or one a rule is currently blocking, won't notify you at all: no
+locked in the App Blocker, or one a rule is currently blocking, won't notify you at all: no
 sound, no banner, nothing in the shade. When the block lifts — your schedule window ends, your
 limit resets at midnight, you start a Pause — its notifications come back on their own. Nothing
 is deleted; the app just stops interrupting you while it's off limits.
@@ -247,27 +247,28 @@ Once you permanently dismiss the notification pop-up, Android won't show it agai
 
 ## Does Detoxo work on iPhone / iOS?
 
-No — Detoxo is **Android-only**, and this isn't a temporary gap. The whole product depends on Android's Accessibility Service to see a reel feed and press Back. Apple's system deliberately doesn't let one app look inside another app or dismiss its screen, so there's simply no way to build the same reel-level blocking on iPhone. If you open Detoxo on an iPhone you'll see a short screen explaining this rather than broken controls.
+No — Detoxo is **Android-only**, and this isn't a temporary gap. The whole product depends on Android's Accessibility Service to see a reel feed and press Back. Apple's system deliberately doesn't let one app look inside another app or dismiss its screen, so there's simply no way to build the same reel-level blocking on iPhone. If you open Detoxo on an iPhone it shows one screen — *Detoxo works on Android only. This version can't run on this device.* — rather than broken controls.
 
 ## How do I take a break or turn Detoxo off?
 
-- For a **quick break**, tap **Pause** on Today — pick 1–10 minutes and tap **Start**; reels and blocked websites are allowed until the timer ends, then it returns to your base mode (Block All or Conscious) on its own. Apps you've fully locked on the Block apps screen stay locked through the break. This is the recommended way to step away without forgetting to turn protection back on.
+- For a **quick break**, tap **Pause** on Today — pick 1–10 minutes and tap **Start**; reels and blocked websites are allowed until the timer ends, then it returns to your base mode (Block All or Conscious) on its own. Apps you've fully locked on the App Blocker screen stay locked through the break. This is the recommended way to step away without forgetting to turn protection back on.
 - To **turn blocking off entirely**, open **Settings** and switch off **Blocking active** (the master switch for all detection). If you've set a PIN, Detoxo asks for it first; then you wait a moment and slide to confirm — the intentional speed bump that stops an impulsive "just turn it off."
 
 The reel counter is controlled separately (**Count short videos** on the Appearance screen), so you can keep counting even with blocking off.
 
 ## I set a PIN — why does Detoxo ask for it again when I switch back?
 
-That's **Smart Auto Lock**. When the PIN guards opening the app, Detoxo re-locks
+That's **Auto-lock**. When the PIN guards opening the app, Detoxo re-locks
 after you leave it — immediately, after a delay you pick (15 s to 5 minutes;
 1 minute is the default), or only when the screen turns off. Tune it in
-**Settings → PIN lock → Re-lock after leaving Detoxo**, or set it to **Never**
+**Settings → PIN settings → Re-lock after leaving Detoxo**, or set it to **Never**
 to only lock on relaunch. Detoxo always asks again after a phone restart.
 
 While you're there, **Hide screen in Recents** blanks Detoxo's card in the app
 switcher so your settings and counts aren't visible at a glance (it also blocks
 screenshots of the app). And the lock screen accepts three ways in: your Detoxo
-PIN, your fingerprint or face, or your device PIN/pattern/password.
+PIN, your fingerprint or face, or your device PIN/pattern/password. Turning PIN
+lock off asks for your PIN, then you wait a moment and slide to confirm.
 
 ## I set a PIN and forgot it — how do I get back in?
 
@@ -277,31 +278,31 @@ If you're locked out for good, the way back is to **uninstall Detoxo and install
 
 Detoxo says this plainly on the PIN setup screen and behind **"Forgot PIN?"** on the lock screen, so it shouldn't be a surprise — pick something you'll remember.
 
-One more thing: too many wrong guesses starts a cooldown that grows with each miss (up to 24 hours). It survives force-quitting the app, and it's tied to the phone's internal uptime clock — so changing the date or time in Settings doesn't skip the wait.
+One more thing: too many wrong guesses starts a cooldown that grows with each miss (up to 24 hours), shown right under the PIN dots. It survives force-quitting the app, and it's tied to the phone's internal uptime clock — so changing the date or time in Settings doesn't skip the wait.
 
 ## How do I uninstall Detoxo?
 
 Uninstall it like any app — **unless** you turned on the optional **Device Admin** protection.
 
-Device Admin is an opt-in feature that stops Detoxo from being uninstalled on impulse (and enables the lock-screen action). If you enabled it, Android won't let you remove the app until you first **remove Detoxo as a device administrator** — you can do that from Detoxo's own settings, or from your phone's *Settings → Security → Device admin apps*. After that, uninstall works normally. Turning off the Accessibility permission (in *Settings → Accessibility*) also stops all blocking immediately.
+Device Admin is an opt-in feature that stops Detoxo from being uninstalled on impulse (and enables the lock-screen action). If you enabled it, Android won't let you remove the app until you first **remove Detoxo as a device administrator** — you do that in your phone's *Settings → Security → Device admin apps*. After that, uninstall works normally. Turning off the Accessibility permission (in *Settings → Accessibility*) also stops all blocking immediately.
 
 ## Which apps and sites does Detoxo cover?
 
-Detoxo targets the short-video feeds inside popular apps (think Reels, Shorts, and similar infinite-scroll video), plus it can bounce you off blocked websites — including an optional built-in adult-site list — when you browse. It focuses on the *feed*, so the rest of an app (messages, search, posting) keeps working normally. And for apps you want gone entirely, you can add **any app on your phone** to the Block apps list — see the next question.
+Detoxo targets the short-video feeds inside popular apps (think Reels, Shorts, and similar infinite-scroll video), plus it can bounce you off blocked websites — including an optional built-in adult-site list — when you browse. It focuses on the *feed*, so the rest of an app (messages, search, posting) keeps working normally. And for apps you want gone entirely, you can add **any app on your phone** to the **App Blocker** — see the next question.
 
 ## Can Detoxo block a whole app, not just its feed?
 
-Yes. On the **Block apps** screen, tap **Add app** and pick any app from your phone. From then on, opening that app bounces you straight back to your home screen with a short "*App* is blocked by Detoxo" message — even if you were already inside it when the block landed. Each bounce counts toward your "Blocked today" number, and you can pause a block anytime by flipping the row's switch off (or delete it). Detoxo never blocks your home screen, itself, or your protected private apps (banking, payments, and the like).
+Yes. On the **App Blocker** screen, tap **Add app** and pick any app from your phone. From then on, opening that app bounces you straight back to your home screen with a short "*App* is blocked by Detoxo" message — even if you were already inside it when the block landed. Each bounce counts toward your "Blocked today" number, and you can pause a block anytime by flipping the row's switch off (or delete it); a short message offers **Undo** either way. Detoxo never blocks your home screen, itself, or your protected private apps (banking, payments, and the like).
 
 ## Can I let a blocked website through for a few minutes?
 
-Yes — without unblocking it. On the **Website blocker** screen, tap the site's row (or swipe it left), choose **Allow**, pick 5, 15, 30 or 60 minutes, wait out the five-second breath and slide to unblock. The row shows "Allowed until …" and the site opens normally until then; when the time is up, blocking switches itself back on — even if Detoxo never reopens. Tap **Resume** to end it early.
+Yes — without unblocking it. On the **Web Blocker** screen, tap the site's row (or swipe it left), choose **Allow**, pick 5, 15, 30 or 60 minutes, wait out the five-second breath and slide to unblock. The row shows "Allowed until …" and the site opens normally until then; when the time is up, blocking switches itself back on — even if Detoxo never reopens. Tap **Resume** to end it early.
 
 ## Can I do that for an app, or for one feed?
 
-Yes — that's the same thing now. On the **Block apps** screen each blocked row has a timer button, and when Detoxo blocks something the block screen itself offers **Allow for a while** — tapping it shows the durations right on that screen, so you never have to leave the app you're in. Pick 5, 15, 30 or 60 minutes, wait out the five-second breath and slide to unblock, and *only that thing* opens: every other app, feed and site stays exactly as protected as it was. It ends by itself, it survives a restart, and moving your phone's clock backwards won't buy you extra time. See [02-feature-walkthroughs.md](02-feature-walkthroughs.md) §18.
+Yes — that's the same thing now. On the **App Blocker** screen each blocked row has a timer button, and when Detoxo blocks something the block screen itself offers **Allow for a while** — tapping it shows the durations right on that screen (5 minutes is picked), so you never have to leave the app you're in. Pick 5, 15, 30 or 60 minutes, wait out the five-second breath and slide to unblock, and *only that thing* opens: every other app, feed and site stays exactly as protected as it was. It ends by itself, it survives a restart, and moving your phone's clock backwards won't buy you extra time. See [02-feature-walkthroughs.md](02-feature-walkthroughs.md) §18.
 
-Two exceptions: adult sites are never unblockable this way, and a rule you marked **Locked** or **Strict** isn't either — that one needs an override.
+Two exceptions: adult sites are never unblockable this way, and neither is a rule you marked **Strict** or **Locked** — a locked rule can be lifted with an override.
 
 ## What does "locking" a rule actually do?
 
@@ -313,25 +314,26 @@ The way through is an **override**: two a week. Spending one means picking a rea
 
 There is deliberately no unlock inside the app — that's what makes locking mean something. Your options are an **override** (a temporary lift, twice a week), **Settings → Reset app data** (which clears everything Detoxo has stored, locked rules included), or turning Detoxo's accessibility permission off in Android Settings.
 
-If you also have uninstall protection on, turn that off first in Settings → Protection.
+If you also have uninstall protection on, turn that off first in your phone's Settings → Security → Device admin apps.
 
 ## Can Detoxo just remind me instead of blocking?
 
 Yes — turn on **Soft nudge** in Settings → Protection. Distracting apps then open normally,
 and after five minutes in one a small card appears at the bottom telling you how long you've
-been there. Nothing is blocked, nothing closes, and you can keep scrolling right past it; it
-goes away by itself after a few seconds. It returns every five minutes after that, up to four
+been there (*Instagram · 5m*), with a **Leave** button if you want out. Nothing is blocked,
+nothing closes, and you can keep scrolling right past it; it goes away by itself after a few
+seconds. It returns every five minutes after that, up to four
 times a day per app, and the clock resets if you leave the app for a minute.
 
 One thing people expect and don't get: the five minutes is **per visit**, not per day — two
-short visits won't nudge you. If you want "tell me after 30 minutes today", use a **daily
-limit** under Rules instead. See [02-feature-walkthroughs.md](02-feature-walkthroughs.md) §17.
+short visits won't nudge you. If you want "tell me after 30 minutes today", use a **Time
+limit** under Blocker rules instead. See [02-feature-walkthroughs.md](02-feature-walkthroughs.md) §17.
 
 ## Where are the "block adult content" and "block websites of blocked apps" switches?
 
-On the **Website blocker** screen, tap the tinted **Protection** pill at the start of the Popular sites row — it opens a small screen with both switches, and shows how many are on.
+On the **Web Blocker** screen, tap the **Protection** row under the Popular sites chips — it opens a small screen with both switches, and the row shows how many are on (*1 of 2 on*). Turning either one off asks you to wait a few seconds and slide to confirm.
 
-**Block adult content (18+)** covers every page of 200+ known adult sites plus every `.xxx`, `.porn`, `.sex` or `.adult` address, in any supported browser, on top of your own blocklist. Those blocks are counted in your stats but never named — the block screen (or the toast, if the screen is off) just says "Adult site blocked by Detoxo", and no adult site can show up in the "Most blocked" line. If you need one of those sites, switch the 18+ protection off for a while; per-site pause applies to your own blocklist entries.
+**Block adult content (18+)** covers every page of 200+ known adult sites plus every `.xxx`, `.porn`, `.sex` or `.adult` address, in any supported browser, on top of your own blocklist. Those blocks are counted in your stats but never named — the block screen (or the toast, if the screen is off) just says "Adult site blocked by Detoxo", and no adult site can show up in the "Most blocked" line. If you need one of those sites, switch the 18+ protection off for a while; per-site **Allow** applies to your own blocklist entries.
 
 ## Detoxo says a browser is "not covered" — what does that mean?
 
@@ -341,17 +343,17 @@ Firefox, Samsung Internet, Edge, Brave, Opera, DuckDuckGo and Vivaldi. In any
 other browser it can't see where you are, so **your blocklist and the 18+ filter
 do nothing there**.
 
-Rather than let that pass quietly, the **Website blocker** screen lists the
+Rather than let that pass quietly, the **Web Blocker** screen lists the
 browsers on your phone it can't cover, by name. If you see that message you have
 three options: use one of the supported browsers instead, uninstall the one
-that isn't covered, or add that browser to **Block apps** so it can't be opened
+that isn't covered, or add that browser to the **App Blocker** so it can't be opened
 at all.
 
 ## Why does Detoxo ask for my PIN when I protect a browser?
 
 **Protected apps** makes Detoxo go completely blind in an app — no reading, no
 counting, no blocking. That's exactly what you want for a banking or UPI app.
-But a browser is where the website blocker does its work, so protecting one
+But a browser is where the Web Blocker does its work, so protecting one
 would switch off your blocklist and the 18+ filter inside it.
 
 That's the same kind of change as turning blocking off, so it costs the same
@@ -360,11 +362,11 @@ still takes one tap with no PIN.
 
 ## How do I get help, report a bug, or suggest a feature?
 
-Open the menu (top-right) and tap **Help & support**. You'll find: **Report an issue** (explains and turns on the feedback button, or lets you file a bug with a screenshot right away), a searchable **FAQ**, **Feature tutorials** (replay the dashboard walkthrough or a quick tour of the feedback button), and **Share an idea** (a simple box that opens your email pre-filled to us) — all routing to **errorxperts@gmail.com**. Under **Legal**, you can also open the **Privacy Policy** and **Terms & Conditions** right inside the app.
+Open the menu (top-right) and tap **Help & support**. You'll find: **Report an issue** (a switch for the feedback button, and **Report a bug** to file one with a screenshot right away), a searchable **FAQ**, **Feature tutorials** (replay the Today walkthrough or a quick tour of the feedback button), and **Share an idea** (a simple box that opens your email pre-filled to us) — all routing to **errorxperts@gmail.com**. Under **Legal**, you can also open the **Privacy Policy** and **Terms & Conditions** right inside the app.
 
 ## How do I update Detoxo?
 
-Detoxo checks the Play Store for a newer version when you open the app; if one is available it shows an **Update available** card with **Update now** (opens the Play Store) or **Later**, and you can **Skip this version** to stop being reminded about that one. To check on demand, open **Settings** and tap the **app-version card** at the bottom — if an update is ready it shows a compact **Update** button there, and if you're already current it just says so. Once in a while an update is **required** (an important fix); that card can't be dismissed until you update. Update checks run on Android only; on iPhone the app is a preview and doesn't check.
+Detoxo checks the Play Store for a newer version when you open the app; if one is available it shows an **Update available** sheet with **Update now** (opens the Play Store) or **Later**, and you can **Skip this version** to stop being reminded about that one. To check on demand, open **Settings** and tap the version row at the bottom (*Tap to check for updates*) — if an update is ready it shows an **Update** button there, and if you're already current it just says so. Once in a while an update is **required** (an important fix); that sheet can't be dismissed until you update. Like the rest of Detoxo, update checks run on Android only.
 
 ---
 

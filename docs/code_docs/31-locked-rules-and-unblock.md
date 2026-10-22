@@ -34,7 +34,7 @@ android/.../engine/UnblockRegistry.kt               Android-free; JVM-tested
 ```
 
 The `limits.dart` barrel exports the domain, both syncs and the app-wide `UnblockCubit` (the
-`RulesCubit` precedent), so the App Blocker screen, the Website blocker screen, the rule editor and
+`RulesCubit` precedent), so the App Blocker screen, the Web Blocker screen, the rule editor and
 `AppResumeSync` all reach it without a boundary violation. `tool/boundaries_baseline.txt` is
 unchanged (still zero entries).
 

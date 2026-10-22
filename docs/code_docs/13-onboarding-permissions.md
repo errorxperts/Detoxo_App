@@ -89,7 +89,7 @@ The table is deliberately **non-generic**: a `const` list of `AskChips<SomeEnum>
 |---|---|
 | `SLEEP` | `RulePreset.sleep` — schedule, daily 22:00–07:00 (exercises the overnight-wrap path) |
 | `FOCUS` | `RulePreset.workHours` — schedule, Mon–Fri 09:00–17:00 |
-| `PRESENT` / `MENTAL` / `OTHER` / **skipped** | `RulePreset.doomscrollBudget` — time limit, 30 min/day, `lockPeriod: END_OF_DAY` |
+| `PRESENT` / `MENTAL` / `OTHER` / **skipped** | `RulePreset.reelBudget` ("Reel budget") — time limit, 30m a day, `lockPeriod: END_OF_DAY` |
 
 `mattersMost` is **nullable and null is a real answer**: skipping the survey used to leave it null, which the commitment screen rendered as the 30-minute budget while the sync refused to write anything — the app stating a behaviour it did not implement, on the last screen before the grant. `starterPreset(null)` now returns the preset that copy describes (EVO-039), and the commitment screen renders its promise **from that preset** rather than restating the hours in prose, so the two cannot drift.
 
@@ -156,11 +156,11 @@ The opens line is off for **new installs only**, and this hand-off is the whole 
   | `overlay` | "Display over other apps" (Android's own name) | "Shows the block / PIN screen over other apps." | **yes** | ✓ |
   | `notifications` | "Notifications" | "Alerts you if protection stops." | no | — |
   | `usageAccess` | "Usage access" | "Powers app usage limits." | no | — |
-  | `batteryOptimization` | "Unrestricted battery" | "Keeps the blocker alive. Pick Detoxo, then \"Don't optimize\"." | no | — |
+  | `batteryOptimization` | "Unrestricted battery" | "Keeps the blocker alive in the background." | no | — |
   | `deviceAdmin` | "Uninstall protection" | "Optional uninstall protection." | no | ✓ |
   | `notificationListener` | "Notification access" | "Silences notifications from apps you have locked." | no | ✓ |
 
-  `why` lives on the enum because three surfaces render it (funnel, settings sheet, dashboard card) and the previously duplicated copies had already drifted. Icons stay in presentation — an `IconData` field would drag `flutter/material` into a domain layer that otherwise imports only `equatable`.
+  `why` lives on the enum because two surfaces render it (the funnel and the Settings permission sheet, through the shared `PermissionRow`) and the previously duplicated copies had already drifted. Icons stay in presentation — an `IconData` field would drag `flutter/material` into a domain layer that otherwise imports only `equatable`.
 
   **Gate-able** marks `restrictedWhenSideloaded`: the toggles Android's restricted-settings / ECM gate can silently refuse (§3.5).
 
@@ -267,7 +267,7 @@ Per-permission icons (`PermissionRow._icon`, presentation-only; the `why` copy i
 | deviceAdmin | `shield` |
 | notificationListener | `notifications_off` |
 
-**`requestPermission(context, kind)`** (`presentation/permission_actions.dart`) is the single grant entry point for all three surfaces (funnel, settings sheet, dashboard card), so the disclosure and recovery flows cannot drift between them. In order:
+**`requestPermission(context, kind)`** (`presentation/permission_actions.dart`) is the single grant entry point for every surface — the funnel and the Settings sheet rows, Settings' own "Needs access" rows (block screen mode, soft nudge, notification silence), the Blocker rules usage-access hint and the Insights usage-access card — so the disclosure and recovery flows cannot drift between them. In order:
 
 1. If the status is `blockedByRestrictedSettings` → open `RestrictedSettingsSheet` instead. Another trip to the system toggle would just repeat the dead end.
 2. If `_disclosureFor(kind)` returns copy → show that **prominent disclosure** dialog first, *before* the grant. Two kinds have one, both because their scope is wider than their name suggests: `accessibility` (Play's Accessibility API policy requires an in-app disclosure of what the service does and why — the copy mirrors `accessibility_service_description` in `android/app/src/main/res/values/strings.xml`, keep the two in sync) and `notificationListener` (Android hands a listener *every* notification on the device; the copy says so plainly, and states that only the sending app's name is read and nothing is stored or transmitted — [29](29-notification-suppression.md) §5). Declining returns without requesting.
@@ -367,7 +367,7 @@ The same `PermissionsCubit` is reused in **Settings** (`lib/features/settings/pr
 - `lib/features/onboarding/presentation/onboarding_screen.dart` (the walker + chrome)
 - `lib/features/onboarding/presentation/steps/{survey,projection,selection}_step.dart`
 - `lib/features/onboarding/presentation/widgets/screen_time_dial.dart` (`ScreenTimeDial` — the daily-limit dial)
-- `lib/features/limits/rules/domain/entities/rule_preset.dart` (`RulePreset.sleep` / `.workHours` / `.doomscrollBudget`)
+- `lib/features/limits/rules/domain/entities/rule_preset.dart` (`RulePreset.sleep` / `.workHours` / `.reelBudget`)
 - `lib/app/bootstrap.dart` (`runBootstrap` — ordered, individually-guarded app-start work)
 - `lib/app/starter_rule_sync.dart` (`StarterRuleSync` — writes the starter rule on the grant edge)
 - `lib/core/navigation/app_gate.dart` (`AppGate` — the whole gate order)
