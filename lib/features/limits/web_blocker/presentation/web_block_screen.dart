@@ -345,7 +345,23 @@ class _PopularChips extends StatelessWidget {
             label: site.name,
             icon: site.icon,
             selected: active.contains(site.id),
-            onSelected: () => cubit.togglePopular(site),
+            onSelected: () {
+              final listed = state.entries
+                  .where((e) => e.pattern == site.primaryDomain)
+                  .firstOrNull;
+              // A chip lit by a custom entry upgrades it rather than
+              // removing it, so only a removal that landed toasts.
+              if (listed == null) {
+                cubit.togglePopular(site);
+              } else {
+                _removeSite(
+                  context,
+                  listed,
+                  '${site.name} unblocked',
+                  commit: () => cubit.togglePopular(site),
+                );
+              }
+            },
           ),
       ],
     ).animate().fadeIn(duration: AppDurations.normal);
@@ -507,7 +523,12 @@ class _BlocklistRow extends StatelessWidget {
             label: 'Delete',
             tone: context.tokens.over.main,
             semanticLabel: 'Remove ${entry.label}',
-            onPressed: (_) => cubit.removeEntry(entry),
+            onPressed: (_) => _removeSite(
+              context,
+              entry,
+              '${entry.label} removed',
+              commit: () => cubit.removeEntry(entry),
+            ),
           ),
         ],
       ),
@@ -547,7 +568,9 @@ class _BlocklistRow extends StatelessWidget {
               trailing: AppToggle(
                 value: entry.enabled,
                 semanticLabel: 'Block ${entry.label}',
-                onChanged: (v) => cubit.toggleEntry(entry, enabled: v),
+                onChanged: (v) => v
+                    ? cubit.toggleEntry(entry, enabled: true)
+                    : _siteOff(context, entry),
               ),
               // Row keeps the Pill intrinsic-width in AppCard's stretch column.
               child: paused
@@ -631,6 +654,66 @@ class _RowAction extends StatelessWidget {
       ),
     );
   }
+}
+
+// C10: switching one site off (or deleting it) stays one tap. The toast waits
+// until the cubit's state shows the change landed (a failed save reverts and
+// toasts its own error), speaks from the screen's Scaffold (a deleted row
+// unmounts with its entry), and its Undo re-resolves the site by pattern at
+// tap time: a site that is gone (or already back), or a screen that closed
+// (the toast outlives the route), means do nothing.
+
+Future<void> _siteOff(BuildContext context, WebBlockEntry entry) async {
+  final cubit = context.read<WebBlockCubit>();
+  final screen = Scaffold.of(context).context;
+  WebBlockEntry? find() => cubit.isClosed
+      ? null
+      : cubit.state.entries
+            .where((e) => e.pattern == entry.pattern)
+            .firstOrNull;
+  await cubit.toggleEntry(entry, enabled: false);
+  if (!screen.mounted || find()?.enabled != false) return;
+  GlassToast.show(
+    screen,
+    '${entry.label} unblocked',
+    action: (
+      label: 'Undo',
+      onPressed: () {
+        final now = find();
+        if (now != null) cubit.toggleEntry(now, enabled: true);
+      },
+    ),
+  );
+}
+
+/// A removal, by Delete or by deselecting a popular chip. Undo puts the entry
+/// back where it was, fields intact.
+Future<void> _removeSite(
+  BuildContext context,
+  WebBlockEntry entry,
+  String message, {
+  required Future<void> Function() commit,
+}) async {
+  final cubit = context.read<WebBlockCubit>();
+  final screen = Scaffold.of(context).context;
+  final index = cubit.state.entries.indexWhere(
+    (e) => e.pattern == entry.pattern,
+  );
+  await commit();
+  if (!screen.mounted ||
+      cubit.state.entries.any((e) => e.pattern == entry.pattern)) {
+    return;
+  }
+  GlassToast.show(
+    screen,
+    message,
+    action: (
+      label: 'Undo',
+      onPressed: () {
+        if (!cubit.isClosed) cubit.restoreEntry(entry, index);
+      },
+    ),
+  );
 }
 
 /// EVO-012, generalised by M8: pick how long to allow the site. The chips are

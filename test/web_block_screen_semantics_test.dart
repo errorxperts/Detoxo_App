@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
@@ -9,10 +8,13 @@ import 'package:detoxo/features/limits/app_blocker/domain/repositories/app_block
 import 'package:detoxo/features/limits/unblock/domain/entities/temporary_unblock.dart';
 import 'package:detoxo/features/limits/unblock/domain/repositories/unblock_repositories.dart';
 import 'package:detoxo/features/limits/unblock/presentation/unblock_cubit.dart';
+import 'package:detoxo/features/limits/web_blocker/domain/entities/popular_site.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/entities/web_block_entry.dart';
+import 'package:detoxo/features/limits/web_blocker/domain/entities/web_block_source.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/entities/web_block_stats.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_repository.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_stats_repository.dart';
+import 'package:detoxo/features/limits/web_blocker/presentation/web_block_cubit.dart';
 import 'package:detoxo/features/limits/web_blocker/presentation/web_block_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,6 +65,8 @@ void main() {
   late _MockStatsRepo statsRepo;
   late _MockEngine engine;
   late StreamController<WebBlockStats> statsCtrl;
+
+  setUpAll(() => registerFallbackValue(<WebBlockEntry>[]));
 
   setUp(() async {
     await sl.reset();
@@ -139,7 +143,6 @@ void main() {
   ) async {
     final semantics = tester.ensureSemantics();
     when(() => repo.save(any())).thenAnswer((_) async {});
-    registerFallbackValue(<WebBlockEntry>[]);
     await pumpScreen(tester);
 
     // Disable → the conditional pause action unmounts from the swipe pane.
@@ -157,7 +160,6 @@ void main() {
 
   testWidgets('swipe pane reveals delete and removes the row', (tester) async {
     when(() => repo.save(any())).thenAnswer((_) async {});
-    registerFallbackValue(<WebBlockEntry>[]);
     await pumpScreen(tester);
     expect(find.text('Delete'), findsNothing);
 
@@ -177,5 +179,151 @@ void main() {
             as List<WebBlockEntry>;
     expect(saved, isEmpty);
     expect(find.text('example.com'), findsNothing);
+
+    // C10: the delete toasts with an Undo that puts the row back.
+    expect(find.text('example.com removed'), findsOneWidget);
+    await tester.tap(find.text('Undo'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(verify(() => repo.save(captureAny())).captured.single, [
+      WebBlockEntry(pattern: 'example.com', createdAt: DateTime(2026)),
+    ]);
+    expect(find.text('example.com'), findsOneWidget);
+  });
+
+  /// C10: one tap switches a site or a popular chip off; once the state
+  /// lands, a toast offers Undo, re-resolved by pattern at tap time.
+  group('Undo toasts', () {
+    final youtube = PopularSites.all.firstWhere((s) => s.id == 'youtube');
+    final popular = WebBlockEntry(
+      pattern: youtube.primaryDomain,
+      displayName: youtube.name,
+      source: WebBlockSource.popular,
+      brandColor: youtube.brandColor,
+      createdAt: DateTime(2026),
+    );
+    late List<List<WebBlockEntry>> saves;
+
+    setUp(() {
+      saves = [];
+      when(() => repo.save(any())).thenAnswer(
+        (i) async =>
+            saves.add(i.positionalArguments.single as List<WebBlockEntry>),
+      );
+    });
+
+    Future<void> settle(WidgetTester tester) async {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 700));
+    }
+
+    Finder chip() => find.widgetWithText(AppChip, youtube.name);
+
+    WebBlockCubit cubitOf(WidgetTester tester) =>
+        tester.element(find.byType(SectionHeader).first).read<WebBlockCubit>();
+
+    testWidgets('site off toasts "<site> unblocked"; Undo turns it on', (
+      tester,
+    ) async {
+      await pumpScreen(tester);
+      await tester.tap(find.bySemanticsLabel('Block example.com'));
+      await settle(tester);
+      expect(saves.last.single.enabled, isFalse);
+      expect(find.text('example.com unblocked'), findsOneWidget);
+
+      await tester.tap(find.text('Undo'));
+      await settle(tester);
+      expect(saves.last.single.enabled, isTrue);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('site Undo does nothing once the site is gone', (tester) async {
+      await pumpScreen(tester);
+      await tester.tap(find.bySemanticsLabel('Block example.com'));
+      await settle(tester);
+      final cubit = cubitOf(tester);
+      unawaited(cubit.removeEntry(cubit.state.entries.single));
+      await settle(tester);
+
+      await tester.tap(find.text('Undo'));
+      await settle(tester);
+      expect(saves, hasLength(2), reason: 'off, then the removal only');
+      expect(cubit.state.entries, isEmpty);
+    });
+
+    testWidgets('turning a site on shows no toast', (tester) async {
+      when(() => repo.load()).thenAnswer(
+        (_) async => [
+          WebBlockEntry(
+            pattern: 'example.com',
+            enabled: false,
+            createdAt: DateTime(2026),
+          ),
+        ],
+      );
+      await pumpScreen(tester);
+      await tester.tap(find.bySemanticsLabel('Block example.com'));
+      await settle(tester);
+      expect(saves.last.single.enabled, isTrue);
+      expect(find.text('Undo'), findsNothing);
+    });
+
+    testWidgets('a failed site save shows no success toast', (tester) async {
+      when(() => repo.save(any())).thenThrow(Exception('disk full'));
+      await pumpScreen(tester);
+      await tester.tap(find.bySemanticsLabel('Block example.com'));
+      await settle(tester);
+      expect(find.text('example.com unblocked'), findsNothing);
+      expect(find.text('Undo'), findsNothing);
+      expect(find.text("Couldn't save — try again"), findsOneWidget);
+    });
+
+    testWidgets('chip off toasts "<site> unblocked"; Undo restores it', (
+      tester,
+    ) async {
+      when(() => repo.load()).thenAnswer((_) async => [popular]);
+      await pumpScreen(tester);
+      await tester.tap(chip());
+      await settle(tester);
+      expect(saves.last, isEmpty);
+      expect(find.text('YouTube unblocked'), findsOneWidget);
+
+      await tester.tap(find.text('Undo'));
+      await settle(tester);
+      expect(saves.last, [popular]);
+    });
+
+    testWidgets('chip Undo does nothing once the site is back', (tester) async {
+      when(() => repo.load()).thenAnswer((_) async => [popular]);
+      await pumpScreen(tester);
+      await tester.tap(chip());
+      await settle(tester);
+      await tester.tap(chip()); // on again: no toast of its own
+      await settle(tester);
+
+      await tester.tap(find.text('Undo'));
+      await settle(tester);
+      expect(saves, hasLength(2), reason: 'off, then on again only');
+      expect(saves.last.single.pattern, youtube.primaryDomain);
+    });
+
+    testWidgets('turning a chip on shows no toast', (tester) async {
+      when(() => repo.load()).thenAnswer((_) async => const []);
+      await pumpScreen(tester);
+      await tester.tap(chip());
+      await settle(tester);
+      expect(saves.last.single.pattern, youtube.primaryDomain);
+      expect(find.text('Undo'), findsNothing);
+    });
+
+    testWidgets('a failed chip save shows no success toast', (tester) async {
+      when(() => repo.load()).thenAnswer((_) async => [popular]);
+      when(() => repo.save(any())).thenThrow(Exception('disk full'));
+      await pumpScreen(tester);
+      await tester.tap(chip());
+      await settle(tester);
+      expect(find.text('YouTube unblocked'), findsNothing);
+      expect(find.text('Undo'), findsNothing);
+    });
   });
 }

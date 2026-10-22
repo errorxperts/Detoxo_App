@@ -16,12 +16,16 @@ class _MockEngine extends Mock implements EngineRepository {}
 class _FakeRules implements RuleRepository {
   _FakeRules(this.rules);
   List<Rule> rules;
+  bool failSave = false;
 
   @override
   Future<List<Rule>> load() async => rules;
 
   @override
-  Future<void> save(List<Rule> next) async => rules = next;
+  Future<void> save(List<Rule> next) async {
+    if (failSave) throw Exception('disk full');
+    rules = next;
+  }
 }
 
 class _FakeDailyLimit implements DailyLimitRepository {
@@ -71,15 +75,16 @@ void main() {
   // testWidgets' FakeAsync zone owns futures that zone never pumps, and the
   // first `await` on one of them deadlocks the test.
   Future<(RulesCubit, StreamController<int>)> pumpScreen(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    _FakeRules? repo,
+  }) async {
     final engine = _MockEngine();
     // ignore: close_sinks — handed back and closed by each test body.
     final boundaries = StreamController<int>.broadcast();
     when(() => engine.pushRules(any(), any())).thenAnswer((_) async => true);
     when(engine.ruleBoundaryStream).thenAnswer((_) => boundaries.stream);
     final rules = RulesCubit(
-      _FakeRules([_limitRule]),
+      repo ?? _FakeRules([_limitRule]),
       _FakeDailyLimit(),
       _FakeUsage(),
       engine,
@@ -144,4 +149,73 @@ void main() {
     await boundaries.close();
     semantics.dispose();
   });
+
+  /// C10: one tap turns a rule off; once the state lands, '<rule> off' offers
+  /// an Undo, re-resolved by rule id at tap time.
+  group('Undo toast', () {
+    Future<RulesCubit> loaded(WidgetTester tester, {_FakeRules? repo}) async {
+      final (rules, boundaries) = await pumpScreen(tester, repo: repo);
+      addTearDown(boundaries.close);
+      await rules.load();
+      await settle(tester);
+      return rules;
+    }
+
+    testWidgets('off toasts "<rule> off"; Undo turns it back on', (
+      tester,
+    ) async {
+      final rules = await loaded(tester);
+      await tester.tap(find.bySemanticsLabel('Enable Insta budget'));
+      await settle(tester);
+      expect(rules.state.rules.single.enabled, isFalse);
+      expect(find.text('Insta budget off'), findsOneWidget);
+
+      await tester.tap(find.text('Undo'));
+      await settle(tester);
+      expect(rules.state.rules.single.enabled, isTrue);
+      await rules.close();
+    });
+
+    testWidgets('Undo does nothing once the rule is deleted', (tester) async {
+      final rules = await loaded(tester);
+      await tester.tap(find.bySemanticsLabel('Enable Insta budget'));
+      await settle(tester);
+      unawaited(rules.remove(_limitRule.id));
+      await settle(tester);
+
+      await tester.tap(find.text('Undo'));
+      await settle(tester);
+      expect(rules.state.rules, isEmpty);
+      await rules.close();
+    });
+
+    testWidgets('turning a rule on shows no toast', (tester) async {
+      final rules = await loaded(
+        tester,
+        repo: _FakeRules([_limitRule.copyWith(enabled: false)]),
+      );
+      await tester.tap(find.bySemanticsLabel('Enable Insta budget'));
+      await settle(tester);
+      expect(rules.state.rules.single.enabled, isTrue);
+      expect(find.text('Undo'), findsNothing);
+      await rules.close();
+    });
+
+    testWidgets('a failed save shows no success toast', (tester) async {
+      final repo = _FakeRules([_limitRule]);
+      final rules = await loaded(tester, repo: repo);
+      repo.failSave = true;
+      await tester.tap(find.bySemanticsLabel('Enable Insta budget'));
+      await settle(tester);
+      expect(rules.state.rules.single.enabled, isTrue, reason: 'reverted');
+      expect(find.text('Insta budget off'), findsNothing);
+      expect(find.text('Undo'), findsNothing);
+      await rules.close();
+    });
+  });
+}
+
+Future<void> settle(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 700));
 }

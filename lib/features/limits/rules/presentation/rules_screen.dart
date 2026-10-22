@@ -234,14 +234,39 @@ class _RuleTile extends StatelessWidget {
             AppToggle(
               value: rule.enabled,
               semanticLabel: 'Enable ${rule.name}',
-              onChanged: (on) =>
-                  context.read<RulesCubit>().setEnabled(rule.id, enabled: on),
+              onChanged: (on) => on
+                  ? context.read<RulesCubit>().setEnabled(
+                      rule.id,
+                      enabled: true,
+                    )
+                  : _turnOff(context),
             ),
         ],
       ),
       onTap: () => context.push(
         Routes.ruleEditor,
         extra: RuleEditorArgs(kind: rule.kind, rule: rule),
+      ),
+    );
+  }
+
+  /// C10: one tap turns a rule off. Once the cubit's state shows it landed (a
+  /// failed save reverts and toasts its own error), the toast offers Undo,
+  /// re-resolved by rule id at tap time: a deleted rule stays deleted.
+  Future<void> _turnOff(BuildContext context) async {
+    final cubit = context.read<RulesCubit>();
+    bool? enabled() =>
+        cubit.state.rules.where((r) => r.id == rule.id).firstOrNull?.enabled;
+    await cubit.setEnabled(rule.id, enabled: false);
+    if (!context.mounted || enabled() != false) return;
+    GlassToast.show(
+      context,
+      '${rule.name} off',
+      action: (
+        label: 'Undo',
+        onPressed: () {
+          if (enabled() == false) cubit.setEnabled(rule.id, enabled: true);
+        },
       ),
     );
   }

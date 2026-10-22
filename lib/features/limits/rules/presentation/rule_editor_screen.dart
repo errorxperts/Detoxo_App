@@ -665,7 +665,10 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
     final rule = _existing!;
     final confirmed = await ConfirmSheet.show(
       context,
-      icon: Icon3d(Assets.images.icons.iconBlockerRules, size: ConfirmSheet.iconSize),
+      icon: Icon3d(
+        Assets.images.icons.iconBlockerRules,
+        size: ConfirmSheet.iconSize,
+      ),
       title: 'Delete ${rule.name}?',
       message: 'Its apps and sites unblock right away.',
       action: 'Slide to delete',
