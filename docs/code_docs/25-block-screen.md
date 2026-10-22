@@ -384,6 +384,17 @@ The `blocking.dart` barrel exports the block-screen cubit and preview (the `cont
 precedent) so the Appearance hub reaches them without a boundary violation; the editor screen is
 routed, so `app_router.dart` imports it directly.
 
+### The live accent, natively (ready, not yet wired)
+
+`overlay/AccentResolver.kt` mirrors Dart's `resolveAccent`
+(`lib/core/design_system/foundations/accent.dart`): mode (none / Block All / Conscious /
+Pause / One Reel), today's share of the daily limit and a live Pause's time left give the
+accent palette (main, light, deep) for a theme, from the generated `DxTokens.PALETTE_*`. It
+works in Double with one final half-up rounding, not `widget/ColorMath.blend`, so both sides
+agree to the bit: `test/fixtures/accent_cases.json` (46 rows, from an independent Python
+model) drives `AccentResolverTest.kt` and `test/core/design_system/accent_test.dart`. The wall
+still takes the static brand; the block-screen restyle wires the resolver in.
+
 ## 7. Channel delta
 
 Commands on `com.errorxperts.detoxo/commands` (contract detail in

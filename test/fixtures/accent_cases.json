@@ -1,0 +1,419 @@
+{
+ "_doc": "resolveAccent cases (plan foundation \u00a76), generated once by an independent python3 model of the formula: channels byte/255.0, lerp a*(1-t)+b*t, one final floor(x*255+.5). ARGB ints. Read by test/core/design_system/accent_test.dart and AccentResolverTest.kt.",
+ "cases": [
+  {
+   "theme": "light",
+   "mode": "none",
+   "used": 0,
+   "pauseLeftMs": null,
+   "main": 4282219519,
+   "light": 4286366975,
+   "deep": 4286276095
+  },
+  {
+   "theme": "light",
+   "mode": "none",
+   "used": 0.3,
+   "pauseLeftMs": null,
+   "main": 4282219519,
+   "light": 4286366975,
+   "deep": 4286276095
+  },
+  {
+   "theme": "light",
+   "mode": "none",
+   "used": 0.6,
+   "pauseLeftMs": null,
+   "main": 4282219519,
+   "light": 4286366975,
+   "deep": 4286276095
+  },
+  {
+   "theme": "light",
+   "mode": "none",
+   "used": 0.7,
+   "pauseLeftMs": null,
+   "main": 4286677406,
+   "light": 4289774272,
+   "deep": 4289158814
+  },
+  {
+   "theme": "light",
+   "mode": "none",
+   "used": 0.85,
+   "pauseLeftMs": null,
+   "main": 4293429516,
+   "light": 4294951010,
+   "deep": 4293417228
+  },
+  {
+   "theme": "light",
+   "mode": "none",
+   "used": 0.9,
+   "pauseLeftMs": null,
+   "main": 4293357090,
+   "light": 4294946421,
+   "deep": 4292296988
+  },
+  {
+   "theme": "light",
+   "mode": "none",
+   "used": 1,
+   "pauseLeftMs": null,
+   "main": 4293212239,
+   "light": 4294937242,
+   "deep": 4289991228
+  },
+  {
+   "theme": "light",
+   "mode": "none",
+   "used": 1.4,
+   "pauseLeftMs": null,
+   "main": 4293212239,
+   "light": 4294937242,
+   "deep": 4289991228
+  },
+  {
+   "theme": "light",
+   "mode": "blockAll",
+   "used": 0.3,
+   "pauseLeftMs": null,
+   "main": 4285357558,
+   "light": 4289305599,
+   "deep": 4282595530
+  },
+  {
+   "theme": "light",
+   "mode": "blockAll",
+   "used": 0.6,
+   "pauseLeftMs": null,
+   "main": 4285357558,
+   "light": 4289305599,
+   "deep": 4282595530
+  },
+  {
+   "theme": "light",
+   "mode": "blockAll",
+   "used": 0.75,
+   "pauseLeftMs": null,
+   "main": 4287785648,
+   "light": 4291012304,
+   "deep": 4285874833
+  },
+  {
+   "theme": "light",
+   "mode": "blockAll",
+   "used": 0.85,
+   "pauseLeftMs": null,
+   "main": 4289426305,
+   "light": 4292128433,
+   "deep": 4288039275
+  },
+  {
+   "theme": "light",
+   "mode": "blockAll",
+   "used": 0.95,
+   "pauseLeftMs": null,
+   "main": 4290926193,
+   "light": 4293237931,
+   "deep": 4288556635
+  },
+  {
+   "theme": "light",
+   "mode": "blockAll",
+   "used": 1,
+   "pauseLeftMs": null,
+   "main": 4291641200,
+   "light": 4293823918,
+   "deep": 4288485976
+  },
+  {
+   "theme": "light",
+   "mode": "blockAll",
+   "used": 2,
+   "pauseLeftMs": null,
+   "main": 4291641200,
+   "light": 4293823918,
+   "deep": 4288485976
+  },
+  {
+   "theme": "light",
+   "mode": "conscious",
+   "used": 0.8,
+   "pauseLeftMs": null,
+   "main": 4284847706,
+   "light": 4288598945,
+   "deep": 4285751186
+  },
+  {
+   "theme": "light",
+   "mode": "conscious",
+   "used": 1,
+   "pauseLeftMs": null,
+   "main": 4290399580,
+   "light": 4292844452,
+   "deep": 4288094815
+  },
+  {
+   "theme": "light",
+   "mode": "oneReel",
+   "used": 0.9,
+   "pauseLeftMs": null,
+   "main": 4293353549,
+   "light": 4294944916,
+   "deep": 4290526318
+  },
+  {
+   "theme": "light",
+   "mode": "pause",
+   "used": 0,
+   "pauseLeftMs": null,
+   "main": 4293429516,
+   "light": 4294951010,
+   "deep": 4293417228
+  },
+  {
+   "theme": "light",
+   "mode": "pause",
+   "used": 0,
+   "pauseLeftMs": 300000,
+   "main": 4293429516,
+   "light": 4294951010,
+   "deep": 4293417228
+  },
+  {
+   "theme": "light",
+   "mode": "pause",
+   "used": 0,
+   "pauseLeftMs": 120000,
+   "main": 4293429516,
+   "light": 4294951010,
+   "deep": 4293417228
+  },
+  {
+   "theme": "light",
+   "mode": "pause",
+   "used": 0,
+   "pauseLeftMs": 60000,
+   "main": 4293353774,
+   "light": 4294944126,
+   "deep": 4291704100
+  },
+  {
+   "theme": "light",
+   "mode": "pause",
+   "used": 0,
+   "pauseLeftMs": 0,
+   "main": 4293212239,
+   "light": 4294937242,
+   "deep": 4289991228
+  },
+  {
+   "theme": "dark",
+   "mode": "none",
+   "used": 0,
+   "pauseLeftMs": null,
+   "main": 4285180159,
+   "light": 4287620095,
+   "deep": 4287331583
+  },
+  {
+   "theme": "dark",
+   "mode": "none",
+   "used": 0.3,
+   "pauseLeftMs": null,
+   "main": 4285180159,
+   "light": 4287620095,
+   "deep": 4287331583
+  },
+  {
+   "theme": "dark",
+   "mode": "none",
+   "used": 0.6,
+   "pauseLeftMs": null,
+   "main": 4285180159,
+   "light": 4287620095,
+   "deep": 4287331583
+  },
+  {
+   "theme": "dark",
+   "mode": "none",
+   "used": 0.7,
+   "pauseLeftMs": null,
+   "main": 4289113525,
+   "light": 4290569176,
+   "deep": 4290345909
+  },
+  {
+   "theme": "dark",
+   "mode": "none",
+   "used": 0.85,
+   "pauseLeftMs": null,
+   "main": 4294948167,
+   "light": 4294959774,
+   "deep": 4294933061
+  },
+  {
+   "theme": "dark",
+   "mode": "none",
+   "used": 0.9,
+   "pauseLeftMs": null,
+   "main": 4294940504,
+   "light": 4294955937,
+   "deep": 4294074188
+  },
+  {
+   "theme": "dark",
+   "mode": "none",
+   "used": 1,
+   "pauseLeftMs": null,
+   "main": 4294925434,
+   "light": 4294948006,
+   "deep": 4292421978
+  },
+  {
+   "theme": "dark",
+   "mode": "none",
+   "used": 1.4,
+   "pauseLeftMs": null,
+   "main": 4294925434,
+   "light": 4294948006,
+   "deep": 4292421978
+  },
+  {
+   "theme": "dark",
+   "mode": "blockAll",
+   "used": 0.3,
+   "pauseLeftMs": null,
+   "main": 4287331583,
+   "light": 4291673087,
+   "deep": 4283721983
+  },
+  {
+   "theme": "dark",
+   "mode": "blockAll",
+   "used": 0.6,
+   "pauseLeftMs": null,
+   "main": 4287331583,
+   "light": 4291673087,
+   "deep": 4283721983
+  },
+  {
+   "theme": "dark",
+   "mode": "blockAll",
+   "used": 0.75,
+   "pauseLeftMs": null,
+   "main": 4289629640,
+   "light": 4292659170,
+   "deep": 4287065543
+  },
+  {
+   "theme": "dark",
+   "mode": "blockAll",
+   "used": 0.85,
+   "pauseLeftMs": null,
+   "main": 4291140003,
+   "light": 4293316559,
+   "deep": 4289360290
+  },
+  {
+   "theme": "dark",
+   "mode": "blockAll",
+   "used": 0.95,
+   "pauseLeftMs": null,
+   "main": 4292639382,
+   "light": 4293968319,
+   "deep": 4290400135
+  },
+  {
+   "theme": "dark",
+   "mode": "blockAll",
+   "used": 1,
+   "pauseLeftMs": null,
+   "main": 4293419669,
+   "light": 4294292920,
+   "deep": 4290655867
+  },
+  {
+   "theme": "dark",
+   "mode": "blockAll",
+   "used": 2,
+   "pauseLeftMs": null,
+   "main": 4293419669,
+   "light": 4294292920,
+   "deep": 4290655867
+  },
+  {
+   "theme": "dark",
+   "mode": "conscious",
+   "used": 0.8,
+   "pauseLeftMs": null,
+   "main": 4286695567,
+   "light": 4291488966,
+   "deep": 4287205557
+  },
+  {
+   "theme": "dark",
+   "mode": "conscious",
+   "used": 1,
+   "pauseLeftMs": null,
+   "main": 4292179080,
+   "light": 4293771698,
+   "deep": 4290330747
+  },
+  {
+   "theme": "dark",
+   "mode": "oneReel",
+   "used": 0.9,
+   "pauseLeftMs": null,
+   "main": 4294936440,
+   "light": 4294954166,
+   "deep": 4292172688
+  },
+  {
+   "theme": "dark",
+   "mode": "pause",
+   "used": 0,
+   "pauseLeftMs": null,
+   "main": 4294948167,
+   "light": 4294959774,
+   "deep": 4294933061
+  },
+  {
+   "theme": "dark",
+   "mode": "pause",
+   "used": 0,
+   "pauseLeftMs": 300000,
+   "main": 4294948167,
+   "light": 4294959774,
+   "deep": 4294933061
+  },
+  {
+   "theme": "dark",
+   "mode": "pause",
+   "used": 0,
+   "pauseLeftMs": 120000,
+   "main": 4294948167,
+   "light": 4294959774,
+   "deep": 4294933061
+  },
+  {
+   "theme": "dark",
+   "mode": "pause",
+   "used": 0,
+   "pauseLeftMs": 60000,
+   "main": 4294936929,
+   "light": 4294953890,
+   "deep": 4293677648
+  },
+  {
+   "theme": "dark",
+   "mode": "pause",
+   "used": 0,
+   "pauseLeftMs": 0,
+   "main": 4294925434,
+   "light": 4294948006,
+   "deep": 4292421978
+  }
+ ]
+}

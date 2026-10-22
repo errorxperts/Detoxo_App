@@ -13,6 +13,7 @@ import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dar
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
 import 'package:detoxo/features/content_counter/content_counter_core/presentation/content_counter_cubit.dart';
+import 'package:detoxo/features/dashboard/presentation/today_copy.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/blocker_section.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/command_center_card.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/dashboard_top_bar.dart';
@@ -280,7 +281,7 @@ class _ModeSection extends StatelessWidget {
     final pauseLive = settings.isPauseContractLive(DateTime.now());
 
     return ModeSelector(
-      selected: _dashMode(settings, pauseLive: pauseLive),
+      selected: DashboardMode.values[modeIndex(settings, pauseLive: pauseLive)],
       reelSession: reel,
       onSelect: (mode) => unawaited(_onModeSelect(context, mode)),
       // Spotlight each mode pill during the feature tour (indices align with
@@ -315,18 +316,6 @@ Future<void> _onModeSelect(BuildContext context, DashboardMode mode) async {
     case DashboardMode.pause:
       await SessionDialogs.showPause(context);
   }
-}
-
-DashboardMode _dashMode(AppSettings s, {required bool pauseLive}) {
-  if (pauseLive) return DashboardMode.pause;
-  return switch (s.activePlan) {
-    BlockingPlan.blockAll => DashboardMode.blockAll,
-    BlockingPlan.curious => DashboardMode.conscious,
-    BlockingPlan.oneReel =>
-      // An N-reel unblock is started from the Pause sheet, so it lights Pause.
-      s.reelAllowance <= 1 ? DashboardMode.oneReel : DashboardMode.pause,
-    BlockingPlan.paused => DashboardMode.pause,
-  };
 }
 
 String _statusLabel(AppSettings settings, {required bool pauseLive}) {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:detoxo/app/app_resume_sync.dart';
 import 'package:detoxo/app/engine_sync.dart';
+import 'package:detoxo/app/live_accent.dart';
 import 'package:detoxo/app/starter_rule_sync.dart';
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
@@ -285,15 +286,14 @@ class _RouterState extends State<_Router> {
               // here, INSIDE the router, so it can never float over the PIN
               // lock or the splash.
               // A home-widget tap's screen (IM-08), mounted the same way.
-              builder: (context, child) =>
-                  AnnotatedRegion<SystemUiOverlayStyle>(
-                    value: AppTheme.overlay(Theme.of(context).brightness),
-                    child: PendingUnblockListener(
-                      child: WidgetTapListener(
-                        child: child ?? const SizedBox(),
-                      ),
-                    ),
+              builder: (context, child) => LiveAccent(
+                child: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: AppTheme.overlay(Theme.of(context).brightness),
+                  child: PendingUnblockListener(
+                    child: WidgetTapListener(child: child ?? const SizedBox()),
                   ),
+                ),
+              ),
             ),
           ),
         ),

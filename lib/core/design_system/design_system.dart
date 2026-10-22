@@ -25,6 +25,7 @@ export 'components/selection.dart';
 export 'components/toggle.dart';
 export 'components/variant_carousel.dart';
 // Foundations
+export 'foundations/accent.dart';
 export 'foundations/animated_icons.dart';
 export 'foundations/glass_container.dart';
 export 'foundations/glass_scaffold.dart';
