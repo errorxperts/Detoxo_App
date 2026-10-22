@@ -163,9 +163,15 @@ class _Design {
       switch (c['value']) {
         case final String v when tone != null:
           final toneName = tone.group(1)!;
+          // The first stop's usage minus its stop phrase: "Critical tone
+          // (…): fill start." → "Critical tone (…)."
           final t = tones.putIfAbsent(
             toneName,
-            () => (name: toneName, usage: _usage(c), stops: {}),
+            () => (
+              name: toneName,
+              usage: _usage(c).replaceFirst(RegExp(r':[^:]*$'), '.'),
+              stops: {},
+            ),
           );
           t.stops[tone.group(2)!] = parseCssColour(v, name);
         case final String v:
@@ -602,10 +608,12 @@ String _kotlin(_Design d) {
     ..writeln('    val inset: Boolean,')
     ..writeln(')')
     ..writeln()
-    ..writeln(
-      '/** Frozen Glass design tokens: colours as ARGB ints, lengths in CSS px '
-      '(dp), letter spacing in em. */',
-    )
+    ..writeln('''
+/**
+ * Frozen Glass design tokens: colours as ARGB ints; spacing, radii, blur and
+ * shadow lengths in CSS px, applied as dp; type `*_SIZE` / `*_LINE` in sp
+ * (COMPLEX_UNIT_SP, so text follows the font scale); letter spacing in em.
+ */''')
     ..writeln('@Suppress("unused")')
     ..writeln('internal object DxTokens {');
   for (final c in d.colours) {
@@ -656,12 +664,15 @@ String _kotlin(_Design d) {
   }
   b.writeln();
   for (final s in d.shadows) {
+    // Every shadow is SHADOW_*: `shadow-card` → SHADOW_CARD_LIGHT, the
+    // recipes' `pill-edge` → SHADOW_PILL_EDGE_LIGHT.
+    final name = s.name.startsWith('shadow-') ? s.name : 'shadow-${s.name}';
     for (final theme in _themes) {
       b
         ..writeln('    /** ${s.usage} ($theme) */')
         ..writeln('    @JvmField')
         ..writeln(
-          '    val ${themed(s.name, theme)}: Array<DxShadowLayer> = arrayOf(',
+          '    val ${themed(name, theme)}: Array<DxShadowLayer> = arrayOf(',
         );
       for (final l in s.value[theme]!) {
         b.writeln('        ${_ktShadow(l)},');

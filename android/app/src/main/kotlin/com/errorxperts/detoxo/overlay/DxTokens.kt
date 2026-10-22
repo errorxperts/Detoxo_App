@@ -18,7 +18,11 @@ internal data class DxShadowLayer(
     val inset: Boolean,
 )
 
-/** Frozen Glass design tokens: colours as ARGB ints, lengths in CSS px (dp), letter spacing in em. */
+/**
+ * Frozen Glass design tokens: colours as ARGB ints; spacing, radii, blur and
+ * shadow lengths in CSS px, applied as dp; type `*_SIZE` / `*_LINE` in sp
+ * (COMPLEX_UNIT_SP, so text follows the font scale); letter spacing in em.
+ */
 @Suppress("unused")
 internal object DxTokens {
     /** Screen background, top of a vertical gradient to bg-bottom. (light) */
@@ -340,19 +344,19 @@ internal object DxTokens {
     /** Ring knob halo (--halo): Light mixes the accent main, Dark its light stop, at this alpha. (dark) */
     const val K_HALO_DARK: Float = 0.3f
 
-    /** Confirm sheet, caution tone (unblocking): fill gradient start. */
+    /** Confirm sheet, caution tone (unblocking). */
     const val TONE_CAUTION_A: Int = 0xFFFFC062.toInt()
     const val TONE_CAUTION_B: Int = 0xFFFF9A3D.toInt()
     const val TONE_CAUTION_C: Int = 0xFFFF6F4E.toInt()
     const val TONE_CAUTION_INK: Int = 0xFF2B1404.toInt()
     const val TONE_CAUTION_KNOB: Int = 0xFFC25E00.toInt()
-    /** Critical tone (turning protection off, deleting): fill start. */
+    /** Critical tone (turning protection off, deleting). */
     const val TONE_CRITICAL_A: Int = 0xFFFF8FA3.toInt()
     const val TONE_CRITICAL_B: Int = 0xFFFF5C7A.toInt()
     const val TONE_CRITICAL_C: Int = 0xFFE8366A.toInt()
     const val TONE_CRITICAL_INK: Int = 0xFF2E0814.toInt()
     const val TONE_CRITICAL_KNOB: Int = 0xFFC8234F.toInt()
-    /** Neutral tone (safe changes): fill start. */
+    /** Neutral tone (safe changes). */
     const val TONE_NEUTRAL_A: Int = 0xFF8FD3FF.toInt()
     const val TONE_NEUTRAL_B: Int = 0xFF6AA8FF.toInt()
     const val TONE_NEUTRAL_C: Int = 0xFF8B7CFF.toInt()
@@ -451,37 +455,37 @@ internal object DxTokens {
     )
     /** Unblock pill edge highlights. (light) */
     @JvmField
-    val PILL_EDGE_LIGHT: Array<DxShadowLayer> = arrayOf(
+    val SHADOW_PILL_EDGE_LIGHT: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0xF2FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0xA6FFFFFF.toInt(), 0f, 0f, 0f, 1f, true),
     )
     /** Unblock pill edge highlights. (dark) */
     @JvmField
-    val PILL_EDGE_DARK: Array<DxShadowLayer> = arrayOf(
+    val SHADOW_PILL_EDGE_DARK: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0x57FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0x1AFFFFFF.toInt(), 0f, 0f, 0f, 1f, true),
     )
     /** Tab lens edge highlights. (light) */
     @JvmField
-    val LENS_EDGE_LIGHT: Array<DxShadowLayer> = arrayOf(
+    val SHADOW_LENS_EDGE_LIGHT: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0xFFFFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0xBFFFFFFF.toInt(), 0f, 0f, 0f, 1f, true),
     )
     /** Tab lens edge highlights. (dark) */
     @JvmField
-    val LENS_EDGE_DARK: Array<DxShadowLayer> = arrayOf(
+    val SHADOW_LENS_EDGE_DARK: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0x73FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0x1FFFFFFF.toInt(), 0f, 0f, 0f, 1f, true),
     )
     /** Slide track, pressed in. (light) */
     @JvmField
-    val TRACK_SHADOW_LIGHT: Array<DxShadowLayer> = arrayOf(
+    val SHADOW_TRACK_SHADOW_LIGHT: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0x99A6B4CC.toInt(), 5f, 5f, 10f, 0f, true),
         DxShadowLayer(0xF2FFFFFF.toInt(), -5f, -5f, 10f, 0f, true),
     )
     /** Slide track, pressed in. (dark) */
     @JvmField
-    val TRACK_SHADOW_DARK: Array<DxShadowLayer> = arrayOf(
+    val SHADOW_TRACK_SHADOW_DARK: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0x99000000.toInt(), 6f, 6f, 12f, 0f, true),
         DxShadowLayer(0x0BFFFFFF.toInt(), -4f, -4f, 10f, 0f, true),
     )

@@ -701,7 +701,7 @@ final class AppTokens {
 /// The confirm sheet's tones: the slide fill [a] → [b] (at 55 %) → [c], the
 /// text on it ([ink]) and the glyphs on the knob ([knob]).
 enum ConfirmTone {
-  /// Confirm sheet, caution tone (unblocking): fill gradient start.
+  /// Confirm sheet, caution tone (unblocking).
   caution(
     a: Color(0xFFFFC062),
     b: Color(0xFFFF9A3D),
@@ -710,7 +710,7 @@ enum ConfirmTone {
     knob: Color(0xFFC25E00),
   ),
 
-  /// Critical tone (turning protection off, deleting): fill start.
+  /// Critical tone (turning protection off, deleting).
   critical(
     a: Color(0xFFFF8FA3),
     b: Color(0xFFFF5C7A),
@@ -719,7 +719,7 @@ enum ConfirmTone {
     knob: Color(0xFFC8234F),
   ),
 
-  /// Neutral tone (safe changes): fill start.
+  /// Neutral tone (safe changes).
   neutral(
     a: Color(0xFF8FD3FF),
     b: Color(0xFF6AA8FF),

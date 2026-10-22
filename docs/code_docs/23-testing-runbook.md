@@ -40,7 +40,9 @@ keys ignored), the `wallIsDark` table and the wall palette / `legibleOn` / `legi
 `qa.sh functional`) runs them through `native_tests()` when it can find a JDK 17+
 (`$JAVA_HOME`, macOS `java_home -v 17+`, or the Homebrew `openjdk@17` keg) and
 **warns and skips** otherwise — a host without a JDK never fails the gate, it just
-doesn't cover the native rule. To run them alone:
+doesn't cover the native rule. A checkout without `android/gradlew` (gitignored, so a fresh
+clone or git worktree has none) **fails** with a pointer to `flutter build apk --config-only`,
+which injects the wrapper. To run them alone:
 
 ```bash
 cd android && JAVA_HOME=<jdk17> ./gradlew :app:testDebugUnitTest --tests '*ReelTrackerTest*'

@@ -74,6 +74,12 @@ native_tests() {
     printf '%s⚠ native tests skipped: no JDK 17+ (set JAVA_HOME).%s\n' "$RED" "$OFF" >&2
     return 0
   fi
+  # The wrapper is gitignored (Flutter injects it), so a fresh clone or git
+  # worktree has none until its first Android build.
+  if [ ! -x android/gradlew ]; then
+    printf '%s✖ android/gradlew missing: run `flutter build apk --config-only` once.%s\n' "$RED" "$OFF" >&2
+    return 1
+  fi
   printf '%s→ (cd android && JAVA_HOME=%s ./gradlew :app:testDebugUnitTest)%s\n' "$DIM" "$jdk" "$OFF"
   (cd android && JAVA_HOME="$jdk" ./gradlew -q :app:testDebugUnitTest)
 }

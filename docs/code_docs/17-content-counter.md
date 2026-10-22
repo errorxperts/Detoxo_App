@@ -1028,7 +1028,7 @@ Dart (`lib/…`):
 - `features/content_counter/content_counter_bubble/domain/{bubble_model,entities/bubble_style}.dart`
 - `features/content_counter/content_counter_bubble/presentation/{bubble_tokens.g,svg_path,bubble_look,bubble_frame,bubble_brush,bubble_face,bubble_painter,bubble_preview}.dart`
 - `features/content_counter/content_counter_bubble/presentation/faces/{mascot,ring,liquid,hourglass,bezel,drop}_face.dart`
-- `tool/home_widget/{tokens.json,gen_tokens.dart}` (`bubble-*` tokens → `BubbleTokens`)
+- `tool/home_widget/{tokens.json,gen_tokens.dart}` (`bubble-*` tokens → `BubbleTokens`), with the helpers it shares with the design-token generator in `tool/tokens_common.dart`
 
 Tests: `test/content_counter_test.dart` (snapshot mapping, catalog fallback,
 `watch()` filtering, cubit switch / grant paths),

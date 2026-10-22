@@ -29,6 +29,9 @@ class AccentPalette {
 
   @override
   int get hashCode => Object.hash(main, light, deep);
+
+  @override
+  String toString() => 'AccentPalette($main, $light, $deep)';
 }
 
 /// One CSS `box-shadow` layer. Recipes keep the CSS layer order, where the
@@ -61,6 +64,10 @@ class DxShadow {
 
   @override
   int get hashCode => Object.hash(color, offset, blur, spread, inset);
+
+  @override
+  String toString() =>
+      'DxShadow($color, $offset, blur: $blur, spread: $spread, inset: $inset)';
 }
 
 extension AppTokensX on BuildContext {
