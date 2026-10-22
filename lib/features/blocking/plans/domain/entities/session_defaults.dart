@@ -32,8 +32,4 @@ abstract final class SessionDefaults {
   // UI being killed.
   static const int consciousEarnDivisor = 10;
   static const Duration consciousMaxBank = Duration(minutes: 10);
-
-  /// Human-readable earn rate, e.g. "1 min every 10 min".
-  static String get consciousEarnLabel =>
-      '1 min every $consciousEarnDivisor min';
 }

@@ -1,6 +1,7 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/utils/app_logger.dart';
 import 'package:detoxo/core/utils/clock_format.dart';
+import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
@@ -8,6 +9,7 @@ import 'package:detoxo/features/blocking/plans/presentation/conscious_cubit.dart
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/presentation/settings_cubit.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -87,17 +89,42 @@ abstract final class SessionDialogs {
 
 // ── Conscious ─────────────────────────────────────────────────────────────────
 
+/// One head over both states: the 3D mode icon in the live accent and the
+/// mode's name; below it the intro or the live bank, keyed on the plan.
 class _ConsciousDialog extends StatelessWidget {
   const _ConsciousDialog();
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SettingsCubit, AppSettings>(
-      buildWhen: (a, b) => a.activePlan != b.activePlan,
-      builder: (context, settings) {
-        final on = settings.activePlan == BlockingPlan.curious;
-        return on ? const _ConsciousLive() : const _ConsciousIntro();
-      },
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: Icon3d(
+            Assets.images.icons.iconConscious,
+            size: ConfirmSheet.iconSize,
+            accentTint: true,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.gap),
+        Semantics(
+          header: true,
+          child: Text(
+            'Conscious mode',
+            textAlign: TextAlign.center,
+            style: AppTypography.titleSheet.copyWith(color: context.tokens.ink),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        BlocBuilder<SettingsCubit, AppSettings>(
+          buildWhen: (a, b) => a.activePlan != b.activePlan,
+          builder: (context, settings) {
+            final on = settings.activePlan == BlockingPlan.curious;
+            return on ? const _ConsciousLive() : const _ConsciousIntro();
+          },
+        ),
+      ],
     );
   }
 }
@@ -107,52 +134,19 @@ class _ConsciousIntro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    const every = SessionDefaults.consciousEarnDivisor;
     final cap = SessionDefaults.consciousMaxBank.inMinutes;
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(
-          child: Icon(
-            Icons.self_improvement,
-            size: 44,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
         Text(
-          'Conscious mode',
+          'Earn 1 minute of reels for every $every minutes away, up to $cap '
+          'minutes banked.',
           textAlign: TextAlign.center,
-          style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          style: AppTypography.message.copyWith(color: context.tokens.ink2),
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          'Earn reel time by staying off it.',
-          textAlign: TextAlign.center,
-          style: text.bodyMedium?.copyWith(color: context.tokens.ink2),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        SectionCard(
-          title: 'How it works',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _Bullet('Reels stay blocked while you abstain.'),
-              const _Bullet(
-                'Every ${SessionDefaults.consciousEarnDivisor} min blocked '
-                'banks 1 min of allowance.',
-              ),
-              _Bullet('Unused time collects, up to $cap min.'),
-              const _Bullet(
-                'Open reels to spend it — when the bank empties, blocking '
-                'returns automatically.',
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.xl),
         PrimaryButton(
           label: 'Turn on Conscious',
           expand: true,
@@ -171,62 +165,41 @@ class _ConsciousLive extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final cap = SessionDefaults.consciousMaxBank.inMinutes;
-
+    final t = context.tokens;
+    const every = SessionDefaults.consciousEarnDivisor;
+    final cap = formatHm(SessionDefaults.consciousMaxBank);
     return BlocBuilder<ConsciousCubit, ConsciousState>(
       builder: (context, state) {
-        final String headline;
-        final String hint;
-        if (state.watching) {
-          headline = 'Watching — spending';
-          hint =
-              'Your banked time is draining. Step away to start earning '
-              'again.';
-        } else if (state.hasAllowance) {
-          headline = 'Banked allowance';
-          hint =
-              'Open reels to spend it. Earns '
-              '${SessionDefaults.consciousEarnLabel} while you abstain.';
-        } else {
-          headline = 'Earn to watch';
-          hint =
-              'Abstain to bank time: ${SessionDefaults.consciousEarnLabel}, '
-              'up to $cap min.';
-        }
-
+        final status = state.watching
+            ? 'Spending banked time now. Step away to earn more.'
+            : state.hasAllowance
+            ? 'Open reels to spend it.'
+            : 'Earning 1 minute for every $every minutes away.';
         return Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Icon(
-                Icons.shield_outlined,
-                size: 44,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
             Text(
-              headline,
+              formatCountdown(state.banked),
               textAlign: TextAlign.center,
-              style: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+              style: AppTypography.number.copyWith(color: t.ink),
             ),
-            const SizedBox(height: AppSpacing.xs),
+            const SizedBox(height: AppSpacing.xxs),
             Text(
-              '${formatCountdown(state.banked)} banked · cap $cap:00',
+              'banked · cap $cap',
               textAlign: TextAlign.center,
-              style: text.bodyMedium?.copyWith(color: context.tokens.ink2),
+              style: AppTypography.subhead.copyWith(color: t.ink2),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              hint,
+              status,
               textAlign: TextAlign.center,
-              style: text.bodySmall?.copyWith(color: context.tokens.ink2),
+              style: AppTypography.message.copyWith(color: t.ink2),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xl),
             SecondaryButton(
               label: 'Turn off Conscious',
+              expand: true,
               onPressed: () {
                 context.read<SettingsCubit>().stopConscious();
                 Navigator.of(context).pop();
@@ -235,34 +208,6 @@ class _ConsciousLive extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class _Bullet extends StatelessWidget {
-  const _Bullet(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 6, right: AppSpacing.sm),
-            child: Icon(
-              Icons.circle,
-              size: 6,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-          ),
-          Expanded(
-            child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
-          ),
-        ],
-      ),
     );
   }
 }
