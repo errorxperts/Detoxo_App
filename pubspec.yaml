@@ -79,9 +79,10 @@ dependencies:
   # `brew install FlutterGen/tap/fluttergen` (see tool/dev.sh assets).
   # No lottie_tgs: nothing renders a Lottie file anywhere in lib/.
 
-  # Design system: motion, type ramp, native iOS controls, floating nav.
+  # Design system: motion, native iOS controls, floating nav.
+  # No google_fonts: Manrope is bundled (see `fonts:` below), so text never
+  # waits on a runtime fetch.
   flutter_animate: ^4.5.2
-  google_fonts: ^8.1.0
   cupertino_native: ^0.1.1
   flutter_floating_bottom_bar: ^1.2.1
   not_static_icons: ^0.46.0
@@ -190,14 +191,16 @@ flutter:
     - assets/svg/
     # Manrope's OFL licence ships with the font (registered in the licence page).
     - assets/fonts/OFL.txt
-  # Manrope 700/800 — the home-widget type ramp (Widget Rules DS-03). ONE copy
-  # serves both renderers: Flutter draws the in-app previews with family
-  # `Manrope`, and the native widget reads the same files from
-  # `flutter_assets/assets/fonts/` (widget/WidgetPainter.kt). google_fonts also
-  # resolves these two weights offline, since bundled files win over its fetch.
+  # Manrope 600/700/800 — the app's type ramp (the generated AppTypography; no
+  # named style uses 400/500, which fall back to 600) and the home-widget type
+  # ramp (Widget Rules DS-03, 700/800). ONE copy serves both renderers: Flutter
+  # draws with family `Manrope`, and native code (widget, bubble, block screen)
+  # reads the same files from `flutter_assets/assets/fonts/` (widget/Manrope.kt).
   fonts:
     - family: Manrope
       fonts:
+        - asset: assets/fonts/Manrope-SemiBold.ttf
+          weight: 600
         - asset: assets/fonts/Manrope-Bold.ttf
           weight: 700
         - asset: assets/fonts/Manrope-ExtraBold.ttf

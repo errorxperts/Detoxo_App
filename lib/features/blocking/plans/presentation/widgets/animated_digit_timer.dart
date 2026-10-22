@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 
 /// An `mm:ss` (or `h:mm:ss`) countdown where each character cell crossfades
 /// independently when it changes — reproducing the reference app's per-digit
-/// `AnimatedContent`. Reduce-motion renders plain text.
+/// `AnimatedContent`. Reduce-motion renders plain text. [style] defaults to
+/// `displaySmall`; every theme text slot has tabular figures, so the cells
+/// don't jitter.
 class AnimatedDigitTimer extends StatelessWidget {
   const AnimatedDigitTimer({required this.remaining, this.style, super.key});
 
@@ -15,9 +17,7 @@ class AnimatedDigitTimer extends StatelessWidget {
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     final text = formatCountdown(remaining);
-    final base = AppTypography.mono(
-      style ?? Theme.of(context).textTheme.displaySmall,
-    );
+    final base = style ?? Theme.of(context).textTheme.displaySmall;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

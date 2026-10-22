@@ -812,7 +812,7 @@ background, reached from the drawer and Settings. There is no longer a standalon
   `widget_geometry.dart` (`WidgetSize.box / radius / inset / band`),
   `widget_face_painter.dart` (`WidgetFace` interface, `FaceFrame`, `FaceCanvas`
   primitives + bonsai paths — Manrope via a raw `TextStyle(fontFamily:
-  'Manrope')`, never `GoogleFonts`, which stalls under `flutter_test`), and one
+  'Manrope')` on the bundled 700/800 files), and one
   layout-only face per family in `presentation/faces/`.
 - **`WidgetPreview(family, size, payload, {width, animate})`** — the animated
   in-app widget. One 800 ms controller lerps count, watch seconds and each hour

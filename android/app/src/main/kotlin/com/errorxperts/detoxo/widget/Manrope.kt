@@ -5,15 +5,19 @@ import android.graphics.Typeface
 import android.util.Log
 
 /**
- * Manrope 700 / 800 from the Flutter assets, loaded once per process and
- * shared by the home widget and the bubble. A race only loads a face twice;
- * both results are equal.
+ * Manrope 600 / 700 / 800 from the Flutter assets, loaded once per process and
+ * shared by the home widget, the bubble and the block screen. A race only loads
+ * a face twice; both results are equal.
  */
 internal object Manrope {
     private const val TAG = "Manrope"
 
+    @Volatile private var semiBold: Typeface? = null
     @Volatile private var bold: Typeface? = null
     @Volatile private var extraBold: Typeface? = null
+
+    fun semiBold(context: Context): Typeface =
+        semiBold ?: load(context, "Manrope-SemiBold.ttf").also { semiBold = it }
 
     fun bold(context: Context): Typeface =
         bold ?: load(context, "Manrope-Bold.ttf").also { bold = it }

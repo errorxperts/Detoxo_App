@@ -31,13 +31,13 @@ export 'foundations/background_scope.dart';
 export 'foundations/glass_container.dart';
 export 'foundations/liquid_glass_border.dart';
 export 'foundations/motion.dart';
-// Typography + theme
+// Theme
 export 'theme/app_theme.dart';
-// Tokens
+// Tokens (app_tokens.dart also carries the generated AppTypography)
 export 'tokens/app_blur.dart';
 export 'tokens/app_colors.dart';
 export 'tokens/app_elevation.dart';
 export 'tokens/app_gradients.dart';
 export 'tokens/app_motion.dart';
 export 'tokens/app_spacing.dart';
-export 'typography/app_typography.dart';
+export 'tokens/app_tokens.dart';

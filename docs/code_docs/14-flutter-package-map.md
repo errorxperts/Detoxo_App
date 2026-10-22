@@ -110,7 +110,6 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 | Package | Version | Status | Role in Detoxo |
 | --- | --- | --- | --- |
 | `flutter_animate` | `^4.5.2` | **Wired** (5 files) | Declarative entrance/motion effects across the design system. |
-| `google_fonts` | `^8.1.0` | **Wired** | Type ramp / font families for the design system. |
 | `cupertino_native` | `^0.1.1` | **Wired** | Native-feel adaptive controls (`lib/core/design_system/adaptive/adaptive_controls.dart`). |
 | `flutter_floating_bottom_bar` | `^1.2.1` | **Wired** | The floating bottom navigation bar shell. |
 | `not_static_icons` | `^0.46.0` | **Wired** | Animated (Lucide-style) icons, wrapped in `lib/core/design_system/foundations/animated_icons.dart` (re-exports `AnimatedIconController`). |
@@ -181,6 +180,7 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 | `ms_undraw` | No `UnDraw` usage — every illustration is a local asset. | dex / AOT |
 | `lottie_tgs` | Nothing renders a Lottie file anywhere in `lib/`. `assets/lottie/` is likewise unreferenced and is a standing cleanup candidate (4.86 MB install / ~0.59 MB download). | dex / AOT |
 | `flutter_gen` | A build-time CLI mis-declared as a runtime dependency — see §2. | dex / AOT |
+| `google_fonts` | Manrope 600/700/800 is bundled (§9), so the generated `AppTypography` names the family directly: no runtime font fetch, and widget tests no longer stall on one. | dex / AOT |
 
 Re-add any of these only when something actually imports them.
 
@@ -218,11 +218,15 @@ Re-add any of these only when something actually imports them.
 - `assets/images/` — `detox_logo_no_bg.webp` (splash + onboarding hero) and `Detoxo_logo.png`
   (the app logo on the block screen's Quotes design — also read natively, cropped to its mark).
 - `assets/fonts/OFL.txt` — Manrope's licence, registered on the licence page by
-  `LicenseRegistry.addLicense` in `main()`. The two font files are declared under
-  `flutter.fonts` as family **`Manrope`** (`Manrope-Bold.ttf` 700,
-  `Manrope-ExtraBold.ttf` 800): the home-widget type ramp (and the floating bubble's text), one copy serving both
-  the in-app previews and the native widget/bubble renderers (which reads them from
-  `flutter_assets/assets/fonts/` — [17](17-content-counter.md) §5.2).
+  `LicenseRegistry.addLicense` in `main()`. The three font files (all upstream
+  Version 4.504) are declared under `flutter.fonts` as family **`Manrope`**
+  (`Manrope-SemiBold.ttf` 600, `Manrope-Bold.ttf` 700, `Manrope-ExtraBold.ttf` 800).
+  They carry the app's type ramp — the generated `AppTypography`
+  (`lib/core/design_system/tokens/app_tokens.g.dart`), which every `TextTheme` slot
+  maps to (600–800; a 400/500 request falls back to 600) — and the home-widget and
+  bubble text (700/800). One copy serves Flutter and the native renderers, which
+  read them from `flutter_assets/assets/fonts/` through `widget/Manrope.kt`
+  (`semiBold`, `bold`, `extraBold`; [17](17-content-counter.md) §5.2).
 - `assets/images/bg/` — the 11 user-selectable background SVGs, rendered via
   `flutter_svg`. 25 KB for the whole set; the best size/value ratio in the app.
 - `assets/images/illustration/` — 23 hero illustrations as **512² lossy WebP**

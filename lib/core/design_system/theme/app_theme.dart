@@ -1,7 +1,7 @@
 import 'package:detoxo/core/design_system/foundations/background_scope.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
-import 'package:detoxo/core/design_system/typography/app_typography.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// Brightness-dependent glass values, read via
@@ -197,6 +197,28 @@ abstract final class AppTheme {
     Color brandAccent = _sigLightAccent,
   }) => _base(Brightness.light, brandPrimary, brandAccent);
 
+  // ── Type ──────────────────────────────────────────────────────────────────
+
+  /// Every Material text slot on a Frozen Glass named style (Manrope, tabular
+  /// figures, even leading). The colour comes from the scheme.
+  static const _slots = TextTheme(
+    displayLarge: AppTypography.number,
+    displayMedium: AppTypography.number,
+    displaySmall: AppTypography.titleXl,
+    headlineLarge: AppTypography.titleXl,
+    headlineMedium: AppTypography.titleXl,
+    headlineSmall: AppTypography.titleSheet,
+    titleLarge: AppTypography.title,
+    titleMedium: AppTypography.headline,
+    titleSmall: AppTypography.label,
+    bodyLarge: AppTypography.message,
+    bodyMedium: AppTypography.body,
+    bodySmall: AppTypography.subhead,
+    labelLarge: AppTypography.label,
+    labelMedium: AppTypography.caption,
+    labelSmall: AppTypography.tab,
+  );
+
   // ── Colour helpers ────────────────────────────────────────────────────────
 
   /// WCAG contrast ratio between two opaque colours.
@@ -302,10 +324,12 @@ abstract final class AppTheme {
         ? _darkScheme(brandPrimary, brandAccent)
         : _lightScheme(brandPrimary, brandAccent);
 
-    final base = ThemeData(
+    return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: scheme,
+      textTheme: _slots,
+      primaryTextTheme: _slots,
       // Opaque base for raw scaffolds; flagship screens use GlassScaffold,
       // which sets its own transparent scaffold over the ambient mesh.
       scaffoldBackgroundColor: scheme.surface,
@@ -330,7 +354,7 @@ abstract final class AppTheme {
         style: FilledButton.styleFrom(
           minimumSize: const Size(64, AppSizes.controlHeight),
           shape: RoundedRectangleBorder(borderRadius: AppRadius.brMd),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          textStyle: AppTypography.button,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -373,11 +397,6 @@ abstract final class AppTheme {
         thickness: 1,
         space: AppSpacing.md,
       ),
-    );
-
-    return base.copyWith(
-      textTheme: AppTypography.apply(base.textTheme),
-      primaryTextTheme: AppTypography.apply(base.primaryTextTheme),
     );
   }
 }
