@@ -1,5 +1,7 @@
 import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// A screen with one button that runs [onTap] with its context.
@@ -189,9 +191,14 @@ void main() {
       await tester.tap(find.text('open'));
       await tester.pump();
       expect(find.text('Saved'), findsOneWidget);
+      // Success wears the spec check glyph, in ink.
       expect(
-        tester.widget<Icon>(find.byIcon(Icons.check_circle_outline)).color,
-        AppTokens.dark.ink,
+        tester.widget<Glyph>(find.byType(Glyph)).asset.path,
+        Assets.svg.check.path,
+      );
+      expect(
+        tester.widget<SvgPicture>(find.byType(SvgPicture)).colorFilter,
+        ColorFilter.mode(AppTokens.dark.ink, BlendMode.srcIn),
       );
       expect(find.byType(AppPressable), findsNothing, reason: 'no action');
       expect(shown(tester), const Duration(seconds: 4));

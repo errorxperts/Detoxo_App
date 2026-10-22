@@ -14,6 +14,7 @@ export 'components/badges.dart';
 export 'components/buttons.dart';
 export 'components/cards.dart';
 export 'components/dialog.dart';
+export 'components/dx_icons.dart';
 export 'components/feedback.dart';
 export 'components/inputs.dart';
 export 'components/list_tiles.dart';

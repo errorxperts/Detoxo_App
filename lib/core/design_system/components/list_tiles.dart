@@ -1,9 +1,11 @@
 import 'package:detoxo/core/design_system/components/badges.dart';
+import 'package:detoxo/core/design_system/components/dx_icons.dart';
 import 'package:detoxo/core/design_system/components/toggle.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 /// A flat list row: [leading], the [title] in label / ink over a two-line
@@ -44,7 +46,7 @@ class GlassListTile extends StatelessWidget {
         (selected ?? false
             ? Icon(Icons.check_rounded, size: 18, color: t.ink)
             : selected == null && onTap != null
-            ? Icon(Icons.chevron_right_rounded, size: 18, color: t.ink3)
+            ? Glyph(Assets.svg.chevronRight, size: 18, color: t.ink3)
             : null);
     Widget row = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 56),

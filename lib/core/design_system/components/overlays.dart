@@ -2,11 +2,13 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:detoxo/core/design_system/components/badges.dart';
+import 'package:detoxo/core/design_system/components/dx_icons.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -369,12 +371,6 @@ abstract final class GlassToast {
   }) {
     final messenger = ScaffoldMessenger.of(context);
     final mq = MediaQuery.of(context);
-    final glyph = switch (tone) {
-      AppTone.success => Icons.check_circle_outline,
-      AppTone.danger => Icons.error_outline,
-      AppTone.warning => Icons.warning_amber_outlined,
-      _ => Icons.info_outline,
-    };
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -389,7 +385,7 @@ abstract final class GlassToast {
               ? const Duration(seconds: 10)
               : Duration(seconds: action == null ? 4 : 6),
           content: _Toast(
-            glyph: glyph,
+            tone: tone,
             message: message,
             action: action == null
                 ? null
@@ -411,12 +407,12 @@ abstract final class GlassToast {
 
 class _Toast extends StatelessWidget {
   const _Toast({
-    required this.glyph,
+    required this.tone,
     required this.message,
     required this.action,
   });
 
-  final IconData glyph;
+  final AppTone tone;
   final String message;
   final ({String label, VoidCallback onPressed})? action;
 
@@ -435,7 +431,19 @@ class _Toast extends StatelessWidget {
           : const EdgeInsets.fromLTRB(AppSpacing.md, 4, 4, 4),
       child: Row(
         children: [
-          Icon(glyph, size: 20, color: t.ink),
+          // The spec check marks success; the other tones keep Material.
+          if (tone == AppTone.success)
+            Glyph(Assets.svg.check, size: 20)
+          else
+            Icon(
+              switch (tone) {
+                AppTone.danger => Icons.error_outline,
+                AppTone.warning => Icons.warning_amber_outlined,
+                _ => Icons.info_outline,
+              },
+              size: 20,
+              color: t.ink,
+            ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(

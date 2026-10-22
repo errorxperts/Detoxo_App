@@ -2,6 +2,7 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/utils/clock_format.dart';
 import 'package:detoxo/features/limits/limits.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -74,8 +75,8 @@ class RulesCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Pill(label: label, tone: tone),
               const SizedBox(width: AppSpacing.xs),
-              Icon(
-                Icons.chevron_right_rounded,
+              Glyph(
+                Assets.svg.chevronRight,
                 size: 18,
                 color: context.tokens.ink3,
               ),

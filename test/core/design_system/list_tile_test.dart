@@ -1,4 +1,5 @@
 import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,6 +11,10 @@ Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
 );
 
 Finder _icon(IconData icon) => find.byIcon(icon);
+
+final _chevron = find.byWidgetPredicate(
+  (w) => w is Glyph && w.asset.path == Assets.svg.chevronRight.path,
+);
 
 void main() {
   testWidgets('a standalone row is exactly one panel', (tester) async {
@@ -53,7 +58,7 @@ void main() {
   ) async {
     var taps = 0;
     await _pump(tester, GlassListTile(title: 'Open', onTap: () => taps++));
-    final chevron = tester.widget<Icon>(_icon(Icons.chevron_right_rounded));
+    final chevron = tester.widget<Glyph>(_chevron);
     expect(chevron.size, 18);
     expect(chevron.color, AppTokens.light.ink3);
     await tester.tap(find.text('Open'));
@@ -74,7 +79,7 @@ void main() {
         ],
       ),
     );
-    expect(_icon(Icons.chevron_right_rounded), findsNothing);
+    expect(_chevron, findsNothing);
   });
 
   testWidgets('selection rows: a check when picked, nothing when not', (
@@ -96,7 +101,7 @@ void main() {
       AppTokens.light.ink,
     );
     // An unpicked option is not a navigation row.
-    expect(_icon(Icons.chevron_right_rounded), findsNothing);
+    expect(_chevron, findsNothing);
     expect(
       tester.getSemantics(find.text('Picked')),
       isSemantics(label: 'Picked', isButton: true, isSelected: true),
