@@ -6,8 +6,14 @@ import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
-/// A glass row used in lists (feature entries, quick actions). Flat translucent
-/// fill (no per-row blur) so a long list stays smooth.
+/// A flat list row: [leading], the [title] in label / ink over a two-line
+/// [subtitle] in subhead / ink-2, and [trailing]. On a panel or a sheet it
+/// draws no surface of its own; standalone it is its own panel (no glass
+/// inside glass, see [GlassContainer.surfaceOf]). Group rows with
+/// [PanelGroup].
+///
+/// With no [trailing], a selected row shows a check and a plain tappable row
+/// a chevron in ink-3.
 class GlassListTile extends StatelessWidget {
   const GlassListTile({
     required this.title,
@@ -15,7 +21,7 @@ class GlassListTile extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onTap,
-    this.selected = false,
+    this.selected,
     super.key,
   });
 
@@ -25,63 +31,104 @@ class GlassListTile extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
 
-  /// Marks the row as picked: a calm brand-tinted option fill.
-  final bool selected;
+  /// Whether the row is the picked one in a selection list. Null (the
+  /// default) means the row is not a selection row, so a tappable one
+  /// navigates and shows the chevron.
+  final bool? selected;
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
     final t = context.tokens;
-    final row = GlassContainer(
-      surface: selected ? DxSurface.option : DxSurface.panel,
-      color: selected ? Color.lerp(t.optionBase, t.brand.main, t.kChip) : null,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
-        children: [
-          if (leading != null) ...[
-            leading!,
-            const SizedBox(width: AppSpacing.sm),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: text.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (subtitle != null)
+    final trailing =
+        this.trailing ??
+        (selected ?? false
+            ? Icon(Icons.check_rounded, size: 18, color: t.ink)
+            : selected == null && onTap != null
+            ? Icon(Icons.chevron_right_rounded, size: 18, color: t.ink3)
+            : null);
+    Widget row = ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 56),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          children: [
+            if (leading != null) ...[
+              leading!,
+              const SizedBox(width: AppSpacing.sm),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    subtitle!,
-                    style: text.bodySmall,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    title,
+                    style: AppTypography.label.copyWith(color: t.ink),
                   ),
-              ],
+                  if (subtitle != null)
+                    Text(
+                      subtitle!,
+                      style: AppTypography.subhead.copyWith(color: t.ink2),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
             ),
-          ),
-          if (trailing != null) ...[
-            const SizedBox(width: AppSpacing.sm),
-            trailing!,
+            if (trailing != null) ...[
+              const SizedBox(width: AppSpacing.sm),
+              trailing,
+            ],
           ],
-        ],
+        ),
       ),
     );
+    if (GlassContainer.surfaceOf(context) == null) {
+      row = GlassContainer(padding: EdgeInsets.zero, child: row);
+    }
     if (onTap == null) return row;
     return AppPressable(
       onTap: onTap!,
       // Forward to Semantics so screen readers announce the picked state.
       selected: selected,
-      minTapTarget: const Size(0, AppSizes.minTapTarget),
       child: row,
     );
   }
 }
 
+/// Rows in one panel (the spec section idiom: one panel per section), split
+/// by inset hairlines. On a surface already it adds no panel of its own.
+class PanelGroup extends StatelessWidget {
+  const PanelGroup({required this.children, super.key});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0)
+            const Divider(
+              height: 1,
+              indent: AppSpacing.md,
+              endIndent: AppSpacing.md,
+            ),
+          children[i],
+        ],
+      ],
+    );
+    if (GlassContainer.surfaceOf(context) != null) return rows;
+    return GlassContainer(padding: EdgeInsets.zero, child: rows);
+  }
+}
+
 /// A labelled row with a trailing [AppToggle]. When [locked], shows a
-/// "Premium" pill in the same trailing slot instead of the switch — keeping
+/// "Premium" label in the same trailing slot instead of the switch — keeping
 /// every row in a list visually consistent (fixes the blocklist inconsistency).
 class AppToggleTile extends StatelessWidget {
   const AppToggleTile({
@@ -93,7 +140,7 @@ class AppToggleTile extends StatelessWidget {
     this.enabled = true,
     this.locked = false,
     this.onLockedTap,
-    this.selected = false,
+    this.selected,
     super.key,
   });
 
@@ -107,7 +154,7 @@ class AppToggleTile extends StatelessWidget {
   final VoidCallback? onLockedTap;
 
   /// Marks the row as picked (see [GlassListTile.selected]).
-  final bool selected;
+  final bool? selected;
 
   @override
   Widget build(BuildContext context) {

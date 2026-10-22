@@ -79,12 +79,8 @@ class _ProjectionStepState extends State<ProjectionStep> {
                   ),
                 ],
               ),
-              builder: (context, v, child) => ProgressRing(
-                size: 200,
-                strokeWidth: 16,
-                progress: v,
-                child: child,
-              ),
+              builder: (context, v, child) =>
+                  ProgressRing(size: 200, progress: v, child: child),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),

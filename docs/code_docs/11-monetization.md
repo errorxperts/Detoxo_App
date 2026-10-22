@@ -180,10 +180,11 @@ entitlement) is the intended hook — see §2 for the missing read.
 
 ### `Pill(label: 'Premium')`
 
-The reusable status chip (`lib/core/design_system/components/badges.dart`,
-`class Pill`) supports a `'Premium'` label with `AppTone.warning`. It is a generic
-component ("Required" / "Premium" / "Active"); the only premium usage is the inert
-`AppToggleTile.locked` branch above.
+The reusable status label (`lib/core/design_system/components/badges.dart`,
+`class Pill`: a dot or an icon, then the word in ink-2) supports a `'Premium'` label
+with `AppTone.warning` and the lock icon. It is a generic component ("Premium" /
+"Active" / "Not set up"); the only premium usage is the inert `AppToggleTile.locked`
+branch above.
 
 ### `AppIcon.premium` / `CrownIcon`
 

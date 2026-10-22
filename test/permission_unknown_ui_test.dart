@@ -22,16 +22,15 @@ void main() {
             why: 'Detects reels on screen.',
             granted: granted,
             unknown: unknown,
-            isRequired: true,
             onGrant: () {},
           ),
         ),
       ),
     );
 
-    testWidgets('granted renders the check, no action button', (tester) async {
+    testWidgets('granted reads On, no action button', (tester) async {
       await pump(tester, granted: true);
-      expect(find.text('Granted'), findsOneWidget);
+      expect(find.text('On'), findsOneWidget);
       expect(find.text('Grant'), findsNothing);
       expect(find.text('Checking…'), findsNothing);
     });
@@ -42,13 +41,37 @@ void main() {
       await pump(tester, granted: false, unknown: true);
       expect(find.text('Checking…'), findsOneWidget);
       expect(find.text('Grant'), findsNothing);
-      expect(find.text('Granted'), findsNothing);
+      expect(find.text('On'), findsNothing);
     });
 
     testWidgets('denied renders the Grant action', (tester) async {
       await pump(tester, granted: false);
+      expect(find.text('Needs access'), findsOneWidget);
       expect(find.text('Grant'), findsOneWidget);
       expect(find.text('Checking…'), findsNothing);
+    });
+
+    testWidgets('its own panel standalone, none on a surface', (tester) async {
+      await pump(tester, granted: false);
+      expect(find.byType(GlassContainer), findsOneWidget);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark(),
+          home: Scaffold(
+            body: GlassContainer(
+              child: PermissionCard(
+                icon: Icons.security,
+                title: 'Accessibility',
+                why: 'Detects reels on screen.',
+                granted: true,
+                onGrant: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(GlassContainer), findsOneWidget);
     });
   });
 }

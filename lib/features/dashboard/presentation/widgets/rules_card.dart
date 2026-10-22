@@ -10,7 +10,7 @@ import 'package:go_router/go_router.dart';
 /// the next thing that will happen. Watches the app-wide [RulesCubit].
 ///
 /// Styled as the status row that used to be the Protection Status card: a
-/// tinted [GlassCard] with a leading glyph (pulsing dot while a rule is live),
+/// [GlassCard] with a leading glyph (pulsing dot while a rule is live),
 /// title / next-event subtitle, a status [Pill] and a chevron.
 class RulesCard extends StatelessWidget {
   const RulesCard({super.key});
@@ -74,7 +74,11 @@ class RulesCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Pill(label: label, tone: tone),
               const SizedBox(width: AppSpacing.xs),
-              Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: context.tokens.ink3,
+              ),
             ],
           ),
         );

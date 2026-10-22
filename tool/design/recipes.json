@@ -33,6 +33,7 @@
       { "name": "track-from", "value": { "light": "#dce2ec", "dark": "#0e1018" }, "usage": "Slide track, start of its gradient." },
       { "name": "track-to", "value": { "light": "#e8ecf3", "dark": "#161927" }, "usage": "Slide track, end of its gradient." },
       { "name": "knob", "value": { "light": "#ffffff", "dark": "#f7f8fc" }, "usage": "Slide knob fill." },
+      { "name": "knob-shadow", "value": { "light": "rgba(80,95,130,0.28)", "dark": "rgba(0,0,0,0.35)" }, "usage": "Ring knob drop shadow: r 9.5 at (+1.5, +2) in the knob's own rotated frame (TimeLeftRing preview)." },
       { "name": "well-from", "value": { "light": "#f3f6fb", "dark": "#262b42" }, "usage": "Confirm sheet icon well, centre of its radial gradient." },
       { "name": "well-to", "value": { "light": "#dfe5ee", "dark": "#13151f" }, "usage": "Confirm sheet icon well, edge of its radial gradient." },
       { "name": "grabber", "value": { "light": "rgba(20,26,42,0.18)", "dark": "rgba(255,255,255,0.26)" }, "usage": "Sheet grabber bar." },

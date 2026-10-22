@@ -4,11 +4,10 @@ import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart' show SectionCard;
 import 'package:flutter/material.dart';
 
 /// A frosted panel, optionally tappable. For titled sections use
-/// [SectionCard] (common_widgets).
+/// `SectionCard` (core/widgets).
 class GlassCard extends StatelessWidget {
   const GlassCard({
     required this.child,
@@ -122,10 +121,7 @@ class StatCard extends StatelessWidget {
           );
     final badge = trend == null
         ? null
-        : AppBadge.label(
-            '${trend!.up ? '▲' : '▼'} ${trend!.percent}%',
-            tone: trend!.up ? AppTone.success : AppTone.danger,
-          );
+        : AppBadge.label('${trend!.up ? '▲' : '▼'} ${trend!.percent}%');
     final captionText = caption == null
         ? null
         : Text(
@@ -229,7 +225,7 @@ class IconBadge extends StatelessWidget {
   final String? semanticLabel;
 
   /// Tints the fill (at [fillAlpha]), the border, and the default icon.
-  /// Defaults to the live (background-adaptive) brand accent.
+  /// Defaults to ink-2: a neutral badge.
   final Color? color;
 
   /// When set, fills with this gradient instead of the tinted [color]; the
@@ -246,7 +242,7 @@ class IconBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCircle = shape == BoxShape.circle;
-    final tint = color ?? context.tokens.brand.main;
+    final tint = color ?? context.tokens.ink2;
     return Container(
       width: size,
       height: size,
@@ -279,7 +275,7 @@ class IconBadge extends StatelessWidget {
 
 /// A structured content card: an optional header ([leading] + [title]/[subtitle]
 /// + [trailing]), a [child] body, and a right-aligned [actions] row — all over a
-/// [GlassCard]. Use [GlassCard] for a bare frosted surface, or [SectionCard] for
+/// [GlassCard]. Use [GlassCard] for a bare frosted surface, or `SectionCard` for
 /// a simple titled section.
 class AppCard extends StatelessWidget {
   const AppCard({

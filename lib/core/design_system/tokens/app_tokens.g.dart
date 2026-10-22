@@ -44,6 +44,7 @@ final class AppTokens {
     required this.trackFrom,
     required this.trackTo,
     required this.knob,
+    required this.knobShadow,
     required this.wellFrom,
     required this.wellTo,
     required this.grabber,
@@ -131,6 +132,7 @@ final class AppTokens {
     trackFrom: Color(0xFFDCE2EC),
     trackTo: Color(0xFFE8ECF3),
     knob: Color(0xFFFFFFFF),
+    knobShadow: Color(0x47505F82),
     wellFrom: Color(0xFFF3F6FB),
     wellTo: Color(0xFFDFE5EE),
     grabber: Color(0x2E141A2A),
@@ -314,6 +316,7 @@ final class AppTokens {
     trackFrom: Color(0xFF0E1018),
     trackTo: Color(0xFF161927),
     knob: Color(0xFFF7F8FC),
+    knobShadow: Color(0x59000000),
     wellFrom: Color(0xFF262B42),
     wellTo: Color(0xFF13151F),
     grabber: Color(0x42FFFFFF),
@@ -572,6 +575,9 @@ final class AppTokens {
 
   /// Slide knob fill.
   final Color knob;
+
+  /// Ring knob drop shadow: r 9.5 at (+1.5, +2) in the knob's own rotated frame (TimeLeftRing preview).
+  final Color knobShadow;
 
   /// Confirm sheet icon well, centre of its radial gradient.
   final Color wellFrom;

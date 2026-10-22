@@ -237,6 +237,10 @@ internal object DxTokens {
     const val KNOB_LIGHT: Int = 0xFFFFFFFF.toInt()
     /** Slide knob fill. (dark) */
     const val KNOB_DARK: Int = 0xFFF7F8FC.toInt()
+    /** Ring knob drop shadow: r 9.5 at (+1.5, +2) in the knob's own rotated frame (TimeLeftRing preview). (light) */
+    const val KNOB_SHADOW_LIGHT: Int = 0x47505F82.toInt()
+    /** Ring knob drop shadow: r 9.5 at (+1.5, +2) in the knob's own rotated frame (TimeLeftRing preview). (dark) */
+    const val KNOB_SHADOW_DARK: Int = 0x59000000.toInt()
     /** Confirm sheet icon well, centre of its radial gradient. (light) */
     const val WELL_FROM_LIGHT: Int = 0xFFF3F6FB.toInt()
     /** Confirm sheet icon well, centre of its radial gradient. (dark) */

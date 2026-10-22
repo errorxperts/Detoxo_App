@@ -526,7 +526,7 @@ document and the wire.
 - `lib/core/navigation/{routes,app_router}.dart`, `lib/core/di/injector.dart`, `lib/main.dart`, `lib/app/app_resume_sync.dart`
 - `lib/core/storage/local_store.dart` (`StoreKeys.rules`), `lib/core/utils/clock_format.dart`
 - `lib/app/splash_screen.dart` (post-wipe reload of the three `..load()`-once cubits)
-- `lib/core/design_system/components/{badges,selection}.dart` (`onToneColor` + the pill's width
+- `lib/core/design_system/components/{badges,selection}.dart` (`toneText` + the status label's width
   bound; `AppChip.semanticLabel`)
 - `lib/features/catalog/domain/entities/catalog.dart` (`packagesIn` is indexed, not scanned)
 - `lib/core/constants/channel_constants.dart`, `lib/core/platform_channels/engine_channel.dart`
