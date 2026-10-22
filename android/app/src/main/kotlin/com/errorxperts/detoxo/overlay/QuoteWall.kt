@@ -104,10 +104,12 @@ internal class QuoteWallView(
     private val linePaint = text(semi, DxTokens.BODY_SIZE, DxTokens.BODY_TRACKING_EM, theme.ink2)
     private val metaPaint = text(semi, DxTokens.SUBHEAD_SIZE, DxTokens.SUBHEAD_TRACKING_EM, theme.ink2)
 
-    /** A laid-out text block, faded from its paint's own alpha (ink-2 is translucent in Dark). */
-    private class Block(val layout: StaticLayout, val x: Float, val y: Float) {
-        val alpha = layout.paint.alpha
-    }
+    /**
+     * A laid-out text block, faded from its colour's own [alpha] (ink-2 is
+     * translucent in Dark). Taken from the token, not the shared paint, which
+     * a relayout mid-fade would catch part-faded.
+     */
+    private class Block(val layout: StaticLayout, val x: Float, val y: Float, val alpha: Int)
 
     private var foot: List<Block> = emptyList()
     private var quoteBlock: Block? = null
@@ -234,12 +236,16 @@ internal class QuoteWallView(
         }
         val body = q.height + if (fit.writer) writerH else 0f
         panel.setBounds(side.roundToInt(), y.roundToInt(), (w - side).roundToInt(), (y + 2 * pad + body).roundToInt())
-        quoteBlock = Block(q, side + pad, y + pad)
-        writerBlock = if (fit.writer) Block(writerLayout, side + pad, y + pad + q.height + dp(12f)) else null
+        quoteBlock = Block(q, side + pad, y + pad, theme.ink ushr 24)
+        writerBlock = if (fit.writer) {
+            Block(writerLayout, side + pad, y + pad + q.height + dp(12f), theme.ink2 ushr 24)
+        } else {
+            null
+        }
         y += 2 * pad + body + dp(16f)
         foot = buildList {
-            add(Block(lineLayout, side, y))
-            if (metaLayout != null) add(Block(metaLayout, side, y + lineLayout.height + dp(6f)))
+            add(Block(lineLayout, side, y, theme.ink2 ushr 24))
+            if (metaLayout != null) add(Block(metaLayout, side, y + lineLayout.height + dp(6f), theme.ink2 ushr 24))
         }
         invalidate()
     }

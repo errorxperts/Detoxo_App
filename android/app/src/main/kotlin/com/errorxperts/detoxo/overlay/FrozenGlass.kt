@@ -280,6 +280,13 @@ internal class DxTheme(val dark: Boolean) {
         withAlpha(DxTokens.KNOB_LIGHT, (0.55f * 255f).roundToInt())
     }
 
+    /**
+     * The sheet colours composited opaque over the ground's ends: the soft
+     * nudge's card, which sits over a third-party feed, where translucent
+     * glass could not promise 4.5:1.
+     */
+    val opaqueSheet = intArrayOf(alphaOver(sheet[0], bgTop), alphaOver(sheet[1], bgBottom))
+
     /** The accent pill (`.dx-pill`) over [accent]: its edge plus the accent glow at (0, 10) blur 24. */
     fun pillShadows(accent: Int): Array<DxShadowLayer> = pillEdge +
         DxShadowLayer(withAlpha(accent, (kPillGlow * 255f).roundToInt()), 0f, 10f, 24f, 0f, false)

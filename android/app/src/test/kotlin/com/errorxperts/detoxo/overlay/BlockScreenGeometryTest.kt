@@ -210,6 +210,19 @@ class BlockScreenGeometryTest {
     }
 
     @Test
+    fun theNudgeCardReadsOverAnyFeedInBothThemes() {
+        for (dark in listOf(false, true)) {
+            val t = DxTheme(dark)
+            for (sheet in t.opaqueSheet) {
+                assertEquals("opaque dark=$dark", 0xFF, sheet ushr 24)
+                assertTrue("title dark=$dark", reads(t.ink, sheet) >= 4.5)
+                assertTrue("body and ✕ dark=$dark", reads(t.ink2, sheet) >= 4.5)
+                assertTrue("Leave dark=$dark", reads(t.ink, alphaOver(t.fillQuiet, sheet)) >= 4.5)
+            }
+        }
+    }
+
+    @Test
     fun theSlidesToneReadsOnItsFill() {
         // The label's fill copy is the tone ink over the caution stops it can sit on.
         for (stop in intArrayOf(DxTokens.TONE_CAUTION_A, DxTokens.TONE_CAUTION_B, DxTokens.TONE_CAUTION_C)) {

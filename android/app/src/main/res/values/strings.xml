@@ -39,8 +39,9 @@
          NudgeTracker), so it cannot know whether they are scrolling, reading a
          DM or on a call — and telling a user on a video call that they are
          "still scrolling" spends the trust the honest-numbers pitch earns.
-         The title carries the one fact the engine actually has. -->
-    <string name="nudge_title">%1$s · %2$d min</string>
+         The title carries the one fact the engine actually has, in the
+         app's compact duration form ("Instagram · 15m", UsageQuery.formatHm). -->
+    <string name="nudge_title">%1$s · %2$s</string>
     <string name="nudge_body">Good time to put it down?</string>
     <string name="nudge_dismiss">Dismiss</string>
     <!-- The card's single action: the user leaves, on their own tap. The
