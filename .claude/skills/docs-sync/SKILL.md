@@ -46,7 +46,8 @@ Skip it for pure test/formatting changes with no behavioral or structural effect
 | `lib/features/analytics/insights/**`, `lib/core/utils/duration_format.dart` | 28 (+ 09 for `usage_daily`, 26 for the usage-layer consumer; **user-facing** → `info_docs/02` §15 + `04`) |
 | `lib/features/{onboarding,permissions}/**`, `lib/app/{splash_screen,bootstrap,starter_rule_sync}.dart` | 13 (+ 01 §3–§4 for the gate/bootstrap; **user-facing** → `info_docs/02` §1 + `04`) |
 | `lib/core/navigation/**` (`app_router.dart`, `routes.dart`, `app_gate.dart`) | 01 §3 (+ 13 for the gate order) |
-| `lib/features/dashboard/**` (home shell + dashboard sections), `lib/core/design_system/foundations/**` (glass primitives) | 01 (+ **user-facing** → `info_docs/02` §1) |
+| `lib/features/dashboard/**` (home shell + dashboard sections), `lib/core/design_system/foundations/**` (glass primitives) | 01 (+ **user-facing** → `info_docs/02` §3/§4/§6) |
+| `lib/core/design_system/{tokens,theme,foundations,components}/**`, `tool/design/**` | 01 (design-system section) + 14 |
 | `pubspec.yaml` | 14 |
 | `lib/app/unsupported_screen.dart`, `lib/core/platform/**` | 15 |
 | release status / what-works-vs-swap-in changes | 16 |

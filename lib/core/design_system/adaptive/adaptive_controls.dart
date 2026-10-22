@@ -29,7 +29,8 @@ class AdaptiveSlider extends StatelessWidget {
   final int? divisions;
   final bool enabled;
 
-  /// Active-track tint. Defaults to the live (background-adaptive) brand accent.
+  /// Active-track tint. Defaults to the scheme's `secondary`, the text-safe
+  /// static brand.
   final Color? color;
 
   /// What a screen reader announces for a value — pass the same formatter the

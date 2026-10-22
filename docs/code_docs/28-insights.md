@@ -259,12 +259,12 @@ genuinely quiet day. A genuinely quiet day is a separate, granted state and says
 `analytics_screen.dart` is **one scroll of three headed sections** — an uppercase `SectionHeader`
 (`lib/core/design_system/components/section_header.dart`, the Settings / Rules grouped-list idiom) over **one**
 `GlassCard` panel each — then the override card. Each section widget owns its
-header, so the headers carry the vertical rhythm (`md` above, `sm` below) and `_ActivityBody`,
+header, so the headers carry the vertical rhythm (`section` 32 above, `sm` below) and `_ActivityBody`,
 which is stateless, places nothing between them; on the pushed route the list has no top inset
 of its own, the app bar and the first header supply it. Top to bottom:
 
 1. **Today** — `TodayOverview`: a 2×2 grid of flat `StatCard(compact: true, contained: false)`
-   tiles in one panel, with a content-aligned hairline (`Divider`, `context.glass.border`,
+   tiles in one panel, with a content-aligned hairline (`Divider`, `context.tokens.hairline`,
    `indent: sm`) between the rows. **Reels** (live from the app-wide `ContentCounterCubit`,
    `All time: N` caption) and **Blocked** (the app-wide `ServiceCubit`'s native counters via
    `context.select`; one reference — `Yesterday: N` once there is history, `All time: N` before —

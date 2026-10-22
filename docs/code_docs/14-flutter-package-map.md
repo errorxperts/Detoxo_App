@@ -110,7 +110,7 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 | Package | Version | Status | Role in Detoxo |
 | --- | --- | --- | --- |
 | `flutter_animate` | `^4.5.2` | **Wired** (5 files) | Declarative entrance/motion effects across the design system. |
-| `cupertino_native` | `^0.1.1` | **Wired** | Native-feel adaptive controls (`lib/core/design_system/adaptive/adaptive_controls.dart`). |
+| `cupertino_native` | `^0.1.1` | **Wired** | The one adaptive control left, `AdaptiveSlider` (`lib/core/design_system/adaptive/adaptive_controls.dart`): a native `CNSlider` on iOS/macOS, Material `Slider` on Android. |
 | `flutter_floating_bottom_bar` | `^1.2.1` | **Wired** | The floating bottom navigation bar shell. |
 | `not_static_icons` | `^0.46.0` | **Wired** | Animated (Lucide-style) icons, wrapped in `lib/core/design_system/foundations/animated_icons.dart` (re-exports `AnimatedIconController`). |
 | `sleek_circular_slider` | `^2.1.0` | **Wired** (1 file) | The dashboard hero's read-only countdown ring (`plans/presentation/widgets/countdown_ring.dart`, Pause / Conscious). |
