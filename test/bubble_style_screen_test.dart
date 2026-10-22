@@ -189,19 +189,17 @@ void main() {
       for (var i = 0; i < glass.evaluate().length; i++)
         tester.getRect(glass.at(i)),
     ];
-    // The centred glass spans the gutter exactly.
-    expect(
-      rects.where(
-        (r) => r.left == AppSpacing.md && r.right == w - AppSpacing.md,
-      ),
-      hasLength(1),
-    );
-    // A neighbour shows only `xs` at the screen edge.
-    final side = rects.where((r) => r.left != AppSpacing.md).toList();
+    // The centred glass spans the 20 dp gutter (to float precision).
+    bool centred(Rect r) =>
+        (r.left - AppSpacing.gutter).abs() < 0.01 &&
+        (r.right - (w - AppSpacing.gutter)).abs() < 0.01;
+    expect(rects.where(centred), hasLength(1));
+    // A neighbour shows only `gutter - 2 · xxs` (12) at the screen edge.
+    final side = rects.where((r) => !centred(r)).toList();
     expect(side, isNotEmpty);
     for (final r in side) {
       final shown = r.right <= w / 2 ? r.right : w - r.left;
-      expect(shown, closeTo(AppSpacing.xs, 0.01));
+      expect(shown, closeTo(AppSpacing.gutter - 2 * AppSpacing.xxs, 0.01));
     }
     // The rail runs edge to edge and rests on the gutter.
     final rail = find.byType(VariantCarousel);
@@ -214,7 +212,7 @@ void main() {
                 .first,
           )
           .dx,
-      AppSpacing.md,
+      AppSpacing.gutter,
     );
   });
 

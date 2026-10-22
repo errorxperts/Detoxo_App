@@ -187,9 +187,7 @@ The **day streak** under the Today ring, beside your reels count, is how many da
 
 The little counter bubble floats on top of whatever app you're in, so Android asks for the **Display over apps** permission (sometimes shown as "Draw over other apps") before it can appear. Counting works everywhere without it; you just won't see the bubble. The same permission draws the **block screen** — without it, blocking still works but you get a short toast instead of the full-screen card.
 
-If the bubble or the block screen is switched on but the permission is missing, its card on the Appearance screen tells you so — tap the warning to open the setting; it clears on its own once granted. The block screen's own page shows the same warning under **Try it on your phone**.
-
-If the bubble is switched on but the permission is missing, the **Bubble** card on the Appearance screen tells you so — tap the warning to open the setting; it clears on its own once granted.
+If the bubble or the block screen is switched on but the permission is missing, its status on the Appearance screen reads **Needs access**. Tap it to open the setting; it changes back to **On** once granted. The block screen's own page shows the same warning under **Try it on your phone**.
 
 ## What happens when I tap the counter bubble?
 

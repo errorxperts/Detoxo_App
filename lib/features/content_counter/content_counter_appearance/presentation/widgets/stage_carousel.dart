@@ -8,9 +8,6 @@ import 'package:flutter/material.dart';
 /// surface each page sits on, and a rail of thumbnails that stagger in and
 /// keep the selected one in view.
 
-bool _still(BuildContext context) =>
-    MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-
 /// A stage page's surface: the design system's panel,
 /// inset [AppSpacing.xxs] each side so
 /// neighbouring pages keep a gap. [child] sits inside [padding], clipped to
@@ -116,7 +113,7 @@ class _RailThumbState extends State<RailThumb> {
       Scrollable.maybeOf(context)?.position.ensureVisible(
         box,
         alignment: 0.5,
-        duration: _still(context) ? Duration.zero : AppDurations.normal,
+        duration: context.motion(AppDurations.normal),
         curve: AppCurves.standard,
       ),
     );
@@ -124,8 +121,8 @@ class _RailThumbState extends State<RailThumb> {
 
   @override
   Widget build(BuildContext context) {
-    if (_still(context)) return widget.child;
-    const duration = Duration(milliseconds: 200);
+    final duration = context.motion(const Duration(milliseconds: 200));
+    if (duration == Duration.zero) return widget.child;
     // 40 ms apart: the last of seven lands at 440 ms.
     return widget.child
         .animate(delay: Duration(milliseconds: 40 * widget.index))

@@ -227,10 +227,7 @@ void main() {
     await settle(tester);
 
     expect(repo.pinned, [WidgetFamily.bonsai]);
-    expect(
-      find.text('Confirm the prompt to add it to your home screen.'),
-      findsOneWidget,
-    );
+    expect(find.text('Confirm the prompt to add it.'), findsOneWidget);
 
     await tapSegment(tester, 'Medium');
     await settle(tester);
@@ -238,9 +235,7 @@ void main() {
     await tester.tap(find.text('Add to home screen'));
     await settle(tester);
     expect(
-      find.text(
-        'Confirm the prompt to add it, then long-press it and drag to resize.',
-      ),
+      find.text('Confirm the prompt, then long-press it to resize.'),
       findsOneWidget,
     );
   });
@@ -275,7 +270,11 @@ void main() {
 
       await tester.tap(rail('Time limit'));
       await settle(tester);
-      expect(find.text('Set a daily limit'), findsOneWidget);
+      // A panel row with the chevron, not a button.
+      expect(
+        find.widgetWithText(GlassListTile, 'Set a daily limit'),
+        findsOneWidget,
+      );
 
       await tester.tap(rail('Count'));
       await settle(tester);

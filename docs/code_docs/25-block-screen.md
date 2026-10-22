@@ -364,14 +364,15 @@ The plan label itself lives with the enum — `planLabel(BlockingPlan?, {allowan
 `blocking/shared/domain/entities/enums.dart` — and the dashboard status label and the Unblock
 dialog's base label delegate to it, so the wire token maps to "Conscious" in one Dart place.
 
-The **Appearance** hub has a "Block screen" section: one full-width `_SurfaceCard` with the
-compact preview, the **on/off `AppToggle`**, an "Off — app & website blocks fall back to a short
-toast" hint while off (reel walls follow the block mode, not this switch), and the same
-overlay-permission notice the bubble card uses
-(`ContentCount.overlayGranted == false`, tri-state — never "unknown reads as denied").
-Switched off, the card still opens the editor (the preview itself shows the off state), and both
-lines slide in and out — `AppReveal`, with `NoticeLine` for the notice (design system,
-`components/feedback.dart`) — rather than pop the card.
+The **Appearance** hub has a "Block screen" section: a `SectionHeader` over one `PanelGroup`
+holding a flat `_SurfaceTile` — the title row with the **on/off `AppToggle`**, the compact
+preview, and a status `Pill` (dot + word, no amber line) in place of the old hint and
+`NoticeLine`: **Off · toast instead** while off (app & website blocks fall back to a short toast;
+reel walls follow the block mode, not this switch), **Needs access** — a 48 dp button that opens
+the grant — when on without the overlay permission (`ContentCount.overlayGranted == false`,
+tri-state — never "unknown reads as denied"; the same status the bubble tile uses), else **On**.
+Switched off, the tile still opens the editor (the preview itself shows the off state); the status
+is always one 48 dp line, so a change cross-fades the word in place rather than move the tile.
 
 **Try it** waits for the switch and the grant: it is disabled while the block screen is off or
 `overlayGranted` is a definite `false`, and then a `NoticeLine` under it — *Needs “Display over
@@ -466,8 +467,9 @@ hydrate);
   picker left, each row one TalkBack node with its caption; switched off the preview greys under
   an **Off** badge and stops its loop, and on brings both back; the editor's own switch, Try it and
   the options disabled while off, and a missing grant fixed in place by the `NoticeLine`);
-  `test/appearance_block_screen_card_test.dart` (switched off, the hub card says what off means
-  and still opens the editor); `native_event_reporter_test.dart` (`blockScreenAction` logged, preview skipped;
+  `test/appearance_block_screen_card_test.dart` (switched off, the hub tile's status says what off
+  means and the tile still opens the editor; on, it reads On; without the grant, Needs access
+  opens it); `native_event_reporter_test.dart` (`blockScreenAction` logged, preview skipped;
   `block_triggered` carries `wall`); `test/block_mode_picker_test.dart` (the four-row picker, the
   selected row reaches Semantics, the entry tile's "Needs Display over other apps" row only without
   the grant); `test/domain_test.dart` (`BLOCK_SCREEN` round-trips).

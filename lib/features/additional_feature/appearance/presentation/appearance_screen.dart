@@ -8,10 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-/// One home for how Detoxo *looks*: the app theme (System / Light / Dark), the reel
-/// counter's two surfaces — the floating bubble and the home-screen widget —
-/// and the block screen, each shown as a large live preview you tap to
-/// customise. The bubble and the block screen carry their own on/off; the
+/// One home for how Detoxo looks: the app theme (System / Light / Dark), then
+/// the reel counter's two surfaces (the floating bubble and the home-screen
+/// widget) and the block screen. Each section is an eyebrow over one panel;
+/// each surface is a flat tile with a live preview you tap to customise and a
+/// status word. The bubble and the block screen carry their own on/off; the
 /// widget and the counter editors are gated by the counting master.
 class AppearanceScreen extends StatelessWidget {
   const AppearanceScreen({super.key});
@@ -22,22 +23,16 @@ class AppearanceScreen extends StatelessWidget {
       appBar: const GlassAppBar(title: Text('Appearance')),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
-          AppSpacing.md,
+          AppSpacing.gutter,
           0,
-          AppSpacing.md,
+          AppSpacing.gutter,
           AppSpacing.xxl + MediaQuery.viewPaddingOf(context).bottom,
         ),
         children: const [
-          // ── App theme ───────────────────────────────────────────────────
           SectionHeader('Theme'),
           _ThemeControl(),
-
-          // ── Reel counter: master switch + the two surfaces as cards ─────
           SectionHeader('Reel counter'),
           _CounterSection(),
-
-          // ── Block screen: the wall raised at the moment of a block ──────
-          SizedBox(height: AppSpacing.md),
           SectionHeader('Block screen'),
           _BlockScreenSection(),
         ],
@@ -48,18 +43,18 @@ class AppearanceScreen extends StatelessWidget {
 
 // ── Block screen section ────────────────────────────────────────────────────────
 
-/// The wall as one full-width card: a live landscape preview you tap to edit,
-/// its own on/off switch, and the truthful overlay-permission notice (the same
-/// tri-state read the bubble card uses — a wall can only appear with the grant).
-/// Switched off it still opens the editor, which carries the same switch; the
-/// preview itself shows "Off" and a line says what off means.
+/// The wall as one full-width tile: a live landscape preview you tap to edit,
+/// its own on/off switch, and a truthful status (the same tri-state overlay
+/// read the bubble uses: a wall can only appear with the grant). Switched off
+/// it still opens the editor, which carries the same switch; the preview
+/// itself shows "Off" and the status says what off means.
 class _BlockScreenSection extends StatelessWidget {
   const _BlockScreenSection();
 
   @override
   Widget build(BuildContext context) {
     final style = context.watch<BlockScreenStyleCubit>().state;
-    // Only the fields the card reads — not every counter tick / settings commit.
+    // Only the fields the tile reads — not every counter tick / settings commit.
     final (today, overlayGranted) = context
         .select<ContentCounterCubit, (int, bool?)>(
           (c) => (c.state.today, c.state.overlayGranted),
@@ -69,34 +64,41 @@ class _BlockScreenSection extends StatelessWidget {
           (c) => (c.state.activePlan, c.state.reelAllowance),
         );
     final cubit = context.read<BlockScreenStyleCubit>();
-    return _SurfaceCard(
-      title: 'Block screen',
-      previewHeight: 150,
-      preview: BlockScreenPreview(
-        style: style,
-        payload: BlockScreenPayload.preview(
-          plan: plan,
-          allowance: allowance,
-          todayCount: today,
+    return PanelGroup(
+      children: [
+        _SurfaceTile(
+          title: 'Block screen',
+          previewHeight: 150,
+          preview: BlockScreenPreview(
+            style: style,
+            payload: BlockScreenPayload.preview(
+              plan: plan,
+              allowance: allowance,
+              todayCount: today,
+            ),
+            height: 150,
+            compact: true,
+          ),
+          editable: true,
+          onEdit: () => unawaited(context.push(Routes.blockScreenStyle)),
+          trailing: AppToggle(
+            value: style.enabled,
+            semanticLabel: 'Block screen',
+            onChanged: (on) => cubit.setEnabled(enabled: on),
+          ),
+          // Off, app and website blocks fall back to a short toast (reel
+          // walls follow the block mode, not this switch).
+          status: !style.enabled
+              ? const _Status('Off · toast instead')
+              : overlayGranted == false
+              ? _Status.needsAccess(
+                  () => unawaited(
+                    context.read<ContentCounterCubit>().requestOverlay(),
+                  ),
+                )
+              : const _Status.on(),
         ),
-        height: 150,
-        compact: true,
-      ),
-      editable: true,
-      onEdit: () => unawaited(context.push(Routes.blockScreenStyle)),
-      trailing: AppToggle(
-        value: style.enabled,
-        semanticLabel: 'Block screen',
-        onChanged: (on) => cubit.setEnabled(enabled: on),
-      ),
-      hint: style.enabled
-          ? null
-          : 'Off — app & website blocks fall back to a short toast',
-      notice: style.enabled && overlayGranted == false
-          ? 'Needs “Display over other apps” — tap to allow'
-          : null,
-      onNotice: () =>
-          unawaited(context.read<ContentCounterCubit>().requestOverlay()),
+      ],
     );
   }
 }
@@ -121,22 +123,20 @@ class _CounterSection extends StatelessWidget {
     final counterOn = count.enabled;
     final bubbleOn = count.bubbleEnabled;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return PanelGroup(
       children: [
-        _FlatToggleRow(
-          icon: Icons.movie_filter_rounded,
-          label: 'Count short videos',
+        AppToggleTile(
+          leading: Icon(Icons.movie_filter_rounded, color: context.tokens.ink2),
+          title: 'Count short videos',
           value: counterOn,
           onChanged: (on) => unawaited(cubit.setEnabled(enabled: on)),
         ),
-        const SizedBox(height: AppSpacing.sm),
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: _SurfaceCard(
+                child: _SurfaceTile(
                   title: 'Bubble',
                   preview: BubblePreview(
                     style: appearance.bubble,
@@ -149,29 +149,34 @@ class _CounterSection extends StatelessWidget {
                   trailing: AppToggle(
                     value: bubbleOn,
                     enabled: counterOn,
+                    semanticLabel: 'Bubble',
                     onChanged: (on) =>
                         unawaited(cubit.setBubbleEnabled(enabled: on)),
                   ),
-                  hint: counterOn && bubbleOn
-                      ? null
-                      : (counterOn ? 'Bubble off' : 'Counting off'),
-                  // Truthful state: the switch is on but the overlay grant is
+                  // Truthful state: switched on but the overlay grant is
                   // missing, so no bubble can appear — say so, offer the fix.
-                  notice: count.bubbleBlocked
-                      ? 'Needs “Display over other apps” — tap to allow'
-                      : null,
-                  onNotice: () => unawaited(cubit.requestOverlay()),
+                  status: count.bubbleBlocked
+                      ? _Status.needsAccess(
+                          () => unawaited(cubit.requestOverlay()),
+                        )
+                      : counterOn && bubbleOn
+                      ? const _Status.on()
+                      : const _Status.off(),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const VerticalDivider(
+                width: 1,
+                indent: AppSpacing.md,
+                endIndent: AppSpacing.md,
+              ),
               Expanded(
-                child: _SurfaceCard(
+                child: _SurfaceTile(
                   title: 'Widget',
-                  // The demo, so the card reads as a real widget rather
+                  // The demo, so the tile reads as a real widget rather
                   // than the grey empty tile. Its clock is floored to the
                   // minute so a rebuild hands the preview an equal payload;
                   // its numbers are made up, so a screen reader hears only
-                  // the card.
+                  // the tile.
                   preview: WidgetPreview(
                     family: WidgetFamily.count,
                     size: WidgetSize.small,
@@ -190,7 +195,7 @@ class _CounterSection extends StatelessWidget {
                   ),
                   editable: counterOn,
                   onEdit: () => unawaited(context.push(Routes.homeWidget)),
-                  hint: counterOn ? null : 'Counting off',
+                  status: counterOn ? const _Status.on() : const _Status.off(),
                 ),
               ),
             ],
@@ -204,7 +209,9 @@ class _CounterSection extends StatelessWidget {
 // ── Theme control ──────────────────────────────────────────────────────────────
 
 /// The app theme: one System / Light / Dark segmented control. System follows
-/// the device; Dark is the default. The whole app re-themes instantly.
+/// the device; Dark is the default. The whole app re-themes instantly. The
+/// same words-only 44 control as the home widget's Theme: on a 360 dp phone
+/// a third of the taller track has no room for "System" (nor an icon).
 class _ThemeControl extends StatelessWidget {
   const _ThemeControl();
 
@@ -220,72 +227,35 @@ class _ThemeControl extends StatelessWidget {
       selector: (s) => s.themeMode,
       builder: (context, mode) => GlassSegmented(
         segments: const [
-          (label: 'System', icon: Icons.brightness_auto_rounded),
-          (label: 'Light', icon: Icons.light_mode_rounded),
-          (label: 'Dark', icon: Icons.dark_mode_rounded),
+          (label: 'System', icon: null),
+          (label: 'Light', icon: null),
+          (label: 'Dark', icon: null),
         ],
         selectedIndex: _modes.indexOf(mode),
         onChanged: (i) =>
             unawaited(context.read<SettingsCubit>().setThemeMode(_modes[i])),
+        height: AppSizes.controlHeight,
       ),
     );
   }
 }
 
-/// A flat (no card) toggle row: muted icon, semibold label, switch (the reel
-/// counter master).
-class _FlatToggleRow extends StatelessWidget {
-  const _FlatToggleRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
+// ── Surface tile (bubble / home widget / block screen) ──────────────────────────
 
-  final IconData icon;
-  final String label;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: context.tokens.ink2),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-        ),
-        AppToggle(value: value, semanticLabel: label, onChanged: onChanged),
-      ],
-    );
-  }
-}
-
-// ── Surface card (bubble / home widget) ─────────────────────────────────────────
-
-/// A card whose hero is a large live preview of the surface's current style.
-/// Tapping the preview opens the editor — but only when [editable]; otherwise the
-/// preview dims. [hint] is a muted line under it (what is off, what to switch
-/// on). [trailing] holds the surface's own on/off switch (the bubble, the block
-/// screen) or is null (the widget, gated by the counting master). [notice] is a
-/// warning line (with a tap action) for a surface that is switched on but cannot
-/// actually appear. Both lines slide in and out rather than pop the card.
-class _SurfaceCard extends StatelessWidget {
-  const _SurfaceCard({
+/// A flat tile (its section's panel is the surface) whose hero is a large
+/// live preview of the surface's current style. Tapping the preview opens the
+/// editor — but only when [editable]; otherwise the preview dims. [trailing]
+/// holds the surface's own on/off switch (the bubble, the block screen) or is
+/// null (the widget, gated by the counting master). [status] says whether the
+/// surface shows, and fixes a missing grant in place.
+class _SurfaceTile extends StatelessWidget {
+  const _SurfaceTile({
     required this.title,
     required this.preview,
     required this.editable,
     required this.onEdit,
+    required this.status,
     this.trailing,
-    this.hint,
-    this.notice,
-    this.onNotice,
     this.previewHeight = 96,
   });
 
@@ -293,23 +263,27 @@ class _SurfaceCard extends StatelessWidget {
   final Widget preview;
   final bool editable;
   final VoidCallback onEdit;
+  final _Status status;
   final Widget? trailing;
-  final String? hint;
-  final String? notice;
-  final VoidCallback? onNotice;
 
   /// The preview slot's height — 96 fits the counter surfaces side by side;
-  /// the full-width block-screen card gets more room.
+  /// the full-width block-screen tile gets more room.
   final double previewHeight;
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return GlassCard(
+    return Padding(
+      // No bottom inset: the 48 dp status line is the tile's foot.
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.xs,
+        AppSpacing.md,
+        0,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Fixed-height header so the previews line up across the two cards
+          // Fixed-height header so the previews line up across the two tiles
           // even though only the bubble carries a switch.
           SizedBox(
             height: AppSizes.controlHeight,
@@ -318,8 +292,8 @@ class _SurfaceCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: text.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                    style: AppTypography.label.copyWith(
+                      color: context.tokens.ink,
                     ),
                   ),
                 ),
@@ -336,7 +310,7 @@ class _SurfaceCard extends StatelessWidget {
             onTap: onEdit,
             semanticLabel: 'Edit $title style',
             child: AnimatedOpacity(
-              duration: AppDurations.fast,
+              duration: context.motion(AppDurations.fast),
               opacity: editable ? 1 : 0.4,
               child: SizedBox(
                 height: previewHeight,
@@ -344,29 +318,51 @@ class _SurfaceCard extends StatelessWidget {
               ),
             ),
           ),
-          AppReveal(
-            child: hint == null
-                ? null
-                : Padding(
-                    // Keyed, so "Counting off" ↔ "Bubble off" cross-fades.
-                    key: ValueKey(hint),
-                    padding: const EdgeInsets.only(top: AppSpacing.xs),
-                    child: Center(
-                      child: Text(
-                        hint!,
-                        style: text.bodySmall?.copyWith(
-                          color: context.tokens.ink2,
-                        ),
-                      ),
-                    ),
-                  ),
-          ),
-          AppReveal(
-            child: notice == null
-                ? null
-                : NoticeLine(notice!, onTap: onNotice ?? () {}),
-          ),
+          status,
         ],
+      ),
+    );
+  }
+}
+
+/// A surface's status (spec `.dx-status`, a [Pill]): On, Off (or what off
+/// means), or Needs access — a button that opens the "Display over other
+/// apps" grant. Always one 48 dp line, so a change cross-fades the word in
+/// place instead of moving the tile.
+class _Status extends StatelessWidget {
+  const _Status(this.label) : tone = AppTone.neutral, onFix = null;
+
+  const _Status.on() : label = 'On', tone = AppTone.success, onFix = null;
+
+  const _Status.off() : this('Off');
+
+  const _Status.needsAccess(VoidCallback this.onFix)
+    : label = 'Needs access',
+      tone = AppTone.warning;
+
+  final String label;
+  final AppTone tone;
+  final VoidCallback? onFix;
+
+  @override
+  Widget build(BuildContext context) {
+    final pill = Center(
+      child: Pill(label: label, tone: tone),
+    );
+    return SizedBox(
+      height: AppSizes.minTapTarget,
+      child: AnimatedSwitcher(
+        duration: context.motion(AppDurations.fast),
+        child: KeyedSubtree(
+          key: ValueKey(label),
+          child: onFix == null
+              ? pill
+              : AppPressable(
+                  onTap: onFix!,
+                  semanticLabel: 'Needs access. Allow display over other apps',
+                  child: ExcludeSemantics(child: pill),
+                ),
+        ),
       ),
     );
   }

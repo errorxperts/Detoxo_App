@@ -31,8 +31,9 @@ class _MockCounter extends Mock implements ContentCounterCubit {}
 
 class _MockBlockScreen extends Mock implements BlockScreenStyleCubit {}
 
-/// The Appearance hub's block-screen card: switched off it still opens the
-/// editor (where the same switch lives), and it says what "off" means.
+/// The Appearance hub's block-screen tile: switched off it still opens the
+/// editor (where the same switch lives), and its status says what "off"
+/// means.
 void main() {
   setUp(() async {
     await sl.reset();
@@ -44,13 +45,20 @@ void main() {
     await sl.reset();
   });
 
-  Future<void> pumpHub(WidgetTester tester, BlockScreenStyle style) async {
+  late _MockCounter counter;
+
+  Future<void> pumpHub(
+    WidgetTester tester,
+    BlockScreenStyle style, {
+    ContentCount count = const ContentCount(),
+  }) async {
     final settings = _MockSettings();
-    final counter = _MockCounter();
+    counter = _MockCounter();
     final blockScreen = _MockBlockScreen();
     when(() => settings.state).thenReturn(const AppSettings());
     when(() => settings.stream).thenAnswer((_) => const Stream.empty());
-    when(() => counter.state).thenReturn(const ContentCount());
+    when(() => counter.state).thenReturn(count);
+    when(() => counter.requestOverlay()).thenAnswer((_) async {});
     when(() => counter.stream).thenAnswer((_) => const Stream.empty());
     when(() => blockScreen.state).thenReturn(style);
     when(() => blockScreen.stream).thenAnswer((_) => const Stream.empty());
@@ -87,13 +95,15 @@ void main() {
   final editCard = find.byWidgetPredicate(
     (w) => w is AppPressable && w.semanticLabel == 'Edit Block screen style',
   );
-  const offHint = 'Off — app & website blocks fall back to a short toast';
+  const offHint = 'Off · toast instead';
+  Finder status(String label) =>
+      find.descendant(of: find.byType(Pill), matching: find.text(label));
 
-  testWidgets('switched off, the card says what off means and still opens '
-      'the editor', (tester) async {
+  testWidgets('switched off, the status says what off means and the tile '
+      'still opens the editor', (tester) async {
     await pumpHub(tester, const BlockScreenStyle(enabled: false));
 
-    expect(find.text(offHint), findsOneWidget);
+    expect(status(offHint), findsOneWidget);
     expect(tester.widget<AppPressable>(editCard).enabled, isTrue);
     await tester.tap(editCard);
     await tester.pump();
@@ -101,10 +111,30 @@ void main() {
     expect(find.text('the editor'), findsOneWidget);
   });
 
-  testWidgets('switched on, the card carries no off line', (tester) async {
+  testWidgets('switched on, the status reads On, with no off line', (
+    tester,
+  ) async {
     await pumpHub(tester, const BlockScreenStyle.defaults());
 
     expect(find.text(offHint), findsNothing);
+    // On for the block screen, the bubble and the widget; no amber notice.
+    expect(status('On'), findsNWidgets(3));
+    expect(find.byType(NoticeLine), findsNothing);
     expect(tester.widget<AppPressable>(editCard).enabled, isTrue);
+  });
+
+  testWidgets('without the overlay grant the status is Needs access, and a '
+      'tap opens the grant', (tester) async {
+    await pumpHub(
+      tester,
+      const BlockScreenStyle.defaults(),
+      count: const ContentCount(overlayGranted: false),
+    );
+
+    // The bubble's and the block screen's; a dot and a word, no amber line.
+    expect(status('Needs access'), findsNWidgets(2));
+    expect(find.byType(NoticeLine), findsNothing);
+    await tester.tap(status('Needs access').last);
+    verify(() => counter.requestOverlay()).called(1);
   });
 }
