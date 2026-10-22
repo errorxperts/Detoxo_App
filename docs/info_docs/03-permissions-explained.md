@@ -17,11 +17,12 @@ During the "Set up protection" screen you'll see permissions split into two grou
 | Permission (label you'll see) | Group | What it unlocks |
 |---|---|---|
 | **Accessibility** | Required to block | Detecting and blocking Reels & Shorts |
-| **Display over apps** | Required to block | Showing the block / PIN screen on top of other apps |
+| **Display over other apps** | Required to block | Showing the block / PIN screen on top of other apps |
 | **Notifications** | Recommended | A heads-up if protection ever stops |
-| **Usage access** | Recommended | App usage limits + the Insights screen |
+| **Usage access** | Recommended | App usage limits + the Insights tab |
 | **Unrestricted battery** | Recommended | Keeping the blocker alive in the background |
 | **Uninstall protection** (Device admin) | Recommended | Making Detoxo harder to remove in a moment of weakness |
+| **Notification access** | Recommended | Silencing notifications from apps you've locked |
 
 Until both required permissions are granted, the **Continue** button stays disabled. Once they're on, you're protected — the recommended ones just make things smoother and can be turned on anytime from **Settings**.
 
@@ -43,15 +44,15 @@ This is the heart of Detoxo, which is why it's the one permission you can't skip
 
 ---
 
-## Display over apps — required
+## Display over other apps — required
 
-**What you'll see:** "Display over apps" — *Shows the block / PIN screen over other apps.*
+**What you'll see:** "Display over other apps" — *Shows the block / PIN screen over other apps.*
 
-**Why it's needed.** When Detoxo blocks a feed or needs to ask for your PIN, it has to draw *on top* of whatever app you're in. This is the standard Android "overlay" permission (you may see it called "Display over other apps") that lets one app appear above another.
+**Why it's needed.** When Detoxo blocks a feed or needs to ask for your PIN, it has to draw *on top* of whatever app you're in. This is the standard Android "overlay" permission that lets one app appear above another.
 
-**What it also powers.** The optional floating **Reel Counter bubble** — the little draggable badge that shows how many Reels you've seen today — is drawn using this same permission. If you never grant it, the bubble simply doesn't appear; nothing crashes.
+**What it also powers.** The optional floating **Reel Counter bubble** — the little draggable badge that shows how many Reels you've seen today — and the **Soft nudge** card are drawn using this same permission. If you never grant it, they simply don't appear; nothing crashes.
 
-**What it does not do.** It doesn't let Detoxo see or touch other apps' content. It only lets Detoxo *draw its own* screens (the block message, PIN prompt, counter bubble) over the top.
+**What it does not do.** It doesn't let Detoxo see or touch other apps' content. It only lets Detoxo *draw its own* screens (the block screen, PIN prompt, counter bubble, nudge card) over the top.
 
 ---
 
@@ -64,7 +65,7 @@ You flip **Accessibility** or **Display over other apps**, and Android refuses �
 **The fix takes about ten seconds, once:**
 
 1. Open Android's **Settings → Apps → Detoxo**.
-2. Tap the **⋮** menu at the top right.
+2. Tap the **⋮** (three-dot) menu at the top right.
 3. Choose **Allow restricted settings**.
 4. Come back to Detoxo and tap **Grant** again.
 
@@ -72,7 +73,7 @@ A few notes that save time:
 
 - The ⋮ entry usually appears only *after* you've tried the blocked switch once — so try the switch first, dismiss the message, then go to App info.
 - On some phones it sits at the **bottom of the App info page** rather than in the ⋮ menu.
-- The confirmation is **per app, not per permission** — doing it once unblocks Accessibility, Display over apps and uninstall protection together.
+- The confirmation is **per app, not per permission** — doing it once unblocks Accessibility, Display over other apps and uninstall protection together.
 
 Detoxo watches for this. If it notices a grant isn't taking, the button on the permission changes to **Fix this** and walks you through the same steps with a shortcut straight to the right screen.
 
@@ -84,7 +85,7 @@ Detoxo watches for this. If it notices a grant isn't taking, the button on the p
 
 **What you'll see:** "Usage access" — *Powers app usage limits.*
 
-**Why it's useful.** This is Android's app-usage information. Detoxo uses it for two things: **daily usage limits** — so it can tell how long you've spent in a given app and act when you hit your cap — and the **Insights** screen (Activity → Insights), which shows your real screen time, pickups and top apps, taken from the same records Android's own Digital Wellbeing uses.
+**Why it's useful.** This is Android's app-usage information. Detoxo uses it for two things: **daily usage limits** — so it can tell how long you've spent in a given app and act when you hit your cap — and the **Insights** tab, which shows your real screen time, pickups and top apps, taken from the same records Android's own Digital Wellbeing uses.
 
 **What it does not do.** It reads usage stats on-device only. It isn't used to profile you, and **none of it is sent anywhere** — your per-app usage never leaves the phone. Skip it and blocking still works fully; you just won't have usage-limit features, and Insights will show a "Grant" card instead of numbers (never a misleading zero).
 
@@ -92,7 +93,7 @@ Detoxo watches for this. If it notices a grant isn't taking, the button on the p
 
 ## Unrestricted battery — recommended
 
-**What you'll see:** "Unrestricted battery" — *Keeps the blocker alive. Pick Detoxo, then "Don't optimize".*
+**What you'll see:** "Unrestricted battery" — *Keeps the blocker alive in the background.*
 
 **Why it's useful.** To save power, Android aggressively puts background apps to sleep. That's usually great — but a blocker that's asleep isn't blocking. Granting a **battery-optimization exemption** tells the system to leave Detoxo running so it's there the instant you open a feed.
 
@@ -111,7 +112,7 @@ Detoxo watches for this. If it notices a grant isn't taking, the button on the p
 1. **Makes Detoxo harder to uninstall** in a weak moment — you can't just delete it on impulse mid-scroll.
 2. **Enables the optional "lock screen" block action**, where instead of pressing Back, Detoxo can lock your phone when you hit a blocked feed.
 
-**Fully your choice, and reversible.** It's off by default and you never have to enable it. If you do, you can turn it back off anytime from Settings (or Android's Security settings), and then Detoxo uninstalls normally. Detoxo only asks Android for the minimum device-admin abilities it needs (lock the screen, notice a sign-in) — nothing more.
+**Fully your choice, and reversible.** It's off by default and you never have to enable it. If you do, you can turn it back off anytime in Android's **Settings → Security → Device admin apps**, and then Detoxo uninstalls normally. Detoxo only asks Android for the minimum device-admin abilities it needs (lock the screen, notice a sign-in) — nothing more.
 
 ---
 

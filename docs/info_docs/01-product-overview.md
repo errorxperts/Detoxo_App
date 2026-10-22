@@ -70,8 +70,8 @@ change:
   10-minute cap). Dip into reels and the bank counts down; when it hits zero, Detoxo
   eases you back out until you've earned more. It turns "just say no" into a gentle
   give-and-take that rewards patience.
-- **One Reel** — feeling the itch? This lets you watch a single clip, then closes the
-  feed so one doesn't become fifty. Tap it again for one more.
+- **One Reel** — feeling the itch? Tap it, wait a few seconds and slide to confirm, and
+  you can watch a single clip before the feed closes, so one doesn't become fifty.
 - **Pause** — need the feed for a bit (finding a specific video, showing a
   friend)? Tap **Pause** for 1–10 minutes, or **Unblock** on the Today ring for 1–20
   reels, tap **Start**, and blocking steps aside. When the time or the reels run out,
@@ -103,8 +103,8 @@ every 100 reels) and choose a light, dark or system theme for the
 widgets, so your counter matches your home screen and quietly reflects your habits.
 
 ### Honest numbers — your real screen time
-Counting reels tells you about one habit; **Insights** (Activity → Insights) tells you
-about your day. It reads Android's own screen-time records — the same ones behind
+Counting reels tells you about one habit; the **Insights** tab tells you about your
+day. It reads Android's own screen-time records — the same ones behind
 Digital Wellbeing — and shows your total screen time, how much of it went to
 distracting apps, how many times you picked up your phone, how often you switched
 apps, and where the time actually went.
@@ -114,11 +114,12 @@ permission, Detoxo shows you **nothing** rather than a screen of zeros that woul
 just like a quiet day. Everything stays on your device, and none of it is behind a
 paywall.
 
-### App & website blocking, and daily limits
-Beyond reels, Detoxo lets you build a **blocklist** of distracting apps and websites.
-The website blocker watches your browser's address bar and closes blocked sites
-(including an optional built-in adult-content list). You can also set **daily limits**
-to cap how long you spend before Detoxo steps in.
+### App Blocker, Web Blocker and daily limits
+Beyond reels, Detoxo lets you lock distracting apps in the **App Blocker** and build a
+blocklist of websites in the **Web Blocker**, which watches your browser's address bar
+and closes blocked sites (including an optional built-in adult-content list). You can
+also set a **daily limit**, and **Blocker rules** that block on a schedule or cap an
+app's time, before Detoxo steps in.
 
 ### PIN lock & staying-honest protection
 Set a **PIN** to guard Detoxo's settings so a moment of weakness can't undo your
@@ -137,8 +138,10 @@ away, and comes back after a restart.
 
 1. Open Detoxo and follow the short walkthrough.
 2. Grant two key permissions — **Accessibility** (so Detoxo can see when a reel is on
-   screen) and **Display over apps** (so the bubble and nudges can appear).
-3. Choose which apps to protect on the **Blocklist**, pick a plan, and you're done.
+   screen) and **Display over other apps** (so the block screen, the bubble and nudges
+   can appear).
+3. Pick the feeds to guard during setup (change them any time from **App Blocker** on
+   the Today tab), choose a mode, and you're done.
 
 > **Android only.** Detoxo relies on Android's Accessibility features, which iPhones
 > don't offer, so it isn't available on iOS.
@@ -167,21 +170,21 @@ friends, search, and post like normal. Detoxo only steps in when the endless vid
 takes over.
 
 **Choose how you want to change:**
-- 🛑 **Block All** — a clean break; every reel closes on sight.
-- 🧘 **Conscious** — earn watch-time by staying off reels. Stay away and you bank a few
+- **Block All** — a clean break; every reel closes on sight.
+- **Conscious** — earn watch-time by staying off reels. Stay away and you bank a few
   minutes of guilt-free scrolling; dip in and it counts down. It rewards patience
   instead of relying on willpower.
-- 1️⃣ **One Reel** — allow a single clip, then close the feed so one doesn't become fifty.
-- ⏸️ **Pause** — need the feed for a bit? Unblock for a few minutes or a batch of reels
-  you choose (2–20); blocking turns itself back on automatically.
+- **One Reel** — allow a single clip, then close the feed so one doesn't become fifty.
+- **Pause** — need the feed for a bit? Pause for 1–10 minutes, or unblock a batch of 1–20
+  reels from the Today ring; blocking turns itself back on automatically.
 
 **See your habit clearly.** Detoxo counts every reel you watch — today and all-time —
 right on your device. A draggable **floating bubble** shows the count climbing as you
 scroll, and **home-screen widgets** greet you with the number every time you unlock
 your phone. (Quick flicks don't count — only videos you actually watch.)
 
-**Block more than reels.** Add distracting apps and websites to your blocklist, filter
-adult content, and set daily limits.
+**Block more than reels.** Lock distracting apps, block websites, filter adult content,
+and set daily limits and schedules.
 
 **Make it stick.** Lock Detoxo behind a **PIN** (with fingerprint/face unlock) and turn
 on uninstall protection so a weak moment can't undo your progress.

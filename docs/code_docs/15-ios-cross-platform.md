@@ -167,21 +167,19 @@ default in each wrapper.
 ## 4. The unsupported screen
 
 `lib/app/unsupported_screen.dart` is the user-facing artifact of all of this. It is a
-`StatelessWidget` that renders a single `EmptyState` (from `core/widgets/common_widgets.dart`):
+`StatelessWidget` that renders a single design-system `EmptyState`
+(`components/feedback.dart`) on the `GlassScaffold` ground, like every other screen:
 
 ```dart
 class UnsupportedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return const GlassScaffold(
       body: SafeArea(
         child: EmptyState(
           icon: Icons.phonelink_erase,
-          title: 'Detoxo runs on Android',
-          subtitle:
-              'The reel/short blocker relies on Android’s Accessibility Service, '
-              'which has no equivalent on this platform. An iOS Screen Time / '
-              'Family Controls version is a separate effort.',
+          title: 'Detoxo works on Android only',
+          subtitle: 'This version can’t run on this device.',
         ),
       ),
     );
@@ -191,11 +189,11 @@ class UnsupportedScreen extends StatelessWidget {
 
 Design notes:
 
-- **Honest, not broken.** It does not disable buttons or throw; it explains *why* the
-  platform can't run the core feature and names the would-be iOS path.
-- **Copy is intentionally specific.** It names "Accessibility Service" (the missing
-  primitive) and "Screen Time / Family Controls" (the Apple path), matching the code
-  comments and this doc.
+- **Honest, not broken.** It does not disable buttons or throw; it says plainly that this
+  device can't run Detoxo.
+- **Calm, short copy** (Frozen Glass M7): no API names on screen. The technical reason
+  (no Accessibility Service equivalent; the Screen Time / Family Controls path) lives in the
+  class's doc comment and this doc.
 - **Icon:** `Icons.phonelink_erase`.
 
 This is the "honest preview state" that `PlatformCapabilities.isBlockingPreviewOnly` is
@@ -211,11 +209,8 @@ walks a user through setting up blocking. See
 `test/routes_registered_test.dart` now asserts every constant in `routes.dart` resolves, so
 this class of dead route cannot come back.
 
-> **Cross-reference correction:** The doc-comment in `unsupported_screen.dart` and in
-> `platform_capabilities.dart` still points at `docs/15-ios-cross-platform.md`. This file is
-> the current, canonical location (`docs/code_docs/15-ios-cross-platform.md`). Treat the
-> in-code path as a stale relative reference — an infra/doc-sync follow-up, not a second
-> document.
+> The doc comment in `unsupported_screen.dart` points at this file's canonical location,
+> `docs/code_docs/15-ios-cross-platform.md`.
 
 ---
 
@@ -227,7 +222,7 @@ across the UI to hide or preview Android-only affordances instead of scattering
 
 - **Engine plumbing** — `EngineChannel` (§3) neutralizes both channels.
 - **Permission funnel** — anything driven by `usesAndroidPermissionFunnel` (accessibility,
-  overlay/"Display over apps", usage access, battery-optimization exemption, device admin)
+  overlay/"Display over other apps", usage access, battery-optimization exemption, device admin)
   is Android-gated; on iOS none of these permissions exist and the funnel is skipped.
 - **Preview state** — `isBlockingPreviewOnly` is the flag UI layers read to render the
   "preview" affordances / route to `UnsupportedScreen` rather than showing controls that
@@ -302,5 +297,5 @@ product.
 - `lib/core/platform/platform_capabilities.dart`
 - `lib/core/platform_channels/engine_channel.dart`
 - `lib/core/constants/channel_constants.dart` (channel names / command methods referenced)
-- `lib/core/widgets/common_widgets.dart` (`EmptyState` used by the unsupported screen)
+- `lib/core/design_system/components/feedback.dart` (`EmptyState` used by the unsupported screen)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/accessibility/DetoxoAccessibilityService.kt` (the Android-only primitive that has no iOS equivalent)

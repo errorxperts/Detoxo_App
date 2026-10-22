@@ -14,17 +14,18 @@ IDE configurations invoke the same script.
 
 ```bash
 bash tool/qa.sh [-d <serial>] [--reset] [--baseline] \
-  {functional|e2e|perf|blocking|all|prep|restore|devices}
+  {functional|e2e|perf|blocking|blockers|all|prep|restore|devices}
 ```
 
 | Command | Device? | Time | What it does |
 |---|---|---|---|
-| `functional` | no | ~3m | format → token checks → analyze → ~1,180 unit/widget tests → native JVM tests → boundary check |
+| `functional` | no | ~3m | format → token checks → analyze → ~1,380 unit/widget tests → native JVM tests → boundary check |
 | `devices` | no | instant | list attached, authorised phones |
 | `prep` | yes | ~10s–5m | grant accessibility + overlay, keep the screen awake |
 | `e2e` | yes | ~4m | boot the real app, walk every gate, screenshot each step |
 | `perf` | yes | ~12m | cold start + frame timeline + memory + APK size vs baseline |
 | `blocking` | yes | ~90s | engine bound-check + 60s logcat watch while you scroll a reel |
+| `blockers` | yes | — | App Blocker + Web Blocker walk (`blockers_e2e_test.dart`) with real block probes; needs YouTube + Chrome |
 | `all` | yes | ~17m | `functional` → `e2e` → `perf`, in that order |
 | `restore` | yes | ~5s | put the device back exactly as you found it |
 
@@ -34,12 +35,13 @@ there is more than one. Artifacts land in `build/qa/` (gitignored).
 The Android-free engine logic has plain JVM tests too (`engine/ReelTracker`, the reel
 counter's identity + dwell state machine; `engine/UsageQuery`, the usage-stats filters, local
 midnight and the opens-today transition count; `overlay/BlockScreenGeometry`, the block screen's
-flags, strip math, button-text contrast pick, plan labels, payload sanitiser, style parsing (old
-keys ignored), the `wallIsDark` table and the wall palette / `legibleOn` / `legibleFill` contrast,
-its palettes read from the generated `DxTokens`;
-`overlay/QuoteWall` and `overlay/QuoteBook`, the Quotes wall's motion maths and quote picking;
-`overlay/AccentResolver`, the live-accent mirror, on every row of `test/fixtures/accent_cases.json`,
-which the Dart `accent_test` reads too). `dev.sh precommit` (and so
+flags, strip math, plan labels, payload sanitiser, style parsing (old keys ignored), the
+`wallIsDark` table and the wall's and the nudge card's contrast in both themes for every accent,
+read from the generated `DxTokens`; `overlay/FrozenGlass`, the native kit's pure helpers (CSS
+gradient line, blur σ, hue-rotate / saturate, `clockLabel`, the hero icon per reason, `wallFit`,
+the slide's 88 % threshold, the ambient falloff, the waiting knob); `overlay/WallPolicy`, which
+block raises a wall and which skips the Appearance switch; `overlay/QuoteBook`, quote picking; `overlay/AccentResolver`, the live-accent mirror, on every
+row of `test/fixtures/accent_cases.json`, which the Dart `accent_test` reads too). `dev.sh precommit` (and so
 `qa.sh functional`) runs them through `native_tests()` when it can find a JDK 17+
 (`$JAVA_HOME`, macOS `java_home -v 17+`, or the Homebrew `openjdk@17` keg) and
 **warns and skips** otherwise — a host without a JDK never fails the gate, it just
@@ -191,9 +193,10 @@ Put shared helpers in `integration_test/qa_walk.dart` and import it with the doc
 cannot reach it. Then:
 
 - Boot with **`bootApp()`**, never a bare `app.main()`.
-- Settle with `settle()` / `waitFor()`, not `pumpAndSettle`: the boot walk still meets looping
-  animations (the splash spinner, onboarding's `CaughtHero`). `GlassScaffold` itself is a static
-  gradient, so a widget test of one screen may `pumpAndSettle`.
+- Settle with `settle()` / `waitFor()`, not `pumpAndSettle`: the boot walk still meets the
+  splash's indeterminate `LoadingState` spinner, which turns while animations are on. Nothing else
+  in the app loops, so a widget test of one screen may `pumpAndSettle` — except while an
+  indeterminate spinner is mounted without `disableAnimations`.
 - **One** `app.main()` per file; `configureDependencies()` cannot be re-registered.
 - `find.text` matches the *rendered* string: `SectionHeader` uppercases, the `AppTabBar`
   renders both tab names (so `'Insights'` matches the tab label as well as the tab's header —
@@ -204,7 +207,7 @@ cannot reach it. Then:
 
 - `tool/qa.sh` · `tool/qa_metrics.py` · `tool/dev.sh` · `tool/check_boundaries.sh`
 - `tool/design/gen_design_tokens.dart` · `tool/home_widget/gen_tokens.dart` · `test/core/design_system/design_tokens_test.dart`
-- `integration_test/qa_walk.dart` · `app_e2e_test.dart` · `app_perf_test.dart`
+- `integration_test/qa_walk.dart` · `app_e2e_test.dart` · `onboarding_e2e_test.dart` · `blockers_e2e_test.dart` · `app_perf_test.dart` · `pin_dialog_test.dart` · `pin_setup_flow_test.dart`
 - `test_driver/perf_driver.dart`
 - `.idea/runConfigurations/*.xml` · `.vscode/launch.json` · `.vscode/tasks.json`
 - `.claude/skills/detoxo-auto-test/SKILL.md`

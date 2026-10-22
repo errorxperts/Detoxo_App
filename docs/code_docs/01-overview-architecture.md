@@ -30,10 +30,10 @@ by the `../info_docs/` set.
 | Pause | Clock-based window (`pauseUntil`) that suspends blocking | ✅ |
 | Content counter | Side-effect-free counting pass (decoupled from blocking) → overlay bubble + home-screen widget | ✅ Native, on by default |
 | Blocklist | Data-driven from bundled `platforms_config.json`; install-aware | ✅ |
-| App blocker / Web blocker / Daily limit | Custom whole-app blocks (HOME bounce) and web host matching run natively; daily limit is UI + persistence | ✅ App + web enforced natively; native usage/daily-limit enforcement is the remaining follow-up |
+| App Blocker / Web Blocker / Daily limit / Blocker rules | Custom whole-app blocks (HOME bounce), web host matching, the daily reel limit and the schedule / time / open-limit rules ([27](27-rules-engine.md)) | ✅ All enforced natively |
 | Access protection (PIN) | PIN setup/lock/recovery, biometric, retry lockout | ✅ (`local_auth` + secure storage) |
-| Permissions funnel | Accessibility, overlay, usage access, battery exemption, device admin | ✅ (Android-only) |
-| Premium / entitlement | Modeled; unlocked via a **local dev-unlock** (Settings → Developer) | ⚠️ No live Play Billing (swap-in) |
+| Permissions funnel | Accessibility, overlay, notifications, usage access, battery exemption, device admin, notification access | ✅ (Android-only) |
+| Premium / entitlement | Modeled; a local dev-unlock key is declared but has no UI ([11](11-monetization.md)) | ⚠️ No live Play Billing (swap-in) |
 | Ads | Wired with Google **test** ad-unit ids; no live init in Dart | ⚠️ Test only |
 | Analytics (block-event history) | Local block-event history (rolling 500-event buffer) | ⚠️ Local buffer only (no cloud sink) |
 | Firebase telemetry | Analytics + Crashlytics + Performance, anonymised | ✅ Wired ([19](19-firebase-telemetry.md)); collection on in all builds |
@@ -71,9 +71,10 @@ swappable and testable in isolation.
 Public barrels currently exported:
 
 ```
-access_protection · analytics · blocking · dashboard · limits
-onboarding · permissions · settings
-additional_feature/app_feedback · additional_feature/showcase_view
+access_protection · analytics · blocking · catalog · content_counter · dashboard · help
+limits · onboarding · permissions · protected_apps · settings · usage
+additional_feature/app_feedback · additional_feature/app_upgrader · additional_feature/showcase_view
+help/{faq, feature_tutorial, legal, report_issue, share_ideas}
 ```
 
 The **blocking** context is the core bounded context and is itself sub-structured:
@@ -135,25 +136,37 @@ State flows: repository (data) → Cubit (presentation) → widget.
 ### 1. Boot — `lib/main.dart`
 
 `main()`:
-1. `WidgetsFlutterBinding.ensureInitialized()` and sets a transparent system UI.
-2. `await configureDependencies()` — builds the service locator.
+1. `WidgetsFlutterBinding.ensureInitialized()`, registers Manrope's licence, initialises
+   Firebase (best-effort, `guardedSync`) and installs the Crashlytics error handlers, then
+   sets transparent system bars.
+2. `await configureDependencies()` — builds the service locator; then the telemetry
+   `Bloc.observer` and `FirebaseServices.start` ([19](19-firebase-telemetry.md)).
 3. Registers the global feedback action button, then `runApp(DetoxoApp())`.
 
 `DetoxoApp` installs the app-wide Cubits with a `MultiBlocProvider`, each
-resolving its repository from the locator `sl`:
+resolving its repositories from the locator `sl`:
 
 | Cubit | Resolves |
 |---|---|
-| `ServiceCubit` | `EngineRepository` |
-| `ConsciousCubit` | `EngineRepository` |
+| `ServiceCubit`, `ConsciousCubit`, `ReelSessionCubit` | `EngineRepository` |
 | `SettingsCubit` | `SettingsRepository`, `EngineRepository` |
-| `TargetsCubit` | `ConfigRepository`, `EngineRepository` |
+| `TargetsCubit` | `ConfigRepository`, `EngineRepository` (+ `PerformanceService`) |
 | `PermissionsCubit` | `PermissionRepository` |
 | `PinCubit` | `PinRepository` |
+| `ContentCounterCubit` | `ContentCounterRepository`, `BubbleRepository` |
+| `CounterAppearanceCubit` | `CounterAppearanceRepository` |
+| `BlockScreenStyleCubit` | `BlockScreenRepository` |
+| `DailyLimitCubit` | `DailyLimitRepository` |
+| `StreakCubit` | `StreakRepository` |
+| `InsightsCubit` | `InsightsRepository`, `EngineRepository` |
+| `RulesCubit` | `RuleRepository`, `DailyLimitRepository`, `UsageRepository`, `EngineRepository`, `BypassLedgerRepository` |
+| `UnblockCubit` | `TemporaryUnblockRepository`, `BypassLedgerRepository`, `EngineRepository` |
 
 `SettingsCubit` doubles as the app's appearance source: a `BlocSelector` on
-`AppThemeMode` drives the theme, and a `BlocListener` mirrors the vibration
-preference into `AppHaptics`. The tree then renders `AppResumeSync` →
+`AppThemeMode` alone drives the theme (no other setting rebuilds the router), and a
+`BlocListener` mirrors the vibration preference into `AppHaptics`. Two more listeners feed
+`AppGate` (`onboarded`, `allRequiredGranted`), and a saved daily limit re-pushes the rules
+snapshot (`RulesCubit.resync`). The tree then renders `AppResumeSync` →
 `PinAutoRelock` → `MaterialApp.router` wired to the go_router config, with
 `AppTheme.light()` / `.dark()` and a `builder:` that wraps every route in
 `LiveAccent` (the live accent) and the per-theme system-bar `AnnotatedRegion`
@@ -554,8 +567,8 @@ an indeterminate `LoadingState` spinner, held still under Reduce Motion.
   unblock passes no `pauseLeft` and stays `pause`.
 
 The expressions are written literally, so the Kotlin `overlay/AccentResolver.kt` (double maths,
-one final rounding; not wired into the wall yet) and the fixture's Python model compute the same
-ARGB: `test/fixtures/accent_cases.json` is read by both `accent_test.dart` and
+one final rounding; the block screen reads it through `AccentResolver.forWall`,
+[25](25-block-screen.md) §6) and the fixture's Python model compute the same ARGB: `test/fixtures/accent_cases.json` is read by both `accent_test.dart` and
 `AccentResolverTest.kt`.
 
 `AccentScope(light:, dark:, glideKey:)` publishes both themes' palettes, so a theme switch snaps
@@ -584,7 +597,7 @@ the mode icons, the Unblock pill tint, the tab lens. On Today the `TimeLeftRing`
 | Overlays (`overlays.dart`, `dialog.dart`) | `GlassBottomSheet.show({child, title, dismissible, glow})` — the spec **SHEET**: a `sheet` surface inset 10 px from the edges, padded 0 / 22 / 22, a 40×5 grabber in a 30 px band, an optional `titleSheet` title, over the **scrim** (the backdrop blurred 8 at saturate 1.2 under a radial `scrim` dim, `120% 70% at 50% 100%`, stops `kScrim0/60/100`). It slides 600 ms, the scrim fades 450 ms; neither moves under Reduce Motion. Dragging the grabber or title down past **110 px** closes it, a shorter drag springs back on the press curve; `dismissible: false` locks the barrier, the drag and back. `glow` paints a 340×260 light behind the top edge. `AppDialog.show` / `.confirm` render **in the sheet**: an optional neutral `IconBadge`, a centred `titleSheet`, a `message` and/or `content`, the actions stacked full-width with the confirm on top. `GlassToast.show(context, message, tone:, action:)` — a glass pill with the tone's glyph (success: the spec check `Glyph`) and the message in `ink` (never a tone colour), an optional inline `action` such as **Undo**; it stays **4 s**, **6 s** with an action, **10 s** while a screen reader or switch access navigates, and drops its slide under Reduce Motion. While a sheet or dialog covers the page (the caller's route is a popup or not current) it floats on the root overlay under the status bar instead of as a SnackBar, which would sit beneath the sheet |
 | Selection & input (`selection.dart`, `toggle.dart`, `inputs.dart`, `variant_carousel.dart`) | All **OPTION and accent-free**. `GlassSegmented` — a `fillQuiet` track with a solid `optionBase` chip that slides on the chip curve plus `Squish`; the picked label goes `ink2` → `ink` behind a 16 px check; tap, scrub along the track, or focus each segment as one radio. `AppChip` — `fillQuiet`, selected `optionBase` + a check, 48 dp floor; `ChipRail` lays them in two scrolling rows. `AppToggle` — 48×28: on `statusOn` with the `knob`, off `fillQuiet` with a hairline rim and an `ink3` thumb. `AppSearchField` — a `fillQuiet` pill with a focus ring. `VariantCarousel` — OPTION cards, the pick solid `optionBase` with an ink check badge |
 | Spec art (`dx_icons.dart`) | `Icon3d(asset, size:, accentTint:, selected:)` — a spec 3D icon; `accentTint` turns it to the live accent through `accentIconFilter`, idle at `iconSaturateOff` / `iconOpacityOff`. `Glyph(svg, size:, color:)` — a spec SVG glyph drawn `srcIn`, `ink` by default. `DetoxoLogo(height:)` — the logo at 100:192, never recoloured, over its `logoGlow` drop-shadows (Dark σ 8; Light a σ 1 contour plus a σ 10 glow). All are decorative unless given a `semanticLabel`. The art: the 3D icons and logo in `assets/images/icons/`, the glyphs in `assets/svg/` ([14](14-flutter-package-map.md) §9) |
-| Lists & status (`list_tiles.dart`, `section_header.dart`, `badges.dart`) | `GlassListTile` — a flat row (56 min, `label` over a two-line `subhead`), the 18 px `ink3` chevron `Glyph` when tappable with no trailing (drawer rows and the rules card use it too), a check when `selected: true`; it is its own panel only when standalone. `PanelGroup` — the section idiom: rows in **one** panel split by inset hairlines. `AppToggleTile`. `SectionHeader(label, note:)` — the uppercase `eyebrow` (caption, 1.6 tracking, `ink2`), `section` 32 above and 12 below, a header to TalkBack. `Pill` — a **status label**: an 8 px dot in `toneColor` (or `dotColor:`) or an icon in `toneText`, then the word in `subhead` `ink2`; no fill or border. `toneColor` / `toneText` map an `AppTone` to its dot and its 4.5:1 text colour. `AppBadge` — the "+N" quiet pill |
+| Lists & status (`list_tiles.dart`, `section_header.dart`, `badges.dart`) | `GlassListTile` — a flat row (56 min, `label` over a two-line `subhead`), the 18 px `ink3` chevron `Glyph` when tappable with no trailing (drawer rows and the Blocker rules row use it too), a check when `selected: true`; it is its own panel only when standalone. `PanelGroup` — the section idiom: rows in **one** panel split by inset hairlines. `AppToggleTile`. `SectionHeader(label, note:)` — the uppercase `eyebrow` (caption, 1.6 tracking, `ink2`), `section` 32 above and 12 below, a header to TalkBack. `Pill` — a **status label**: an 8 px dot in `toneColor` (or `dotColor:`) or an icon in `toneText`, then the word in `subhead` `ink2`; no fill or border. `toneColor` / `toneText` map an `AppTone` to its dot and its 4.5:1 text colour. `AppBadge` — the "+N" quiet pill |
 | Cards & feedback (`cards.dart`, `feedback.dart`, `permission_card.dart`) | `GlassCard` — a panel, optionally tappable; `StatCard` / `StatCardPair` (neutral figures, no trend arrows), a neutral `IconBadge`. `ProgressRing(progress:, size:, palette:, child:)` — the spec ring in its materials, every measure the 300 px ring scaled to `size` (stroke 24·size/300): the groove, the track, a three-stop arc of `palette` (default `brand`) with a blurred copy at `kArcGlow`, the knob with its `kHalo` halo and `knobShadow`, and the centre disc with its `discWash`; a null `progress` draws no arc and no knob. `ProgressBar`, `LoadingState`, `EmptyState` (no loop), `AppReveal`, `NoticeLine`. `PermissionCard` — a neutral badge, the title, the why and the status in words (On / Needs access / Checking…), its own panel only when not on a surface |
 | Confirm (`confirm_sheet.dart`) | `ConfirmSheet.show(context, icon:, title:, message:, content:, action:, cancel:, tone:, waitSeconds: 5) → Future<bool>` — the one confirm for actions that weaken protection, in the sheet: an 88 well with a 6 px tone halo and a 4 px wait ring, a `titleSheet` title (≤ 2 lines), a message (≤ 3 lines), optional content, then a 64 px track and a 56 knob. It waits `waitSeconds` (1–30; `AnimationBehavior.preserve`, so Reduce Motion never shortens it) showing "Take a breath…"; the ready knob shows tone chevrons and nudges once. A release at ≥ 88 % ("Release to confirm") shows a check and "Confirmed", then closes true after 1 s; an earlier release springs back; a tap hints "Slide all the way →". During the wait the knob reads "X, available in N seconds" and is disabled; afterwards TalkBack, Enter or Space confirm. Cancel, barrier, back and drag return false. Callers commit, then toast. `ConfirmSheet.iconSize` (58) sizes the callers' icon; `ConfirmSheet.waitKnob(t)` is the waiting-knob recipe (Light `knob` @ 55 %, Dark `lerp(trackTo, knob, .18)`) |
 | Session (`session_sheet.dart`) | `SessionSheet.show(context, kind:, min:, max:, initial:, picks:, note:, startLabel:, onStart:)` — the **Session blocker** (Pause and N-reel unblocks) on `GlassBottomSheet` with the static brand glow, 434 tall for both kinds: a 40 px icon, "Session blocker" over "By reel count" / "By time", a 32 px `control` close. Reels: two 44 `control` steppers (`accentText(brand)` glyphs, .9 press, hold to repeat 420 ms × .78 down to 60 ms, .35 and disabled at a bound) around a number + eyebrow live region. Time: a 270° dial (`control` track, three-stop brand arc, the knob in a `kHalo` halo over `dialKnobShadow`), `numberLg` over `eyebrowLg`, drag / arrows / PgUp-PgDn / Home-End, a slider node. Four quick picks on a `control` card with a sliding `controlOn` chip (+ `Squish`), hidden on a custom value. A note line, then the 52 px start pill: `onStart` true → the started colours, "Session started" with a drawn check, held by `PopScope`, closes after 1.1 s; false → stays. Reduce Motion drops the slide, squish, number bump and check draw |
@@ -754,20 +767,23 @@ lib/
     navigation/                 app_router.dart · routes.dart · app_gate.dart
     platform/                   platform_capabilities.dart (Android gate)
     platform_channels/          engine_channel.dart (MethodChannel/EventChannel wrapper)
+    services/                   Firebase telemetry (analytics, crash, performance)
     storage/                    local_store.dart (key-value)
     design_system/              Frozen Glass: tokens (generated) · theme · foundations · components
                                 foundations: glass_container · glass_scaffold · motion · accent
     error/ utils/ widgets/      shared helpers + common widgets
   features/
-    blocking/                   CORE: shared(spine) · engine · blocklist · plans
+    blocking/                   CORE: shared(spine) · engine · blocklist · plans · block_screen
     content_counter/            core · bubble · home_content_counter · appearance
-    limits/                     app_blocker · web_blocker · daily_limit
+    limits/                     app_blocker · web_blocker · daily_limit · rules · unblock · streak
     access_protection/          PIN setup/lock/recovery
-    monetization/premium/       entitlement (dev-unlock; no live billing)
-    analytics/                  local block-event history
+    protected_apps/             apps Detoxo never touches
+    catalog/ usage/             the app catalog + the usage-stats layer
+    analytics/                  local block-event history + insights (the Insights tab)
     permissions/                Android permission funnel
-    onboarding/ settings/ dashboard/   presentation-only orchestration surfaces
-    additional_feature/         app_feedback · showcase_view
+    help/                       Help & support hub, FAQ, tutorials, share ideas, legal
+    onboarding/ settings/ dashboard/   orchestration surfaces (dashboard = the Today tab)
+    additional_feature/         app_feedback · app_upgrader · appearance · showcase_view
 ```
 
 ### `android/app/src/main/kotlin/com/errorxperts/detoxo/`
@@ -787,7 +803,10 @@ engine/
   ServiceEventBus.kt
 overlay/
   ContentCounterBubble.kt       WindowManager overlay bubble host (anchor, drag, edge-snap, tap = timer)
-  DxTokens.kt · AccentResolver.kt   generated Frozen Glass tokens + the live-accent mirror
+  BlockScreenOverlay.kt · BlockScreenRenderer.kt · QuoteWall.kt · WallButtons.kt · SlideToConfirmView.kt
+                                the block screen (one Frozen Glass layout, native wait + slide; [25])
+  NudgeOverlay.kt               the soft nudge card ([30])
+  FrozenGlass.kt · DxTokens.kt · AccentResolver.kt   the native kit, generated tokens, the live accent
   bubble/                       BubbleView shell + model/envelope/look + six faces/*Face.kt
 widget/
   ContentCounterWidgetProvider.kt · WidgetBitmapRenderer.kt   home-screen widget
@@ -850,6 +869,6 @@ Detailed treatment lives in the persistence and configuration docs.
 - `lib/features/access_protection/presentation/pin_gate.dart` (`confirmPinOff`), `lib/features/limits/unblock/presentation/widgets/unblock_duration_sheet.dart`
 - the other ConfirmSheet and Undo call sites: `lib/features/settings/presentation/settings_screen.dart`, `lib/features/limits/web_blocker/presentation/{web_block_screen,web_protection_screen}.dart`, `lib/features/limits/app_blocker/presentation/app_block_screen.dart`, `lib/features/limits/rules/presentation/{rules_screen,rule_editor_screen}.dart`, `lib/features/limits/rules/presentation/widgets/override_tile.dart`, `lib/features/limits/unblock/presentation/widgets/pending_unblock_listener.dart`
 - `assets/images/icons/`, `assets/svg/` (the spec 3D icons and glyphs; [14](14-flutter-package-map.md) §9)
-- `lib/features/` (feature tree: `blocking`, `content_counter`, `limits`, `access_protection`, `monetization/premium`, `analytics`, `permissions`, `onboarding`, `settings`, `dashboard`, `additional_feature`)
+- `lib/features/` (feature tree: `blocking`, `content_counter`, `limits`, `access_protection`, `protected_apps`, `catalog`, `usage`, `analytics`, `permissions`, `help`, `onboarding`, `settings`, `dashboard`, `additional_feature`)
 - `tool/check_boundaries.sh`
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/MainActivity.kt`

@@ -20,8 +20,8 @@ see [`../code_docs/`](../code_docs/00-index.md).)
 - **Blocking modes** — two that **stick** (**Block All**, the default, and **Conscious**,
   earn watch-time by staying off first) plus **temporary** overrides that auto-return
   to your base mode when done: **One Reel** (watch one) and **Pause** — one sheet to unblock
-  for a few minutes (1–10) or a set number of reels (2–20, an **Unblock**).
-- **App blocker, website blocker, and daily limit** for broader control.
+  for a few minutes (1–10) or a set number of reels (1–20, an **Unblock**).
+- **App Blocker**, **Web Blocker**, a **Daily limit** and **Blocker rules** for broader control.
 - **On-device reel counter** — a floating bubble + a home-screen widget that count the short
   videos you scroll, so the habit becomes visible.
 - **PIN lock** so you can't disable it on impulse.

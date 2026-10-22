@@ -316,7 +316,7 @@ Notes:
   visibility, so no `QUERY_ALL_PACKAGES` is involved. Off-thread like its two
   neighbours. `[]` and `null` mean different things and are not collapsed:
   `[]` is "every browser you have is covered", `null` is "couldn't ask" — the
-  Website blocker renders a notice only for a **non-empty** list, so an
+  Web Blocker renders a notice only for a **non-empty** list, so an
   unanswered query never invents a warning.
 
 ### Content-counter controls
