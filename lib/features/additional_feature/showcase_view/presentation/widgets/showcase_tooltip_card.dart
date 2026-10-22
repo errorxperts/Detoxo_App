@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 /// The glass tooltip rendered beside each highlighted target during the tour:
-/// the step's illustration badge, title, body, progress dots, and the Skip / Next
+/// the step's icon badge, title, body, progress dots, and the Skip / Next
 /// (Done) controls. Fixed-width so the package's auto-placement stays stable
 /// over narrow targets like the mode cells.
 ///
@@ -114,26 +114,23 @@ class ShowcaseTooltipCard extends StatelessWidget {
   }
 }
 
-/// The tooltip's feature badge: a tone-lit circle holding the step's
-/// illustration (clipped to the circle — the source art is a glow on an opaque
-/// backdrop), or the step's animated glyph when it has no artwork.
+/// The tooltip's feature badge: a tone-lit circle holding the step's spec 3D
+/// icon at 40, uncropped (the spec never crops its icons), or the step's
+/// animated glyph when it has no 3D icon.
 class _StepBadge extends StatelessWidget {
   const _StepBadge({required this.step});
 
   final ShowcaseStep step;
 
   static const double size = 52;
-
-  /// Decode cap for the 1024² source art.
-  static const int _cacheWidth = 160;
+  static const double _iconSize = 40;
 
   @override
   Widget build(BuildContext context) {
-    final color = toneColor(context, step.tone);
     final image = step.image;
     return IconBadge(
       size: size,
-      color: color,
+      color: toneColor(context, step.tone),
       fillAlpha: 0.16,
       bordered: true,
       child: image == null
@@ -142,15 +139,7 @@ class _StepBadge extends StatelessWidget {
               size: size * 0.46,
               color: toneText(context, step.tone),
             )
-          : ClipOval(
-              child: Image.asset(
-                image,
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-                cacheWidth: _cacheWidth,
-              ),
-            ),
+          : Icon3d(image, size: _iconSize),
     );
   }
 }

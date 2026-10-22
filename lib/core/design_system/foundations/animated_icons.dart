@@ -12,23 +12,16 @@ export 'package:not_static_icons/not_static_icons.dart'
 /// `not_static_icons` (Lucide) class names. Call sites reference these names;
 /// swapping a glyph only touches [_iconBuilders] below.
 enum AppIcon {
-  dashboard,
   blocklist,
   more,
-  appBlocker,
-  websiteBlocker,
   dailyLimit,
-  activity,
   pinLock,
   settings,
   premium,
-  pause,
   tune,
   backspace,
   check,
   info,
-  ban,
-  statusOff,
   shieldCheck,
   oneReel,
   unblock,
@@ -37,7 +30,7 @@ enum AppIcon {
 
 /// Every `not_static_icons` widget extends `AnimatedSVGIcon` and shares this
 /// constructor shape, so the catalogue is a plain lookup of constructor
-/// tear-offs rather than a 20-arm switch.
+/// tear-offs rather than a per-icon switch.
 typedef _IconCtor =
     AnimatedSVGIcon Function({
       double size,
@@ -52,23 +45,16 @@ typedef _IconCtor =
     });
 
 final Map<AppIcon, _IconCtor> _iconBuilders = {
-  AppIcon.dashboard: CircleGaugeIcon.new,
   AppIcon.blocklist: BanIcon.new,
   AppIcon.more: EllipsisIcon.new,
-  AppIcon.appBlocker: Grid2x2Icon.new,
-  AppIcon.websiteBlocker: EarthLockIcon.new,
   AppIcon.dailyLimit: ClockFadingIcon.new,
-  AppIcon.activity: ChartColumnIncreasingIcon.new,
   AppIcon.pinLock: DoorClosedLockedIcon.new,
   AppIcon.settings: CogIcon.new,
   AppIcon.premium: CrownIcon.new,
-  AppIcon.pause: CirclePauseIcon.new,
   AppIcon.tune: BoltIcon.new,
   AppIcon.backspace: DeleteIcon.new,
   AppIcon.check: CircleCheckIcon.new,
   AppIcon.info: BadgeInfoIcon.new,
-  AppIcon.ban: BanIcon.new,
-  AppIcon.statusOff: CircleAlertIcon.new,
   AppIcon.shieldCheck: BrickWallShieldIcon.new,
   AppIcon.oneReel: CirclePlayIcon.new,
   AppIcon.unblock: DoorOpenIcon.new,
