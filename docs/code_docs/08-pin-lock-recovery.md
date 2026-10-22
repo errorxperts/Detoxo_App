@@ -35,7 +35,7 @@ touches it only through `PinCubit`, the public barrel
 | domain / contract | `domain/repositories/pin_repository.dart` | `PinRepository` interface (load / save / secure-screen / screen-off + elapsed-realtime queries) |
 | data | `data/repositories/pin_repository_impl.dart` | secure-storage persistence, legacy plaintext migration, channel calls for FLAG_SECURE + screen-off + `monotonicNow()` (via `EngineChannel.monotonicNow`) |
 | presentation / state | `presentation/pin_cubit.dart` | `PinCubit` — setup, verify, lockout, biometrics |
-| presentation / gate | `presentation/pin_gate.dart` | `requirePin()` + `PinGuard` — how other features demand the PIN |
+| presentation / gate | `presentation/pin_gate.dart` | `requirePin()` + `PinGuard` — how other features demand the PIN; `confirmPinOff()` — the one "Turn off PIN lock?" confirm |
 | presentation / relock | `presentation/pin_auto_relock.dart` | `PinAutoRelock` — lifecycle observer that re-locks on resume |
 | presentation / UI | `presentation/pin_lock_screen.dart` | the full-screen keypad lock |
 | presentation / UI | `presentation/pin_setup_screen.dart` | configure / disable the lock |
@@ -358,8 +358,8 @@ decide whether to show the biometric toggle.
 
 Save validation (`_save`):
 
-1. `type == none` → routes to `_turnOff` (confirm dialog then `disable()`; no-op if
-   nothing was configured).
+1. `type == none` → routes to `_turnOff`: `confirmPinOff` (the route's `PinGuard`
+   already asked for the PIN), then pop; a no-op pop if nothing was configured.
 2. custom: PIN ≥ 4 digits, and PIN == confirm (both toast on failure).
 3. at least one scope selected.
 4. `setup(..., biometricEnabled: _biometric && _biometricAvailable, autoLock:
@@ -413,6 +413,21 @@ if (await requirePin(context, PinScope.settings)) {
 
 Because both consult `isConfigured` + `guards(scope)` first, adding a `requirePin`
 call is safe even when no PIN is set — it's a pass-through until the user opts in.
+
+**`confirmPinOff(context) → Future<bool>`** is the one PIN-off confirm, shared by
+the Settings switch and the setup screen's None. A critical `ConfirmSheet`
+(`DetoxoLogo` 58, "Turn off PIN lock?" / "Detoxo and its protected settings stop
+asking for a PIN." / "Slide to turn off" / "Keep it on"); after the slide it calls
+`PinCubit.disable()` and toasts "PIN lock turned off". It resolves to whether the
+lock is now off. It asks for no PIN itself: the Settings switch runs
+`requirePin(context, PinScope.settings)` first, the setup route sits behind
+`PinGuard`. Exported through the `access_protection.dart` barrel with the rest of
+`pin_gate.dart`.
+
+**Order everywhere a PIN guards a protection-off action:** the PIN first, then the
+`ConfirmSheet`, and the commit only after the slide. The switches stay bound to
+state, so a cancelled PIN or sheet snaps them back; turning anything back on is
+direct.
 
 ---
 
@@ -497,9 +512,12 @@ gate.
   `/pin/lock` before anything else.
 - **Settings** (`lib/features/settings/presentation/settings_screen.dart`): the PIN
   toggle pushes `/pin/setup` (the route's own `PinGuard` asks for the PIN);
-  the remaining protected mutations (turning the lock off from the master
-  switch, disabling blocking, resetting data) are fenced behind
-  `requirePin(context, PinScope.settings)`. The `LOCK_APP` block mode requires
+  the remaining protected mutations are fenced behind
+  `requirePin(context, PinScope.settings)` and then a critical `ConfirmSheet`:
+  turning the lock off from its switch (`confirmPinOff`), disabling blocking
+  ("Turn off blocking?", `iconBlockAll` tinted, toast "Blocking is off") and
+  "Reset app data" ("Reset app data?", `DetoxoLogo`, "Slide to reset" / "Keep my
+  data"; no toast — the splash is the feedback). The `LOCK_APP` block mode requires
   a configured PIN, so choosing it without one routes the user to PIN setup
   rather than selecting a mode that can't enforce anything.
 
@@ -544,7 +562,7 @@ gate.
 - `lib/main.dart` (`PinCubit` provider)
 - `lib/core/navigation/routes.dart`, `lib/core/navigation/app_router.dart` (`/pin/setup`, `/pin/lock`)
 - `lib/app/splash_screen.dart` (launch gating)
-- `lib/features/settings/presentation/settings_screen.dart` (`requirePin` call sites)
+- `lib/features/settings/presentation/settings_screen.dart` (`requirePin` + `ConfirmSheet` call sites)
 - `lib/core/constants/channel_constants.dart`, `lib/core/platform_channels/engine_channel.dart` (`setSecureScreen`, `lastScreenOff`, `monotonicNow`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/MainActivity.kt` (screen-off receiver)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/channels/CommandHandler.kt` (`setSecureScreen`, `lastScreenOff`, `monotonicNow` branches)

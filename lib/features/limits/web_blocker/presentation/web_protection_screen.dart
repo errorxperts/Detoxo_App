@@ -6,6 +6,7 @@ import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block
 import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block_stats_repository.dart';
 import 'package:detoxo/features/limits/web_blocker/presentation/web_block_cubit.dart';
 import 'package:detoxo/features/limits/web_blocker/presentation/web_block_state.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -34,6 +35,33 @@ class WebProtectionScreen extends StatelessWidget {
 
 class _WebProtectionView extends StatelessWidget {
   const _WebProtectionView();
+
+  /// A protection's off branch: a critical [ConfirmSheet], then the commit,
+  /// then the toast once the state shows it landed (a failed save reverts and
+  /// toasts its own error). Turning one on stays direct. The switch is bound
+  /// to the state, so a cancelled sheet snaps it back.
+  static Future<void> _turnOff(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String cancel,
+    required String toast,
+    required Future<void> Function() commit,
+    required bool Function() landed,
+  }) async {
+    final ok = await ConfirmSheet.show(
+      context,
+      icon: Icon3d(Assets.images.icons.iconWebBlocker, size: 58),
+      title: title,
+      message: message,
+      action: 'Slide to turn off',
+      cancel: cancel,
+      tone: ConfirmTone.critical,
+    );
+    if (!ok) return;
+    await commit();
+    if (context.mounted && landed()) GlassToast.show(context, toast);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +110,17 @@ class _WebProtectionView extends StatelessWidget {
                   ),
                   value: state.blockForApps,
                   selected: state.blockForApps,
-                  onChanged: (v) => cubit.setBlockForApps(value: v),
+                  onChanged: (v) => v
+                      ? cubit.setBlockForApps(value: true)
+                      : _turnOff(
+                          context,
+                          title: 'Unblock sites of blocked apps?',
+                          message: 'Their websites open again in your browser.',
+                          cancel: 'Keep them blocked',
+                          toast: 'Sites of blocked apps unblocked',
+                          commit: () => cubit.setBlockForApps(value: false),
+                          landed: () => !cubit.state.blockForApps,
+                        ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 AppToggleTile(
@@ -98,7 +136,17 @@ class _WebProtectionView extends StatelessWidget {
                   ),
                   value: state.blockAdult,
                   selected: state.blockAdult,
-                  onChanged: (v) => cubit.setBlockAdult(value: v),
+                  onChanged: (v) => v
+                      ? cubit.setBlockAdult(value: true)
+                      : _turnOff(
+                          context,
+                          title: 'Turn off the 18+ filter?',
+                          message: 'Adult sites open again in every browser.',
+                          cancel: 'Keep it on',
+                          toast: '18+ filter off',
+                          commit: () => cubit.setBlockAdult(value: false),
+                          landed: () => !cubit.state.blockAdult,
+                        ),
                 ),
               ],
             ).animate().fadeIn(duration: AppDurations.normal);

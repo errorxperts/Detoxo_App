@@ -186,7 +186,8 @@ Each key maps to exactly one repository that owns its JSON shape:
 `LocalStore.clearAll()` clears the Hive box **and** deletes every secret
 (`_secure.deleteAll()`). It is invoked from
 `lib/features/settings/presentation/settings_screen.dart` (`sl<LocalStore>().clearAll()`)
-behind the "Reset app data" action; the app then re-bootstraps from defaults.
+behind the "Reset app data" action (the PIN first, then a critical `ConfirmSheet`); the app
+then re-bootstraps from defaults.
 
 > **Scope of the wipe.** `clearAll()` only touches the **Dart** stores. It does
 > **not** clear the native `detoxo_engine_prefs` file — the engine's plan,

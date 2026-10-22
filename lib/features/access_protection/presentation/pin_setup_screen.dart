@@ -2,6 +2,7 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/access_protection/domain/entities/pin_config.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
+import 'package:detoxo/features/access_protection/presentation/pin_gate.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -104,28 +105,16 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
     Navigator.of(context).pop();
   }
 
-  /// Applies the "None" choice. If a PIN is currently set this confirms before
-  /// disabling; if nothing is configured it just closes (no-op).
+  /// Applies the "None" choice. If a PIN is currently set this confirms
+  /// ([confirmPinOff]; the route's `PinGuard` already asked for the PIN)
+  /// before disabling; if nothing is configured it just closes (no-op).
   Future<void> _turnOff() async {
     final configured = context.read<PinCubit>().state.isConfigured;
     if (!configured) {
       Navigator.of(context).pop();
       return;
     }
-    final ok = await AppDialog.confirm(
-      context: context,
-      title: 'Turn off PIN lock?',
-      message:
-          'Detoxo and its protected sections will no longer ask for a PIN.',
-      confirmLabel: 'Turn off',
-      cancelLabel: 'Keep it on',
-    );
-    if (ok && mounted) {
-      await context.read<PinCubit>().disable();
-      if (!mounted) return;
-      GlassToast.show(context, 'PIN lock turned off.');
-      Navigator.of(context).pop();
-    }
+    if (await confirmPinOff(context) && mounted) Navigator.of(context).pop();
   }
 
   /// Live preview of a clock-derived PIN — same source of truth as the

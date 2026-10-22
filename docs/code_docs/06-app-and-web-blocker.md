@@ -478,6 +478,14 @@ websites of blocked apps" (`setBlockForApps`) and "Block adult content (18+)"
 highlight, under a one-line intro. The 18+ subtitle states the scope — "every
 page of 200+ known adult sites and every .xxx, .porn, .sex or .adult address"
 — and `test/adult_blocklist_test.dart` pins that "200+" to the shipped list.
+Turning either one **on** is direct. Turning one **off** opens a critical
+`ConfirmSheet` first (`_turnOff`; `iconWebBlocker`, "Slide to turn off"): "Turn
+off the 18+ filter?" / "Adult sites open again in every browser." / "Keep it on",
+and "Unblock sites of blocked apps?" / "Their websites open again in your
+browser." / "Keep them blocked". The setter runs only after the slide, and the
+toast ("18+ filter off" / "Sites of blocked apps unblocked") only once the state
+shows it landed — a failed save reverts and toasts its own error. The switch is
+bound to the state, so a cancelled sheet snaps it back.
 It creates its **own `WebBlockCubit`** (same DI as the main screen) — safe
 because the toggles live in settings and both screens re-load on entry, so two
 instances never drift.

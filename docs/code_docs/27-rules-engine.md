@@ -434,8 +434,10 @@ section, whose "Cover every distracting app" toggle renders for schedules only (
 widens a limit) — last, so the escalation comes after the rule says what it covers. The editor
 consumes its own refusal toasts (see `RulesScreen`). Validation: ≥ 1 target; ≥ 1 day and
 `start ≠ end` for a schedule; a limit's budget > 0. Delete is a
-`SecondaryButton(destructive: true)` (its label in the `over` accent text) that asks through
-`AppDialog.confirm`. The sheets, the override tile, `RemovableChips` and `ruleKindIcon` live in
+`SecondaryButton(destructive: true)` (its label in the `over` accent text) that asks through a
+critical `ConfirmSheet` (`iconBlockerRules`, "Delete {rule}?" / "Its apps and sites unblock right
+away." / "Slide to delete" / "Keep the rule"); on success it toasts "{rule} deleted" and pops, on a
+refusal it stays and toasts the cubit's own error. The sheets, the override tile, `RemovableChips` and `ruleKindIcon` live in
 `presentation/widgets/`; counts and the open-limit headline read `RuleSummary.count`.
 
 **Today** — the rules entry point is the last row of the Blockers section

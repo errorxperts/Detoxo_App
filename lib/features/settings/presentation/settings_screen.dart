@@ -20,6 +20,7 @@ import 'package:detoxo/features/permissions/domain/entities/permission_status.da
 import 'package:detoxo/features/permissions/presentation/permission_actions.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:detoxo/features/settings/presentation/widgets/block_mode_picker.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -84,19 +85,41 @@ class _SettingsScreenState extends State<SettingsScreen>
     );
   }
 
-  /// Disabling protection is a sensitive change, so it asks for the PIN (when
-  /// the `settings` scope guards it); enabling proceeds directly. The switch is
-  /// bound to `settings.masterEnabled`, so a cancelled PIN snaps it back.
+  /// Disabling protection is a sensitive change: the PIN first (when the
+  /// `settings` scope guards it), then a critical [ConfirmSheet]; enabling
+  /// proceeds directly. The switch is bound to `settings.masterEnabled`, so a
+  /// cancelled PIN or sheet snaps it back.
   Future<void> _setMasterEnabled(
     BuildContext context, {
     required bool enabled,
   }) async {
-    if (!enabled) {
-      final ok = await requirePin(context, PinScope.settings);
-      if (!ok || !context.mounted) return;
+    final cubit = context.read<SettingsCubit>();
+    if (enabled) {
+      await cubit.setMasterEnabled(enabled: true);
+      return;
     }
-    if (!context.mounted) return;
-    await context.read<SettingsCubit>().setMasterEnabled(enabled: enabled);
+    if (!await requirePin(context, PinScope.settings) || !context.mounted) {
+      return;
+    }
+    final ok = await ConfirmSheet.show(
+      context,
+      icon: Icon3d(
+        Assets.images.icons.iconBlockAll,
+        size: 58,
+        accentTint: true,
+      ),
+      title: 'Turn off blocking?',
+      message:
+          'Reels, apps and sites stay unblocked until you turn it back on.',
+      action: 'Slide to turn off',
+      cancel: 'Keep blocking',
+      tone: ConfirmTone.critical,
+    );
+    if (!ok) return;
+    await cubit.setMasterEnabled(enabled: false);
+    if (context.mounted && !cubit.state.masterEnabled) {
+      GlassToast.show(context, 'Blocking is off');
+    }
   }
 
   /// Turning suppression on without Android's notification-access grant would
@@ -134,15 +157,19 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   Future<void> _resetData() async {
     // Reset wipes the PIN itself, so it's a protected change: ask for the PIN
-    // first (no-op when none is configured).
+    // first (no-op when none is configured), then the critical confirm. No
+    // toast: the splash is the feedback.
     if (!await requirePin(context, PinScope.settings) || !mounted) return;
-    final ok = await AppDialog.confirm(
-      context: context,
+    final ok = await ConfirmSheet.show(
+      context,
+      icon: const DetoxoLogo(height: 58),
       title: 'Reset app data?',
       message:
-          'This wipes your settings, blocklists, limits and PIN, then restarts '
-          'onboarding. This cannot be undone.',
-      confirmLabel: 'Reset everything',
+          'Settings, blocklists, limits and your PIN are erased, and setup '
+          'starts again.',
+      action: 'Slide to reset',
+      cancel: 'Keep my data',
+      tone: ConfirmTone.critical,
     );
     if (!ok || !mounted) return;
     await sl<LocalStore>().clearAll();
@@ -619,8 +646,8 @@ IconData _themeIcon(AppThemeMode m) => switch (m) {
 // ── PIN lock: master switch + edit tile ───────────────────────────────────────
 
 class _PinTile extends StatelessWidget {
-  /// Master switch. Turning ON opens setup; turning OFF asks for the PIN and a
-  /// confirmation, then disables. The switch is bound to `isConfigured`, so a
+  /// Master switch. Turning ON opens setup; turning OFF asks for the PIN, then
+  /// [confirmPinOff] disables. The switch is bound to `isConfigured`, so a
   /// cancelled turn-off (or a setup the user backs out of) snaps it back.
   Future<void> _toggle(BuildContext context, {required bool enable}) async {
     if (enable) {
@@ -630,16 +657,7 @@ class _PinTile extends StatelessWidget {
     if (!await requirePin(context, PinScope.settings) || !context.mounted) {
       return;
     }
-    final ok = await AppDialog.confirm(
-      context: context,
-      title: 'Turn off PIN lock?',
-      message:
-          'Detoxo and its protected sections will no longer ask for a PIN.',
-      confirmLabel: 'Turn off',
-      cancelLabel: 'Keep it on',
-    );
-    if (!ok || !context.mounted) return;
-    await context.read<PinCubit>().disable();
+    await confirmPinOff(context);
   }
 
   /// Edit the configured PIN (type, auto-lock, biometrics). The `/pin/setup`
