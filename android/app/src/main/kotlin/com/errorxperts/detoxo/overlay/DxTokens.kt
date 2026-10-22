@@ -573,6 +573,16 @@ internal object DxTokens {
         DxShadowLayer(0x66FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0x404BE39A.toInt(), 0f, 10f, 24f, 0f, false),
     )
+    /** Session sheet time-dial knob: the canvas's drop-shadow(0 2px 6px) is sigma 6, kept at blur 2 x sigma like logo-glow. (light) */
+    @JvmField
+    val SHADOW_DIAL_KNOB_SHADOW_LIGHT: Array<DxShadowLayer> = arrayOf(
+        DxShadowLayer(0x4D141E46.toInt(), 0f, 2f, 12f, 0f, false),
+    )
+    /** Session sheet time-dial knob: the canvas's drop-shadow(0 2px 6px) is sigma 6, kept at blur 2 x sigma like logo-glow. (dark) */
+    @JvmField
+    val SHADOW_DIAL_KNOB_SHADOW_DARK: Array<DxShadowLayer> = arrayOf(
+        DxShadowLayer(0x73000000.toInt(), 0f, 2f, 12f, 0f, false),
+    )
     /** DetoxoLogo glow: the Logos README drop-shadow chain (sigma 1 + 10 Light, 8 Dark) at blur 2 x sigma, so sigma = blur / 2 like every shadow. Dark has no contour; its clear first layer keeps the shapes equal. (light) */
     @JvmField
     val SHADOW_LOGO_GLOW_LIGHT: Array<DxShadowLayer> = arrayOf(
