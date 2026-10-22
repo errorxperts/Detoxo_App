@@ -107,8 +107,13 @@ void main() {
       containsAll([
         RulePreset.workHours,
         RulePreset.sleep,
-        RulePreset.doomscrollBudget,
+        RulePreset.reelBudget,
       ]),
     );
+  });
+
+  test('a skipped survey maps to the Reel budget preset', () {
+    expect(starterPreset(null), RulePreset.reelBudget);
+    expect(starterPreset(null).template.name, 'Reel budget');
   });
 }

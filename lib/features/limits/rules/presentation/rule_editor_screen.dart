@@ -1,6 +1,7 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/utils/clock_format.dart';
+import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/core/widgets/app_picker_sheet.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/blocking.dart';
@@ -161,16 +162,16 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final ink2 = context.tokens.ink2;
     return GlassScaffold(
       appBar: GlassAppBar(
         title: Text(_isEdit ? 'Edit rule' : 'New ${_kind.label.toLowerCase()}'),
       ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
+          AppSpacing.gutter,
           AppSpacing.md,
-          AppSpacing.md,
-          AppSpacing.md,
+          AppSpacing.gutter,
           AppSpacing.xl + MediaQuery.viewPaddingOf(context).bottom,
         ),
         children: [
@@ -187,101 +188,95 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
               prefixIcon: Icon(ruleKindIcon(_kind)),
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          switch (_kind) {
-            RuleKind.schedule => _scheduleSection(text),
+          ...switch (_kind) {
+            RuleKind.schedule => _scheduleSection(),
             RuleKind.timeLimit => _budgetSection(
-              text,
-              headline: '$_minutes minutes a day',
+              headline: '${formatHm(Duration(minutes: _minutes))} a day',
               hint: 'Once the budget is spent, the apps block until midnight.',
-              slider: AdaptiveSlider(
+              slider: Slider(
                 value: _minutes.toDouble(),
                 min: 5,
                 max: 240,
                 divisions: 47,
-                semanticFormatter: (v) => '${v.round()} minutes',
+                semanticFormatterCallback: (v) => '${v.round()} minutes',
                 onChanged: (v) => setState(() => _minutes = v.round()),
               ),
             ),
             RuleKind.openLimit => _budgetSection(
-              text,
               headline: '${RuleSummary.count(_opens, 'open', 'opens')} a day',
               hint: 'After that many launches, the apps block until midnight.',
-              slider: AdaptiveSlider(
+              slider: Slider(
                 value: _opens.toDouble(),
                 min: 1,
                 max: 20,
                 divisions: 19,
-                semanticFormatter: (v) => '${v.round()} opens',
+                semanticFormatterCallback: (v) => '${v.round()} opens',
                 onChanged: (v) => setState(() => _opens = v.round()),
               ),
             ),
           },
-          const SizedBox(height: AppSpacing.md),
           // Concrete targets first (the apps, feeds and sites the user has in
           // mind), categories below them; Commitment comes after both, so the
           // rule says what it covers before it is asked how hard to hold.
           const SectionHeader('Block'),
-          GlassListTile(
-            leading: const Icon(Icons.apps),
-            title: 'Apps',
-            subtitle: _apps.isEmpty
-                ? 'None selected'
-                : _count(_apps.length, 'app'),
-            trailing: const Icon(Icons.add_circle_outline),
-            onTap: _pickApps,
-          ),
-          if (_apps.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.xs),
-            RemovableChips(
-              items: _apps,
-              label: (pkg) => _appLabels[pkg] ?? pkg,
-              onRemove: (pkg) => setState(() => _apps.remove(pkg)),
-            ),
-          ],
-          if (_kind == RuleKind.schedule) ...[
-            const SizedBox(height: AppSpacing.xs),
-            GlassListTile(
-              leading: const Icon(Icons.play_circle_outline),
-              title: 'Reel feeds',
-              subtitle: _platforms.isEmpty
-                  ? 'None selected'
-                  : _count(_platforms.length, 'feed'),
-              trailing: const Icon(Icons.add_circle_outline),
-              onTap: _pickPlatforms,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            GlassListTile(
-              leading: const Icon(Icons.public),
-              title: 'Websites',
-              subtitle: _websites.isEmpty
-                  ? 'None selected'
-                  : _count(_websites.length, 'site'),
-              trailing: const Icon(Icons.add_circle_outline),
-              onTap: _pickWebsites,
-            ),
-            if (_websites.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.xs),
-              RemovableChips(
-                items: _websites,
-                onRemove: (h) => setState(() => _websites.remove(h)),
+          PanelGroup(
+            children: [
+              _target(
+                GlassListTile(
+                  leading: Icon(Icons.apps, color: ink2),
+                  title: 'Apps',
+                  subtitle: _apps.isEmpty
+                      ? 'None selected'
+                      : _count(_apps.length, 'app'),
+                  trailing: Icon(Icons.add_circle_outline, color: ink2),
+                  onTap: _pickApps,
+                ),
+                _apps.isEmpty
+                    ? null
+                    : RemovableChips(
+                        items: _apps,
+                        label: (pkg) => _appLabels[pkg] ?? pkg,
+                        onRemove: (pkg) => setState(() => _apps.remove(pkg)),
+                      ),
               ),
+              if (_kind == RuleKind.schedule) ...[
+                GlassListTile(
+                  leading: Icon(Icons.play_circle_outline, color: ink2),
+                  title: 'Reel feeds',
+                  subtitle: _platforms.isEmpty
+                      ? 'None selected'
+                      : _count(_platforms.length, 'feed'),
+                  trailing: Icon(Icons.add_circle_outline, color: ink2),
+                  onTap: _pickPlatforms,
+                ),
+                _target(
+                  GlassListTile(
+                    leading: Icon(Icons.public, color: ink2),
+                    title: 'Websites',
+                    subtitle: _websites.isEmpty
+                        ? 'None selected'
+                        : _count(_websites.length, 'site'),
+                    trailing: Icon(Icons.add_circle_outline, color: ink2),
+                    onTap: _pickWebsites,
+                  ),
+                  _websites.isEmpty
+                      ? null
+                      : RemovableChips(
+                          items: _websites,
+                          onRemove: (h) => setState(() => _websites.remove(h)),
+                        ),
+                ),
+              ],
             ],
-          ] else
+          ),
+          if (_kind != RuleKind.schedule)
             const InlineHint(
               icon: Icons.info_outline,
               text:
                   'Limits count app time from Android usage access, so they '
                   'apply to apps and categories.',
             ),
-          const SizedBox(height: AppSpacing.md),
-          // A heading, like every other group label on this screen, so
-          // heading navigation lands on it and the quick-pick has context.
-          Semantics(
-            header: true,
-            child: Text('Categories', style: text.labelLarge),
-          ),
-          const SizedBox(height: AppSpacing.xs),
+          const SectionHeader('Categories'),
           // Seed order is behaviour order (distracting first), so the top row
           // is the usual suspects and the quick-pick that opens it covers them.
           ChipRail(
@@ -313,31 +308,8 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
           const SectionHeader('Commitment'),
-          // A locked rule is committed: strict is implied and no longer the
-          // user's to change, so the toggle goes away rather than sitting
-          // there greyed out.
-          if (!_locked)
-            AppToggleTile(
-              leading: const Icon(Icons.lock_outline),
-              title: 'Strict',
-              subtitle: "A Pause won't lift this rule",
-              value: _strict,
-              onChanged: (v) => setState(() => _strict = v),
-            ),
-          const SizedBox(height: AppSpacing.xs),
-          if (_strict && !_locked) ...[
-            const InlineHint(
-              icon: Icons.info_outline,
-              text:
-                  'Strict rules keep blocking apps, reel feeds and websites '
-                  'even while Detoxo is paused. Turn this on for the rules you '
-                  'set because you know future-you will want to skip them.',
-            ),
-            const SizedBox(height: AppSpacing.xs),
-          ],
-          ..._lockSection(context),
+          ..._commitmentSection(context),
           const SizedBox(height: AppSpacing.xl),
           PrimaryButton(
             label: _isEdit ? 'Save changes' : 'Save rule',
@@ -362,79 +334,117 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
     );
   }
 
-  Widget _scheduleSection(TextTheme text) {
+  /// A target row with its picked chips under it, as one panel row.
+  Widget _target(Widget row, Widget? chips) => chips == null
+      ? row
+      : Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            row,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                0,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: chips,
+            ),
+          ],
+        );
+
+  List<Widget> _scheduleSection() {
     final overnight = _endMin < _startMin;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SectionHeader('When'),
-        Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xxs,
-          children: [
-            for (var d = 1; d <= 7; d++)
-              AppChip(
-                label: RuleSummary.dayLabel(d),
-                // Full weekday for screen readers: "Mon" is a glyph, not a word.
-                semanticLabel: _weekdayNames[d - 1],
-                selected: _days.contains(d),
-                onSelected: () => setState(() {
-                  _days.contains(d) ? _days.remove(d) : _days.add(d);
-                }),
-              ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(
-              child: GlassListTile(
-                title: 'Starts',
-                subtitle: localTimeFormat(context)(_startMin),
-                trailing: const Icon(Icons.schedule),
-                onTap: () => _pickTime(start: true),
-              ),
+    final time = localTimeFormat(context);
+    final ink2 = context.tokens.ink2;
+    return [
+      const SectionHeader('When'),
+      PanelGroup(
+        children: [
+          Padding(
+            // The rows' own insets, so the chips line up with their titles.
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
             ),
-            const SizedBox(width: AppSpacing.xs),
-            Expanded(
-              child: GlassListTile(
-                title: 'Ends',
-                subtitle: localTimeFormat(context)(_endMin),
-                trailing: const Icon(Icons.schedule),
-                onTap: () => _pickTime(start: false),
-              ),
+            child: Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xxs,
+              children: [
+                for (var d = 1; d <= 7; d++)
+                  AppChip(
+                    label: RuleSummary.dayLabel(d),
+                    // Full weekday for screen readers: "Mon" is a glyph, not a
+                    // word.
+                    semanticLabel: _weekdayNames[d - 1],
+                    selected: _days.contains(d),
+                    onSelected: () => setState(() {
+                      _days.contains(d) ? _days.remove(d) : _days.add(d);
+                    }),
+                  ),
+              ],
             ),
-          ],
-        ),
-        if (_startMin == _endMin)
-          const InlineHint(
-            icon: Icons.error_outline,
-            text: 'Start and end cannot be the same time.',
-          )
-        else if (overnight)
-          const InlineHint(
-            icon: Icons.nightlight_round,
-            text:
-                'Ends the next morning — the whole night counts as the start day.',
           ),
-      ],
-    );
+          GlassListTile(
+            leading: Icon(Icons.schedule, color: ink2),
+            title: 'Starts',
+            subtitle: time(_startMin),
+            onTap: () => _pickTime(start: true),
+          ),
+          GlassListTile(
+            leading: Icon(Icons.schedule, color: ink2),
+            title: 'Ends',
+            subtitle: time(_endMin),
+            onTap: () => _pickTime(start: false),
+          ),
+        ],
+      ),
+      if (_startMin == _endMin)
+        const InlineHint(
+          icon: Icons.error_outline,
+          text: 'Start and end cannot be the same time.',
+        )
+      else if (overnight)
+        const InlineHint(
+          icon: Icons.nightlight_round,
+          text:
+              'Ends the next morning — the whole night counts as the start day.',
+        ),
+    ];
   }
 
-  Widget _budgetSection(
-    TextTheme text, {
+  List<Widget> _budgetSection({
     required String headline,
     required String hint,
     required Widget slider,
-  }) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const SectionHeader('Daily budget'),
-      Text(headline, style: text.headlineSmall),
-      slider,
-      InlineHint(icon: Icons.info_outline, text: hint),
-    ],
-  );
+  }) => [
+    const SectionHeader('Daily budget'),
+    PanelGroup(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.xs,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                headline,
+                style: AppTypography.headline.copyWith(
+                  color: context.tokens.ink,
+                ),
+              ),
+              slider,
+            ],
+          ),
+        ),
+      ],
+    ),
+    InlineHint(icon: Icons.info_outline, text: hint),
+  ];
 
   Future<void> _pickTime({required bool start}) async {
     final current = start ? _startMin : _endMin;
@@ -512,10 +522,11 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
     setState(() => _websites = picked);
   }
 
-  /// M8's "Lock this rule" — the strongest commitment the app offers, and the
-  /// only one that cannot be undone from inside it.
+  /// Strict, then M8's "Lock this rule" — the strongest commitment the app
+  /// offers, and the only one that cannot be undone from inside it — as one
+  /// panel, with the hints under it.
   ///
-  /// Three states, deliberately different shapes:
+  /// The lock has three states, deliberately different shapes:
   /// * **Not yet locked** — a toggle plus a blunt confirmation. Locking is a
   ///   one-way door, so it asks once, in plain words.
   /// * **Locked in the DRAFT but not saved** — the toggle stays, and stays
@@ -526,81 +537,87 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
   /// * **Already locked in the STORED rule** — no toggle at all (an off switch
   ///   that refuses is an invitation to keep tapping), a standing notice, and
   ///   the honest way out: spend one override.
-  List<Widget> _lockSection(BuildContext context) {
+  List<Widget> _commitmentSection(BuildContext context) {
     final committed = _existing?.locked ?? false;
-    if (!_locked) {
-      return [
-        AppToggleTile(
-          leading: const Icon(Icons.lock),
-          title: 'Lock this rule',
-          subtitle: 'No off switch. Lifting it costs an override.',
-          value: false,
-          onChanged: (v) async {
-            if (!v) return;
-            final ok = await AppDialog.confirm(
-              context: context,
-              title: 'Lock this rule?',
-              message:
-                  'A locked rule has no off switch and cannot be deleted — not '
-                  'now, and not later. You can lift it for up to an hour with '
-                  'an override, twice a week.\n\nThe only way to remove it is '
-                  'Settings → Reset app data.',
-              confirmLabel: 'Lock it',
-            );
-            if (ok && mounted) setState(() => _locked = true);
-          },
-        ),
-      ];
-    }
+    final ink2 = context.tokens.ink2;
     return [
-      if (!committed) ...[
-        AppToggleTile(
-          leading: const Icon(Icons.lock),
-          title: 'Lock this rule',
-          subtitle: 'Takes effect when you save.',
-          value: true,
-          onChanged: (v) {
-            if (!v) setState(() => _locked = false);
-          },
-        ),
-      ],
-      const SizedBox(height: AppSpacing.xs),
-      InlineHint(
-        icon: Icons.lock,
-        text: committed
-            ? 'This rule is locked. It has no off switch, it cannot be '
-                  'deleted, and a Pause does not lift it. You can widen it, '
-                  'but not narrow it. To get in anyway, spend an override.'
-            : 'Saving locks this rule. After that it has no off switch, it '
-                  'cannot be deleted, and a Pause does not lift it — the only '
-                  'way in is an override.',
+      PanelGroup(
+        children: [
+          // A locked rule is committed: strict is implied and no longer the
+          // user's to change, so the toggle goes away rather than sitting
+          // there greyed out.
+          if (!_locked)
+            AppToggleTile(
+              leading: Icon(Icons.lock_outline, color: ink2),
+              title: 'Strict',
+              subtitle: "A Pause won't lift this rule",
+              value: _strict,
+              onChanged: (v) => setState(() => _strict = v),
+            ),
+          if (!committed)
+            AppToggleTile(
+              leading: Icon(Icons.lock, color: ink2),
+              title: 'Lock this rule',
+              subtitle: _locked
+                  ? 'Takes effect when you save.'
+                  : 'No off switch. Lifting it costs an override.',
+              value: _locked,
+              onChanged: (v) async {
+                if (!v) {
+                  setState(() => _locked = false);
+                  return;
+                }
+                final ok = await AppDialog.confirm(
+                  context: context,
+                  title: 'Lock this rule?',
+                  message:
+                      'A locked rule has no off switch and can’t be deleted. '
+                      'An override lifts it for up to an hour, twice a week. '
+                      'Reset app data is the only way to remove it.',
+                  confirmLabel: 'Lock it',
+                );
+                if (ok && mounted) setState(() => _locked = true);
+              },
+            ),
+          // Schedules only: `resolveSnapshot` never widens a limit (its budget
+          // would widen with it), so offering the one-way toggle there
+          // committed the user to a setting that did nothing.
+          if (_locked && _kind == RuleKind.schedule)
+            AppToggleTile(
+              leading: Icon(Icons.auto_awesome_motion, color: ink2),
+              title: 'Cover every distracting app',
+              subtitle: 'Keeps holding as new ones are installed',
+              value: _lockScope == LockScope.distracting,
+              // Widening only: a lock that covers less than it did is a lock
+              // being picked apart, and `LockGuard` refuses that anyway.
+              onChanged: _lockScope == LockScope.distracting
+                  ? null
+                  : (v) => setState(
+                      () => _lockScope = v ? LockScope.distracting : _lockScope,
+                    ),
+            ),
+          // The STORED rule, not the draft: ticking "Lock this rule" and then
+          // spending an override before saving would burn quota on a rule that
+          // is not locked — and `resolveSnapshot` would have nothing to lift.
+          if (committed) OverrideTile(rule: _existing!),
+        ],
       ),
-      // Schedules only: `resolveSnapshot` never widens a limit (its budget
-      // would widen with it), so offering the one-way toggle there committed
-      // the user to a setting that did nothing.
-      if (_kind == RuleKind.schedule) ...[
-        const SizedBox(height: AppSpacing.xs),
-        AppToggleTile(
-          leading: const Icon(Icons.auto_awesome_motion),
-          title: 'Cover every distracting app',
-          subtitle: 'Keeps holding as new ones are installed',
-          value: _lockScope == LockScope.distracting,
-          // Widening only: a lock that covers less than it did is a lock being
-          // picked apart, and `LockGuard` refuses that anyway.
-          onChanged: _lockScope == LockScope.distracting
-              ? null
-              : (v) => setState(
-                  () => _lockScope = v ? LockScope.distracting : _lockScope,
-                ),
+      if (_strict && !_locked)
+        const InlineHint(
+          icon: Icons.info_outline,
+          text:
+              'Strict rules keep blocking apps, reel feeds and websites even '
+              'during a Pause.',
         ),
-      ],
-      // The STORED rule, not the draft: ticking "Lock this rule" and then
-      // spending an override before saving would burn quota on a rule that is
-      // not locked — and `resolveSnapshot` would have nothing to lift.
-      if (_existing?.locked ?? false) ...[
-        const SizedBox(height: AppSpacing.sm),
-        OverrideTile(rule: _existing!),
-      ],
+      if (_locked)
+        InlineHint(
+          icon: Icons.lock,
+          text: committed
+              ? 'Locked: no off switch, no delete, and a Pause doesn’t lift '
+                    'it. Widen it any time; an override gets you through.'
+              : 'Saving locks this rule. After that the only way in is an '
+                    'override.',
+        ),
     ];
   }
 

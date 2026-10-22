@@ -1,4 +1,6 @@
+import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/features/limits/rules/domain/entities/rule.dart';
+import 'package:detoxo/features/limits/rules/domain/usecases/rule_summary.dart';
 
 /// A starter rule the user opens in the editor, adjusts and saves.
 ///
@@ -11,12 +13,28 @@ import 'package:detoxo/features/limits/rules/domain/entities/rule.dart';
 /// `createdAtMs` on the way to the editor, so a saved preset is an ordinary
 /// rule with nothing marking where it came from.
 class RulePreset {
-  const RulePreset({required this.description, required this.template});
+  const RulePreset({required this.scope, required this.template});
 
-  /// One line under the preset's name, explaining what it will block.
-  final String description;
+  /// What it blocks, in words ("reels and social"): the template counts
+  /// categories, and a preset row should name them.
+  final String scope;
 
   final Rule template;
+
+  /// One line under the preset's name, built from the template so the hours
+  /// cannot drift from what the editor opens with: "Weekdays 9 AM–5 PM ·
+  /// reels and social" on a 12-hour device, "Weekdays 09:00–17:00 · …" on a
+  /// 24-hour one; a limit reads "30m of reels a day, then blocked until
+  /// midnight".
+  String describe(TimeFormat time) {
+    final s = template.schedule;
+    if (s == null) {
+      final budget = formatHm(Duration(milliseconds: template.thresholdMs));
+      return '$budget of $scope a day, then blocked until midnight';
+    }
+    return '${RuleSummary.days(s.days)} '
+        '${time(s.startMin)}–${time(s.endMin)} · $scope';
+  }
 
   /// The template as a savable rule. `copyWith` deliberately does not expose
   /// `id` / `createdAtMs` — they are a rule's identity, not editable state — so
@@ -36,7 +54,7 @@ class RulePreset {
   /// by meaning rather than by index into [all] — reordering the empty-state
   /// list must not silently change which rule a new user gets.
   static const RulePreset workHours = RulePreset(
-    description: 'Weekdays 09:00–17:00 · reels and social',
+    scope: 'reels and social',
     template: Rule(
       id: '',
       name: 'Work hours',
@@ -52,7 +70,7 @@ class RulePreset {
   );
 
   static const RulePreset sleep = RulePreset(
-    description: 'Every night 22:00–07:00 · reels, social and streaming',
+    scope: 'reels, social and streaming',
     template: Rule(
       id: '',
       name: 'Sleep',
@@ -70,7 +88,7 @@ class RulePreset {
   );
 
   static const RulePreset dinner = RulePreset(
-    description: 'Every day 19:00–20:00 · reels',
+    scope: 'reels',
     template: Rule(
       id: '',
       name: 'Dinner',
@@ -85,11 +103,11 @@ class RulePreset {
     ),
   );
 
-  static const RulePreset doomscrollBudget = RulePreset(
-    description: '30 minutes of reels a day, then blocked until midnight',
+  static const RulePreset reelBudget = RulePreset(
+    scope: 'reels',
     template: Rule(
       id: '',
-      name: 'Doomscroll budget',
+      name: 'Reel budget',
       kind: RuleKind.timeLimit,
       createdAtMs: 0,
       selection: RuleSelection(categories: ['short_form_video']),
@@ -97,10 +115,5 @@ class RulePreset {
     ),
   );
 
-  static const List<RulePreset> all = [
-    workHours,
-    sleep,
-    dinner,
-    doomscrollBudget,
-  ];
+  static const List<RulePreset> all = [workHours, sleep, dinner, reelBudget];
 }

@@ -89,8 +89,13 @@ failed read can never be saved back over the real list.
   rules — capping at 50 truncated exactly that entry and silently stopped enforcing the global
   Daily Limit.
 - **Presets** (EVO-031): `RulePreset.all` is a `const` list of starter rules ("Work hours",
-  "Sleep", "Dinner", "Doomscroll budget"). Tapping one opens the editor **pre-filled**; nothing is
-  saved until the user confirms, and a saved preset is an ordinary rule with no marker on it.
+  "Sleep", "Dinner", "Reel budget" — `RulePreset.reelBudget`, the one a skipped onboarding survey
+  maps to). Tapping one opens the editor **pre-filled**; nothing is saved until the user confirms,
+  and a saved preset is an ordinary rule with no marker on it. A preset keeps only its `scope`
+  words ("reels and social"); its row line is `describe(TimeFormat time)`, built from the template
+  so the hours cannot drift from what the editor opens with: `RuleSummary.days` + `time(start)–time(end)`
+  + the scope ("Weekdays 9 AM–5 PM · reels and social" on a 12-hour device, "Weekdays 09:00–17:00 · …"
+  on a 24-hour one), or for a limit "30m of reels a day, then blocked until midnight".
 - **Open** limits target apps and categories only — a launch is counted per package, and a feed has
   none. A **time** limit does too when it names apps, and falls back to native reel-time metering
   when its targets are feeds alone (§3 step 4). Schedules target every dimension.
@@ -394,12 +399,16 @@ Settings → Reset app data wipes the store and then `context.go(Routes.splash)`
 the process**, `splash_screen.dart` re-loads all three — otherwise their state survives the wipe and
 the next save writes it back.
 
-**`RulesScreen`** (`Routes.rules = '/rules'`, titled "Blocker rules") — `GlassScaffold`, `InfoButton` (states the Pause
-semantics), an `InlineHint` + "Grant usage access" (`PermissionRepository.request(AppPermission.usageAccess)`)
-when a limit rule exists and the grant is not known-true, the pinned **Daily reel limit** row
-(`DailyLimitCubit` + `ContentCounterCubit.timeToday`, → `Routes.dailyLimit`), then one
-`GlassListTile` per rule (kind icon, name, `RuleSummary.describe`, status `Pill`, `AppToggle`; tap →
-editor), and a FAB → kind picker sheet. It calls `resync()` on entry. Its error listener speaks only
+**`RulesScreen`** (`Routes.rules = '/rules'`, titled "Blocker rules") — `GlassScaffold` on the 20 px
+gutter, `InfoButton` (states the Pause semantics), then uppercase `SectionHeader`s each over **one**
+panel: a "Usage access needed" status line (`Pill`, warning dot) with a `SecondaryButton` "Grant"
+(`requestPermission(context, AppPermission.usageAccess)`) when a limit rule exists and the grant is
+known false; **Daily reel limit** — one row, "Reels · 3h a day" with the status "45m of 3h" (or
+"Limit reached"), both through `formatHm`, and the chevron `Glyph` (`DailyLimitCubit` +
+`ContentCounterCubit.timeToday`, → `Routes.dailyLimit`); **Your rules** — one `PanelGroup` of flat
+`GlassListTile` rows (kind glyph in ink-2, name, `RuleSummary.describe`, status `Pill`, `AppToggle`,
+or a lock glyph for a locked rule; tap → editor); and a `GlassFab` "New rule" → the kind picker
+sheet, whose three rows sit flat on the sheet split by hairlines (each draws its own chevron). It calls `resync()` on entry. Its error listener speaks only
 while the list is the route on top: the editor is pushed over it and consumes its own refusals (the
 listener used to toast the same `LockGuard` reason a second time, or clear it before the editor read
 it and leave the generic "Couldn't save"). The usage hint renders only
@@ -412,32 +421,44 @@ cold entry, against the repo's own "render a neutral Checking… row" convention
 re-resolved by rule id at tap time: a rule deleted meanwhile stays deleted. Turning a rule on is
 direct, with no toast. Deleting a rule stays on the editor's `ConfirmSheet`.
 
-With no rules the screen shows `EmptyState` followed by **Start from a preset** (`RulePreset.all`):
+With no rules the screen shows `EmptyState` (a still icon) followed by **Start from a preset** —
+`RulePreset.all` as one panel of rows, each subtitled `preset.describe(localTimeFormat(context))`:
 the FAB is the blank-page entry point, these are the shortcut past it.
 
 **`RuleEditorScreen`** (`Routes.ruleEditor = '/rules/edit'`, `extra: RuleEditorArgs{kind, rule?}` —
 the router's first `extra`; a foreign extra opens a blank schedule). "Edit" means the passed rule
 is **stored** (its id is in `RulesCubit.state.rules`), not merely passed in: a preset stamp and the
 Activity row's "Limit this app" arrive as fresh, unsaved rules and read as new — "Save rule",
-"created", and no Delete button (which would remove nothing and quietly discard the draft). Top to
-bottom: name; SCHEDULE → day `AppChip`s (default Mon–Fri, labelled from `RuleSummary.dayLabel` and
-announced as full weekday names), Starts / Ends via Flutter's `showTimePicker`, an "ends the next
-morning" hint for overnight windows and an error for equal times; TIME_LIMIT → `AdaptiveSlider`
-5–240 min; OPEN_LIMIT → 1–20 opens; **Block** — the concrete targets first: **Apps** through the
+"created", and no Delete button (which would remove nothing and quietly discard the draft). Each section
+is an uppercase `SectionHeader` over **one** `PanelGroup`, hints under the panel. Top to bottom:
+name; **When** (SCHEDULE) → day `AppChip`s (default Mon–Fri, labelled from `RuleSummary.dayLabel`
+and announced as full weekday names) and flat Starts / Ends rows in the device clock via Flutter's
+`showTimePicker`, an "ends the next morning" hint for overnight windows and an error for equal
+times; **Daily budget** → a `headline` ("1h 30m a day" through `formatHm`, or "5 opens a day") over
+a themed Material `Slider` (TIME_LIMIT 5–240 min, OPEN_LIMIT 1–20 opens); **Block** — the concrete
+targets first, as flat rows with their removable chips under them: **Apps** through the
 shared `showAppPickerSheet` (protected packages marked unavailable, as in the App Blocker), and for
 schedules **Reel feeds** (`ReelFeedSheet` over `ConfigRepository.loadBlockTargets` filtered to
 installed, non-browser targets) and **Websites** (`WebsiteSheet`: `PopularSites` chips + a custom
 host through `DomainValidator.check`, its removable chips announced as "Remove …" and `momentary`,
-so they carry no selected state or check beside their close icon); then a
-**Categories** heading over the category chips (`AppCategorySeed.categories` in seed order, one
+so they carry no selected state or check beside their close icon; the whole chip is the close
+target, at least 48 × 48); `ReelFeedSheet` is one hairline-split list of switch rows on the sheet;
+then a **Categories** `SectionHeader` over the category chips (`AppCategorySeed.categories` in seed order, one
 outline icon per id from `RuleEditorScreen.categoryIcons`, pinned complete by
 `test/rule_editor_test.dart`) in a two-row `ChipRail` (design system — the web blocker's
 popular-site strip lifted into a widget; the caller owns the edge gutter) that scrolls as one unit,
 opened by an **All distracting** quick-pick chip (announced "All distracting categories") that
 toggles every `Catalog.categoriesWithBehavior(distracting)` id through the pure
-`RuleEditorScreen.toggleAll`; then **Commitment** — the **Strict** toggle (EVO-030) and the lock
-section, whose "Cover every distracting app" toggle renders for schedules only (the resolver never
-widens a limit) — last, so the escalation comes after the rule says what it covers. The editor
+`RuleEditorScreen.toggleAll`; then **Commitment** — one panel of the **Strict** toggle (EVO-030),
+"Lock this rule", "Cover every distracting app" (schedules only: the resolver never widens a limit)
+and, for a stored locked rule, the `OverrideTile` — last, so the escalation comes after the rule
+says what it covers. Its hints are one calm line each: Strict — "Strict rules keep blocking apps,
+reel feeds and websites even during a Pause."; a draft lock — "Saving locks this rule. After that
+the only way in is an override."; a stored lock — "Locked: no off switch, no delete, and a Pause
+doesn't lift it. Widen it any time; an override gets you through." Locking asks once through
+`AppDialog.confirm` (not destructive, nothing red): "A locked rule has no off switch and can't be
+deleted. An override lifts it for up to an hour, twice a week. Reset app data is the only way to
+remove it." / "Lock it". The editor
 consumes its own refusal toasts (see `RulesScreen`). Validation: ≥ 1 target; ≥ 1 day and
 `start ≠ end` for a schedule; a limit's budget > 0. Delete is a
 `SecondaryButton(destructive: true)` (its label in the `over` accent text) that asks through a
@@ -460,7 +481,9 @@ the meter is disabled (`ContentCount.enabled == false`).
 **Times are rendered in the device's 12/24-hour setting** (`core/utils/clock_format.dart`), because
 `showTimePicker` honours it — picking "5:00 PM" and reading back "17:00" was a real mismatch.
 `RuleSchedule.formatHHmm` stays the storage and wire form; `RuleSummary`'s `describe` / `status` /
-`nextEvent` / `clock` take an optional `TimeFormat` and the UI passes the locale-aware one.
+`nextEvent` / `clock` take an optional `TimeFormat` and the UI passes the locale-aware one, as do
+the presets' `describe(time)`. Spans read compact through `formatHm`: a time limit is "30m a day"
+and its status "22m of 30m".
 `formatLocalTime` drops a zero minute on a 12-hour clock ("11 PM", "7:30 AM"; checked through
 `hourFormat(of: timeOfDayFormat(...)) == HourFormat.h`, so a locale that is 24-hour by default is
 untouched); a 24-hour clock keeps "23:00".
@@ -483,7 +506,8 @@ document and the wire.
   passthrough, `used == threshold` spent, projected boundary, unknown usage never spends, open
   limit, the daily reel limit entry, the wire keys), `Rule` JSON round-trips + unknown kind dropped,
   `syncRules` (push, abort on corrupt, denied → unspent, granted spends via usage and via
-  `countOpens`), `RuleSummary` copy, and `RulesCubit` (load pushes, optimistic save, failed save
+  `countOpens`), `RuleSummary` copy (compact "30m a day" / "22m of 30m", and the presets'
+  `describe(time)` in a 12-hour and a 24-hour clock), and `RulesCubit` (load pushes, optimistic save, failed save
   reverts, toggle off pushes `[]`, `ruleBoundary` re-pushes, the 50-rule cap). Plus the regressions
   this feature actually had: a limits-only snapshot still pushes its boundary; a nearly-spent limit
   floors its projection to a minute; a mutation after a failed load is refused, never written; a
@@ -494,7 +518,10 @@ document and the wire.
   each budget kind reads only its UsageStats query; an unchanged snapshot pushes the boundary
   without the array; a push native did not take reports nothing; queued resyncs run as one.
 - Dart `test/rule_editor_test.dart` — every seed category has an icon; the catalog's distracting
-  ids in seed order; `toggleAll` adds the missing ids then clears exactly those.
+  ids in seed order; `toggleAll` adds the missing ids then clears exactly those; the screen reads
+  "30m a day" with "Categories" as a section, the one-sentence Strict hint, and the calm Lock
+  confirm followed by the draft-lock hint. `test/removable_chips_test.dart` pins the 48 × 48 close
+  target; `test/starter_rule_test.dart` maps a skipped survey to "Reel budget".
   `test/core/design_system/chip_rail_test.dart` — the even split with leading / trailing, and both
   rows moving as one scroll.
 - JVM `engine/RuleEngineTest.kt` (with `testImplementation("org.json:json")`, so the parse itself
@@ -512,7 +539,9 @@ document and the wire.
 - `test/rules_screen_semantics_test.dart` — the `!semantics.parentDataDirty` class from
   `web_block_screen_semantics_test.dart`: a `ruleBoundary` and a toggle flip while the screen is
   open must not corrupt the semantics tree. Plus the C10 Undo toast: "{rule} off" + Undo turns it
-  back on; Undo after a delete is a no-op; turning on and a failed save show no toast.
+  back on; Undo after a delete is a no-op; turning on and a failed save show no toast. Plus the M4
+  rows: "Usage access needed" + "Grant", the compact rule copy, no chevron icons, and the presets
+  in the 12-hour clock inside one panel.
 - `test/resume_sync_test.dart` pins `RulesCubit.resync()` on the cheap leg;
   `test/plans_pause_curious_test.dart`'s fake engine grew the two new members.
 - Device sanity (not automatable here): a 2-minute schedule on a reel feed raises "Blocked by a

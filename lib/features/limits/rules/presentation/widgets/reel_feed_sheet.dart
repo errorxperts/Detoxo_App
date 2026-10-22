@@ -46,21 +46,20 @@ class _ReelFeedSheetState extends State<ReelFeedSheet> {
             constraints: BoxConstraints(
               maxHeight: MediaQuery.sizeOf(context).height * 0.5,
             ),
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                for (final o in widget.options) ...[
-                  AppToggleTile(
-                    title: o.label,
-                    value: _picked.contains(o.id),
-                    selected: _picked.contains(o.id),
-                    onChanged: (on) => setState(() {
-                      on ? _picked.add(o.id) : _picked.remove(o.id);
-                    }),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
+            // Flat switch rows on the sheet, split by hairlines.
+            child: SingleChildScrollView(
+              child: PanelGroup(
+                children: [
+                  for (final o in widget.options)
+                    AppToggleTile(
+                      title: o.label,
+                      value: _picked.contains(o.id),
+                      onChanged: (on) => setState(() {
+                        on ? _picked.add(o.id) : _picked.remove(o.id);
+                      }),
+                    ),
                 ],
-              ],
+              ),
             ),
           ),
         const SizedBox(height: AppSpacing.md),
