@@ -1054,5 +1054,5 @@ Cross-feature (the migrated counter hub; the app theme lives here too):
   floor); a horizontal drag anywhere on the track scrubs the selection live under the
   finger (`onChanged` fires as each segment is crossed — a theme picker previews
   live); reduce-motion collapses all of it to `Duration.zero`. `selectedIndex: -1`
-  lights nothing (the chip fades out) — the Unblock sheet's quick picks use it for a
-  custom value.
+  lights nothing (the chip fades out), for a custom value; no screen passes it since
+  the Session sheet took over Pause (its quick picks hide their own chip the same way).

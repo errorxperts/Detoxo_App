@@ -73,8 +73,8 @@ change:
 - **One Reel** — feeling the itch? This lets you watch a single clip, then closes the
   feed so one doesn't become fifty. Tap it again for one more.
 - **Pause** — need the feed for a bit (finding a specific video, showing a
-  friend)? Tap **Pause** and pick **Time** (1–10 minutes) or **Reels** (2–20 — an
-  **Unblock**), and blocking steps aside. When the time or the reels run out,
+  friend)? Tap **Pause** for 1–10 minutes, or **Unblock** on the Today ring for 1–20
+  reels, tap **Start**, and blocking steps aside. When the time or the reels run out,
   protection switches itself back on automatically — no way to "forget" to re-enable it.
 
 > A note on the name: in the app this earn-as-you-go mode is called **Conscious** —

@@ -17,6 +17,7 @@ import 'package:detoxo/features/limits/web_blocker/domain/repositories/web_block
 import 'package:detoxo/features/limits/web_blocker/domain/utils/domain_validator.dart';
 import 'package:detoxo/features/limits/web_blocker/presentation/web_block_cubit.dart';
 import 'package:detoxo/features/limits/web_blocker/presentation/web_block_state.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -641,7 +642,8 @@ Future<void> _showAllowSheet(BuildContext context, WebBlockEntry entry) async {
   final unblock = context.read<UnblockCubit>();
   final window = await showUnblockDurationSheet(
     context,
-    label: entry.label,
+    title: 'Unblock ${entry.label}?',
+    icon: Assets.images.icons.iconWebBlocker,
     remaining: unblock.state.grantsLeft,
   );
   if (window == null) return;
@@ -661,7 +663,7 @@ Future<void> _showAllowSheet(BuildContext context, WebBlockEntry entry) async {
   if (ok && context.mounted) {
     GlassToast.show(
       context,
-      '${entry.label} allowed for ${window.inMinutes} min',
+      '${entry.label} unblocked for ${window.inMinutes} min',
       tone: AppTone.success,
     );
   }

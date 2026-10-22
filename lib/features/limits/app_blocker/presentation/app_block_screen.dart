@@ -16,6 +16,7 @@ import 'package:detoxo/features/limits/unblock/presentation/unblock_cubit.dart';
 import 'package:detoxo/features/limits/unblock/presentation/widgets/unblock_duration_sheet.dart';
 import 'package:detoxo/features/limits/web_blocker/domain/web_block_sync.dart';
 import 'package:detoxo/features/protected_apps/protected_apps.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -232,7 +233,8 @@ class _AppBlockViewState extends State<_AppBlockView> {
     final unblock = context.read<UnblockCubit>();
     final window = await showUnblockDurationSheet(
       context,
-      label: entry.appName,
+      title: 'Unblock ${entry.appName}?',
+      icon: Assets.images.icons.iconAppBlocker,
       remaining: unblock.state.grantsLeft,
     );
     if (window == null) return;
@@ -243,13 +245,13 @@ class _AppBlockViewState extends State<_AppBlockView> {
       source: UnblockSource.blocklistRow,
     );
     // Only on success. A failed write reverts the grant and emits `error`,
-    // which `PendingUnblockListener` toasts app-wide — announcing "allowed for
-    // 15 min" over an app that is still blocked is the one thing this must not
-    // do.
+    // which `PendingUnblockListener` toasts app-wide — announcing "unblocked
+    // for 15 min" over an app that is still blocked is the one thing this must
+    // not do.
     if (ok && context.mounted) {
       GlassToast.show(
         context,
-        '${entry.appName} allowed for ${window.inMinutes} min',
+        '${entry.appName} unblocked for ${window.inMinutes} min',
         tone: AppTone.success,
       );
     }

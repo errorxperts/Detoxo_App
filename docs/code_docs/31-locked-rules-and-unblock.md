@@ -86,11 +86,24 @@ user picked themselves. Both hide entirely when there is nothing true to say.
 
 ### Durations
 
-Reuse, not reinvention: `showUnblockDurationSheet` is the web blocker's EVO-012 pause sheet lifted
-verbatim — a `GlassBottomSheet` of **5 / 15 / 30 / 60**-minute `AppChip`s. Every entry point uses
-it, and the override sheet in the rule editor (`_OverrideTile` / `_showOverrideSheet` — there is no
-separate screen or route) passes `maxWindow` so it cannot buy more than the quota allows. Backing
-out grants nothing.
+Reuse, not reinvention: `showUnblockDurationSheet` is the web blocker's EVO-012 pause sheet, now a
+caution **`ConfirmSheet`** (`title`, `icon`, `message`, `action`, `cancel`, `maxWindow`,
+`remaining` → `Future<Duration?>`): an `Icon3d` well, the title, a message (default "It gets
+blocked again when the time is up."), **5 / 15 / 30 / 60**-minute `AppChip`s with 5 picked, and
+"N allowances left in this period." when `remaining` is set. The picked window comes back only
+after the 5 s wait and the slide ("Slide to unblock" / "Keep it blocked" by default); backing out
+grants nothing. `remaining == 0` toasts `UnblockCubit.noGrantsLeft` and never opens the sheet, so
+nobody waits and slides into a refusal. The caller commits and toasts only once the commit lands:
+
+| Entry point | Title | Icon | Toast |
+|---|---|---|---|
+| App Blocker row | "Unblock {app}?" (+ allowances line) | `iconAppBlocker` | "{app} unblocked for 15 min" |
+| Website row | "Unblock {site}?" (+ allowances line) | `iconWebBlocker` | "{site} unblocked for 15 min" |
+| Block-screen wall (`PendingUnblockListener`, still behind the gate wait and routed through `appNavigatorKey`) | "Unblock this app?" / "this feed?" / "{host}?" | `iconWebBlocker` for a website, else `iconAppBlocker` | "Unblocked for 15 min" |
+| Override (`OverrideTile` / `showOverrideSheet` in the rule editor — no separate screen or route) | "Lift {rule} for a while?", message "You have N overrides left this week.", "Slide to lift" / "Keep it locked" | `iconBlockerRules` | "{rule} lifted for 15 min", or the refusal |
+
+The override still asks for its reason first, has no PIN by design, and passes `maxWindow` so it
+cannot buy more than the quota allows.
 
 ### Wire — `pushTemporaryUnblocks {json}`
 
@@ -508,9 +521,15 @@ Event types stay at **9**; command methods go 50 → **52** (`pushTemporaryUnblo
   **an unknown-usage limit staying spent through a lift** (the hole cut in the previous snapshot
   would otherwise read as "never spent" and silently un-spend the budget for good); and a lift on a
   rule with no open window not being reported as "Lifted".
-- `test/pending_unblock_test.dart` — the wall hand-off in the real widget shape: the sheet opens
-  from the builder context, backing out grants nothing, and a tap arriving behind the PIN lock is
-  held until the gate opens.
+- `test/pending_unblock_test.dart` — the wall hand-off in the real widget shape: "Unblock this
+  app?" opens from the builder context, 15 min + the 5 s wait + the slide mints exactly one grant
+  of that length and toasts "Unblocked for 15 min", backing out grants nothing, and a tap arriving
+  behind the PIN lock or a resume re-lock is held until the gate opens.
+- `test/unblock_duration_sheet_test.dart` — `remaining == 0` toasts and opens nothing; the chips
+  respect `maxWindow` with 5 min picked; the allowances line; the slide returns the window and
+  "Keep it blocked" returns null.
+- `integration_test/blockers_e2e_test.dart` (device) — the website allow picks 5 min, waits out
+  the 5 s and slides the knob.
 - `test/web_block_screen_semantics_test.dart` provides an `UnblockCubit` (the row reads its pill
   off it) and `integration_test/blockers_e2e_test.dart` asserts the grant, not the old field.
 - Device sanity (not automatable here): unblocking Instagram leaves reels blocked in every other app
@@ -528,7 +547,7 @@ Event types stay at **9**; command methods go 50 → **52** (`pushTemporaryUnblo
 - `lib/features/limits/rules/domain/entities/{rule,rule_snapshot}.dart` (`locked`, `lockScope`, `isStrict`, `RuleStatus.liftedUntilMs`)
 - `lib/features/limits/rules/domain/usecases/{lock_guard,resolve_snapshot,rule_summary}.dart`
 - `lib/features/limits/rules/domain/rule_sync.dart` (the ledger leg)
-- `lib/features/limits/rules/presentation/{rules_cubit,rules_screen,rule_editor_screen}.dart`
+- `lib/features/limits/rules/presentation/{rules_cubit,rules_screen,rule_editor_screen}.dart`, `presentation/widgets/override_tile.dart` (reason sheet, then the override `ConfirmSheet`)
 - `lib/features/limits/web_blocker/domain/entities/web_block_entry.dart` (`pausedUntil` removed)
 - `lib/features/limits/web_blocker/domain/web_block_sync.dart`, `presentation/{web_block_cubit,web_block_screen}.dart`
 - `lib/features/limits/app_blocker/presentation/app_block_screen.dart` (the per-row Allow action)
@@ -545,5 +564,6 @@ Event types stay at **9**; command methods go 50 → **52** (`pushTemporaryUnblo
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/accessibility/DetoxoAccessibilityService.kt` (the four check sites, `refreshTemporaryUnblocks`, the browser re-gate, the `offersUnblock` producers, `foregroundReelUnblocked`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenOverlay.kt` (the `ACTION_UNBLOCK` branch)
 - `android/app/src/test/kotlin/com/errorxperts/detoxo/engine/{UnblockRegistryTest,RuleEngineTest}.kt`
-- `test/{temporary_unblock_test,override_quota_test,pending_unblock_test,rules_engine_test,web_blocker_test,web_block_screen_semantics_test}.dart`
+- `lib/core/design_system/components/confirm_sheet.dart` (the sheet every per-target unblock opens)
+- `test/{temporary_unblock_test,override_quota_test,pending_unblock_test,unblock_duration_sheet_test,rules_engine_test,web_blocker_test,web_block_screen_semantics_test}.dart`
 - `integration_test/blockers_e2e_test.dart`

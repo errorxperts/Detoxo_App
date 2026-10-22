@@ -7,11 +7,12 @@ import 'package:detoxo/core/navigation/app_router.dart';
 import 'package:detoxo/features/limits/unblock/domain/entities/temporary_unblock.dart';
 import 'package:detoxo/features/limits/unblock/presentation/unblock_cubit.dart';
 import 'package:detoxo/features/limits/unblock/presentation/widgets/unblock_duration_sheet.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Opens the duration sheet for a target the user tapped "Allow for a while"
-/// on, on the native block screen (M8).
+/// Opens the duration [ConfirmSheet] for a target the user tapped "Allow for
+/// a while" on, on the native block screen (M8).
 ///
 /// Mounted in `MaterialApp.router`'s `builder`, so it is inside the router (it
 /// can read the gate, and it survives every route change) but **above the
@@ -67,8 +68,13 @@ class _PendingUnblockListenerState extends State<PendingUnblockListener> {
       ..clearPending();
     final nav = appNavigatorKey.currentContext;
     if (nav == null) return;
-    final label = _label(pending);
-    final window = await showUnblockDurationSheet(nav, label: label);
+    final window = await showUnblockDurationSheet(
+      nav,
+      title: 'Unblock ${_label(pending)}?',
+      icon: pending.targetType == UnblockTargetType.website
+          ? Assets.images.icons.iconWebBlocker
+          : Assets.images.icons.iconAppBlocker,
+    );
     if (window == null) return;
     final ok = await unblock.grant(
       pending.targetType,
@@ -80,7 +86,7 @@ class _PendingUnblockListenerState extends State<PendingUnblockListener> {
     // this the bare `return` left the user with nothing at all after they had
     // picked a duration.
     if (!ok) return;
-    _toast('$label allowed for ${window.inMinutes} min', AppTone.success);
+    _toast('Unblocked for ${window.inMinutes} min', AppTone.success);
   }
 
   /// Toasts through the routed Navigator's context, re-read rather than

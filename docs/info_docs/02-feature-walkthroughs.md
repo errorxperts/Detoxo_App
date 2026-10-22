@@ -154,7 +154,7 @@ The modes fall into two groups:
 |---|---|
 | **Block All** | The strict default and a **base** mode. Every reel or short Detoxo detects gets you pulled out immediately; it stays until you change it. |
 | **One Reel** | *Temporary.* Watch a single reel, then it returns to your base mode. Tap it again to watch one more. See below. |
-| **Unblock** | *Temporary.* From **Pause**'s **Reels** tab, choose how many reels to unlock (**2–20**); watch that many, then it returns to your base mode. See below. |
+| **Unblock** | *Temporary.* Tap **Unblock** on the Today ring and choose how many reels to let through (**1–20**); watch that many, then it returns to your base mode. See below. |
 | **Conscious** | A **base** mode — you *earn* watch-time by staying off reels first. See below. |
 | **Pause** | *Temporary.* A short, timed break from reel and website blocking; then it returns to your base mode. (Apps you've fully locked stay locked.) |
 
@@ -204,17 +204,19 @@ what's remaining.
 **Unblock** is One Reel with a count: instead of exactly one reel, you decide how
 many to let through before your base mode snaps back.
 
-1. Tap **Pause** on the Command Center and switch the **Unblock reels** sheet to
-   its **Reels** tab.
-2. Pick a count — **2 to 20 reels** — with **−** / **+** (hold either to change
-   faster) or a quick pick (5, 10, 15, 20).
-3. Tap **Unlock N reels** to start.
+1. Tap **Unblock** on the Today ring. The **Session blocker** sheet opens
+   **By reel count**.
+2. Pick a count — **1 to 20 reels**, 10 to start — with **−** / **+** (hold either
+   to change faster) or a quick pick (5, 10, 15, 20). The line underneath says
+   when blocking resumes.
+3. Tap **Start 10-reel session** (the button follows your count). It turns green
+   and reads **Session started**, then the sheet closes.
 
 You can now watch that many reels; each time you **scroll to the next reel** it
 counts one toward your allowance, and the card shows a live "**N of M reels left**"
 line. Once you've used them up, Detoxo **returns to your base mode** (Block All or
-Conscious) until you open **Pause** → **Reels** and confirm a new count — every confirmation
-hands you a fresh allowance.
+Conscious) until you tap **Unblock** and start a new count — every start hands you a fresh
+allowance.
 
 > Like every blocking mode, **One Reel** and **Unblock** need Detoxo's
 > **Accessibility** permission switched on (§2) to detect and count reels.
@@ -252,15 +254,16 @@ on fresh, you start with an empty bank — you always have to earn the first min
 freely for a set number of minutes — handy when you genuinely want a breather
 without turning protection off for good.
 
-1. Tap **Pause** on the Command Center — the **Unblock reels** sheet opens on its
-   **Time** tab (switch to **Reels** to unblock a number of reels instead — see
-   Unblock above).
-2. Use **−** / **+** to choose a length — **1 to 10 minutes** (4 by default) — or
-   tap a quick pick (2, 4, 6, 10). The sheet shows the time blocking returns.
-3. Confirm. The card shows a **live countdown** and a *Paused* banner.
+1. Tap **Pause** among the blocking modes. The **Session blocker** sheet opens
+   **By time** (to unblock a number of reels instead, see Unblock above).
+2. Drag the dial to choose a length — **1 to 10 minutes**, 5 to start — or tap a
+   quick pick (1, 3, 5, 10). The line underneath shows the time blocking resumes,
+   in your phone's 12- or 24-hour format.
+3. Tap **Start 5-min session** (the button follows your choice). It reads
+   **Session started**, the sheet closes, and Today shows a **live countdown**.
 4. When the timer runs out, Detoxo **returns to your base mode automatically** —
    Block All or Conscious, whichever you were on before the break. You can also tap
-   **Resume** to end the break early.
+   **Block now** on the ring to end the break early.
 
 > **App locks hold through a Pause.** Apps you've fully locked on the **Block
 > apps** screen stay locked during the break — a Pause is for reels and
@@ -970,9 +973,10 @@ one message? Your only option was to lift protection on **everything** — reels
 every blocked site — and hope you remembered to put it back.
 
 Now you can free **one thing**. Tap the timer button on the blocked app's row (or **Allow for a
-while** right on the
-block screen itself), pick 5, 15, 30 or 60 minutes, and that one app — or that one feed, or that
-one site — opens. Everything else stays exactly as protected as it was.
+while** right on the block screen itself). Detoxo asks **Unblock Instagram?**: pick 5, 15, 30 or
+60 minutes (5 is picked for you), take the five-second breath it asks for, then slide to unblock.
+That one app — or that one feed, or that one site — opens, and a short note confirms it.
+Everything else stays exactly as protected as it was.
 
 - **It ends by itself.** Detoxo puts the block back when the time is up, even if you never open
   the app again, and even if your phone restarts in the middle. Moving your phone's clock back
@@ -984,7 +988,9 @@ one site — opens. Everything else stays exactly as protected as it was.
 - **One place lists what's open.** The home screen shows an *Allowed right now* card while
   anything is, with a Resume button beside each one. It disappears when nothing is.
 - **You can cap how often.** Under **Settings → Protection → Allowances** you can limit yourself
-  to 1, 2, 3 or 5 a day. It ships as *Unlimited*, so nothing changes unless you ask for it.
+  to 1, 2, 3 or 5 a day. It ships as *Unlimited*, so nothing changes unless you ask for it. The
+  sheet shows how many you have left, and once they are gone Detoxo says so straight away
+  instead of making you wait and slide first.
 - **The row tells you where you stand** — *Allowed until 5:30 PM* — and stops saying so the
   moment it lapses.
 - **A Pause is still a Pause.** It lifts reels and websites the way it always did; it does not
@@ -1011,7 +1017,8 @@ holds over every app Detoxo knows to be distracting, including ones you haven't 
 A lock you can never escape is a lock you escape by uninstalling the app, so there's an honest
 door — it just costs something. You get **two overrides a week**. Spending one means naming a
 reason (feeling unwell, medical appointment, family, your schedule changed, you set the rule up
-wrong, or something else) and choosing how long, up to an hour.
+wrong, or something else), then choosing how long, up to an hour, on a sheet that reminds you how
+many overrides you have left this week, and sliding to lift the rule.
 
 Then that **one rule** steps aside for exactly that long. Not your other rules, not your app
 blocks, not anything else — and it comes back on time whether or not Detoxo is running. The rule

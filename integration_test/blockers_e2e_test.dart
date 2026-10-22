@@ -152,12 +152,22 @@ void main() {
       reason: 'did not come back to the Web Blocker screen after the probe',
     );
 
-    // Pause the site for 5 min: tap the row (opens the swipe pane) → Pause.
+    // Allow the site for 5 min: tap the row (opens the swipe pane) → Allow,
+    // then the ConfirmSheet: pick 5 min, wait out the 5 s, slide.
     await tester.tap(row);
     await settle(tester, frames: 8);
     await tester.tap(find.text('Allow'));
     await settle(tester, frames: 8);
     await tester.tap(find.text('5 min'));
+    expect(
+      await waitFor(tester, find.text('Slide to unblock')),
+      isTrue,
+      reason: 'the unblock wait did not end',
+    );
+    await tester.drag(
+      find.byKey(ConfirmSheet.knobKey),
+      Offset(tester.getSize(find.byKey(ConfirmSheet.trackKey)).width, 0),
+    );
     expect(
       await waitFor(tester, find.textContaining('Allowed until')),
       isTrue,

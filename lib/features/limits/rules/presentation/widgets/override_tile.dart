@@ -6,6 +6,7 @@ import 'package:detoxo/features/limits/rules/presentation/rules_cubit.dart';
 import 'package:detoxo/features/limits/unblock/domain/entities/bypass_entry.dart';
 import 'package:detoxo/features/limits/unblock/presentation/unblock_cubit.dart';
 import 'package:detoxo/features/limits/unblock/presentation/widgets/unblock_duration_sheet.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -66,9 +67,9 @@ class OverrideTile extends StatelessWidget {
   }
 }
 
-/// Reason first, then the window — in that order on purpose: naming the reason
-/// is the friction, and picking a duration before it would make the reason feel
-/// like paperwork after the fact.
+/// Reason first, then the window on the [ConfirmSheet] — in that order on
+/// purpose: naming the reason is the friction, and picking a duration before
+/// it would make the reason feel like paperwork after the fact.
 Future<void> showOverrideSheet(BuildContext context, Rule rule) async {
   final unblock = context.read<UnblockCubit>();
   final rules = context.read<RulesCubit>();
@@ -89,9 +90,15 @@ Future<void> showOverrideSheet(BuildContext context, Rule rule) async {
     ),
   );
   if (reason == null || !context.mounted) return;
+  final left = unblock.state.overridesLeft;
   final window = await showUnblockDurationSheet(
     context,
-    label: rule.name,
+    title: 'Lift ${rule.name} for a while?',
+    icon: Assets.images.icons.iconBlockerRules,
+    message:
+        'You have $left ${left == 1 ? 'override' : 'overrides'} left this week.',
+    action: 'Slide to lift',
+    cancel: 'Keep it locked',
     maxWindow: Duration(milliseconds: unblock.state.config.overrideMaxWindowMs),
   );
   if (window == null) return;
