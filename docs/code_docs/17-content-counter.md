@@ -708,23 +708,33 @@ on/off toggles and the links into those editors now live on the shared
   removed: its counting controls and the Bubble-style / Home-widget entries
   migrated to the shared **Appearance** screen
   (`features/additional_feature/appearance/presentation/appearance_screen.dart`).
-  There a single **Count short videos** master switch gates the section, and the
-  **Bubble** and **Home widget** are hero cards each rendering a large live
-  `BubblePreview` / `WidgetPreview` you tap to open its editor. The bubble carries
-  its own on/off (`bubbleEnabled`) on its card; the widget has **no** independent
-  enable (a placed widget always updates), so its card is gated by the counting
-  master. The section is a plain reader of the two app-wide cubits
+  The hub follows the Frozen Glass section idiom (gutter 20, an uppercase
+  `SectionHeader` over one `PanelGroup` per section, no glass inside glass):
+  **Theme** (one words-only System / Light / Dark `GlassSegmented`, 44 tall like
+  the widget editor's Theme, so "System" fits a 360 dp phone), **Reel counter**
+  and **Block screen**. The Reel counter panel holds the **Count short videos**
+  master row (`AppToggleTile`) and, under a hairline, two flat `_SurfaceTile`s
+  split by a vertical hairline: **Bubble** and **Widget**, each a title row, a
+  large live `BubblePreview` / `WidgetPreview` you tap to open its editor, and a
+  status line. The bubble carries its own on/off (`bubbleEnabled`, its switch
+  named "Bubble" for TalkBack); the widget has **no** independent enable (a
+  placed widget always updates), so its tile is gated by the counting master.
+  The section is a plain reader of the two app-wide cubits
   (`ContentCounterCubit` for switches / grant / figures,
   `CounterAppearanceCubit` for the live styles) — no `sl<>` repos and no
-  `setState` mirrors of native state. When the bubble is on but the grant is
-  missing (`bubbleBlocked`) the card shows a warning row — *Needs "Display over
-  other apps" — tap to allow* — that opens the system screen (EVO-022). Each
-  preview is an `AppPressable` (announced as a button; the bubble's and the
-  widget's disable when their surface is off, the block screen's stays live — its
-  editor carries the same switch, [25](25-block-screen.md) §6). A card's off hint
-  and its grant warning slide in and out (`AppReveal`, `NoticeLine`: design
-  system, `components/feedback.dart`) instead of popping the card. With counting off the Activity card's breakdown says so instead of
-  promising reels that can't be counted.
+  `setState` mirrors of native state. The status line is the design system's
+  `Pill` (spec `.dx-status`: a dot and a word in subhead ink-2, no amber text):
+  **On** (status-on dot), **Off** (the word only), or **Needs access**
+  (status-setup dot) when the bubble is on but the grant is missing
+  (`bubbleBlocked`); that one is a 48 dp `AppPressable` that opens the system
+  screen (EVO-022). It is always one 48 dp line, so a change cross-fades the
+  word in place rather than moving the tile. Each preview is an `AppPressable`
+  (announced as a button; the bubble's and the widget's disable and dim when
+  their surface is off, the block screen's stays live — its editor carries the
+  same switch, [25](25-block-screen.md) §6). Every fade on the hub runs through
+  `context.motion`, so "Remove animations" stills it. With counting off the
+  Insights By app section says so instead of promising reels that can't be
+  counted.
 - **Appearance carrier**: `CounterAppearance` (bubble + widget styles) with
   `CounterAppearanceCubit` — each setter emits immediately (so the preview tracks
   the slider with no lag) but **debounces the native push by 120ms** so dragging a
@@ -828,19 +838,21 @@ on/off toggles and the links into those editors now live on the shared
 - `BubbleStyleScreen` — laid out like `HomeWidgetScreen`: a swipeable
   152 dp `PageView` stage of every style on the shared `StageSurface` (the
   `sizeMax` bubble plus its pill; viewport 0.86 of a pager widened past the
-  screen with an `OverflowBox`, so the centred glass spans exactly the 16 dp
-  gutters and each neighbour, scaled and dimmed by the shared `StagePage` and
-  pulled back by its `peek`, shows 8 dp at the screen edge; only the centred
+  screen with an `OverflowBox`, so the centred glass spans exactly the 20 dp
+  gutters (`AppInsets.screen`) and each neighbour, scaled and dimmed by the
+  shared `StagePage` and pulled back by its `peek`, shows 12 dp (gutter − 2 ·
+  `xxs`) at the screen edge; only the centred
   page's 220 × 152 `BubblePreview` animates and takes taps, a side page tap
   flies there) → one centred line, the style's name · its mood /
   next-colour line (cross-fading per style) → one row: the count, the
-  **Preview count** slider (0–500) and a **Replay appear** icon button →
+  **Preview count** slider (0–500) and a **Replay appear** icon button (ink-2) →
   `SectionHeader('Style')` + the six styles as 88 px static thumbnails in an
-  84 × 96 `VariantCarousel` laid edge to edge (`inset: md`, so it rests on the
-  gutter and scrolls out to the screen edge; staggered in by the shared
+  84 × 96 `VariantCarousel` laid edge to edge (`inset: gutter`, so it rests on
+  the gutter and scrolls out to the screen edge; staggered in by the shared
   `RailThumb`, which also scrolls the selected one into view) →
-  `SectionHeader('Customize')` + **Size** and
-  **Opacity**. A swipe selects the page it settles on; a rail tap selects and
+  `SectionHeader('Customize')` + one `PanelGroup` of two flat slider rows,
+  **Size** and **Opacity** (label / ink, value in subhead / ink-2, a themed
+  Material `Slider`). A swipe selects the page it settles on; a rail tap selects and
   flies the stage; a style set elsewhere (the cubit's first load) moves the
   stage. Each section rebuilds only for its inputs (the preview count is a
   `ValueNotifier`; the live watch time rebuilds only the stage).
@@ -851,25 +863,31 @@ on/off toggles and the links into those editors now live on the shared
   gradient; the hint reads in `ink2`. (The
   board's fixed dark/light stage gradients are gone.) Every slider's value is
   formatted once for both the visible label and the screen reader
-  (`AdaptiveSlider.semanticFormatter`), so TalkBack says "56 dp", not a bare
-  percentage.
+  (`Slider.semanticFormatterCallback`), so TalkBack says "56 dp", not a bare
+  percentage. Reduce Motion goes through the design system's `context.motion`
+  in both editors and `stage_carousel.dart` (the page flight jumps, the stage
+  entrance, rail stagger and caption cross-fades are skipped); the three files
+  no longer keep their own `_still` / `_motion` helpers.
 - `HomeWidgetScreen` + screen-scoped `HomeWidgetCubit` (`home_widget_cubit.dart`,
   state `{family, size, payload, loading}`; `load()` pulls `payload()` with no
   demo flag, `select`, `selectSize`, `pin()`). Top to bottom: a swipeable
-  `PageView` stage (viewport 0.86, each tile straight on the page with no
-  surface behind it (the tile is its own surface), a narrow neighbour pulled in
-  to peek, neighbours scaled 0.90 and dimmed to 0.55, height morphing with the
-  size), the family name + blurb, the six families as
+  `PageView` stage (gutter 20; viewport 0.86, each tile straight on the page
+  with no surface behind it (the tile is its own surface), a narrow neighbour
+  pulled in to peek, neighbours scaled 0.90 and dimmed to 0.55, height morphing
+  with the size), the family name + blurb, the six families as
   64 px static Small thumbnails in the design system's `VariantCarousel`, the
-  **Size** `GlassSegmented` (preview only — an `InfoButton` says a pinned widget is
-  resized on the home screen), a **Set a daily limit** link shown only for Time
-  limit with no limit (reloads the payload on return), **Theme** (System / Light /
-  Dark, owned by `CounterAppearanceCubit` and overlaid onto the payload, so
-  neither cubit depends on the other), and **Add to home screen** →
-  `pin(family)`. The toast is truthful: Small "Confirm the prompt to add it to
-  your home screen.", Medium / Large "…then long-press it and drag to resize.",
-  and the add-by-hand copy when the launcher can't pin. Entrance stagger, and
-  every motion off under "remove animations". The Appearance hub card shows the
+  **Size** `GlassSegmented` (preview only, which the `SectionHeader`'s note
+  says: "Preview only"; a pinned widget is resized on the home screen), a
+  **Set a daily limit** row shown only for Time limit with no limit — a
+  standalone `GlassListTile` panel row with the ink-3 chevron (reloads the
+  payload on return) — **Theme** (System / Light / Dark, owned by
+  `CounterAppearanceCubit` and overlaid onto the payload, so neither cubit
+  depends on the other), and **Add to home screen** → `pin(family)`. The toast
+  is truthful and short: Small "Confirm the prompt to add it.", Medium / Large
+  "Confirm the prompt, then long-press it to resize.", "Add it by hand:
+  long-press your home screen and pick Detoxo from Widgets." when the launcher
+  can't pin, and "Couldn’t add the widget. Try again." when the call failed.
+  Entrance stagger, and every motion off under "remove animations". The Appearance hub card shows the
   Count face on the demo day (`WidgetPayload.demo`, `animate: false`).
 - The bubble editor reads the app-wide `CounterAppearanceCubit` and seeds its preview
   figures from the live `ContentCounterCubit` (no snapshot re-pull); the
@@ -1025,7 +1043,9 @@ Dart (`lib/…`):
 Tests: `test/content_counter_test.dart` (snapshot mapping, catalog fallback,
 `watch()` filtering, cubit switch / grant paths),
 `test/counter_style_test.dart`, the bubble's `test/bubble_{model,painter,preview,style_screen}_test.dart` + `test/svg_path_test.dart` (shared fixture `test/fixtures/bubble_cases.json`; native `overlay/bubble/*Test`), the home widgets'
-`test/home_widget_{payload,model,preview,cubit,screen}_test.dart` +
+`test/home_widget_{payload,model,preview,cubit,screen,screen_semantics}_test.dart` +
+`test/appearance_block_screen_card_test.dart` (the hub's status lines: the off
+meaning, On ×3, Needs access opening the grant, no `NoticeLine`) +
 `test/widget_tap_listener_test.dart` (the shared fixtures in `test/fixtures/`),
 and the native `ReelTrackerTest`, `ContentCounterStoreTest` and
 `widget/{WidgetPayload,WidgetModel,WidgetGeometry,ReelWidgetSync,HomeWidgets,…}Test`
@@ -1034,10 +1054,12 @@ and the native `ReelTrackerTest`, `ContentCounterStoreTest` and
 Cross-feature (the migrated counter hub; the app theme lives here too):
 
 - `features/additional_feature/appearance/presentation/appearance_screen.dart` — the
-  shared **Appearance** screen that now hosts the **Count short videos** master switch
-  and the Bubble / Home-widget hero cards (large live `BubblePreview` / `WidgetPreview`,
-  tapped to edit; bubble on/off on its card, widget gated by the master), plus the app
-  theme (one System / Light / Dark `GlassSegmented` control; there is no background picker).
+  shared **Appearance** screen that now hosts the **Count short videos** master row
+  and the flat Bubble / Widget tiles in one Reel counter panel (large live
+  `BubblePreview` / `WidgetPreview`, tapped to edit; bubble on/off on its tile, widget
+  gated by the master; an On / Off / Needs access `Pill` under each), the Block screen
+  panel, plus the app theme (one System / Light / Dark `GlassSegmented` control; there
+  is no background picker).
   `GlassSegmented` (design system, `components/selection.dart`) is the shared
   Frozen Glass OPTION segmented control — a quiet `fillQuiet` pill track (no shadow)
   with a solid `optionBase` chip that slides 500 ms on the chip overshoot plus the

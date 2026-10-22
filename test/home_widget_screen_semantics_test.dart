@@ -189,6 +189,15 @@ void main() {
           .label,
       isNot(contains('reels')),
     );
+    // The bubble's switch is named, not a bare "switch".
+    expect(
+      tester.getSemantics(
+        find.byWidgetPredicate(
+          (w) => w is AppToggle && w.semanticLabel == 'Bubble',
+        ),
+      ),
+      isSemantics(label: 'Bubble', hasToggledState: true, isToggled: true),
+    );
     // Floored to the minute, so a rebuild hands the preview an equal payload.
     final preview = tester.widget<WidgetPreview>(find.byType(WidgetPreview));
     expect(preview.payload.updatedAt % Duration.millisecondsPerMinute, 0);

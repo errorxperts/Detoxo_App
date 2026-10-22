@@ -43,23 +43,18 @@ const _families = WidgetFamily.values;
 const _sizes = [WidgetSize.small, WidgetSize.medium, WidgetSize.large];
 const _themes = [WidgetTheme.system, WidgetTheme.light, WidgetTheme.dark];
 
-bool _still(BuildContext context) =>
-    MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-
-/// [d], or none under the OS's "remove animations".
-Duration _motion(BuildContext context, Duration d) =>
-    _still(context) ? Duration.zero : d;
-
 /// Animates [child]'s size changes; under "remove animations" it is just
 /// [child], since a zero-length `AnimatedSize` re-dirties itself mid-layout.
-Widget _resizing(BuildContext context, Widget child) => _still(context)
-    ? child
-    : AnimatedSize(
-        duration: AppDurations.fast,
-        curve: AppCurves.standard,
-        alignment: Alignment.topCenter,
-        child: child,
-      );
+Widget _resizing(BuildContext context, Widget child) {
+  final d = context.motion(AppDurations.fast);
+  if (d == Duration.zero) return child;
+  return AnimatedSize(
+    duration: d,
+    curve: AppCurves.standard,
+    alignment: Alignment.topCenter,
+    child: child,
+  );
+}
 
 /// The widget theme, which the previews overlay onto the cubit's payload.
 WidgetTheme _widgetTheme(BuildContext context) =>
@@ -107,13 +102,14 @@ class _BodyState extends State<_Body> {
     if (!_pages.hasClients) return;
     final cubit = context.read<HomeWidgetCubit>()..select(_families[i]);
     _flying = true;
+    final flight = context.motion(const Duration(milliseconds: 380));
     try {
-      if (_still(context)) {
+      if (flight == Duration.zero) {
         _pages.jumpToPage(i);
       } else {
         await _pages.animateToPage(
           i,
-          duration: const Duration(milliseconds: 380),
+          duration: flight,
           curve: Curves.easeOutCubic,
         );
       }
@@ -131,9 +127,9 @@ class _BodyState extends State<_Body> {
   Widget build(BuildContext context) {
     return ListView(
       padding: EdgeInsets.fromLTRB(
+        AppSpacing.gutter,
         AppSpacing.md,
-        AppSpacing.md,
-        AppSpacing.md,
+        AppSpacing.gutter,
         AppSpacing.xxl + MediaQuery.viewPaddingOf(context).bottom,
       ),
       children: [
@@ -182,7 +178,7 @@ class _Stage extends StatelessWidget {
           final box = state.size.box * scale;
           final payload = state.payload.copyWith(theme: theme.name);
           return AnimatedContainer(
-            duration: _motion(context, AppDurations.normal),
+            duration: context.motion(AppDurations.normal),
             curve: AppCurves.emphasized,
             height: box.height,
             child: PageView.builder(
@@ -207,14 +203,15 @@ class _Stage extends StatelessWidget {
         },
       ),
     );
-    if (_still(context)) return stage;
+    final entrance = context.motion(AppDurations.normal);
+    if (entrance == Duration.zero) return stage;
     return stage
         .animate()
-        .fadeIn(duration: AppDurations.normal, curve: AppCurves.decelerate)
+        .fadeIn(duration: entrance, curve: AppCurves.decelerate)
         .scaleXY(
           begin: 0.94,
           end: 1,
-          duration: AppDurations.normal,
+          duration: entrance,
           curve: AppCurves.standard,
         );
   }
@@ -239,7 +236,7 @@ class _StagePreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: AnimatedSwitcher(
-        duration: _motion(context, AppDurations.fast),
+        duration: context.motion(AppDurations.fast),
         child: FittedBox(
           key: ValueKey(size),
           fit: BoxFit.scaleDown,
@@ -266,7 +263,7 @@ class _Caption extends StatelessWidget {
     return _resizing(
       context,
       AnimatedSwitcher(
-        duration: _motion(context, const Duration(milliseconds: 220)),
+        duration: context.motion(const Duration(milliseconds: 220)),
         transitionBuilder: (child, a) => FadeTransition(
           opacity: a,
           child: SlideTransition(
@@ -340,8 +337,9 @@ class _Rail extends StatelessWidget {
   }
 }
 
-/// Preview-only: a pinned widget lands 2×2 and the user resizes it, which the
-/// info button says once, quietly.
+/// Preview-only: a pinned widget lands 2×2 and the user resizes it on the
+/// home screen (the Medium / Large Add toast says how), so the note says so,
+/// quietly.
 class _SizeSection extends StatelessWidget {
   const _SizeSection();
 
@@ -351,12 +349,7 @@ class _SizeSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Row(
-          children: [
-            Expanded(child: SectionHeader('Size')),
-            InfoButton('Resize the widget on your home screen to switch sizes'),
-          ],
-        ),
+        const SectionHeader('Size', note: 'Preview only'),
         GlassSegmented(
           segments: [for (final s in _sizes) (label: s.label, icon: null)],
           selectedIndex: _sizes.indexOf(size),
@@ -369,8 +362,8 @@ class _SizeSection extends StatelessWidget {
   }
 }
 
-/// Time limit with no limit set reads "No daily limit"; this offers the fix.
-/// It folds in and out rather than jumping the layout.
+/// Time limit with no limit set reads "No daily limit"; this row offers the
+/// fix. It folds in and out rather than jumping the layout.
 class _LimitLink extends StatelessWidget {
   const _LimitLink();
 
@@ -385,15 +378,17 @@ class _LimitLink extends StatelessWidget {
     return _resizing(
       context,
       AnimatedSwitcher(
-        duration: _motion(context, AppDurations.fast),
+        duration: context.motion(AppDurations.fast),
         child: show
             ? Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.sm),
-                child: Center(
-                  child: SecondaryButton(
-                    label: 'Set a daily limit',
-                    onPressed: () => unawaited(_setLimit(context)),
+                padding: const EdgeInsets.only(top: AppSpacing.gap),
+                child: GlassListTile(
+                  leading: Icon(
+                    Icons.timer_outlined,
+                    color: context.tokens.ink2,
                   ),
+                  title: 'Set a daily limit',
+                  onTap: () => unawaited(_setLimit(context)),
                 ),
               )
             : const SizedBox.shrink(),
@@ -447,11 +442,9 @@ Future<void> _add(BuildContext context) async {
   GlassToast.show(context, switch ((ok, size)) {
     (null, _) => 'Couldn’t add the widget. Try again.',
     (false, _) =>
-      'Your launcher doesn’t support adding widgets this way — '
-          'long-press your home screen and pick Detoxo from Widgets.',
-    (true, WidgetSize.small) =>
-      'Confirm the prompt to add it to your home screen.',
-    (true, _) =>
-      'Confirm the prompt to add it, then long-press it and drag to resize.',
+      'Add it by hand: long-press your home screen and pick Detoxo from '
+          'Widgets.',
+    (true, WidgetSize.small) => 'Confirm the prompt to add it.',
+    (true, _) => 'Confirm the prompt, then long-press it to resize.',
   }, tone: ok == true ? AppTone.neutral : AppTone.warning);
 }

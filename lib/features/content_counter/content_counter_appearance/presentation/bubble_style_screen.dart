@@ -42,13 +42,6 @@ const _stageHeight = 152.0;
 /// (`BubblePreview` documents the bound).
 const _previewWidth = 220.0;
 
-bool _still(BuildContext context) =>
-    MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-
-/// [d], or none under the OS's "remove animations".
-Duration _motion(BuildContext context, Duration d) =>
-    _still(context) ? Duration.zero : d;
-
 /// The style being edited.
 BubbleStyle _style(BuildContext context) =>
     context.select((CounterAppearanceCubit c) => c.state.bubble);
@@ -121,13 +114,14 @@ class _BodyState extends State<_Body> {
     if (!_pages.hasClients) return;
     _select(_variants[i]);
     _flying = true;
+    final flight = context.motion(const Duration(milliseconds: 380));
     try {
-      if (_still(context)) {
+      if (flight == Duration.zero) {
         _pages.jumpToPage(i);
       } else {
         await _pages.animateToPage(
           i,
-          duration: const Duration(milliseconds: 380),
+          duration: flight,
           curve: Curves.easeOutCubic,
         );
       }
@@ -175,19 +169,19 @@ class _BodyState extends State<_Body> {
           const SizedBox(height: AppSpacing.xs),
           // One list child each: grouped, their semantics would merge.
           Padding(
-            padding: AppInsets.screenH,
+            padding: AppInsets.screen,
             child: _Caption(count: _count),
           ),
           Padding(
-            padding: AppInsets.screenH,
+            padding: AppInsets.screen,
             child: _CountRow(count: _count, onReplay: _replay),
           ),
           const Padding(
-            padding: AppInsets.screenH,
+            padding: AppInsets.screen,
             child: SectionHeader('Style'),
           ),
           _Rail(count: _count, onPick: (i) => unawaited(_goTo(i))),
-          const Padding(padding: AppInsets.screenH, child: _Customize()),
+          const Padding(padding: AppInsets.screen, child: _Customize()),
         ],
       ),
     );
@@ -223,8 +217,8 @@ class _Stage extends StatelessWidget {
           // The glass spans gutter to gutter ([StageSurface] insets it `xxs`
           // in its page), so the pager is widened past the screen until that
           // page is its `viewportFraction`; a neighbour's glass then starts
-          // `xs` before the screen edge.
-          final glass = box.maxWidth - 2 * AppSpacing.md;
+          // `gutter - 2 · xxs` (12) before the screen edge.
+          final glass = box.maxWidth - 2 * AppSpacing.gutter;
           final pager =
               (glass + 2 * AppSpacing.xxs) / controller.viewportFraction;
           return OverflowBox(
@@ -266,14 +260,15 @@ class _Stage extends StatelessWidget {
         },
       ),
     );
-    if (_still(context)) return stage;
+    final entrance = context.motion(AppDurations.normal);
+    if (entrance == Duration.zero) return stage;
     return stage
         .animate()
-        .fadeIn(duration: AppDurations.normal, curve: AppCurves.decelerate)
+        .fadeIn(duration: entrance, curve: AppCurves.decelerate)
         .scaleXY(
           begin: 0.94,
           end: 1,
-          duration: AppDurations.normal,
+          duration: entrance,
           curve: AppCurves.standard,
         );
   }
@@ -342,7 +337,7 @@ class _Caption extends StatelessWidget {
             ? BubbleModel.mascotLine(BubbleModel.tier(n))
             : BubbleModel.nextLine(n);
         return AnimatedSwitcher(
-          duration: _motion(context, const Duration(milliseconds: 220)),
+          duration: context.motion(const Duration(milliseconds: 220)),
           child: Text.rich(
             // A new style cross-fades; a new count swaps in place.
             key: ValueKey(variant),
@@ -397,11 +392,11 @@ class _CountRow extends StatelessWidget {
           Expanded(
             child: Semantics(
               label: 'Preview count',
-              child: AdaptiveSlider(
+              child: Slider(
                 value: n.toDouble(),
                 max: 500,
                 divisions: 50,
-                semanticFormatter: _reels,
+                semanticFormatterCallback: _reels,
                 onChanged: (v) => count.value = v.round(),
               ),
             ),
@@ -409,6 +404,7 @@ class _CountRow extends StatelessWidget {
           IconButton(
             onPressed: onReplay,
             tooltip: 'Replay appear',
+            color: context.tokens.ink2,
             icon: const Icon(Icons.replay),
           ),
         ],
@@ -433,7 +429,7 @@ class _Rail extends StatelessWidget {
       builder: (context, n, _) => VariantCarousel(
         height: 96,
         cardWidth: 84,
-        inset: AppSpacing.md,
+        inset: AppSpacing.gutter,
         options: [
           for (final (i, v) in _variants.indexed)
             VariantOption(
@@ -459,6 +455,7 @@ class _Rail extends StatelessWidget {
   }
 }
 
+/// Size and opacity: one panel of two slider rows.
 class _Customize extends StatelessWidget {
   const _Customize();
 
@@ -469,23 +466,27 @@ class _Customize extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionHeader('Customize'),
-        _LabeledSlider(
-          label: 'Size',
-          value: style.size,
-          min: BubbleStyle.sizeMin,
-          max: BubbleStyle.sizeMax,
-          divisions: 8,
-          format: (v) => '${v.round()} dp',
-          onChanged: (v) => _setStyle(context, style.copyWith(size: v)),
-        ),
-        _LabeledSlider(
-          label: 'Opacity',
-          value: style.opacity,
-          min: BubbleStyle.opacityMin,
-          max: BubbleStyle.opacityMax,
-          divisions: 5,
-          format: _percent,
-          onChanged: (v) => _setStyle(context, style.copyWith(opacity: v)),
+        PanelGroup(
+          children: [
+            _SliderRow(
+              label: 'Size',
+              value: style.size,
+              min: BubbleStyle.sizeMin,
+              max: BubbleStyle.sizeMax,
+              divisions: 8,
+              format: (v) => '${v.round()} dp',
+              onChanged: (v) => _setStyle(context, style.copyWith(size: v)),
+            ),
+            _SliderRow(
+              label: 'Opacity',
+              value: style.opacity,
+              min: BubbleStyle.opacityMin,
+              max: BubbleStyle.opacityMax,
+              divisions: 5,
+              format: _percent,
+              onChanged: (v) => _setStyle(context, style.copyWith(opacity: v)),
+            ),
+          ],
         ),
       ],
     );
@@ -494,10 +495,11 @@ class _Customize extends StatelessWidget {
 
 String _percent(double v) => '${(v * 100).round()}%';
 
-/// A compact title + value row over an [AdaptiveSlider]. [format] renders the
-/// value both for the visible label and for screen readers, so they agree.
-class _LabeledSlider extends StatelessWidget {
-  const _LabeledSlider({
+/// A flat panel row: the label in label / ink and its value in subhead /
+/// ink-2 over a themed [Slider]. [format] renders the value both for the
+/// visible label and for screen readers, so they agree.
+class _SliderRow extends StatelessWidget {
+  const _SliderRow({
     required this.label,
     required this.value,
     required this.min,
@@ -517,9 +519,14 @@ class _LabeledSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.xxs,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -528,23 +535,23 @@ class _LabeledSlider extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
-                  style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                  style: AppTypography.label.copyWith(color: t.ink),
                 ),
               ),
               Text(
                 format(value),
-                style: text.bodySmall?.copyWith(color: context.tokens.ink2),
+                style: AppTypography.subhead.copyWith(color: t.ink2),
               ),
             ],
           ),
           Semantics(
             label: label,
-            child: AdaptiveSlider(
+            child: Slider(
               value: value.clamp(min, max),
               min: min,
               max: max,
               divisions: divisions,
-              semanticFormatter: format,
+              semanticFormatterCallback: format,
               onChanged: onChanged,
             ),
           ),

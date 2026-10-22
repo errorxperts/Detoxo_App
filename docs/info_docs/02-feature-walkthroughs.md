@@ -499,13 +499,15 @@ On the **Appearance** screen, under **Reel counter**:
   screen-time ring reads "Counting off — screen time not measured" instead of a
   reassuring zero (and your "days under your limit" streak doesn't advance on an
   unmeasured day).
-- The **Bubble** and **Home widget** each appear as a card with a large live
-  preview. The **Bubble** card has its own on/off switch; tap either card's preview
-  to open its editor (available once the relevant switch — and counting — is on).
+- Below it, the **Bubble** and the **Widget** (your home-screen widget) sit side
+  by side, each with a large live preview and a status underneath: **On**,
+  **Off** or **Needs access**. The **Bubble** has its own on/off switch; tap
+  either preview to open its editor (available once the relevant switch, and
+  counting, is on).
 - If the bubble is switched on but Android's **Display over other apps**
-  permission is missing, the Bubble card shows a warning — *Needs "Display over
-  other apps" — tap to allow* — and tapping it opens the setting. The warning
-  clears by itself when you come back with the permission granted.
+  permission is missing, its status reads **Needs access**. Tap it to open the
+  setting; it changes back to **On** by itself when you come back with the
+  permission granted.
 
 ### The floating bubble
 
@@ -595,9 +597,10 @@ live preview of your current style; tap it to open the editor:
   Large, choose a light/dark/system **theme**, and add it to your home screen (see
   above). The theme applies to every Detoxo widget you've placed.
 - **Block screen** — the full-screen card shown when something is blocked (§3).
-  The card on the Appearance screen carries its own **on/off switch** (off → app
-  and website blocks fall back to a short toast) and a live preview; tap it — even
-  while it's off — to open its own page, with the same switch at the top, a big
+  Its panel on the Appearance screen carries its own **on/off switch**, a live
+  preview and a status: **On**, **Off · toast instead** (app and website blocks
+  then fall back to a short toast) or **Needs access**. Tap the preview, even
+  while it's off, to open its own page, with the same switch at the top, a big
   preview and three **Options**: whether the card shows **today's reel count** and
   **times opened today** (the latter needs the Usage access permission), and
   whether **Back to the app** waits five seconds before it unlocks. Its look
@@ -607,7 +610,8 @@ live preview of your current style; tap it to open the editor:
   card over the editor so you can see exactly what a block looks like. While the
   block screen is off, its preview turns grey and says **Off**, and the options and
   **Try it** wait for you to switch it back on. Like the bubble, it needs "Display
-  over other apps" — the card says so if the permission is missing.
+  over other apps": without the permission its status reads **Needs access**, and
+  a tap opens the setting.
 
 Changes preview instantly and apply to the live bubble, your placed widgets and
 the block screen as you edit.
