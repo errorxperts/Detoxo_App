@@ -19,6 +19,7 @@ export 'components/feedback.dart';
 export 'components/inputs.dart';
 export 'components/list_tiles.dart';
 export 'components/menu_button.dart';
+export 'components/mode_card.dart';
 export 'components/overlays.dart';
 export 'components/permission_card.dart';
 export 'components/section_header.dart';
