@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/features/additional_feature/app_feedback/app_feedback.dart';
 import 'package:detoxo/features/additional_feature/showcase_view/showcase_view.dart';
 import 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
@@ -16,7 +17,6 @@ import 'package:detoxo/features/content_counter/content_counter_core/presentatio
 import 'package:detoxo/features/dashboard/presentation/today_copy.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/blocker_section.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/command_center_card.dart';
-import 'package:detoxo/features/dashboard/presentation/widgets/dashboard_top_bar.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/mode_selector.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/rules_card.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
@@ -25,11 +25,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class DashboardTab extends StatefulWidget {
-  const DashboardTab({this.scrollController, this.onMenu, super.key});
+  const DashboardTab({this.onMenu, super.key});
 
-  final ScrollController? scrollController;
-
-  /// Opens the right-side app drawer (former "More" tab).
+  /// Opens the sidebar.
   final VoidCallback? onMenu;
 
   @override
@@ -98,16 +96,14 @@ class _DashboardTabState extends State<DashboardTab> {
           context.read<ContentCounterCubit>().refresh(),
         ]),
         child: ListView(
-          controller: widget.scrollController,
-          padding: EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.md,
-            AppSpacing.md,
-            AppSpacing.floatingNavClearance +
-                MediaQuery.viewPaddingOf(context).bottom,
-          ),
+          padding: TabHeader.listPadding(context),
           children: [
-            DashboardTopBar(onMenu: widget.onMenu),
+            TabHeader(
+              title: 'Detoxo',
+              onMenu: widget.onMenu,
+              // Hidden unless the feedback button is switched on.
+              actions: const [FeedbackActionButton()],
+            ),
             const SizedBox(height: AppSpacing.lg),
             const _Hero()
                 .animate()

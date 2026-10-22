@@ -26,15 +26,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 ///
 /// Each section owns its header, so the headers carry the vertical rhythm and
 /// the screen places nothing between them. Reachable two ways that differ
-/// only in chrome — the second HomeShell tab ([AnalyticsTab]) and the pushed
-/// drawer route ([AnalyticsScreen]) — and they genuinely share their cubits:
+/// only in chrome — the HomeShell Insights tab ([AnalyticsTab]) and the
+/// pushed `/analytics` route ([AnalyticsScreen]) — and they share their cubits:
 /// `InsightsCubit` is provided app-wide and lazily in `main.dart` (EVO-058),
 /// like the `ContentCounterCubit` and the `ServiceCubit` the tiles read.
-/// Nothing is computed at boot; the first Activity open constructs it, and
+/// Nothing is computed at boot; the first Insights open constructs it, and
 /// every later open paints the last numbers at once and refreshes them in
 /// place.
 
-/// Full-screen route (drawer → Activity): own glass app bar + back button.
+/// The pushed `/analytics` route (a home widget tap, a deep link): its own
+/// glass app bar and back button.
 class AnalyticsScreen extends StatelessWidget {
   const AnalyticsScreen({this.segment = ByAppSegment.reels, super.key});
 
@@ -44,41 +45,32 @@ class AnalyticsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassScaffold(
-      appBar: const GlassAppBar(title: Text('Activity')),
+      appBar: const GlassAppBar(title: Text('Insights')),
       body: SafeArea(child: _ActivityBody(segment: segment)),
     );
   }
 }
 
-/// HomeShell tab body: an in-tab header + drawer button, with the list wired to
-/// the floating nav bar's [scrollController] for hide-on-scroll.
+/// The HomeShell Insights tab: the same body under a [TabHeader].
 class AnalyticsTab extends StatelessWidget {
-  const AnalyticsTab({this.scrollController, this.onMenu, super.key});
+  const AnalyticsTab({this.onMenu, super.key});
 
-  final ScrollController? scrollController;
-
-  /// Opens the right-side app drawer (shared with the other tabs' headers).
+  /// Opens the sidebar.
   final VoidCallback? onMenu;
 
   @override
   Widget build(BuildContext context) {
-    return _ActivityBody(
-      scrollController: scrollController,
-      onMenu: onMenu,
-      asTab: true,
-    );
+    return _ActivityBody(onMenu: onMenu, asTab: true);
   }
 }
 
 class _ActivityBody extends StatelessWidget {
   const _ActivityBody({
-    this.scrollController,
     this.onMenu,
     this.asTab = false,
     this.segment = ByAppSegment.reels,
   });
 
-  final ScrollController? scrollController;
   final VoidCallback? onMenu;
   final bool asTab;
 
@@ -108,45 +100,27 @@ class _ActivityBody extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: () => _refresh(context),
       child: ListView(
-        controller: scrollController,
         // Always scrollable so pull-to-refresh works on a short page (a
         // denied-permission card is only a few hundred pixels tall).
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          // The pushed route's app bar supplies the top gap, and the first
-          // section header adds its own; the tab has a header row to inset.
-          asTab ? AppSpacing.md : 0,
-          AppSpacing.md,
-          (asTab ? AppSpacing.floatingNavClearance : AppSpacing.md) +
-              MediaQuery.viewPaddingOf(context).bottom,
-        ),
+        // The pushed route's app bar supplies the top gap, and the first
+        // section header adds its own.
+        padding: asTab
+            ? TabHeader.listPadding(context)
+            : EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                0,
+                AppSpacing.md,
+                AppSpacing.md + MediaQuery.viewPaddingOf(context).bottom,
+              ),
         children: [
+          // A heading, so swipe-by-heading lands on the screen's name before
+          // TODAY — the pushed route gets this from `AppBar`.
           if (asTab)
-            Row(
-              children: [
-                Expanded(
-                  // A heading, so swipe-by-heading lands on the screen's name
-                  // before TODAY — the pushed route gets this from `AppBar`.
-                  child: Semantics(
-                    header: true,
-                    child: Text(
-                      'Activity',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                ),
-                // The Dashboard header's pair, gap included.
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const FeedbackActionButton(),
-                    const SizedBox(width: AppSpacing.xs),
-                    DrawerMenuButton(onTap: onMenu),
-                  ],
-                ),
-              ],
+            TabHeader(
+              title: 'Insights',
+              onMenu: onMenu,
+              actions: const [FeedbackActionButton()],
             ),
           // No gaps between the sections: each header carries `md` above and
           // `sm` below, the rhythm every grouped list in the app keeps.

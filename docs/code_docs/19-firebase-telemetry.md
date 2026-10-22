@@ -6,7 +6,7 @@ in `lib/core/services/firebase/`, kept behind interfaces, and governed by strict
 
 > **This changes the app's data posture.** Earlier builds were fully offline with *nothing* leaving
 > the phone. With this layer wired, anonymised usage/crash/performance data is sent to Firebase.
-> The **block counts** on the Activity tab (native `block_today` / `block_total`,
+> The **block counts** on the Insights tab (native `block_today` / `block_total`,
 > [12-analytics-notifications-resilience.md](12-analytics-notifications-resilience.md)) are a
 > *separate* on-device figure and still never upload — don't conflate the two. User-facing
 > disclosure lives in [`../info_docs/04-faqs.md`](../info_docs/04-faqs.md) and
@@ -135,8 +135,10 @@ imports Firebase**. It is installed as `Bloc.observer`, sees every cubit, and:
 
 Screen views come from two places: the `FirebaseAnalyticsObserver` added to `GoRouter.observers` in
 [`core/navigation/app_router.dart`](../../lib/core/navigation/app_router.dart) logs `screen_view` on
-every route push; the `HomeShell` bottom-nav tabs don't change the route, so they call
-`sl<AnalyticsService>().logScreenView(label)` manually on tab select.
+every route push; the `HomeShell` tabs (Today / Insights) don't change the route, so a tab switch
+calls `sl<AnalyticsService>().logScreenView(...)` itself. The names stay the pre-rename
+`'Dashboard'` / `'Activity'`, so the screen-view series run on unbroken; a tap on the current tab
+logs nothing.
 
 ---
 

@@ -2,7 +2,7 @@
 
 Written from shipped source. The first Dart consumer of the usage signal layer
 ([26](26-catalog-and-usage-signal.md)): a pure daily fold, a 90-day rollup store, and a view inside
-the existing Activity tab. Plan doc: [`plan_docs/05-M4-insights.md`](../plan_docs/05-M4-insights.md)
+the Insights tab (named Activity before the Frozen Glass tab bar). Plan doc: [`plan_docs/05-M4-insights.md`](../plan_docs/05-M4-insights.md)
 (shipped).
 
 ---
@@ -189,17 +189,17 @@ the seeded banking / UPI / password-manager packages stay hidden either way.
 - `apps` maps package → `InstalledApp` for **every** installed app, from
   `EngineRepository.installedApps()` (already process-cached), resolved on every compute
   **whatever the grant said** — it labels the By app section's reels and blocks rows too, which need
-  no permission, and it is the Activity screen's one lookup, so pull-to-refresh renews labels.
+  no permission, and it is the Insights screen's one lookup, so pull-to-refresh renews labels.
   A failure costs the labels, not the numbers: rows fall back to the package name and the last
   good map stays.
 
 `InsightsView` is a `StatefulWidget` + `WidgetsBindingObserver` for that resume hook, and calls
 `refresh()` on every mount. **No ticker, no stream, no background job.** Since EVO-058 the cubit
 is provided app-wide in `main.dart` — but **lazily**, so nothing is computed at boot: the first
-Activity open constructs it. The shell rebuilds the tab on every switch and the drawer pushes a
-second route over it, so one shared instance means a later open paints the last numbers at once
+Insights open constructs it. The shell rebuilds the tab on every switch and a home-widget tap
+pushes the `/analytics` route over it, so one shared instance means a later open paints the last numbers at once
 and refreshes in place, instead of flashing a spinner and running two channel queries per mount
-(or two concurrent computes racing on `usage_daily` from the drawer). `AppResumeSync` is
+(or two concurrent computes racing on `usage_daily` from the pushed route). `AppResumeSync` is
 untouched.
 
 What `InsightsView` itself draws is the **Distraction** section: a `SectionHeader('Distraction')`
@@ -210,7 +210,7 @@ shared `ProgressBar` with its caption (`"1h 48m · 56% of screen time"` — a sh
 which is what `distractionShare` is — or `"Nothing yet today"`), a content-aligned hairline, then two flat
 `StatCard(compact: true, contained: false)` tiles (app switches, distracting opens). The `loading`
 state is the `LoadingState` spinner inside a panel of its own, so the section keeps its height
-while the numbers arrive. The headline figures live in the Activity screen's **Today** panel
+while the numbers arrive. The headline figures live in the Insights screen's **Today** panel
 (`TodayOverview`, `analytics/presentation/widgets/today_overview.dart`): **Screen time**
 (`formatHm`, yesterday's finished total as a plain `"Yesterday: 4h"` caption) and **Pickups**
 (`"First 7:12"` caption — one reference per tile) sit under Detoxo's own **Reels** and **Blocked**
@@ -254,7 +254,7 @@ dropped it, so this button was dead code that this doc described as working). **
 genuinely quiet day. A genuinely quiet day is a separate, granted state and says
 "Nothing yet today".
 
-### Entry point — the Activity tab
+### Entry point — the Insights tab
 
 `analytics_screen.dart` is **one scroll of three headed sections** — an uppercase `SectionHeader`
 (`lib/core/design_system/components/section_header.dart`, the Settings / Rules grouped-list idiom) over **one**
@@ -306,14 +306,16 @@ total is the tile's caption. No provider of its own: `InsightsCubit` comes from 
 (EVO-058, above). The list is a `RefreshIndicator` with `AlwaysScrollableScrollPhysics`; the pull
 recomputes insights **and** re-reads the block counters (error-guarded, the resume path's rule),
 because native rolls `today` over at read time and a session pulled across midnight may see no
-`blocked` event. The reel tile is stream-fed and already live. The tab header's feedback + menu
-pair is the Dashboard header's, gap included, with `DrawerMenuButton` a design-system component.
+`blocked` event. The reel tile is stream-fed and already live. On the tab the list opens with a
+`TabHeader('Insights')` (title-xl, the feedback button, the glass Menu button that opens the
+sidebar) and pads by `TabHeader.listPadding` — gutter 20, inset 8 on top, 132 plus the bottom inset
+below, clear of the tab bar; the pushed route keeps its `GlassAppBar`, titled 'Insights' too.
 
 This replaced a `GlassSegmented` **Insights | Events** control whose Events segment listed one
 tile per block from a Dart-side buffer (`AnalyticsCubit`) that only recorded while the tab was
 open — the buffer and its feed are gone, see [12](12-analytics-notifications-resilience.md) §1.1.
 
-**No new route, no new nav entry, no dashboard tile** — the Activity tab is already a nav
+**No new route, no new nav entry, no dashboard tile** — the Insights tab is already a nav
 destination, so a dashboard tile would only have switched tabs.
 
 ### Accessibility
@@ -382,7 +384,7 @@ contributes no semantics node at all.
   tile (those are the Today grid's); a quiet day says so instead of showing the denied card; the
   info button opens the About sheet with the Digital Wellbeing note; a later mount over the same
   cubit shows the card on its first frame, never the spinner (EVO-058).
-- `test/activity_screen_test.dart` (5) — the Activity screen over real cubits and fakes in `sl`
+- `test/activity_screen_test.dart` (5) — the Insights screen over real cubits and fakes in `sl`
   (the `web_block_screen_semantics_test` idiom): a native status event lands in the Blocked tile
   (`"Blocked: 12, Yesterday: 52"`) and, behind the Blocks segment, the per-app
   rows (most-blocked first, each a button offering a limit); the scroll reads Today → Distraction →
@@ -402,7 +404,7 @@ contributes no semantics node at all.
 - `lib/features/analytics/insights/presentation/insights_cubit.dart`
 - `lib/features/analytics/insights/presentation/widgets/insights_view.dart`
 - `lib/features/analytics/analytics.dart` (barrel)
-- `lib/features/analytics/presentation/analytics_screen.dart` (the Activity screen: the three
+- `lib/features/analytics/presentation/analytics_screen.dart` (the Insights screen: the three
   headed sections this view sits second in)
 - `lib/features/analytics/presentation/widgets/today_overview.dart` (the Today panel: reels,
   blocks, screen time, pickups as flat tiles)

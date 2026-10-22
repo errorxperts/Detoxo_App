@@ -18,7 +18,7 @@ export 'components/dx_icons.dart';
 export 'components/feedback.dart';
 export 'components/inputs.dart';
 export 'components/list_tiles.dart';
-export 'components/menu_button.dart';
+export 'components/navigation.dart';
 export 'components/overlays.dart';
 export 'components/permission_card.dart';
 export 'components/section_header.dart';

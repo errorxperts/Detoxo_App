@@ -1,15 +1,18 @@
 import 'package:detoxo/core/constants/app_constants.dart';
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
-import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Minimal right-side navigation drawer: the secondary entry points that used to
-/// live in the "More" tab, as a plain list over a single frosted panel. App and
-/// website blockers are reached from the Dashboard, so they're not repeated here.
+/// The sidebar: the secondary entry points as flat, hairline-divided rows on
+/// a sheet surface inset 10 from the screen edges. App and website blockers
+/// are reached from Today, and the numbers from the Insights tab, so neither
+/// is repeated here (the pushed `/analytics` route stays for deep links).
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
+
+  /// The sheet's gap to the screen edges (`.dx-sheet`).
+  static const double _inset = 10;
 
   /// Close the drawer first, then push — never navigate while the drawer route
   /// is still on top (it would sit under the new screen and reappear on pop).
@@ -20,23 +23,26 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
+    final t = context.tokens;
+    final items = [
+      (Icons.hourglass_bottom, 'Daily limit', Routes.dailyLimit),
+      (Icons.palette_outlined, 'Appearance', Routes.appearance),
+      (Icons.lock, 'PIN lock', Routes.pinSetup),
+      (Icons.settings, 'Settings', Routes.settings),
+      (Icons.help_outline, 'Help & support', Routes.help),
+    ];
     return Drawer(
       backgroundColor: Colors.transparent,
       elevation: 0,
       width: 300,
-      child: DecoratedBox(
-        // A leading hairline defines the panel edge against the content,
-        // especially in the light theme.
-        decoration: BoxDecoration(
-          border: Border(left: BorderSide(color: context.tokens.hairline)),
-        ),
-        child: GlassContainer(
-          surface: DxSurface.sheet,
-          borderRadius: 0,
-          padding: EdgeInsets.zero,
-          child: SafeArea(
+      shape: const RoundedRectangleBorder(),
+      child: SafeArea(
+        left: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(0, _inset, _inset, _inset),
+          child: GlassContainer(
+            surface: DxSurface.sheet,
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -44,67 +50,41 @@ class AppDrawer extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.md,
-                    AppSpacing.sm,
-                    AppSpacing.xs,
+                    0,
+                    AppSpacing.xxs,
                     AppSpacing.xs,
                   ),
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          AppConstants.appName,
-                          style: text.titleLarge?.copyWith(
-                            color: scheme.primary,
-                            fontWeight: FontWeight.w700,
+                        child: Semantics(
+                          header: true,
+                          child: Text(
+                            AppConstants.appName,
+                            style: AppTypography.title.copyWith(color: t.ink),
                           ),
                         ),
                       ),
                       IconButton(
                         tooltip: 'Close',
-                        icon: Icon(Icons.close, color: context.tokens.ink),
+                        icon: Icon(Icons.close, color: t.ink2),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                 ),
-                Divider(height: 1, color: context.tokens.hairline),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.xs,
+                  child: SingleChildScrollView(
+                    child: PanelGroup(
+                      children: [
+                        for (final (icon, label, route) in items)
+                          GlassListTile(
+                            leading: Icon(icon, color: t.ink2),
+                            title: label,
+                            onTap: () => _go(context, route),
+                          ),
+                      ],
                     ),
-                    children: [
-                      _DrawerItem(
-                        icon: Icons.hourglass_bottom,
-                        label: 'Daily limit',
-                        onTap: () => _go(context, Routes.dailyLimit),
-                      ),
-                      _DrawerItem(
-                        icon: Icons.bar_chart,
-                        label: 'Activity',
-                        onTap: () => _go(context, Routes.analytics),
-                      ),
-                      _DrawerItem(
-                        icon: Icons.palette_outlined,
-                        label: 'Appearance',
-                        onTap: () => _go(context, Routes.appearance),
-                      ),
-                      _DrawerItem(
-                        icon: Icons.lock,
-                        label: 'PIN lock',
-                        onTap: () => _go(context, Routes.pinSetup),
-                      ),
-                      _DrawerItem(
-                        icon: Icons.settings,
-                        label: 'Settings',
-                        onTap: () => _go(context, Routes.settings),
-                      ),
-                      _DrawerItem(
-                        icon: Icons.help_outline,
-                        label: 'Help & support',
-                        onTap: () => _go(context, Routes.help),
-                      ),
-                    ],
                   ),
                 ),
                 // Footer: version.
@@ -112,7 +92,7 @@ class AppDrawer extends StatelessWidget {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Text(
                     'v${AppConstants.appVersion}',
-                    style: text.bodySmall?.copyWith(color: context.tokens.ink2),
+                    style: AppTypography.subhead.copyWith(color: t.ink2),
                   ),
                 ),
               ],
@@ -120,37 +100,6 @@ class AppDrawer extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// A plain drawer row: leading icon, label and an ink-3 chevron.
-class _DrawerItem extends StatelessWidget {
-  const _DrawerItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return ListTile(
-      leading: Icon(icon, color: Theme.of(context).colorScheme.secondary),
-      title: Text(
-        label,
-        style: text.bodyLarge?.copyWith(color: context.tokens.ink),
-      ),
-      trailing: Glyph(
-        Assets.svg.chevronRight,
-        size: 18,
-        color: context.tokens.ink3,
-      ),
-      onTap: onTap,
     );
   }
 }

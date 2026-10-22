@@ -79,12 +79,11 @@ dependencies:
   # `brew install FlutterGen/tap/fluttergen` (see tool/dev.sh assets).
   # No lottie_tgs: nothing renders a Lottie file anywhere in lib/.
 
-  # Design system: motion, native iOS controls, floating nav.
+  # Design system: motion, native iOS controls.
   # No google_fonts: Manrope is bundled (see `fonts:` below), so text never
   # waits on a runtime fetch.
   flutter_animate: ^4.5.2
   cupertino_native: ^0.1.1
-  flutter_floating_bottom_bar: ^1.2.1
   not_static_icons: ^0.46.0
   # Swipe-to-reveal row actions (web blocklist rows). First/only swipe surface.
   flutter_slidable: ^4.0.0
