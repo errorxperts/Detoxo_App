@@ -123,12 +123,11 @@ You can skip the optional ones now and turn them on later from
 ## 3. Choosing a blocking mode (how strict blocking is)
 
 Your **Blocking Mode** decides what happens when Detoxo spots a reel. You pick it
-from the big **Command Center** card on the home screen. Below the main dial the
-modes appear as a **horizontal, swipeable row of pills** — **Block All**,
-**Conscious**, **Pause**, and **One Reel**. The mode you're on is the highlighted
-pill, and while a **One Reel** or **Unblock** session is live its pill shows a small
-remaining-count badge (an Unblock is started from **Pause**, so that pill lights) — plus
-a live countdown/ring while a timed mode is running.
+on the **Today** tab, from the **mode card** under the ring: **Block All**,
+**Conscious**, **Pause** and **One Reel**, side by side. The mode you're on is lit, and
+a line under the four says what it is doing right now, for example *All reels
+blocked* or *Blocking resumes in 09:42*. An **Unblock** session lights **Pause**. If
+blocking is switched off in Settings, the line says *Blocking is off* instead.
 
 The modes fall into two groups:
 
@@ -141,14 +140,16 @@ The modes fall into two groups:
   leaves you unprotected, and never forces you back to Block All if Conscious was
   your baseline.
 
-> **The screen-time ring.** When no timed mode is running, the big ring shows
-> **today's screen time** in the social apps Detoxo watches, filling toward your
-> **daily limit** (the one you set during onboarding — §6). It shifts **green →
-> amber → red** as you approach the limit, and reads "*X over your Y limit*" once
-> you pass it. Below the ring, a single plain line (no boxed card) shows your
-> **Reels** watched today and your **day streak** — the number of consecutive days
-> you've stayed under your daily limit. (Start a **Pause** or **Conscious**
-> session and the ring switches to that session's live countdown.)
+> **The screen-time ring.** The big ring at the top of Today shows the **time you
+> have left** today in the social apps Detoxo watches before you reach your **daily
+> limit** (the one you set during onboarding, §6), with how much you've used
+> (*45m of 3h used*). Past the limit it reads **0m** and "*45m over your 3h limit*";
+> with no limit set it shows today's total. Below the ring, one plain line shows the
+> **reels** you've watched today and your **day streak**, the number of days in a row
+> you've stayed under your daily limit. The ring's **Unblock** button lets a set
+> number of reels through (see Unblock below). During a **Pause** or an **Unblock**
+> the ring shows that session instead, the time or the reels you have left, and the
+> button becomes **Block now**, which ends it straight away.
 
 | Mode | What it does |
 |---|---|
@@ -192,12 +193,14 @@ commitments you made in advance, so Detoxo always shows you the wall for them.
 the lightest touch: enough to satisfy a quick curiosity without opening the
 floodgates.
 
-Tap the **One Reel** card to arm a fresh allowance of one reel. You can watch that
+Tap **One Reel** in the mode card. A sheet asks **Watch one reel?** Wait a few
+seconds ("Take a breath…"), then slide to unblock, or tap **Keep it blocked** to
+back out. Once you slide, Detoxo says **One reel unblocked** and you can watch that
 clip; the moment you **scroll on to the next reel**, Detoxo counts it and pulls
 you out — and **returns you to your base mode** (Block All or Conscious). To watch
-another, tap **One Reel** again: each tap re-arms a new single-reel allowance. While
-the session is live the card shows a "**N of M reels left**" line so you can see
-what's remaining.
+another, tap **One Reel** and slide again: each time re-arms a new single-reel
+allowance. Until you've watched it, the mode card reads *One reel left*; tap the
+lit **One Reel** to block again straight away.
 
 ### Unblock — choose how many, then it returns to your base
 
@@ -213,8 +216,10 @@ many to let through before your base mode snaps back.
    and reads **Session started**, then the sheet closes.
 
 You can now watch that many reels; each time you **scroll to the next reel** it
-counts one toward your allowance, and the card shows a live "**N of M reels left**"
-line. Once you've used them up, Detoxo **returns to your base mode** (Block All or
+counts one toward your allowance. The Today ring counts down the reels you have
+left (*3 of 5 reels*), and the mode card reads *3 reels left, then blocked again*.
+Tap **Block now** on the ring, or the lit **Pause**, to end it early. Once you've
+used them up, Detoxo **returns to your base mode** (Block All or
 Conscious) until you tap **Unblock** and start a new count — every start hands you a fresh
 allowance.
 
@@ -232,11 +237,12 @@ you've stayed disciplined first. It works like a time bank:
 - **When the bank hits zero**, Detoxo pulls you out and blocking resumes until you
   earn more.
 
-To turn it on: tap **Conscious** on the Command Center, then confirm in the popup.
-The card then shows a live ring and a status line — *Conscious — earning* while
-your bank fills, *Conscious — spending* while you're watching, and
-*Conscious — ready* when you have allowance saved up. Turning Conscious off (from
-the same popup) drops you back to **Block All**. Each time you switch Conscious
+To turn it on: tap **Conscious** in the mode card, then **Turn on Conscious** in the
+sheet that opens. The line under the mode card then follows your bank: *Earning 1
+min for every 10 min away* while it fills, *Spending banked time, 04:12 left* while
+you're watching, and *04:12 banked to spend* when you have time saved. To turn it
+off, tap **Conscious** again and choose **Turn off Conscious**, or tap **Block All**;
+either way you're back on **Block All**. Each time you switch Conscious
 on fresh, you start with an empty bank — you always have to earn the first minute.
 
 > **Your bank survives a detour.** If Conscious is your base mode and you dip into a
@@ -254,16 +260,17 @@ on fresh, you start with an empty bank — you always have to earn the first min
 freely for a set number of minutes — handy when you genuinely want a breather
 without turning protection off for good.
 
-1. Tap **Pause** among the blocking modes. The **Session blocker** sheet opens
+1. Tap **Pause** in the mode card. The **Session blocker** sheet opens
    **By time** (to unblock a number of reels instead, see Unblock above).
 2. Drag the dial to choose a length — **1 to 10 minutes**, 5 to start — or tap a
    quick pick (1, 3, 5, 10). The line underneath shows the time blocking resumes,
    in your phone's 12- or 24-hour format.
 3. Tap **Start 5-min session** (the button follows your choice). It reads
-   **Session started**, the sheet closes, and Today shows a **live countdown**.
+   **Session started**, the sheet closes, and the Today ring counts down the time
+   left.
 4. When the timer runs out, Detoxo **returns to your base mode automatically** —
    Block All or Conscious, whichever you were on before the break. You can also tap
-   **Block now** on the ring to end the break early.
+   **Block now** on the ring, or the lit **Pause**, to end the break early.
 
 > **App locks hold through a Pause.** Apps you've fully locked on the **Block
 > apps** screen stay locked during the break — a Pause is for reels and

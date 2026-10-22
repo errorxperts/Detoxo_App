@@ -112,7 +112,6 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 | `flutter_animate` | `^4.5.2` | **Wired** (5 files) | Declarative entrance/motion effects across the design system. |
 | `cupertino_native` | `^0.1.1` | **Wired** | The one adaptive control left, `AdaptiveSlider` (`lib/core/design_system/adaptive/adaptive_controls.dart`): a native `CNSlider` on iOS/macOS, Material `Slider` on Android. |
 | `not_static_icons` | `^0.46.0` | **Wired** | Animated (Lucide-style) icons, wrapped in `lib/core/design_system/foundations/animated_icons.dart` (re-exports `AnimatedIconController`). |
-| `sleek_circular_slider` | `^2.1.0` | **Wired** (1 file) | The dashboard hero's read-only countdown ring (`plans/presentation/widgets/countdown_ring.dart`, Pause / Conscious). |
 | `showcaseview` | `^5.1.0` | **Wired** | Onboarding coach-marks / feature tour (`lib/features/additional_feature/showcase_view/`). |
 | `flutter_svg` | `^2.3.0` | **Wired** (2 files) | Renders bundled SVG art. |
 | `cached_network_image` | `^3.4.1` | **Wired** | Remote-icon fallback in `AppIconAvatar` (`app_icon_avatar.dart`, used by blocklist tiles + the reel-counter card). App icons ship **locally** in `assets/images/social_icon_pack/` as 160² quantised PNGs; this only handles `http…` `iconUrl`s from remote config. Note it drags `flutter_cache_manager` → `sqflite` → the `sqflite_android` native plugin. |
@@ -179,6 +178,7 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 | `ms_undraw` | No `UnDraw` usage — every illustration is a local asset. | dex / AOT |
 | `lottie_tgs` | Nothing renders a Lottie file anywhere in `lib/`. `assets/lottie/` is likewise unreferenced and is a standing cleanup candidate (4.86 MB install / ~0.59 MB download). | dex / AOT |
 | `flutter_gen` | A build-time CLI mis-declared as a runtime dependency — see §2. | dex / AOT |
+| `sleek_circular_slider` | Its one user, the old dashboard hero's countdown ring, went with the Today rebuild: a live Pause now counts down in the `TimeLeftRing` (the design system's `ProgressRing`). | dex / AOT |
 | `google_fonts` | Manrope 600/700/800 is bundled (§9), so the generated `AppTypography` names the family directly: no runtime font fetch, and widget tests no longer stall on one. | dex / AOT |
 
 Re-add any of these only when something actually imports them.

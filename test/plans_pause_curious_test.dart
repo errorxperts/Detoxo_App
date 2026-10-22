@@ -1,14 +1,11 @@
 import 'dart:async';
 
-import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/plans/data/repositories/content_repository_impl.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/emoji_band.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/reel_session_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/sessions.dart';
-import 'package:detoxo/features/blocking/plans/presentation/widgets/animated_digit_timer.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/animated_emoji.dart';
-import 'package:detoxo/features/blocking/plans/presentation/widgets/countdown_ring.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/engine_event.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
@@ -385,56 +382,6 @@ void main() {
         expect(find.text('🎯'), findsOneWidget, reason: 'anim=$anim');
       }
       await tester.pumpWidget(const SizedBox()); // dispose tickers
-    });
-
-    testWidgets('AnimatedDigitTimer renders mm:ss', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: Center(
-              child: AnimatedDigitTimer(remaining: Duration(seconds: 125)),
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-      expect(find.text('0'), findsWidgets); // 02:05 → has digit cells
-      expect(find.text('2'), findsWidgets);
-      expect(find.text(':'), findsOneWidget);
-    });
-
-    testWidgets('CountdownRing renders its centred digits and emoji', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.dark(),
-          home: const Scaffold(
-            body: Center(
-              child: CountdownRing(
-                progress: 0.8,
-                center: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AnimatedEmoji(
-                      emoji: '🎯',
-                      animation: EmojiAnimation.breathing,
-                      size: 30,
-                    ),
-                    AnimatedDigitTimer(
-                      remaining: Duration(minutes: 4, seconds: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 16));
-      expect(find.text('🎯'), findsOneWidget);
-      expect(find.text(':'), findsOneWidget);
-      await tester.pumpWidget(const SizedBox());
     });
   });
 

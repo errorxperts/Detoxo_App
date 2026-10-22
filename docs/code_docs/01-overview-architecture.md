@@ -313,26 +313,66 @@ caller anywhere in the app produced such a URL and the gate's redirect returns a
 bare `Routes.home`, so the parameter was provably never non-default. Add it back
 the day something actually links to a tab.
 
-`DashboardTab` renders its sections in order: `TabHeader('Detoxo')` → `_Hero`
-(`CommandCenterCard`) → `_ModeSection` (`ModeSelector`) → `_SessionBanners` →
-`BlockerSection` (which ends with the `BlockerRulesRow`). The house split is that a section
-needing cubits stays inline in `dashboard_tab.dart` as a private `_Xxx` widget
-while its presentational half lives in `presentation/widgets/`. (Service status is surfaced by the permission gate / setup screen.)
+`DashboardTab` (the **Today** tab) is one short page built whole: a `SingleChildScrollView`
+over a `Stack`, so every section mounts once and rises in once with `.entrance()`. Behind the
+content, `AmbientLights` fills the stack (`Positioned.fill`, its top pulled up
+`headerTop − inset` so the two lights sit where V02 measures them from the screen top) and
+scrolls with it. In front, a column padded with `TabHeader.listPadding` (gutter 20, inset 8 on
+top, 132 plus the bottom inset below): `TabHeader('Detoxo')` → 14 → `_TodayLive` (the
+`TimeLeftRing` with its reels / streak line, 20, the `ModeCard`) → 32 → `BlockerSection`
+(rising one stagger later; it ends with the `BlockerRulesRow`). The house split is that a
+section needing cubits stays inline in `dashboard_tab.dart` as a private `_Xxx` widget while its
+presentational half lives in the design system or `presentation/widgets/`. (Service status is
+surfaced by the permission gate / setup screen.)
 
-Rebuild/state note on the dashboard (polish):
+**Every word and state branch lives in one pure file**, `presentation/today_copy.dart`
+(tested by `test/today_copy_test.dart`):
 
-- The `_Hero`'s Conscious countdown uses `context.select` on a **record of the
-  four displayed fields** so the 1 Hz Conscious tick doesn't rebuild the whole
-  hero, and the Conscious session banner is extracted into a private
-  `_ConsciousBanner` widget so that tick rebuilds only that tile.
+- `modeIndex(settings, pauseLive:)` is the lit mode. A live Pause is 2; `oneReel` is 3 at an
+  allowance of 1, else 2 (an N-reel unblock lights Pause); `curious` is 1; anything else is 0.
+  `LiveAccent` maps the same index to the accent.
+- `ringFace(...)` returns a `RingFace` record; the first match wins:
+  - a live Pause: "Reels allowed" in accent text, mm:ss left, "of a 10 min break", Block now;
+  - an N-reel unblock: the reels left, "of 5 reels", Block now;
+  - counting off: "—" and "Counting is off", no arc;
+  - no limit: "Today", the time so far, "No daily limit", no arc;
+  - over: "0m" and "45m over your 3h limit";
+  - else the time left, "45m of 3h used".
 
-`ModeSelector` (`presentation/widgets/mode_selector.dart`) is the horizontally
-scrolling strip of four mode pills (Block All, Conscious, Pause, One Reel). Each pill is an illustration "coin" over its
-label: the mode's `assets/images/illustration/*.png` clipped to a ring-lit circle
-— the same artwork its feature-tour step shows. The art is full-colour on an
-opaque backdrop, so the circular clip is what turns it into an icon, and the
-inactive state dims/shrinks the coin rather than tinting it. Every decode is
-capped with `cacheWidth` (the source art is 1024²).
+  Before the first counter read the placeholder reads normally.
+- `modeCopy(...)` is the mode card's description. With the master switch off it reads "Blocking
+  is off" / "Turn it on in Settings"; otherwise "All reels blocked", "Conscious mode" with the
+  bank ("Spending banked time, 04:12 left", "04:12 banked to spend" or "Earning 1 min for every
+  10 min away"), "Reels allowed" with "Blocking resumes in 09:42" or "3 reels left, then blocked
+  again", or "One reel left".
+- `blockerStatus(...)` gives each blocker tile its status.
+
+**Taps.**
+
+- The ring's pill reads **Unblock** and opens `SessionDialogs.showReels` (By reel count).
+  During a session it reads **Block now**: `resumeNow()` during a Pause, `setPlan(baseMode)`
+  during an N-reel unblock. There is no confirm, since it only makes blocking stricter.
+- The ModeCard options:
+  - Block All calls `setPlan(blockAll)` directly; this also ends a Pause or a reel session.
+  - Conscious opens `SessionDialogs.showConscious`: the intro, or the live sheet when it is on.
+  - Pause opens `SessionDialogs.showPause` (By time).
+  - One Reel opens the caution `ConfirmSheet` ("Watch one reel?", the tinted `iconOneReel` at
+    `ConfirmSheet.iconSize`). A slide calls `setOneReel(count: 1)`, then the toast "One reel
+    unblocked".
+- A repeat tap on the lit Block All does nothing; on the lit Pause or One Reel it blocks now.
+- The options are feature-tour steps 0–3, through `ModeCard.decorateOption` and `showcaseTarget`.
+
+Rebuild/state notes on Today:
+
+- `_TodayLive` owns the only Timer on Today: a 1 Hz ticker, running only while
+  `isPauseContractLive`, because a Pause's time left falls without a cubit emit. Conscious
+  self-emits each second; `_TodayLive` `select`s `ConsciousCubit` only while Conscious is lit.
+- The streak `observe` runs post-frame, and only once the counter and the limit are read and
+  counting is on, so an unmeasured day never counts as a day under the limit.
+- `TimeLeftRing` is keyed on "counter and limit read", so its one-time count-up replays on the
+  real numbers instead of finishing on the placeholder.
+- `test/today_screen_test.dart` covers the composition and its gaps, every tap above, the
+  ticker, the tour targets, the streak guard, and 2× text on a 360 dp phone in both themes.
 
 `BlockerSection` (`presentation/widgets/blocker_section.dart`) is the exception
 that owns its own data: it renders the App Blocker / Web Blocker pair as two
@@ -499,8 +539,8 @@ limit), maps the settings to a mode with `accentModeOf` — master switch off �
 dashboard's own `modeIndex(s, pauseLive:)`, so the lit mode and the accent can never disagree —
 and keys the glide on `(mode, used)`. A 1 Hz timer runs only while a Pause is live. The spec
 lets the accent paint six things only — the ring arc and its glow, the mode card and its chip,
-the mode icons, the Unblock pill tint, the tab lens; today `CommandCenterCard`'s ring is its
-reader.
+the mode icons, the Unblock pill tint, the tab lens. On Today the `TimeLeftRing`, the
+`ModeCard` and the `AmbientLights` read it; the shell's tab lens does too.
 
 #### Components — `components/`
 

@@ -33,9 +33,9 @@ const int featureShowcaseStepCount = 6;
 
 /// The ordered content for the six steps.
 ///
-/// Index 0–3 (the four mode pills) MUST stay aligned with the dashboard's
-/// `DashboardMode` order — Block All, Conscious, Pause, One Reel — since
-/// `ModeSelector.showcaseBuilder` wraps mode `i` with `featureShowcaseSteps[i]`.
+/// Index 0–3 (the four modes) MUST stay aligned with the Today mode card's
+/// option order — Block All, Conscious, Pause, One Reel — since
+/// `ModeCard.decorateOption` wraps option `i` with `featureShowcaseSteps[i]`.
 /// Index 4–5 are the App Blocker / Web Blocker capsules.
 final List<ShowcaseStep> featureShowcaseSteps = [
   ShowcaseStep(

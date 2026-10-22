@@ -29,8 +29,8 @@ import 'qa_walk.dart';
 /// Opens the sidebar from the Today tab header's Menu button.
 ///
 /// The TabHeader — and therefore the Menu button — is the FIRST CHILD of the
-/// Today ListView (dashboard_tab.dart), so the header scrolls away with the
-/// content. The showcase tour scrolls the mode pills into view and leaves the
+/// Today scroll view (dashboard_tab.dart), so the header scrolls away with the
+/// content. The showcase tour scrolls the mode card into view and leaves the
 /// list offset, which parks the button above the viewport's clip: the finder
 /// still matches it, but `tap()` warns "would not hit test on the specified
 /// widget" and the drawer never opens. Snap to the top first.

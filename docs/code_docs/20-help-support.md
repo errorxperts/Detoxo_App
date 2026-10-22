@@ -63,10 +63,10 @@ offers two replayable tours:
   coordinator restarts the tour on the flag's true→false edge once front-most. The tour is
   **six steps** (`featureShowcaseStepCount = 6`, defined in
   [`feature_showcase_steps.dart`](../../lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart)):
-  it spotlights all **four mode pills** — Block All, Conscious, Pause (whose step now covers
-  unblocking by time *or* reel count), **One Reel** (position 4) — in `DashboardMode` order at
-  indices 0–3 (wrapped by `ModeSelector.showcaseBuilder`, which maps mode `i` →
-  `featureShowcaseSteps[i]`) — then the **App Blocker** and **Web Blocker** tiles at
+  it spotlights all **four mode options** — Block All, Conscious, Pause (whose step now covers
+  unblocking by time *or* reel count), **One Reel** (position 4) — in the Today `ModeCard`'s
+  option order at indices 0–3 (wrapped by `ModeCard.decorateOption`, which `dashboard_tab.dart`
+  points at `showcaseTarget(step: featureShowcaseSteps[i])`) — then the **App Blocker** and **Web Blocker** tiles at
   `featureShowcaseSteps[4]` / `[5]`. `showcaseTarget(radius:)` rounds the spotlight to its target
   (`AppRadius.chip` by default; the tiles pass `AppRadius.card`). Each step's badge shows the same
   artwork as the widget it points at: `ShowcaseStep.image` is an
