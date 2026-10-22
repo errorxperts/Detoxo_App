@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -74,6 +76,55 @@ void main() {
         final style = theme.filledButtonTheme.style!.textStyle!.resolve({});
         expect(style?.fontFamily, 'Manrope');
       });
+
+      test('the scheme carries the static brand and the ink ramp', () {
+        final t = AppTokens.forBrightness(theme.brightness);
+        final s = theme.colorScheme;
+        expect(s.primary, t.brand.main);
+        expect(s.onPrimary, ConfirmTone.neutral.ink);
+        expect(s.onSurface, t.ink);
+        expect(s.onSurfaceVariant, t.ink2);
+        expect(s.outline, t.ink3);
+        expect(s.outlineVariant, t.hairline);
+        expect(theme.scaffoldBackgroundColor, t.bgBottom);
+        expect(theme.dividerTheme.color, t.hairline);
+      });
+
+      test('system bars: transparent, icons contrast the theme', () {
+        final o = AppTheme.overlay(theme.brightness);
+        final icons = theme.brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark;
+        expect(o.statusBarColor, Colors.transparent);
+        expect(o.systemNavigationBarColor, Colors.transparent);
+        expect(o.statusBarIconBrightness, icons);
+        expect(o.systemNavigationBarIconBrightness, icons);
+        expect(theme.appBarTheme.systemOverlayStyle, o);
+      });
     });
   }
+
+  testWidgets('page transitions are still under Reduce Motion', (tester) async {
+    final nav = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: nav,
+        theme: AppTheme.dark(),
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(disableAnimations: true),
+          child: child!,
+        ),
+        home: const Text('home'),
+      ),
+    );
+    unawaited(
+      nav.currentState!.push(
+        MaterialPageRoute<void>(builder: (_) => const Text('next')),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    // No slide or fade: the new page is fully in place one frame in.
+    expect(tester.getTopLeft(find.text('next')), Offset.zero);
+  });
 }

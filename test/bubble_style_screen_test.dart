@@ -45,10 +45,7 @@ class _FakeBubble implements BubbleRepository {
   Future<void> setEnabled({required bool enabled}) async {}
 }
 
-ThemeData _theme() => ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+ThemeData _theme() => AppTheme.dark();
 
 /// Lets the stage's flight or fling land (the rail's selected glow repeats,
 /// so it never settles).
@@ -175,7 +172,7 @@ void main() {
     final hint = tester.widget<Text>(
       find.text('Tap the bubble for the timer').first,
     );
-    expect(hint.style?.color, GlassTokens.dark.onGlassMuted);
+    expect(hint.style?.color, AppTokens.dark.ink2);
   });
 
   testWidgets('the stage and the rail line up with the page gutter', (

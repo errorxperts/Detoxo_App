@@ -137,7 +137,7 @@ class _Hint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.glass.onGlassMuted;
+    final muted = context.tokens.ink2;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
       child: Row(

@@ -43,7 +43,7 @@ class ModeSelector extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.30),
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: context.glass.border),
+        border: Border.all(color: context.tokens.hairline),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadius.lg),

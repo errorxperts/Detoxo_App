@@ -1,17 +1,8 @@
-import 'package:detoxo/core/design_system/adaptive/platform_adaptive.dart';
-import 'package:detoxo/core/design_system/components/buttons.dart';
-import 'package:detoxo/core/design_system/components/selection.dart';
-import 'package:detoxo/core/design_system/foundations/animated_icons.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
-import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// AppTheme pulls google_fonts, which stalls under flutter_test.
-ThemeData _theme() => ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+ThemeData _theme() => AppTheme.dark();
 
 /// A 360 dp phone at the largest system font size Android offers (2.0x),
 /// inside the usual page gutter. An overflow is a FlutterError the test

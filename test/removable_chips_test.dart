@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/features/limits/rules/presentation/widgets/removable_chips.dart';
 import 'package:flutter/material.dart';
@@ -14,11 +15,7 @@ void main() {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
       MaterialApp(
-        // AppTheme pulls google_fonts, which stalls under flutter_test.
-        theme: ThemeData(
-          brightness: Brightness.dark,
-          extensions: const [GlassTokens.dark],
-        ),
+        theme: AppTheme.dark(),
         home: Scaffold(
           body: RemovableChips(
             items: const ['com.a', 'com.b'],

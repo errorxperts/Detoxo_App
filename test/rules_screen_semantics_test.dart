@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/limits/limits.dart';
@@ -48,12 +49,7 @@ class _FakeUsage implements UsageRepository {
   ) async => const UsageDenied();
 }
 
-// AppTheme pulls google_fonts, which stalls under flutter_test — the screen
-// only needs GlassTokens plus a ColorScheme (the web_block_screen idiom).
-ThemeData _theme() => ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+ThemeData _theme() => AppTheme.dark();
 
 const _limitRule = Rule(
   id: 't1',

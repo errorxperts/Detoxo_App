@@ -3,10 +3,9 @@ import 'dart:math' as math;
 import 'package:detoxo/core/design_system/foundations/animated_icons.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -22,13 +21,10 @@ class LoadingState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
+          const SizedBox(
             width: 28,
             height: 28,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              color: context.accent,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2.5),
           ),
           if (message != null) ...[
             const SizedBox(height: AppSpacing.md),
@@ -59,14 +55,14 @@ class Skeleton extends StatelessWidget {
           width: width,
           height: height,
           decoration: BoxDecoration(
-            color: context.glass.fillTop,
+            color: context.tokens.fillQuiet,
             borderRadius: BorderRadius.circular(radius),
           ),
         )
         .animate(onPlay: (c) => c.repeat())
         .shimmer(
           duration: 1200.ms,
-          color: context.glass.onGlassMuted.withValues(alpha: 0.12),
+          color: context.tokens.ink2.withValues(alpha: 0.12),
         );
   }
 }
@@ -120,7 +116,7 @@ class ProgressRing extends StatelessWidget {
             painter: _RingPainter(
               progress: progress.clamp(0, 1),
               strokeWidth: strokeWidth,
-              trackColor: context.glass.border,
+              trackColor: context.tokens.hairline,
               arcColor: arcColor,
               accent: Theme.of(context).colorScheme.secondary,
               accentAlt: Theme.of(context).colorScheme.primary,
@@ -278,7 +274,7 @@ class ProgressBar extends StatelessWidget {
       borderRadius: BorderRadius.circular(height),
       child: Stack(
         children: [
-          Container(height: height, color: context.glass.border),
+          Container(height: height, color: context.tokens.hairline),
           if (animate && !reduce)
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: target),
@@ -407,17 +403,17 @@ class NoticeLine extends StatelessWidget {
     minTapTarget: const Size(0, AppSizes.minTapTarget),
     child: Row(
       children: [
-        const Icon(
+        Icon(
           Icons.warning_amber_rounded,
           size: 14,
-          color: AppColors.warning,
+          color: context.tokens.statusText(context.tokens.statusSetup),
         ),
         const SizedBox(width: AppSpacing.xxs),
         Expanded(
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.warning,
+              color: context.tokens.statusText(context.tokens.statusSetup),
               fontWeight: FontWeight.w600,
             ),
           ),

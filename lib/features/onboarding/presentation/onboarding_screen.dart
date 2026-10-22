@@ -52,12 +52,13 @@ class OnboardingScreen extends StatelessWidget {
 class _OnboardingWalker extends StatelessWidget {
   const _OnboardingWalker();
 
-  /// Accent per step — the existing three-colour arc, kept.
-  static Color _accent(OnboardingStepId step) => switch (step) {
-    OnboardingStepId.welcome || OnboardingStepId.survey => AppColors.seed,
+  /// Accent per step — the three-colour arc on spec palettes: brand, then
+  /// Conscious teal, then Block All indigo.
+  static Color _accent(AppTokens t, OnboardingStepId step) => switch (step) {
+    OnboardingStepId.welcome || OnboardingStepId.survey => t.brand.main,
     OnboardingStepId.projection ||
-    OnboardingStepId.selection => AppColors.onbTeal,
-    _ => AppColors.onbViolet,
+    OnboardingStepId.selection => t.conscious.main,
+    _ => t.blockAll.main,
   };
 
   /// Whether Next is available. Only two steps gate: the survey needs its
@@ -156,7 +157,7 @@ class _OnboardingWalker extends StatelessWidget {
     return BlocBuilder<OnboardingCubit, OnboardingProgress>(
       builder: (context, p) {
         final cubit = context.read<OnboardingCubit>();
-        final accent = _accent(p.step);
+        final accent = _accent(context.tokens, p.step);
         final back = cubit.previousStep;
         // Watched, not read: the selection step's Next unlocks when the target
         // scan comes back empty, so the CTA has to rebuild when it lands.
@@ -337,7 +338,7 @@ class _WelcomeStep extends StatelessWidget {
           'them the second they play and pulls you back out, right inside the '
           'apps you already use.',
           textAlign: TextAlign.center,
-          style: text.bodyLarge?.copyWith(color: context.glass.onGlass),
+          style: text.bodyLarge?.copyWith(color: context.tokens.ink),
         ),
         const SizedBox(height: AppSpacing.lg),
         const Pill(
@@ -409,9 +410,7 @@ class _CommitmentStep extends StatelessWidget {
               Expanded(
                 child: Text(
                   rule.text,
-                  style: text.bodyMedium?.copyWith(
-                    color: context.glass.onGlass,
-                  ),
+                  style: text.bodyMedium?.copyWith(color: context.tokens.ink),
                 ),
               ),
             ],

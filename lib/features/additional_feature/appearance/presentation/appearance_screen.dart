@@ -251,7 +251,7 @@ class _FlatToggleRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: context.glass.onGlassMuted),
+        Icon(icon, size: 20, color: context.tokens.ink2),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
@@ -355,7 +355,7 @@ class _SurfaceCard extends StatelessWidget {
                       child: Text(
                         hint!,
                         style: text.bodySmall?.copyWith(
-                          color: context.glass.onGlassMuted,
+                          color: context.tokens.ink2,
                         ),
                       ),
                     ),

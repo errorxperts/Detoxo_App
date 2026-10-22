@@ -250,10 +250,7 @@ void main() {
             BlocProvider<ContentCounterCubit>.value(value: counter),
           ],
           child: MaterialApp(
-            theme: ThemeData(
-              brightness: Brightness.dark,
-              extensions: const [GlassTokens.dark],
-            ),
+            theme: AppTheme.dark(),
             home: const BlockScreenStyleScreen(),
           ),
         ),

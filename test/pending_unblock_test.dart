@@ -40,10 +40,7 @@ class _FakeLedger implements BypassLedgerRepository {
   Future<void> save(BypassLedger ledger) async {}
 }
 
-ThemeData _theme() => ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+ThemeData _theme() => AppTheme.dark();
 
 void main() {
   late _MockEngine engine;

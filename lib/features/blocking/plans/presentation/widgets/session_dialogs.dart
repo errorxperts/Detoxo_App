@@ -163,7 +163,7 @@ class _UnblockSheetState extends State<_UnblockSheet> {
                 ? '$base returns after your last reel.'
                 : '$base returns at $until. App locks stay on.',
             textAlign: TextAlign.center,
-            style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+            style: text.bodySmall?.copyWith(color: context.tokens.ink2),
           ),
           const SizedBox(height: AppSpacing.md),
           PrimaryButton(
@@ -232,7 +232,7 @@ class _UnblockSheetState extends State<_UnblockSheet> {
                     Text(
                       _unit,
                       style: text.titleSmall?.copyWith(
-                        color: context.glass.onGlassMuted,
+                        color: context.tokens.ink2,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -275,10 +275,10 @@ class _UnblockSheetState extends State<_UnblockSheet> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: context.glass.border,
+                color: context.tokens.hairline,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 24, color: context.glass.onGlass),
+              child: Icon(icon, size: 24, color: context.tokens.ink),
             ),
           ),
         ),
@@ -309,7 +309,7 @@ class _PauseLive extends StatelessWidget {
         Text(
           'Reels and blocked sites are allowed; app locks stay on. Blocking '
           'resumes automatically when the window ends.',
-          style: text.bodyMedium?.copyWith(color: context.glass.onGlassMuted),
+          style: text.bodyMedium?.copyWith(color: context.tokens.ink2),
         ),
         const SizedBox(height: AppSpacing.md),
         SecondaryButton(
@@ -371,7 +371,7 @@ class _ConsciousIntro extends StatelessWidget {
         Text(
           'Earn reel time by staying off it.',
           textAlign: TextAlign.center,
-          style: text.bodyMedium?.copyWith(color: context.glass.onGlassMuted),
+          style: text.bodyMedium?.copyWith(color: context.tokens.ink2),
         ),
         const SizedBox(height: AppSpacing.lg),
         SectionCard(
@@ -456,17 +456,13 @@ class _ConsciousLive extends StatelessWidget {
             Text(
               '${formatCountdown(state.banked)} banked · cap $cap:00',
               textAlign: TextAlign.center,
-              style: text.bodyMedium?.copyWith(
-                color: context.glass.onGlassMuted,
-              ),
+              style: text.bodyMedium?.copyWith(color: context.tokens.ink2),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               hint,
               textAlign: TextAlign.center,
-              style: text.bodySmall?.copyWith(
-                color: context.glass.onGlassMuted,
-              ),
+              style: text.bodySmall?.copyWith(color: context.tokens.ink2),
             ),
             const SizedBox(height: AppSpacing.lg),
             GhostButton(

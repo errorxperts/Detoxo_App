@@ -198,9 +198,9 @@ class _ByAppSectionState extends State<ByAppSection>
               if (rows.isEmpty)
                 Text(
                   ByAppSection.emptyCopy(segment, counting: count.enabled),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.glass.onGlassMuted,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: context.tokens.ink2),
                 )
               else
                 for (var i = 0; i < rows.length; i++) ...[

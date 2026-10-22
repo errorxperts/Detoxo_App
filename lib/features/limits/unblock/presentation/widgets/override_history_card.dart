@@ -31,9 +31,9 @@ class OverrideHistoryCard extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.lg),
           child: AppCard(
-            leading: const IconBadge(
+            leading: IconBadge(
               icon: Icons.lock_open,
-              color: AppColors.warning,
+              color: context.tokens.statusText(context.tokens.statusSetup),
             ),
             title: summary.count == 1
                 ? '1 override this period'

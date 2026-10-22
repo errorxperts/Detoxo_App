@@ -1,17 +1,12 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/blocker_tile.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// AppTheme pulls google_fonts, which stalls under flutter_test — the tile only
-// needs GlassTokens plus a ColorScheme, so build a minimal theme here.
-ThemeData _theme(Brightness brightness) => ThemeData(
-  brightness: brightness,
-  extensions: [
-    if (brightness == Brightness.dark) GlassTokens.dark else GlassTokens.light,
-  ],
-);
+ThemeData _theme(Brightness brightness) =>
+    (brightness == Brightness.dark ? AppTheme.dark() : AppTheme.light());
 
 Future<void> _pump(
   WidgetTester tester, {

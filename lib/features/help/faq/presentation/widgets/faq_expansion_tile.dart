@@ -41,11 +41,11 @@ class FaqExpansionTile extends StatelessWidget {
             AppSpacing.md,
           ),
           iconColor: Theme.of(context).colorScheme.secondary,
-          collapsedIconColor: context.glass.onGlassMuted,
+          collapsedIconColor: context.tokens.ink2,
           title: Text(
             entry.question,
             style: text.bodyMedium?.copyWith(
-              color: context.glass.onGlass,
+              color: context.tokens.ink,
               fontWeight: FontWeight.w600,
               height: 1.25,
             ),
@@ -54,7 +54,7 @@ class FaqExpansionTile extends StatelessWidget {
             Text(
               entry.answer,
               style: text.bodySmall?.copyWith(
-                color: context.glass.onGlassMuted,
+                color: context.tokens.ink2,
                 height: 1.45,
               ),
             ),

@@ -42,7 +42,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: ThemeData(extensions: const [GlassTokens.dark]),
+        theme: AppTheme.dark(),
         home: Scaffold(
           body: BlocProvider<UnblockCubit>.value(
             value: cubit,

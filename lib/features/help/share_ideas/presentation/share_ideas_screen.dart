@@ -123,7 +123,7 @@ class _ShareIdeasViewState extends State<_ShareIdeasView> {
                       'to the team.',
                       textAlign: TextAlign.center,
                       style: text.bodyMedium?.copyWith(
-                        color: context.glass.onGlassMuted,
+                        color: context.tokens.ink2,
                       ),
                     ),
                   ],
@@ -151,7 +151,7 @@ class _ShareIdeasViewState extends State<_ShareIdeasView> {
                         isCollapsed: true,
                         hintText: 'What would make Detoxo better?',
                         hintStyle: text.bodyLarge?.copyWith(
-                          color: context.glass.onGlassMuted,
+                          color: context.tokens.ink2,
                         ),
                       ),
                     ),
@@ -163,7 +163,7 @@ class _ShareIdeasViewState extends State<_ShareIdeasView> {
                             ? 'Every idea counts 💡'
                             : '${state.message.trim().length} characters',
                         style: text.bodySmall?.copyWith(
-                          color: context.glass.onGlassMuted,
+                          color: context.tokens.ink2,
                         ),
                       ),
                     ),
@@ -200,9 +200,7 @@ class _ShareIdeasViewState extends State<_ShareIdeasView> {
               Text(
                 'Opens your email app, addressed to ${AppSupport.supportEmail}.',
                 textAlign: TextAlign.center,
-                style: text.bodySmall?.copyWith(
-                  color: context.glass.onGlassMuted,
-                ),
+                style: text.bodySmall?.copyWith(color: context.tokens.ink2),
               ),
             ],
           );

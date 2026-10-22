@@ -1,9 +1,8 @@
 import 'package:detoxo/core/design_system/components/buttons.dart';
 import 'package:detoxo/core/design_system/components/cards.dart';
 import 'package:detoxo/core/design_system/components/overlays.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// A standardized dialog body — an optional leading icon, a title, a [message] or
@@ -78,7 +77,7 @@ class AppDialog extends StatelessWidget {
       title: title,
       message: message,
       icon: icon,
-      accent: destructive ? AppColors.danger : null,
+      accent: destructive ? context.tokens.over.main : null,
       actions: [
         GhostButton(
           label: cancelLabel,
@@ -86,7 +85,7 @@ class AppDialog extends StatelessWidget {
         ),
         PrimaryButton(
           label: confirmLabel,
-          tint: destructive ? AppColors.danger : null,
+          tint: destructive ? context.tokens.over.main : null,
           onPressed: () => Navigator.of(context).pop(true),
         ),
       ],
@@ -123,7 +122,7 @@ class AppDialog extends StatelessWidget {
                   Text(
                     message!,
                     style: text.bodyMedium?.copyWith(
-                      color: context.glass.onGlassMuted,
+                      color: context.tokens.ink2,
                     ),
                   ),
                 ],

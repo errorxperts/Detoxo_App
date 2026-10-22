@@ -289,9 +289,7 @@ class _Caption extends StatelessWidget {
             Text(
               family.blurb,
               textAlign: TextAlign.center,
-              style: text.bodyMedium?.copyWith(
-                color: context.glass.onGlassMuted,
-              ),
+              style: text.bodyMedium?.copyWith(color: context.tokens.ink2),
             ),
           ],
         ),

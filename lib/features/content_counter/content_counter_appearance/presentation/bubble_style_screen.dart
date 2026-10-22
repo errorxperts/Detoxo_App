@@ -302,9 +302,9 @@ class _StageCard extends StatelessWidget {
             bottom: 12,
             child: Text(
               'Tap the bubble for the timer',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.glass.onGlassMuted,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: context.tokens.ink2),
             ),
           ),
           Positioned.fill(
@@ -354,7 +354,7 @@ class _Caption extends StatelessWidget {
                 ),
                 TextSpan(
                   text: ' · $line',
-                  style: TextStyle(color: context.glass.onGlassMuted),
+                  style: TextStyle(color: context.tokens.ink2),
                 ),
               ],
             ),
@@ -379,7 +379,7 @@ class _CountRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme.bodySmall?.copyWith(
-      color: context.glass.onGlassMuted,
+      color: context.tokens.ink2,
       fontFeatures: const [FontFeature.tabularFigures()],
     );
     return ValueListenableBuilder(
@@ -533,9 +533,7 @@ class _LabeledSlider extends StatelessWidget {
               ),
               Text(
                 format(value),
-                style: text.bodySmall?.copyWith(
-                  color: context.glass.onGlassMuted,
-                ),
+                style: text.bodySmall?.copyWith(color: context.tokens.ink2),
               ),
             ],
           ),

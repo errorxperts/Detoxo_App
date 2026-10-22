@@ -90,7 +90,7 @@ class _LoadError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.glass.onGlassMuted;
+    final muted = context.tokens.ink2;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),

@@ -28,7 +28,9 @@ abstract final class AppUpgradeDialog {
       barrierDismissible: canDismiss,
       blocking: !canDismiss,
       icon: Icons.system_update,
-      accent: canDismiss ? null : AppColors.warning,
+      accent: canDismiss
+          ? null
+          : context.tokens.statusText(context.tokens.statusSetup),
       title: canDismiss ? 'Update available' : 'Update required',
       message: _message(status),
       content: _Body(
@@ -107,16 +109,14 @@ class _Body extends StatelessWidget {
             constraints: const BoxConstraints(maxHeight: 160),
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: context.glass.fillBottom,
+              color: context.tokens.fillQuiet,
               borderRadius: AppRadius.brMd,
-              border: Border.all(color: context.glass.border),
+              border: Border.all(color: context.tokens.hairline),
             ),
             child: SingleChildScrollView(
               child: Text(
                 notes,
-                style: text.bodySmall?.copyWith(
-                  color: context.glass.onGlassMuted,
-                ),
+                style: text.bodySmall?.copyWith(color: context.tokens.ink2),
               ),
             ),
           ),

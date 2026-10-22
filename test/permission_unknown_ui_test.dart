@@ -1,5 +1,4 @@
-import 'package:detoxo/core/design_system/components/permission_card.dart';
-import 'package:detoxo/core/theme/app_theme.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

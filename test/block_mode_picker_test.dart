@@ -1,17 +1,13 @@
 import 'dart:ui' show Tristate;
 
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/features/blocking/blocking.dart' show BlockingMode;
 import 'package:detoxo/features/settings/presentation/widgets/block_mode_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// AppTheme pulls google_fonts, which stalls under flutter_test — the picker
-// only needs GlassTokens plus a ColorScheme (the ModeSelector precedent).
-final _theme = ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+final _theme = AppTheme.dark();
 
 Future<void> _pump(WidgetTester tester, Widget child) async {
   await tester.pumpWidget(

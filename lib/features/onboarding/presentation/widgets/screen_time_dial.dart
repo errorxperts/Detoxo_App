@@ -119,7 +119,7 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
                     accent:
                         widget.accent ??
                         Theme.of(context).colorScheme.secondary,
-                    trackColor: context.glass.border,
+                    trackColor: context.tokens.hairline,
                   ),
                 ),
               ),
@@ -144,16 +144,12 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
-        ShaderMask(
-          shaderCallback: (b) => context.metricGradient.createShader(b),
-          blendMode: BlendMode.srcIn,
-          child: Text(
-            formatHm(widget.value),
-            style: text.displaySmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1,
-              color: Colors.white,
-            ),
+        Text(
+          formatHm(widget.value),
+          style: text.displaySmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            height: 1,
+            color: context.tokens.ink,
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -166,14 +162,12 @@ class _ScreenTimeDialState extends State<ScreenTimeDial> {
               Icon(
                 Icons.touch_app_outlined,
                 size: 14,
-                color: context.glass.onGlassMuted,
+                color: context.tokens.ink2,
               ),
               const SizedBox(width: 4),
               Text(
                 'Drag to set',
-                style: text.labelSmall?.copyWith(
-                  color: context.glass.onGlassMuted,
-                ),
+                style: text.labelSmall?.copyWith(color: context.tokens.ink2),
               ),
             ],
           ),
@@ -243,7 +237,7 @@ class _DialPainter extends CustomPainter {
             ..style = PaintingStyle.stroke
             ..strokeWidth = stroke
             ..strokeCap = StrokeCap.round
-            ..shader = AppGradients.metric.createShader(rect),
+            ..color = accent,
         );
     }
 

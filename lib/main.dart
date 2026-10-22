@@ -3,14 +3,11 @@ import 'dart:async';
 import 'package:detoxo/app/app_resume_sync.dart';
 import 'package:detoxo/app/engine_sync.dart';
 import 'package:detoxo/app/starter_rule_sync.dart';
-import 'package:detoxo/core/design_system/foundations/glass_scaffold.dart';
-import 'package:detoxo/core/design_system/foundations/motion.dart';
-import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/app_gate.dart';
 import 'package:detoxo/core/navigation/app_router.dart';
 import 'package:detoxo/core/services/firebase/firebase.dart';
-import 'package:detoxo/core/theme/app_theme.dart';
 import 'package:detoxo/features/access_protection/domain/repositories/pin_repository.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_auto_relock.dart';
 import 'package:detoxo/features/access_protection/presentation/pin_cubit.dart';
@@ -67,12 +64,12 @@ Future<void> main() async {
   // Route uncaught framework and async errors to Crashlytics as early as
   // possible (before DI), so init-time crashes are captured.
   FirebaseCrashReportingService.installGlobalHandlers();
+  // Transparent bars only; each theme sets its own icon brightness through
+  // the AnnotatedRegion in the app builder.
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
       systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
   await configureDependencies();
@@ -212,6 +209,15 @@ class DetoxoApp extends StatelessWidget {
   }
 }
 
+/// Whether [mode] shows the Dark theme right now.
+bool _darkFor(ThemeMode mode) => switch (mode) {
+  ThemeMode.dark => true,
+  ThemeMode.light => false,
+  ThemeMode.system =>
+    WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+        Brightness.dark,
+};
+
 /// Maps the domain appearance preference to a Flutter [ThemeMode].
 ThemeMode _flutterThemeMode(AppThemeMode mode) => switch (mode) {
   AppThemeMode.system => ThemeMode.system,
@@ -250,11 +256,14 @@ class _RouterState extends State<_Router> {
       themeMode: widget.themeMode,
       theme: glassFeedbackTheme(Brightness.light),
       darkTheme: glassFeedbackTheme(Brightness.dark),
-      feedbackBuilder: (context, onSubmit, scrollController) =>
-          GlassFeedbackForm(
-            onSubmit: onSubmit,
-            scrollController: scrollController,
-          ),
+      // The form sits above MaterialApp, so it gets the app theme here.
+      feedbackBuilder: (context, onSubmit, scrollController) => Theme(
+        data: _darkFor(widget.themeMode) ? AppTheme.dark() : AppTheme.light(),
+        child: GlassFeedbackForm(
+          onSubmit: onSubmit,
+          scrollController: scrollController,
+        ),
+      ),
       child: AppResumeSync(
         // Arms the first run's starter rule on the accessibility-grant edge.
         // App-wide so a grant made from anywhere counts, not just from the
@@ -268,15 +277,23 @@ class _RouterState extends State<_Router> {
               theme: AppTheme.light(),
               darkTheme: AppTheme.dark(),
               themeMode: widget.themeMode,
+              // Snap a theme change, as `context.tokens` does.
+              themeAnimationDuration: Duration.zero,
               routerConfig: _router,
               debugShowCheckedModeBanner: false,
               // M8: the sheet a wall's "Allow for a while" opens. Mounted
               // here, INSIDE the router, so it can never float over the PIN
               // lock or the splash.
               // A home-widget tap's screen (IM-08), mounted the same way.
-              builder: (context, child) => PendingUnblockListener(
-                child: WidgetTapListener(child: child ?? const SizedBox()),
-              ),
+              builder: (context, child) =>
+                  AnnotatedRegion<SystemUiOverlayStyle>(
+                    value: AppTheme.overlay(Theme.of(context).brightness),
+                    child: PendingUnblockListener(
+                      child: WidgetTapListener(
+                        child: child ?? const SizedBox(),
+                      ),
+                    ),
+                  ),
             ),
           ),
         ),

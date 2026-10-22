@@ -170,14 +170,14 @@ class InlineHint extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: context.glass.onGlassMuted),
+          Icon(icon, size: 18, color: context.tokens.ink2),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               text,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: context.glass.onGlassMuted,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: context.tokens.ink2),
             ),
           ),
         ],

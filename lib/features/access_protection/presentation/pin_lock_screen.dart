@@ -181,11 +181,11 @@ class _PinLockScreenState extends State<PinLockScreen> {
       title: 'Too many attempts',
       message: 'Please wait ${formatCountdown(remaining)} before trying again.',
       icon: Icons.lock_clock,
-      accent: AppColors.danger,
+      accent: context.tokens.over.main,
       actions: [
         PrimaryButton(
           label: 'OK',
-          tint: AppColors.danger,
+          tint: context.tokens.over.main,
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],
@@ -278,7 +278,7 @@ class _PinLockScreenState extends State<PinLockScreen> {
                       copy.subtitle,
                       textAlign: TextAlign.center,
                       style: text.bodyMedium?.copyWith(
-                        color: context.glass.onGlassMuted,
+                        color: context.tokens.ink2,
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
@@ -367,7 +367,7 @@ class _Dots extends StatelessWidget {
               decoration: BoxDecoration(
                 color: i < filled ? scheme.primary : Colors.transparent,
                 border: Border.all(
-                  color: i < filled ? scheme.primary : context.glass.border,
+                  color: i < filled ? scheme.primary : context.tokens.hairline,
                   width: 1.5,
                 ),
                 shape: BoxShape.circle,

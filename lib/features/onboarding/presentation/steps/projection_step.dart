@@ -74,7 +74,7 @@ class _ProjectionStepState extends State<ProjectionStep> {
                     'DAYS',
                     style: text.labelSmall?.copyWith(
                       letterSpacing: 2,
-                      color: context.glass.onGlassMuted,
+                      color: context.tokens.ink2,
                     ),
                   ),
                 ],
@@ -91,7 +91,7 @@ class _ProjectionStepState extends State<ProjectionStep> {
           Text(
             _caption,
             textAlign: TextAlign.center,
-            style: text.titleMedium?.copyWith(color: context.glass.onGlass),
+            style: text.titleMedium?.copyWith(color: context.tokens.ink),
           ),
           const SizedBox(height: AppSpacing.md),
           GlassSegmented(
@@ -123,7 +123,7 @@ class _ProjectionStepState extends State<ProjectionStep> {
                     'your waking hours, scrolling. You did not choose that; '
                     'the feed did.',
           textAlign: TextAlign.center,
-          style: text.bodyLarge?.copyWith(color: context.glass.onGlass),
+          style: text.bodyLarge?.copyWith(color: context.tokens.ink),
         ),
       ],
     );
@@ -145,15 +145,11 @@ class _DayCountUp extends StatelessWidget {
       tween: IntTween(begin: reduce ? days : 0, end: days),
       duration: reduce ? Duration.zero : AppDurations.slow,
       curve: AppCurves.decelerate,
-      builder: (context, v, _) => ShaderMask(
-        shaderCallback: (b) => context.metricGradient.createShader(b),
-        blendMode: BlendMode.srcIn,
-        child: Text(
-          '$v',
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+      builder: (context, v, _) => Text(
+        '$v',
+        style: Theme.of(context).textTheme.displaySmall?.copyWith(
+          fontWeight: FontWeight.w800,
+          color: context.tokens.ink,
         ),
       ),
     );

@@ -30,9 +30,9 @@ class ActiveUnblocksCard extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: AppCard(
-            leading: const IconBadge(
+            leading: IconBadge(
               icon: Icons.lock_open,
-              color: AppColors.warning,
+              color: context.tokens.statusText(context.tokens.statusSetup),
             ),
             title: 'Allowed right now',
             subtitle: state.active.length == 1

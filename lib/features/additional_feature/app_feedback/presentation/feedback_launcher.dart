@@ -42,7 +42,7 @@ abstract final class FeedbackLauncher {
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: AppColors.danger, size: 20),
+          Icon(Icons.error_outline, size: 20),
           SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(

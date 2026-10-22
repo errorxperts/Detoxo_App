@@ -1,8 +1,8 @@
 import 'package:detoxo/core/constants/channel_constants.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/platform/platform_capabilities.dart';
 import 'package:detoxo/core/platform_channels/engine_channel.dart';
 import 'package:detoxo/core/storage/local_store.dart';
-import 'package:detoxo/core/theme/app_theme.dart';
 import 'package:detoxo/features/blocking/shared/data/repositories/engine_repository_impl.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';

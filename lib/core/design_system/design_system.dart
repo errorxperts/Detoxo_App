@@ -32,10 +32,6 @@ export 'foundations/motion.dart';
 // Theme
 export 'theme/app_theme.dart';
 // Tokens (app_tokens.dart also carries the generated AppTypography)
-export 'tokens/app_blur.dart';
-export 'tokens/app_colors.dart';
-export 'tokens/app_elevation.dart';
-export 'tokens/app_gradients.dart';
 export 'tokens/app_motion.dart';
 export 'tokens/app_spacing.dart';
 export 'tokens/app_tokens.dart';

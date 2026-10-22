@@ -33,9 +33,9 @@ class OverrideTile extends StatelessWidget {
     final enforcing = status.enforcing;
     if (live != null) {
       return AppCard(
-        leading: const IconBadge(
+        leading: IconBadge(
           icon: Icons.lock_open,
-          color: AppColors.warning,
+          color: context.tokens.statusText(context.tokens.statusSetup),
         ),
         title:
             'Lifted until ${RuleSummary.clock(live.untilMs, DateTime.now(), time: time)}',
@@ -48,7 +48,9 @@ class OverrideTile extends StatelessWidget {
     return AppCard(
       leading: IconBadge(
         icon: Icons.lock_open,
-        color: available ? AppColors.seed : AppColors.warning,
+        color: available
+            ? context.tokens.brand.main
+            : context.tokens.statusText(context.tokens.statusSetup),
       ),
       title: 'Lift this rule for a while',
       subtitle: !enforcing

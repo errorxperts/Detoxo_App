@@ -3,7 +3,6 @@ import 'package:detoxo/core/design_system/adaptive/platform_adaptive.dart';
 import 'package:detoxo/core/design_system/foundations/animated_icons.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
@@ -117,18 +116,12 @@ class LiquidPill extends StatelessWidget {
         boxShadow: disabled
             ? null
             : [
-                // Coloured glow under the pill + a cool depth shadow, the two
-                // `box-shadow`s that make the CTA float off the glass.
+                // Coloured glow under the pill.
                 BoxShadow(
                   color: tint.withValues(alpha: 0.45),
                   blurRadius: 24,
                   spreadRadius: -6,
                   offset: const Offset(0, 10),
-                ),
-                BoxShadow(
-                  color: context.shadow,
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
                 ),
               ],
       ),

@@ -122,9 +122,7 @@ class _SelectionStepState extends State<SelectionStep> {
             Text(
               'Only the endless feeds — the rest of each app keeps working. '
               'Change this any time.',
-              style: text.bodyMedium?.copyWith(
-                color: context.glass.onGlassMuted,
-              ),
+              style: text.bodyMedium?.copyWith(color: context.tokens.ink2),
             ),
             const SizedBox(height: AppSpacing.lg),
             for (final group in BlockAppGroup.from(installed))

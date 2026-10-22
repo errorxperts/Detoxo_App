@@ -1,8 +1,8 @@
 import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/components/buttons.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// Generic shell for a permission row: leading icon, title + required/optional
@@ -87,15 +87,17 @@ class PermissionCard extends StatelessWidget {
                 Text(why, style: text.bodySmall),
                 const SizedBox(height: AppSpacing.sm),
                 if (granted)
-                  const Row(
+                  Row(
                     children: [
                       Icon(
                         Icons.check_circle,
-                        color: AppColors.success,
+                        color: context.tokens.statusText(
+                          context.tokens.statusOn,
+                        ),
                         size: 18,
                       ),
-                      SizedBox(width: AppSpacing.xs),
-                      Text('Granted'),
+                      const SizedBox(width: AppSpacing.xs),
+                      const Text('Granted'),
                     ],
                   )
                 else if (unknown)

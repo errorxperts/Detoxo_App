@@ -375,7 +375,7 @@ class _SessionBannersState extends State<_SessionBanners> {
       banners.add(
         _AnimatedActionTile(
           icon: AppIcon.pause,
-          iconColor: AppColors.warning,
+          iconColor: context.tokens.statusText(context.tokens.statusSetup),
           title: 'Paused',
           // "Reels" not "all apps": whole-app locks hold through a Pause.
           subtitle: 'Reels allowed • ${formatCountdown(remaining)} left',

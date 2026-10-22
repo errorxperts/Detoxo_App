@@ -23,8 +23,8 @@ CircularSliderAppearance pauseSliderAppearance(
       handlerSize: interactive ? 8 : 0,
     ),
     customColors: CustomSliderColors(
-      trackColor: context.glass.border,
-      progressBarColors: [accent, AppColors.seed, accent],
+      trackColor: context.tokens.hairline,
+      progressBarColors: [accent, context.tokens.brand.main, accent],
       dotColor: interactive ? Colors.white : Colors.transparent,
       hideShadow: true,
     ),

@@ -147,7 +147,7 @@ class _BlockAppTileState extends State<BlockAppTile> {
                   style: text.bodySmall?.copyWith(
                     color: highlight
                         ? Theme.of(context).colorScheme.secondary
-                        : context.glass.onGlassMuted,
+                        : context.tokens.ink2,
                   ),
                 ),
               ],
@@ -161,7 +161,7 @@ class _BlockAppTileState extends State<BlockAppTile> {
               curve: AppCurves.standard,
               child: Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: context.glass.onGlassMuted,
+                color: context.tokens.ink2,
               ),
             ),
           ],
@@ -182,7 +182,7 @@ class _BlockAppTileState extends State<BlockAppTile> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Divider(height: 1, thickness: 1, color: context.glass.border),
+        Divider(height: 1, thickness: 1, color: context.tokens.hairline),
         for (final t in widget.group.surfaces)
           Padding(
             // Indent past the avatar so surfaces read as children of the app.

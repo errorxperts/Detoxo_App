@@ -1,6 +1,4 @@
-import 'package:detoxo/core/design_system/adaptive/platform_adaptive.dart';
-import 'package:detoxo/core/design_system/components/variant_carousel.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/features/additional_feature/appearance/presentation/appearance_screen.dart';
 import 'package:detoxo/features/blocking/blocking.dart';
@@ -52,12 +50,7 @@ class _MockCounter extends Mock implements ContentCounterCubit {}
 
 class _MockBlockScreen extends Mock implements BlockScreenStyleCubit {}
 
-// AppTheme pulls google_fonts, which stalls under flutter_test — the screen
-// only needs GlassTokens plus a ColorScheme (the home_widget_screen idiom).
-ThemeData _theme() => ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+ThemeData _theme() => AppTheme.dark();
 
 /// What a screen reader hears from the home-widget previews: on the picker,
 /// one stage node naming the centred family and size, and rail cards that

@@ -31,8 +31,8 @@ class FeedbackRatingSelector extends StatelessWidget {
             icon: Icon(
               star <= rating ? Icons.star_rounded : Icons.star_border_rounded,
               color: star <= rating
-                  ? AppColors.warning
-                  : context.glass.onGlassMuted,
+                  ? context.tokens.statusText(context.tokens.statusSetup)
+                  : context.tokens.ink2,
               size: 24,
             ),
           ),

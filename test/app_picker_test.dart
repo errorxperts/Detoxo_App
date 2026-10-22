@@ -1,14 +1,10 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/widgets/app_picker_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// AppTheme pulls google_fonts, which stalls under flutter_test — the sheet only
-// needs GlassTokens plus a ColorScheme, so build a minimal theme here.
-ThemeData _theme() => ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+ThemeData _theme() => AppTheme.dark();
 
 const _apps = [
   InstalledApp(packageName: 'com.a.alpha', appName: 'Alpha'),

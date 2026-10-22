@@ -178,7 +178,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
           ),
           Text(
             _pinTypeHint(_type),
-            style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+            style: text.bodySmall?.copyWith(color: context.tokens.ink2),
           ),
           if (_type == PinType.date || _type == PinType.time) ...[
             const SizedBox(height: AppSpacing.xs),
@@ -356,7 +356,7 @@ class _AutoLockPicker extends StatelessWidget {
                     : Icons.radio_button_unchecked,
                 color: timeout == selected
                     ? Theme.of(context).colorScheme.secondary
-                    : context.glass.onGlassMuted,
+                    : context.tokens.ink2,
               ),
               title: _autoLockLabel(timeout),
               subtitle: _autoLockHint(timeout),
@@ -395,7 +395,7 @@ class _PinTypePicker extends StatelessWidget {
                     : Icons.radio_button_unchecked,
                 color: type == selected
                     ? Theme.of(context).colorScheme.secondary
-                    : context.glass.onGlassMuted,
+                    : context.tokens.ink2,
               ),
               title: _pinTypeLabel(type),
               subtitle: _pinTypeHint(type),

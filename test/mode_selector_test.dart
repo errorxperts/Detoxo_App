@@ -1,15 +1,11 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/reel_session_state.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/mode_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// AppTheme pulls google_fonts, which stalls under flutter_test — the selector
-// only needs GlassTokens plus a ColorScheme.
-final _theme = ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+final _theme = AppTheme.dark();
 
 Future<DashboardMode?> _pump(
   WidgetTester tester, {

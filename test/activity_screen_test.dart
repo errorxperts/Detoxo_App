@@ -1,8 +1,6 @@
 import 'dart:async';
 
-import 'package:detoxo/core/design_system/components/cards.dart';
-import 'package:detoxo/core/design_system/foundations/glass_container.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/features/analytics/analytics.dart';
 import 'package:detoxo/features/analytics/insights/presentation/widgets/insights_view.dart';
@@ -62,12 +60,7 @@ class _EmptyLedger implements BypassLedgerRepository {
   Future<void> save(BypassLedger ledger) async {}
 }
 
-// AppTheme pulls google_fonts, which stalls under flutter_test — the screen
-// only needs GlassTokens plus a ColorScheme (the web_block_screen idiom).
-ThemeData _theme() => ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+ThemeData _theme() => AppTheme.dark();
 
 /// A quiet, granted hour of screen time.
 final _quietHour = DailyStats(

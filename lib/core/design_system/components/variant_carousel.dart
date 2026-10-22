@@ -1,7 +1,7 @@
 import 'package:detoxo/core/design_system/foundations/motion.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// One selectable option in a [VariantCarousel]: a short label, a mini preview,
@@ -102,9 +102,9 @@ class _VariantCard extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.xs),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          color: context.glass.fillBottom,
+          color: context.tokens.fillQuiet,
           border: Border.all(
-            color: selected ? accent : context.glass.border,
+            color: selected ? accent : context.tokens.hairline,
             width: borderWidth,
           ),
           boxShadow: selected
@@ -150,7 +150,7 @@ class _VariantCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: text.labelSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: selected ? accent : context.glass.onGlassMuted,
+                color: selected ? accent : context.tokens.ink2,
               ),
             ),
           ],

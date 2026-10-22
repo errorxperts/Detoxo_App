@@ -180,9 +180,7 @@ class _DistractionCard extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     line,
-                    style: text.bodySmall?.copyWith(
-                      color: context.glass.onGlassMuted,
-                    ),
+                    style: text.bodySmall?.copyWith(color: context.tokens.ink2),
                   ),
                 ],
               ),
@@ -193,7 +191,7 @@ class _DistractionCard extends StatelessWidget {
             thickness: 1,
             indent: AppSpacing.sm,
             endIndent: AppSpacing.sm,
-            color: context.glass.border,
+            color: context.tokens.hairline,
           ),
           StatCardPair(
             StatCard(
@@ -235,7 +233,7 @@ Future<void> _showAboutSheet(BuildContext context) {
         'Screen-time history starts the day you first opened this screen.',
         style: Theme.of(
           context,
-        ).textTheme.bodyMedium?.copyWith(color: context.glass.onGlassMuted),
+        ).textTheme.bodyMedium?.copyWith(color: context.tokens.ink2),
       ),
     ),
   );

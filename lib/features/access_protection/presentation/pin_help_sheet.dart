@@ -23,7 +23,7 @@ class _Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final muted = text.bodyMedium?.copyWith(color: context.glass.onGlassMuted);
+    final muted = text.bodyMedium?.copyWith(color: context.tokens.ink2);
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -46,7 +46,7 @@ class _Body extends StatelessWidget {
           Text(
             'Turned on uninstall protection? Switch it off first in Android’s '
             'Settings → Security → Device admin apps.',
-            style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+            style: text.bodySmall?.copyWith(color: context.tokens.ink2),
           ),
           const SizedBox(height: AppSpacing.lg),
           PrimaryButton(

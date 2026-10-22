@@ -141,7 +141,7 @@ class AppLimitRow extends StatelessWidget {
                   Icon(
                     Icons.chevron_right,
                     size: 18,
-                    color: context.glass.onGlassMuted,
+                    color: context.tokens.ink2,
                   ),
                 ],
               ),

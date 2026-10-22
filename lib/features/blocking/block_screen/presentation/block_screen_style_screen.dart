@@ -68,7 +68,7 @@ class _Body extends StatelessWidget {
     final hairline = Divider(
       height: 1,
       thickness: 1,
-      color: context.glass.border,
+      color: context.tokens.hairline,
     );
 
     return BlocBuilder<BlockScreenStyleCubit, BlockScreenStyle>(
@@ -100,9 +100,7 @@ class _Body extends StatelessWidget {
             Text(
               '${dark ? 'Spotlight' : 'Face Down'} · follows your app theme',
               textAlign: TextAlign.center,
-              style: text.bodySmall?.copyWith(
-                color: context.glass.onGlassMuted,
-              ),
+              style: text.bodySmall?.copyWith(color: context.tokens.ink2),
             ),
             const SizedBox(height: AppSpacing.sm),
             // Waits for the switch, and for the overlay grant the line under
@@ -196,9 +194,9 @@ class _PreviewStage extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [context.glass.fillTop, context.glass.fillBottom],
+          colors: [context.tokens.fillQuiet, context.tokens.fillQuiet],
         ),
-        border: Border.all(color: context.glass.border),
+        border: Border.all(color: context.tokens.hairline),
       ),
       child: Center(
         child: AnimatedSwitcher(
@@ -272,7 +270,7 @@ class _SwitchRow extends StatelessWidget {
                             Text(
                               caption!,
                               style: text.bodySmall?.copyWith(
-                                color: context.glass.onGlassMuted,
+                                color: context.tokens.ink2,
                               ),
                             ),
                         ],

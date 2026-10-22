@@ -1,18 +1,21 @@
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// Semantic tone shared by pills, badges and toasts.
 enum AppTone { neutral, accent, success, warning, danger }
 
 /// Resolves a tone to its accent colour (context needed for `neutral`).
-Color toneColor(BuildContext context, AppTone tone) => switch (tone) {
-  AppTone.neutral => Theme.of(context).colorScheme.onSurfaceVariant,
-  AppTone.accent => Theme.of(context).colorScheme.secondary,
-  AppTone.success => AppColors.success,
-  AppTone.warning => AppColors.warning,
-  AppTone.danger => AppColors.danger,
-};
+Color toneColor(BuildContext context, AppTone tone) {
+  final t = context.tokens;
+  return switch (tone) {
+    AppTone.neutral => t.ink2,
+    AppTone.accent => t.accentText(t.brand),
+    AppTone.success => t.statusOn,
+    AppTone.warning => t.statusSetup,
+    AppTone.danger => t.over.main,
+  };
+}
 
 /// Text colour to use ON a [toneColor] fill. The tone is a *surface* accent:
 /// painted as 11 sp label text over the pill's 16 %-alpha fill it lands around

@@ -78,7 +78,7 @@ class TodayOverview extends StatelessWidget {
                   thickness: 1,
                   indent: AppSpacing.sm,
                   endIndent: AppSpacing.sm,
-                  color: context.glass.border,
+                  color: context.tokens.hairline,
                 ),
                 StatCardPair(
                   StatCard(

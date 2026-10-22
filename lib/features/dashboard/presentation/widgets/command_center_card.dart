@@ -102,7 +102,9 @@ class CommandCenterCard extends StatelessWidget {
                     icon: Icons.local_fire_department,
                     value: streakValue,
                     label: 'day streak',
-                    iconColor: AppColors.warning,
+                    iconColor: context.tokens.statusText(
+                      context.tokens.statusSetup,
+                    ),
                   ),
                 ],
               ),
@@ -121,7 +123,8 @@ class CommandCenterCard extends StatelessWidget {
     TextTheme text,
     ColorScheme scheme,
   ) {
-    final ringColor = AppColors.limitTone(progress, over: overLimit);
+    // Interim: the static brand until F7c's ProgressRing takes the accent.
+    final ringColor = context.tokens.brand.main;
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(end: progress),
       duration: AppDurations.slow,
@@ -146,20 +149,14 @@ class CommandCenterCard extends StatelessWidget {
               width: 170,
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: ShaderMask(
-                  shaderCallback: (bounds) =>
-                      (overLimit
-                              ? AppGradients.overLimit
-                              : context.metricGradient)
-                          .createShader(bounds),
-                  blendMode: BlendMode.srcIn,
-                  child: Text(
-                    timeToday,
-                    style: text.displaySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      height: 1,
-                      color: Colors.white,
-                    ),
+                child: Text(
+                  timeToday,
+                  style: text.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1,
+                    color: overLimit
+                        ? context.tokens.accentText(context.tokens.over)
+                        : context.tokens.ink,
                   ),
                 ),
               ),
@@ -168,7 +165,9 @@ class CommandCenterCard extends StatelessWidget {
             Text(
               limitLabel,
               style: text.labelSmall?.copyWith(
-                color: overLimit ? AppColors.danger : scheme.onSurfaceVariant,
+                color: overLimit
+                    ? context.tokens.over.main
+                    : scheme.onSurfaceVariant,
                 fontWeight: overLimit ? FontWeight.w700 : FontWeight.w500,
               ),
             ),

@@ -29,7 +29,7 @@ class AppDrawer extends StatelessWidget {
         // A leading hairline defines the panel edge against the content,
         // especially in the light theme.
         decoration: BoxDecoration(
-          border: Border(left: BorderSide(color: context.glass.border)),
+          border: Border(left: BorderSide(color: context.tokens.hairline)),
         ),
         child: GlassContainer(
           surface: DxSurface.sheet,
@@ -60,13 +60,13 @@ class AppDrawer extends StatelessWidget {
                       ),
                       IconButton(
                         tooltip: 'Close',
-                        icon: Icon(Icons.close, color: context.glass.onGlass),
+                        icon: Icon(Icons.close, color: context.tokens.ink),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                 ),
-                Divider(height: 1, color: context.glass.border),
+                Divider(height: 1, color: context.tokens.hairline),
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.symmetric(
@@ -111,9 +111,7 @@ class AppDrawer extends StatelessWidget {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Text(
                     'v${AppConstants.appVersion}',
-                    style: text.bodySmall?.copyWith(
-                      color: context.glass.onGlassMuted,
-                    ),
+                    style: text.bodySmall?.copyWith(color: context.tokens.ink2),
                   ),
                 ),
               ],
@@ -144,7 +142,7 @@ class _DrawerItem extends StatelessWidget {
       leading: Icon(icon, color: Theme.of(context).colorScheme.secondary),
       title: Text(
         label,
-        style: text.bodyLarge?.copyWith(color: context.glass.onGlass),
+        style: text.bodyLarge?.copyWith(color: context.tokens.ink),
       ),
       onTap: onTap,
     );

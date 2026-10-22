@@ -77,14 +77,7 @@ void main() {
             create: (_) => CounterAppearanceCubit(_FakeAppearance()),
           ),
         ],
-        child: MaterialApp.router(
-          // AppTheme pulls google_fonts, which stalls under flutter_test.
-          theme: ThemeData(
-            brightness: Brightness.dark,
-            extensions: const [GlassTokens.dark],
-          ),
-          routerConfig: router,
-        ),
+        child: MaterialApp.router(theme: AppTheme.dark(), routerConfig: router),
       ),
     );
     await tester.pump();

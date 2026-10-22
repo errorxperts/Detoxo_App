@@ -70,7 +70,7 @@ class ShowcaseTooltipCard extends StatelessWidget {
             Text(
               step.body,
               style: text.bodySmall?.copyWith(
-                color: context.glass.onGlassMuted,
+                color: context.tokens.ink2,
                 height: 1.35,
               ),
             ),
@@ -177,7 +177,7 @@ class _StepDots extends StatelessWidget {
             width: i == index ? 18 : 6,
             height: 6,
             decoration: BoxDecoration(
-              color: i == index ? color : context.glass.border,
+              color: i == index ? color : context.tokens.hairline,
               borderRadius: BorderRadius.circular(3),
             ),
           ),
@@ -206,7 +206,7 @@ class _SkipButton extends StatelessWidget {
         child: Text(
           'Skip',
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: context.glass.onGlassMuted,
+            color: context.tokens.ink2,
             fontWeight: FontWeight.w600,
           ),
         ),

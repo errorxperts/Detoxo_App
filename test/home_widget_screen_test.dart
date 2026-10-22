@@ -1,6 +1,4 @@
-import 'package:detoxo/core/design_system/adaptive/platform_adaptive.dart';
-import 'package:detoxo/core/design_system/components/variant_carousel.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:detoxo/features/content_counter/content_counter_appearance/presentation/home_widget_cubit.dart';
@@ -53,12 +51,7 @@ class _FakeAppearance implements CounterAppearanceRepository {
   Future<void> setBrands({required int light, required int dark}) async {}
 }
 
-// AppTheme pulls google_fonts, which stalls under flutter_test — the screen
-// only needs GlassTokens plus a ColorScheme (the activity_screen idiom).
-ThemeData _theme() => ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+ThemeData _theme() => AppTheme.dark();
 
 /// The home-widget picker (doc 17 §6.4): a swipeable stage and a rail that
 /// share one selection, a size switch, the Time-limit link and Add.

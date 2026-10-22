@@ -56,7 +56,7 @@ class OptionTile extends StatelessWidget {
         selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
         color: selected
             ? Theme.of(context).colorScheme.secondary
-            : context.glass.onGlassMuted,
+            : context.tokens.ink2,
       ),
       title: title,
       subtitle: subtitle,
@@ -86,7 +86,10 @@ class PermissionNeededRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: GlassListTile(
-        leading: const Icon(Icons.error_outline, color: AppColors.warning),
+        leading: Icon(
+          Icons.error_outline,
+          color: context.tokens.statusText(context.tokens.statusSetup),
+        ),
         title: title,
         subtitle: subtitle,
         trailing: const Icon(Icons.chevron_right),

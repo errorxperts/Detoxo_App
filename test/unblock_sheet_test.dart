@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/sessions.dart';
 import 'package:detoxo/features/blocking/plans/presentation/widgets/session_dialogs.dart';
@@ -12,11 +13,7 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockSettings extends MockCubit<AppSettings> implements SettingsCubit {}
 
-// AppTheme pulls google_fonts, which stalls under flutter_test.
-final _theme = ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+final _theme = AppTheme.dark();
 
 Future<_MockSettings> _open(
   WidgetTester tester, {
@@ -155,10 +152,7 @@ void main() {
       await _open(
         tester,
         textScale: scale,
-        theme: ThemeData(
-          brightness: dark ? Brightness.dark : Brightness.light,
-          extensions: [if (dark) GlassTokens.dark else GlassTokens.light],
-        ),
+        theme: (dark ? AppTheme.dark() : AppTheme.light()),
       );
       expect(tester.takeException(), isNull);
       await tester.tap(find.text('Reels'), warnIfMissed: false);

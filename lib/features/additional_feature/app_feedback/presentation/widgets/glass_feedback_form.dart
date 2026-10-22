@@ -74,7 +74,7 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
 
   @override
   Widget build(BuildContext context) {
-    final glass = context.glass;
+    final glass = context.tokens;
     final accent = Theme.of(context).colorScheme.secondary;
     final text = Theme.of(context).textTheme;
     final draggable = widget.scrollController != null;
@@ -109,7 +109,7 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
                             'Share your feedback',
                             style: text.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: glass.onGlass,
+                              color: glass.ink,
                             ),
                           ),
                         ),
@@ -134,9 +134,7 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
                         children: [
                           Text(
                             'Rate us',
-                            style: text.bodyMedium?.copyWith(
-                              color: glass.onGlassMuted,
-                            ),
+                            style: text.bodyMedium?.copyWith(color: glass.ink2),
                           ),
                           const Spacer(),
                           FeedbackRatingSelector(
@@ -153,24 +151,24 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
                       minLines: 2,
                       maxLines: 4,
                       textInputAction: TextInputAction.newline,
-                      style: TextStyle(color: glass.onGlass),
+                      style: TextStyle(color: glass.ink),
                       decoration: InputDecoration(
                         isDense: true,
                         hintText: 'What went well, or what could be better?',
-                        hintStyle: TextStyle(color: glass.onGlassMuted),
+                        hintStyle: TextStyle(color: glass.ink2),
                         helperText: 'A screenshot is attached automatically.',
                         helperStyle: text.bodySmall?.copyWith(
-                          color: glass.onGlassMuted,
+                          color: glass.ink2,
                         ),
                         filled: true,
-                        fillColor: glass.fillTop,
+                        fillColor: glass.fillQuiet,
                         border: OutlineInputBorder(
                           borderRadius: AppRadius.brMd,
-                          borderSide: BorderSide(color: glass.border),
+                          borderSide: BorderSide(color: glass.hairline),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: AppRadius.brMd,
-                          borderSide: BorderSide(color: glass.border),
+                          borderSide: BorderSide(color: glass.hairline),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: AppRadius.brMd,
@@ -188,7 +186,7 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: glass.border,
+                        color: glass.hairline,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

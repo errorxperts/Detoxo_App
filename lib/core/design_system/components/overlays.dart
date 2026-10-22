@@ -1,8 +1,8 @@
 import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -43,7 +43,7 @@ abstract final class GlassBottomSheet {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: context.glass.border,
+                      color: context.tokens.hairline,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -136,7 +136,7 @@ abstract final class GlassToast {
                             message,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
-                                  color: context.glass.onGlass,
+                                  color: context.tokens.ink,
                                   fontWeight: FontWeight.w600,
                                   height: 1.3,
                                 ),

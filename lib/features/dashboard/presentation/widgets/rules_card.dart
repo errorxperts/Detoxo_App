@@ -32,7 +32,7 @@ class RulesCard extends StatelessWidget {
         // Live → success tint; set up but idle → the house accent; nothing
         // set up → plain glass, so the card doesn't shout about an empty list.
         final accent = live
-            ? AppColors.success
+            ? context.tokens.statusText(context.tokens.statusOn)
             : state.rules.isEmpty
             ? null
             : scheme.secondary;

@@ -1,9 +1,9 @@
 import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart' show SectionCard;
 import 'package:flutter/material.dart';
 
@@ -130,7 +130,7 @@ class StatCard extends StatelessWidget {
         ? null
         : Text(
             caption!,
-            style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+            style: text.bodySmall?.copyWith(color: context.tokens.ink2),
           );
     final padding = EdgeInsets.all(compact ? AppSpacing.sm : 14);
     final body = Column(
@@ -139,7 +139,7 @@ class StatCard extends StatelessWidget {
           ? [
               Row(
                 children: [
-                  Icon(icon, size: 18, color: context.accent),
+                  Icon(icon, size: 18, color: context.tokens.ink2),
                   const SizedBox(width: AppSpacing.xxs),
                   // Wraps rather than clips: "Distracting opens" beside
                   // an icon overflows a half-width tile from ~1.3× text
@@ -156,7 +156,7 @@ class StatCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(icon, color: context.accent),
+                  Icon(icon, color: context.tokens.ink2),
                   ?badge,
                 ],
               ),
@@ -246,7 +246,7 @@ class IconBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCircle = shape == BoxShape.circle;
-    final tint = color ?? context.accent;
+    final tint = color ?? context.tokens.brand.main;
     return Container(
       width: size,
       height: size,
@@ -344,7 +344,7 @@ class AppCard extends StatelessWidget {
                         Text(
                           subtitle!,
                           style: text.bodySmall?.copyWith(
-                            color: context.glass.onGlassMuted,
+                            color: context.tokens.ink2,
                           ),
                         ),
                       ],

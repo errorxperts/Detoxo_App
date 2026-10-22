@@ -424,7 +424,9 @@ class _NudgeTile extends StatelessWidget {
               AppToggleTile(
                 leading: Icon(
                   Icons.timer_outlined,
-                  color: blocked ? AppColors.warning : accent,
+                  color: blocked
+                      ? context.tokens.statusText(context.tokens.statusSetup)
+                      : accent,
                 ),
                 title: 'Soft nudge',
                 subtitle:
@@ -482,7 +484,9 @@ class _SuppressionTile extends StatelessWidget {
               AppToggleTile(
                 leading: Icon(
                   Icons.notifications_off,
-                  color: blocked ? AppColors.warning : accent,
+                  color: blocked
+                      ? context.tokens.statusText(context.tokens.statusSetup)
+                      : accent,
                 ),
                 title: 'Notification silence',
                 subtitle: 'Mute apps while they’re blocked',
@@ -574,8 +578,6 @@ class _UpdateButton extends StatelessWidget {
     return FilledButton(
       onPressed: onPressed,
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.seed,
-        foregroundColor: Colors.white,
         minimumSize: Size.zero,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,

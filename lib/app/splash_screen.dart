@@ -32,12 +32,8 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
+            Padding(
                   padding: const EdgeInsets.all(AppSpacing.xl),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: AppShadows.glowIndigo,
-                  ),
                   child: Image.asset(
                     Assets.images.detoxLogoNoBg.path,
                     width: 120,

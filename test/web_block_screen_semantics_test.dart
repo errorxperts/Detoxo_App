@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/app_settings.dart';
@@ -46,12 +47,7 @@ class _EmptyLedger implements BypassLedgerRepository {
   Future<void> save(BypassLedger ledger) async {}
 }
 
-// AppTheme pulls google_fonts, which stalls under flutter_test — the screen
-// only needs GlassTokens plus a ColorScheme (same idiom as app_picker_test).
-ThemeData _theme() => ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+ThemeData _theme() => AppTheme.dark();
 
 /// Regression tests for the `!semantics.parentDataDirty` framework assertion:
 /// with semantics enabled (TalkBack, or any debug session after the first

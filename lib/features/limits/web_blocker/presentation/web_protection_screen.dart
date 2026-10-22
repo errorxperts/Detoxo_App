@@ -65,9 +65,9 @@ class _WebProtectionView extends StatelessWidget {
               children: [
                 Text(
                   'One switch, a whole category of sites.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: context.glass.onGlassMuted,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: context.tokens.ink2),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 AppToggleTile(
@@ -75,9 +75,9 @@ class _WebProtectionView extends StatelessWidget {
                   subtitle:
                       'Apps you block stay blocked in the browser too — '
                       'their web versions are closed automatically.',
-                  leading: const IconBadge(
+                  leading: IconBadge(
                     icon: Icons.apps_outlined,
-                    color: AppColors.seed,
+                    color: context.tokens.brand.main,
                     shape: BoxShape.rectangle,
                   ),
                   value: state.blockForApps,
@@ -91,9 +91,9 @@ class _WebProtectionView extends StatelessWidget {
                       'Blocks every page of 200+ known adult sites and every '
                       '.xxx, .porn, .sex or .adult address — in any supported '
                       'browser, on top of your own blocklist.',
-                  leading: const IconBadge(
+                  leading: IconBadge(
                     icon: Icons.shield_outlined,
-                    color: AppColors.danger,
+                    color: context.tokens.over.main,
                     shape: BoxShape.rectangle,
                   ),
                   value: state.blockAdult,

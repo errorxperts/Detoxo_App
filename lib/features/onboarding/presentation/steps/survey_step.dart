@@ -51,7 +51,7 @@ class SurveyStep extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         Text(
           'Stays on this device. Shapes what Detoxo sets up for you.',
-          style: text.bodyMedium?.copyWith(color: context.glass.onGlassMuted),
+          style: text.bodyMedium?.copyWith(color: context.tokens.ink2),
         ),
         const SizedBox(height: AppSpacing.md),
         for (final q in surveyQuestions)
@@ -69,7 +69,9 @@ class SurveyStep extends StatelessWidget {
                       child: Text(
                         'About $days days a year',
                         style: text.labelMedium?.copyWith(
-                          color: context.accent,
+                          color: context.tokens.accentText(
+                            context.tokens.brand,
+                          ),
                         ),
                       ).entrance(),
                     )
@@ -207,7 +209,7 @@ class _TextAnswerState extends State<_TextAnswer> {
             hintText: widget.hint,
             hintStyle: Theme.of(
               context,
-            ).textTheme.bodyLarge?.copyWith(color: context.glass.onGlassMuted),
+            ).textTheme.bodyLarge?.copyWith(color: context.tokens.ink2),
           ),
           onChanged: widget.onAnswer,
         ),

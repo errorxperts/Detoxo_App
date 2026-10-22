@@ -1,4 +1,4 @@
-import 'package:detoxo/core/theme/app_theme.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/analytics/analytics.dart';
 import 'package:detoxo/features/analytics/insights/presentation/widgets/insights_view.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';

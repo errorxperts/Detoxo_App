@@ -37,7 +37,7 @@ class _Body extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final muted = text.bodyMedium?.copyWith(color: context.glass.onGlassMuted);
+    final muted = text.bodyMedium?.copyWith(color: context.tokens.ink2);
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -65,7 +65,7 @@ class _Body extends StatelessWidget {
           Text(
             "Don't see it in the ⋮ menu? Scroll to the bottom of App info — some "
             'phones list it there instead.',
-            style: text.bodySmall?.copyWith(color: context.glass.onGlassMuted),
+            style: text.bodySmall?.copyWith(color: context.tokens.ink2),
           ),
           const SizedBox(height: AppSpacing.lg),
           PrimaryButton(

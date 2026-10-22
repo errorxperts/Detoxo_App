@@ -192,17 +192,13 @@ class _StatsSection extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               Row(
                 children: [
-                  Icon(
-                    Icons.trending_up,
-                    size: 16,
-                    color: context.glass.onGlassMuted,
-                  ),
+                  Icon(Icons.trending_up, size: 16, color: context.tokens.ink2),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
                     'Most blocked: ',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: context.glass.onGlassMuted,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: context.tokens.ink2),
                   ),
                   Flexible(
                     child: Text(
@@ -242,9 +238,9 @@ class _UnsupportedBrowsersNotice extends StatelessWidget {
       label: 'Not covered: $names. Blocking does not apply in these browsers.',
       excludeSemantics: true,
       child: AppCard(
-        leading: const IconBadge(
+        leading: IconBadge(
           icon: Icons.warning_amber_outlined,
-          color: AppColors.warning,
+          color: context.tokens.statusText(context.tokens.statusSetup),
           shape: BoxShape.rectangle,
         ),
         title: 'Not covered: $names',
@@ -268,7 +264,7 @@ class _ProtectionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const seed = AppColors.seed;
+    final seed = context.tokens.brand.main;
     Future<void> open() async {
       final cubit = context.read<WebBlockCubit>();
       await context.push<void>(Routes.webProtection);
@@ -297,7 +293,7 @@ class _ProtectionChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.shield_outlined, size: 16, color: seed),
+              Icon(Icons.shield_outlined, size: 16, color: seed),
               const SizedBox(width: AppSpacing.xxs),
               Text(
                 activeCount > 0 ? 'Protection · $activeCount' : 'Protection',
@@ -482,7 +478,7 @@ class _BlocklistRow extends StatelessWidget {
             _RowAction(
               icon: paused ? Icons.play_arrow : Icons.timer_outlined,
               label: paused ? 'Resume' : 'Allow',
-              tone: AppColors.warning,
+              tone: context.tokens.statusText(context.tokens.statusSetup),
               semanticLabel: paused
                   ? 'Resume blocking ${entry.label}'
                   : 'Allow ${entry.label} for a while',
@@ -501,14 +497,14 @@ class _BlocklistRow extends StatelessWidget {
             _RowAction(
               icon: Icons.edit_outlined,
               label: 'Edit',
-              tone: AppColors.seed,
+              tone: context.tokens.brand.main,
               semanticLabel: 'Edit ${entry.label}',
               onPressed: (context) => _showSiteSheet(context, entry: entry),
             ),
           _RowAction(
             icon: Icons.delete_outline,
             label: 'Delete',
-            tone: AppColors.danger,
+            tone: context.tokens.over.main,
             semanticLabel: 'Remove ${entry.label}',
             onPressed: (_) => cubit.removeEntry(entry),
           ),

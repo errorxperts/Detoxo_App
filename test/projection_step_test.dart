@@ -4,11 +4,7 @@ import 'package:detoxo/features/onboarding/presentation/steps/projection_step.da
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// AppTheme pulls google_fonts, which stalls under flutter_test.
-ThemeData _theme() => ThemeData(
-  brightness: Brightness.dark,
-  extensions: const [GlassTokens.dark],
-);
+ThemeData _theme() => AppTheme.dark();
 
 Future<void> _pump(WidgetTester tester, OnboardingProgress progress) async {
   await tester.pumpWidget(

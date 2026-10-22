@@ -1,126 +1,36 @@
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-/// Brightness-dependent glass values, read via
-/// `Theme.of(context).extension<GlassTokens>()` or the `context.glass` shortcut.
-@immutable
-class GlassTokens extends ThemeExtension<GlassTokens> {
-  const GlassTokens({
-    required this.fillTop,
-    required this.fillBottom,
-    required this.border,
-    required this.highlight,
-    required this.onGlass,
-    required this.onGlassMuted,
-    required this.shadow,
-  });
-
-  final Color fillTop;
-  final Color fillBottom;
-  final Color border;
-  final Color highlight;
-  final Color onGlass;
-  final Color onGlassMuted;
-
-  /// Outer depth-shadow colour for elevated glass (a cool near-black on dark, a
-  /// soft cool tint on light) — replaces the old hardcoded `Colors.black`.
-  final Color shadow;
-
-  static const dark = GlassTokens(
-    fillTop: AppColors.glassFillTopDark,
-    fillBottom: AppColors.glassFillBotDark,
-    border: AppColors.glassBorderDark,
-    highlight: AppColors.glassHighlightDark,
-    onGlass: AppColors.onGlassDark,
-    onGlassMuted: AppColors.onGlassMutedDark,
-    shadow: AppColors.glassShadowDark,
-  );
-
-  static const light = GlassTokens(
-    fillTop: AppColors.glassFillTopLight,
-    fillBottom: AppColors.glassFillBotLight,
-    border: AppColors.glassBorderLight,
-    highlight: AppColors.glassHighlightLight,
-    onGlass: AppColors.onGlassLight,
-    onGlassMuted: AppColors.onGlassMutedLight,
-    shadow: AppColors.glassShadowLight,
-  );
-
-  @override
-  GlassTokens copyWith({
-    Color? fillTop,
-    Color? fillBottom,
-    Color? border,
-    Color? highlight,
-    Color? onGlass,
-    Color? onGlassMuted,
-    Color? shadow,
-  }) {
-    return GlassTokens(
-      fillTop: fillTop ?? this.fillTop,
-      fillBottom: fillBottom ?? this.fillBottom,
-      border: border ?? this.border,
-      highlight: highlight ?? this.highlight,
-      onGlass: onGlass ?? this.onGlass,
-      onGlassMuted: onGlassMuted ?? this.onGlassMuted,
-      shadow: shadow ?? this.shadow,
-    );
-  }
-
-  @override
-  GlassTokens lerp(GlassTokens? other, double t) {
-    if (other == null) return this;
-    return GlassTokens(
-      fillTop: Color.lerp(fillTop, other.fillTop, t)!,
-      fillBottom: Color.lerp(fillBottom, other.fillBottom, t)!,
-      border: Color.lerp(border, other.border, t)!,
-      highlight: Color.lerp(highlight, other.highlight, t)!,
-      onGlass: Color.lerp(onGlass, other.onGlass, t)!,
-      onGlassMuted: Color.lerp(onGlassMuted, other.onGlassMuted, t)!,
-      shadow: Color.lerp(shadow, other.shadow, t)!,
-    );
-  }
-}
-
-/// Glass + brand shortcuts on [BuildContext].
+/// The two Frozen Glass themes, built once and only from [AppTokens].
 ///
-/// - `context.glass` → the [GlassTokens] extension.
-/// - `context.accent` / `context.onAccent` → the live, **background-adaptive**
-///   brand accent (routed through `colorScheme.secondary`/`onSecondary`), the
-///   single source of truth so accent tints shift with the selected background.
-/// - `context.shadow` → the glass depth-shadow colour.
-extension GlassThemeX on BuildContext {
-  GlassTokens get glass =>
-      Theme.of(this).extension<GlassTokens>() ?? GlassTokens.dark;
-  Color get accent => Theme.of(this).colorScheme.secondary;
-  Color get onAccent => Theme.of(this).colorScheme.onSecondary;
-  Color get shadow =>
-      Theme.of(this).extension<GlassTokens>()?.shadow ??
-      GlassTokens.dark.shadow;
-
-  /// Background-adaptive hero-metric gradient for ShaderMask numbers. Built from
-  /// the live brand roles, so it's bright on dark and deep on light — legible in
-  /// both themes (unlike a fixed light-on-light gradient).
-  LinearGradient get metricGradient {
-    final s = Theme.of(this).colorScheme;
-    return LinearGradient(colors: [s.secondary, s.primary]);
-  }
-}
-
-/// The app themes, built from the generated Frozen Glass tokens. The brand is
-/// the static spec `brand` palette (no background picker): `brand.main` is the
-/// primary, its accent text colour the secondary.
+/// The scheme carries the static spec `brand` (slider, progress, cursor, time
+/// picker) and the neutral ink ramp; the live accent never enters it — it
+/// paints only its six spec places through `context.accent`. Screens read the
+/// full token set through `context.tokens`.
 abstract final class AppTheme {
-  static ThemeData dark() => _brand(AppTokens.dark);
+  static final ThemeData _light = _build(AppTokens.light);
+  static final ThemeData _dark = _build(AppTokens.dark);
 
-  static ThemeData light() => _brand(AppTokens.light);
+  static ThemeData light() => _light;
 
-  static ThemeData _brand(AppTokens t) =>
-      _base(t.brightness, t.brand.main, t.accentText(t.brand));
+  static ThemeData dark() => _dark;
 
-  // ── Type ──────────────────────────────────────────────────────────────────
+  /// System bars for a theme: transparent, with dark icons on the Light theme
+  /// and light icons on the Dark one.
+  static SystemUiOverlayStyle overlay(Brightness b) {
+    final icons = b == Brightness.dark ? Brightness.light : Brightness.dark;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarContrastEnforced: false,
+      statusBarIconBrightness: icons,
+      statusBarBrightness: b,
+      systemNavigationBarIconBrightness: icons,
+    );
+  }
 
   /// Every Material text slot on a Frozen Glass named style (Manrope, tabular
   /// figures, even leading). The colour comes from the scheme.
@@ -142,184 +52,223 @@ abstract final class AppTheme {
     labelSmall: AppTypography.tab,
   );
 
-  // ── Colour helpers ────────────────────────────────────────────────────────
-
-  /// WCAG contrast ratio between two opaque colours.
-  static double _contrast(Color a, Color b) {
-    final la = a.computeLuminance();
-    final lb = b.computeLuminance();
-    final hi = la > lb ? la : lb;
-    final lo = la > lb ? lb : la;
-    return (hi + 0.05) / (lo + 0.05);
-  }
-
-  /// Best readable on-colour (near-black ink or white) for a brand fill.
-  static Color _ink(Color c) {
-    const ink = Color(0xFF0A0E17);
-    return _contrast(c, Colors.white) >= _contrast(c, ink) ? Colors.white : ink;
-  }
-
-  /// A tonal variant of [c] at a target lightness (for containers / tints).
-  static Color _tone(Color c, double lightness) =>
-      HSLColor.fromColor(c).withLightness(lightness.clamp(0.0, 1.0)).toColor();
-
-  // ── Schemes ───────────────────────────────────────────────────────────────
-
-  static ColorScheme _darkScheme(Color primary, Color accent) => ColorScheme(
-    brightness: Brightness.dark,
-    primary: primary,
-    onPrimary: _ink(primary),
-    primaryContainer: _tone(primary, 0.30),
-    onPrimaryContainer: _tone(primary, 0.92),
-    secondary: accent,
-    onSecondary: _ink(accent),
-    secondaryContainer: _tone(accent, 0.28),
-    onSecondaryContainer: _tone(accent, 0.92),
-    tertiary: _tone(primary, 0.80),
-    onTertiary: const Color(0xFF11162A),
-    tertiaryContainer: _tone(primary, 0.34),
-    onTertiaryContainer: _tone(primary, 0.94),
-    error: const Color(0xFFFFB4AB),
-    onError: const Color(0xFF690005),
-    errorContainer: const Color(0xFF93000A),
-    onErrorContainer: const Color(0xFFFFDAD6),
-    surface: const Color(0xFF0B1120),
-    onSurface: const Color(0xFFE7ECF6),
-    onSurfaceVariant: const Color(0xFFB7C0D4),
-    surfaceDim: const Color(0xFF0A0F1C),
-    surfaceBright: const Color(0xFF2A3350),
-    surfaceContainerLowest: const Color(0xFF070C18),
-    surfaceContainerLow: const Color(0xFF111827),
-    surfaceContainer: const Color(0xFF151D30),
-    surfaceContainerHigh: const Color(0xFF1C2438),
-    surfaceContainerHighest: const Color(0xFF28304A),
-    outline: const Color(0xFF8A93A8),
-    outlineVariant: const Color(0xFF3A4256),
-    inverseSurface: const Color(0xFFE7ECF6),
-    onInverseSurface: const Color(0xFF283044),
-    inversePrimary: _tone(primary, 0.45),
-    surfaceTint: primary,
-  );
-
-  static ColorScheme _lightScheme(Color primary, Color accent) => ColorScheme(
-    brightness: Brightness.light,
-    primary: primary,
-    onPrimary: _ink(primary),
-    primaryContainer: _tone(primary, 0.90),
-    onPrimaryContainer: _tone(primary, 0.24),
-    secondary: accent,
-    onSecondary: _ink(accent),
-    secondaryContainer: _tone(accent, 0.88),
-    onSecondaryContainer: _tone(accent, 0.22),
-    tertiary: _tone(primary, 0.42),
-    onTertiary: Colors.white,
-    tertiaryContainer: _tone(primary, 0.90),
-    onTertiaryContainer: _tone(primary, 0.24),
-    error: AppColors.danger,
-    onError: Colors.white,
-    errorContainer: const Color(0xFFFFDAD6),
-    onErrorContainer: const Color(0xFF410002),
-    surface: const Color(0xFFF7F8FC),
-    onSurface: const Color(0xFF12151F),
-    onSurfaceVariant: const Color(0xFF454B5A),
-    surfaceDim: const Color(0xFFDCE0EC),
-    surfaceBright: Colors.white,
-    surfaceContainerLowest: Colors.white,
-    surfaceContainerLow: const Color(0xFFF1F3FA),
-    surfaceContainer: const Color(0xFFECEFF8),
-    surfaceContainerHigh: const Color(0xFFE5E9F4),
-    surfaceContainerHighest: const Color(0xFFDEE3F1),
-    outline: const Color(0xFFC3C9D6),
-    outlineVariant: const Color(0xFFD8DCE7),
-    inverseSurface: const Color(0xFF1B2030),
-    onInverseSurface: const Color(0xFFF0F2F9),
-    inversePrimary: _tone(primary, 0.78),
-    surfaceTint: primary,
-  );
-
-  static ThemeData _base(
-    Brightness brightness,
-    Color brandPrimary,
-    Color brandAccent,
-  ) {
-    final isDark = brightness == Brightness.dark;
-    final scheme = isDark
-        ? _darkScheme(brandPrimary, brandAccent)
-        : _lightScheme(brandPrimary, brandAccent);
+  static ThemeData _build(AppTokens t) {
+    final dark = t.brightness == Brightness.dark;
+    Color chip(Color c) => Color.lerp(t.optionBase, c, t.kChip)!;
+    final ink = ConfirmTone.neutral.ink;
+    final scheme = ColorScheme(
+      brightness: t.brightness,
+      primary: t.brand.main,
+      onPrimary: ink,
+      primaryContainer: chip(t.brand.main),
+      onPrimaryContainer: t.ink,
+      secondary: t.accentText(t.brand),
+      onSecondary: t.optionBase,
+      secondaryContainer: t.optionBase,
+      onSecondaryContainer: t.ink,
+      tertiary: t.brand.deep,
+      onTertiary: ink,
+      tertiaryContainer: chip(t.brand.deep),
+      onTertiaryContainer: t.ink,
+      error: t.accentText(t.over),
+      onError: t.optionBase,
+      errorContainer: chip(t.over.main),
+      onErrorContainer: t.ink,
+      surface: t.bgTop,
+      onSurface: t.ink,
+      onSurfaceVariant: t.ink2,
+      surfaceDim: t.bgBottom,
+      surfaceBright: t.optionBase,
+      surfaceContainerLowest: dark ? t.bgBottom : t.optionBase,
+      surfaceContainerLow: dark ? t.bgTop : t.cardFrom,
+      surfaceContainer: dark ? t.cardFrom : t.bgTop,
+      surfaceContainerHigh: dark ? t.optionBase : t.bgBottom,
+      surfaceContainerHighest: dark ? t.buttonFrom : t.cardTo,
+      outline: t.ink3,
+      outlineVariant: t.hairline,
+      inverseSurface: t.ink,
+      onInverseSurface: t.bgTop,
+      inversePrimary: t.brand.light,
+      surfaceTint: Colors.transparent,
+    );
+    final sheetShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(AppRadius.sheet),
+    );
 
     return ThemeData(
       useMaterial3: true,
-      brightness: brightness,
+      brightness: t.brightness,
       colorScheme: scheme,
       textTheme: _slots,
       primaryTextTheme: _slots,
-      // Opaque base for raw scaffolds; flagship screens use GlassScaffold,
-      // which sets its own transparent scaffold over the ambient mesh.
-      scaffoldBackgroundColor: scheme.surface,
-      extensions: [if (isDark) GlassTokens.dark else GlassTokens.light],
-      appBarTheme: const AppBarTheme(
+      // Raw scaffolds get the ground's end colour; GlassScaffold paints the
+      // full gradient under its own transparent Scaffold.
+      scaffoldBackgroundColor: t.bgBottom,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {TargetPlatform.android: _CalmTransitions()},
+      ),
+      appBarTheme: AppBarTheme(
         centerTitle: false,
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
+        foregroundColor: t.ink,
         elevation: 0,
         scrolledUnderElevation: 0,
-      ),
-      cardTheme: CardThemeData(
-        clipBehavior: Clip.antiAlias,
-        elevation: 0,
-        color: scheme.surfaceContainerHighest.withValues(
-          alpha: isDark ? 0.45 : 0.6,
-        ),
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.brLg),
+        toolbarHeight: 64,
+        titleTextStyle: AppTypography.title.copyWith(color: t.ink),
+        systemOverlayStyle: overlay(t.brightness),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(64, AppSizes.controlHeight),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.brMd),
+          minimumSize: const Size(64, AppSizes.minTapTarget),
+          shape: const StadiumBorder(),
           textStyle: AppTypography.button,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: t.ink2,
+          minimumSize: AppSizes.minTapTargetSquare,
+          shape: const StadiumBorder(),
+          textStyle: AppTypography.label,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(64, AppSizes.controlHeight),
-          side: BorderSide(color: scheme.outline),
-          shape: RoundedRectangleBorder(borderRadius: AppRadius.brMd),
+          foregroundColor: t.ink,
+          minimumSize: const Size(64, AppSizes.minTapTarget),
+          side: BorderSide(color: t.hairline),
+          shape: const StadiumBorder(),
+          textStyle: AppTypography.label,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         isDense: true,
+        fillColor: t.fillQuiet,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
+          horizontal: AppSpacing.md,
+          vertical: 14,
         ),
-        fillColor: isDark
-            ? AppColors.glassFillTopDark
-            : AppColors.glassFillTopLight,
+        hintStyle: AppTypography.body.copyWith(color: t.ink2),
+        labelStyle: AppTypography.body.copyWith(color: t.ink2),
         border: OutlineInputBorder(
-          borderRadius: AppRadius.brMd,
+          borderRadius: BorderRadius.circular(AppRadius.row),
           borderSide: BorderSide.none,
         ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.row),
+          borderSide: BorderSide(color: t.focus, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.row),
+          borderSide: BorderSide(color: t.accentText(t.over)),
+        ),
+      ),
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: t.brand.main,
+        selectionColor: t.brand.main.withValues(alpha: 0.3),
+        selectionHandleColor: t.brand.main,
       ),
       chipTheme: ChipThemeData(
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.brPill),
-        side: BorderSide(color: scheme.outline),
-        selectedColor: scheme.secondaryContainer,
+        shape: const StadiumBorder(),
+        side: BorderSide.none,
+        backgroundColor: t.fillQuiet,
+        selectedColor: t.optionBase,
+        labelStyle: AppTypography.label.copyWith(color: t.ink),
+        checkmarkColor: t.ink,
       ),
-      navigationBarTheme: NavigationBarThemeData(
+      sliderTheme: SliderThemeData(
+        activeTrackColor: t.brand.main,
+        inactiveTrackColor: t.fillQuiet,
+        thumbColor: t.brand.main,
+        overlayColor: t.brand.main.withValues(alpha: 0.12),
+        valueIndicatorColor: t.ink,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: t.brand.main,
+        linearTrackColor: t.fillQuiet,
+      ),
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: t.optionBase,
+        shape: sheetShape,
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: Colors.transparent,
+        modalBackgroundColor: Colors.transparent,
+        elevation: 0,
+        modalBarrierColor: Colors.black.withValues(alpha: 0.45),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: t.optionBase,
+        shape: sheetShape,
+        titleTextStyle: AppTypography.titleSheet.copyWith(color: t.ink),
+        contentTextStyle: AppTypography.message.copyWith(color: t.ink2),
+        barrierColor: Colors.black.withValues(alpha: 0.45),
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        indicatorColor: scheme.secondaryContainer.withValues(alpha: 0.5),
+        insetPadding: EdgeInsets.fromLTRB(
+          AppSpacing.gutter,
+          0,
+          AppSpacing.gutter,
+          AppSpacing.md,
+        ),
       ),
-      listTileTheme: const ListTileThemeData(
-        contentPadding: AppInsets.listTile,
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: t.ink,
+          borderRadius: BorderRadius.circular(AppRadius.chip),
+        ),
+        textStyle: AppTypography.subhead.copyWith(color: t.bgTop),
       ),
       dividerTheme: DividerThemeData(
-        color: scheme.outline,
+        color: t.hairline,
         thickness: 1,
         space: AppSpacing.md,
       ),
+      listTileTheme: ListTileThemeData(
+        contentPadding: AppInsets.listTile,
+        titleTextStyle: AppTypography.label.copyWith(color: t.ink),
+        subtitleTextStyle: AppTypography.subhead.copyWith(color: t.ink2),
+        iconColor: t.ink2,
+        minTileHeight: 56,
+      ),
+    );
+  }
+}
+
+/// Android page transitions: the platform's predictive-back transition, or no
+/// motion at all when the person asked to remove animations.
+class _CalmTransitions extends PageTransitionsBuilder {
+  const _CalmTransitions();
+
+  static const _platform = PredictiveBackPageTransitionsBuilder();
+
+  @override
+  Duration get transitionDuration => _platform.transitionDuration;
+
+  @override
+  DelegatedTransitionBuilder? get delegatedTransition =>
+      _platform.delegatedTransition;
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return child;
+    return _platform.buildTransitions(
+      route,
+      context,
+      animation,
+      secondaryAnimation,
+      child,
     );
   }
 }

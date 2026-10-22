@@ -1,6 +1,5 @@
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
@@ -81,7 +80,7 @@ class _GlassSegmentedState extends State<GlassSegmented> {
   Widget build(BuildContext context) {
     final segments = widget.segments;
     final height = widget.height;
-    final glass = context.glass;
+    final glass = context.tokens;
     final accent = Theme.of(context).colorScheme.secondary;
     final text = Theme.of(context).textTheme;
     final selected = widget.selectedIndex.clamp(0, segments.length - 1);
@@ -95,119 +94,101 @@ class _GlassSegmentedState extends State<GlassSegmented> {
     final slide = reduceMotion ? Duration.zero : AppDurations.normal;
     final press = reduceMotion ? Duration.zero : AppDurations.fast;
 
-    final track = DecoratedBox(
-      // The one place glass carries a drop shadow: a control needs to read as
-      // lifted off the background, not printed onto it.
-      decoration: ShapeDecoration(
-        shape: const StadiumBorder(),
-        shadows: [
-          BoxShadow(
-            color: glass.shadow,
-            blurRadius: 20,
-            spreadRadius: -4,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: GlassContainer(
-        surface: DxSurface.option,
-        color: context.tokens.fillQuiet,
-        borderRadius: AppRadius.pill,
-        padding: const EdgeInsets.all(GlassSegmented._inset),
-        child: SizedBox(
-          height: height - GlassSegmented._inset * 2,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              AnimatedAlign(
+    // Option track: solid, no shadow (spec .dx-option).
+    final track = GlassContainer(
+      surface: DxSurface.option,
+      color: context.tokens.fillQuiet,
+      borderRadius: AppRadius.pill,
+      padding: const EdgeInsets.all(GlassSegmented._inset),
+      child: SizedBox(
+        height: height - GlassSegmented._inset * 2,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            AnimatedAlign(
+              duration: slide,
+              curve: AppCurves.fluid,
+              alignment: segments.length > 1
+                  ? Alignment(-1 + 2 * selected / (segments.length - 1), 0)
+                  : Alignment.center,
+              child: AnimatedOpacity(
+                opacity: none ? 0 : 1,
                 duration: slide,
-                curve: AppCurves.fluid,
-                alignment: segments.length > 1
-                    ? Alignment(-1 + 2 * selected / (segments.length - 1), 0)
-                    : Alignment.center,
-                child: AnimatedOpacity(
-                  opacity: none ? 0 : 1,
-                  duration: slide,
-                  // Swells under a finger, like a key lifting to meet it.
-                  child: AnimatedScale(
-                    scale: _pressed ? 1.04 : 1,
-                    duration: press,
-                    curve: AppCurves.standard,
-                    child: FractionallySizedBox(
-                      widthFactor: 1 / segments.length,
-                      heightFactor: 1,
-                      child: const GlassContainer(
-                        surface: DxSurface.option,
-                        borderRadius: AppRadius.pill,
-                        padding: EdgeInsets.zero,
-                        child: SizedBox.expand(),
-                      ),
+                // Swells under a finger, like a key lifting to meet it.
+                child: AnimatedScale(
+                  scale: _pressed ? 1.04 : 1,
+                  duration: press,
+                  curve: AppCurves.standard,
+                  child: FractionallySizedBox(
+                    widthFactor: 1 / segments.length,
+                    heightFactor: 1,
+                    child: const GlassContainer(
+                      surface: DxSurface.option,
+                      borderRadius: AppRadius.pill,
+                      padding: EdgeInsets.zero,
+                      child: SizedBox.expand(),
                     ),
                   ),
                 ),
               ),
-              // Labels only — the taps and the semantics live on the hit layer
-              // below, which is the one that reaches the 48 dp floor. Colour
-              // and weight tween on the pill's clock, so a label lights up as
-              // the pill arrives instead of snapping ahead of it.
-              Row(
-                children: [
-                  for (var i = 0; i < segments.length; i++)
-                    Expanded(
-                      child: TweenAnimationBuilder<double>(
-                        tween: Tween(end: !none && i == selected ? 1.0 : 0.0),
-                        duration: slide,
-                        curve: AppCurves.fluid,
-                        builder: (_, t, _) {
-                          final color = Color.lerp(
-                            glass.onGlassMuted,
-                            accent,
-                            t,
-                          );
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (segments[i].icon != null) ...[
-                                Icon(segments[i].icon, size: 18, color: color),
-                                const SizedBox(width: AppSpacing.xs),
-                              ],
-                              // Flexible, so the ellipsis below can engage:
-                              // at 2.0x text a 360 dp screen's third of the
-                              // track is narrower than "Medium".
-                              Flexible(
-                                child: Padding(
-                                  // Breathing room so a label never touches
-                                  // the pill's rim when the control hugs its
-                                  // content.
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.md,
-                                  ),
-                                  child: Text(
-                                    segments[i].label,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style:
-                                        (compact
-                                                ? text.labelMedium
-                                                : text.labelLarge)
-                                            ?.copyWith(
-                                              fontWeight: t > 0.5
-                                                  ? FontWeight.w700
-                                                  : FontWeight.w500,
-                                              color: color,
-                                            ),
-                                  ),
+            ),
+            // Labels only — the taps and the semantics live on the hit layer
+            // below, which is the one that reaches the 48 dp floor. Colour
+            // and weight tween on the pill's clock, so a label lights up as
+            // the pill arrives instead of snapping ahead of it.
+            Row(
+              children: [
+                for (var i = 0; i < segments.length; i++)
+                  Expanded(
+                    child: TweenAnimationBuilder<double>(
+                      tween: Tween(end: !none && i == selected ? 1.0 : 0.0),
+                      duration: slide,
+                      curve: AppCurves.fluid,
+                      builder: (_, t, _) {
+                        final color = Color.lerp(glass.ink2, accent, t);
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (segments[i].icon != null) ...[
+                              Icon(segments[i].icon, size: 18, color: color),
+                              const SizedBox(width: AppSpacing.xs),
+                            ],
+                            // Flexible, so the ellipsis below can engage:
+                            // at 2.0x text a 360 dp screen's third of the
+                            // track is narrower than "Medium".
+                            Flexible(
+                              child: Padding(
+                                // Breathing room so a label never touches
+                                // the pill's rim when the control hugs its
+                                // content.
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                ),
+                                child: Text(
+                                  segments[i].label,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style:
+                                      (compact
+                                              ? text.labelMedium
+                                              : text.labelLarge)
+                                          ?.copyWith(
+                                            fontWeight: t > 0.5
+                                                ? FontWeight.w700
+                                                : FontWeight.w500,
+                                            color: color,
+                                          ),
                                 ),
                               ),
-                            ],
-                          );
-                        },
-                      ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                ],
-              ),
-            ],
-          ),
+                  ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -272,7 +253,7 @@ class _GlassSegmentedState extends State<GlassSegmented> {
 }
 
 /// A selectable glass chip (e.g. small option pickers). For 2–4 segment
-/// pickers prefer `AdaptiveSegmentedControl`.
+/// pickers prefer [GlassSegmented].
 class AppChip extends StatelessWidget {
   const AppChip({
     required this.label,
