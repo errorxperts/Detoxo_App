@@ -24,7 +24,7 @@ path is native; Dart owns config, settings and UI, bridged by **one** MethodChan
 | # | Doc | Covers |
 |---|-----|--------|
 | 00 | this file | Index + glossary |
-| 01 | [Overview & Architecture](01-overview-architecture.md) | Feature inventory, Clean Architecture, Cubit/get_it/go_router, the bootstrap + `AppGate` redirect, native boundary, directory map |
+| 01 | [Overview & Architecture](01-overview-architecture.md) | Feature inventory, Clean Architecture, Cubit/get_it/go_router, the bootstrap + `AppGate` redirect, the Frozen Glass design system (token pipeline, surface roles, motion, live accent, components), native boundary, directory map |
 | 02 | [Detection Config Schema](02-detection-config-schema.md) | `platforms_config.json` / `initial_config.json` as consumed; freezed models; native parse |
 | 03 | [Detection & Block Engine](03-detection-engine.md) | The native event loop, 3-stage view-id detection, timings, block modes, Conscious/Pause gating |
 | 04 | [Native Android Layer](04-native-android-layer.md) | Service (main process, FGS), receivers, device admin, overlay, manifest, `res/xml` |
@@ -44,7 +44,7 @@ path is native; Dart owns config, settings and UI, bridged by **one** MethodChan
 | 18 | [Platform Channel Contracts](18-platform-channel-contracts.md) | Every command method + event payload |
 | 19 | [Firebase Telemetry](19-firebase-telemetry.md) | Analytics / Crashlytics / Performance service layer — the one off-device data path |
 | 20 | [Help & Support](20-help-support.md) | In-app help hub: report an issue, FAQ, feature tutorials (scoped tours), share an idea |
-| 21 | [App Upgrader](21-app-upgrader.md) | In-app "update available" prompt (`upgrader` engine + custom glass dialog, force-update, auto + manual check) |
+| 21 | [App Upgrader](21-app-upgrader.md) | In-app "update available" prompt (`upgrader` engine + the design system's sheet dialog, force-update, auto + manual check) |
 | 22 | [Play Store Release & Policy](22-play-release.md) | Signed `.aab` build, Accessibility/FGS/device-admin declarations, data-safety answers, restricted-settings notes |
 | 23 | [Testing Runbook & IDE Run Configs](23-testing-runbook.md) | How to run every layer — terminal, Android Studio, VS Code; artifacts; troubleshooting |
 | 24 | [Protected Apps (Privacy Exclusion)](24-protected-apps.md) | User-managed sensitive apps (banking/UPI/password managers) Detoxo ignores entirely: native privacy guard, catalog seeding, `pushProtectedApps` |

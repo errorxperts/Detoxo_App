@@ -178,8 +178,8 @@ backdrop as a `QuoteWallView`.
 
   | Control | Look |
   |---|---|
-  | **Open Detoxo** (`primary`) | `LiquidPill` as a `Drawable`: a 44 dp pill of `legibleFill(accent)` swept top-left → bottom-right from lit (HSL lightness +0.09, `ColorUtils`) through the fill at .55 to shade (−0.13); the `LiquidGlassBorder` rim (a 1 dp `SweepGradient`: key light white α .9 at the top-left, bounce α .495 at the bottom-right, the glass border token elsewhere) and its 0.8 dp inner stroke; label Manrope Bold 15 in `onColorFor(fill)`. Elevation 6 dp on the pill's own outline (`getOutline`); on API 28+ the shadow takes the fill (the app's coloured glow). Nothing above it clips (`clipChildren` / `clipToPadding = false`) |
-  | **Home** (`home`) | `SecondaryButton`'s outlined brand as a 44 dp circle: fill accent α .12, a 1 dp ring α .45, `ic_wall_home` at 20 dp; content description "Go home" |
+  | **Open Detoxo** (`primary`) | `LiquidPill` as a `Drawable`: a 44 dp pill of `legibleFill(accent)` swept top-left → bottom-right from lit (HSL lightness +0.09, `ColorUtils`) through the fill at .55 to shade (−0.13); a lit rim (a 1 dp `SweepGradient`, the native copy of the app's pre-Frozen-Glass pill edge: key light white α .9 at the top-left, bounce α .495 at the bottom-right, the glass border token elsewhere) and its 0.8 dp inner stroke; label Manrope Bold 15 in `onColorFor(fill)`. Elevation 6 dp on the pill's own outline (`getOutline`); on API 28+ the shadow takes the fill (the app's coloured glow). Nothing above it clips (`clipChildren` / `clipToPadding = false`) |
+  | **Home** (`home`) | the pre-Frozen-Glass outlined button as a 44 dp circle: fill accent α .12, a 1 dp ring α .45, `ic_wall_home` at 20 dp; content description "Go home" |
   | **Back to {app}**, **Allow for a while** (`ghost`) | Text only, Manrope Bold 14 |
   | the **5 / 15 / 30 / 60 min** chips (`chip`) | 36 dp outlined brand pills, Manrope Bold 13, 8 dp apart |
 
@@ -555,7 +555,7 @@ Pinned by `UsageQueryTest`.
 - `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart` (the overlay-missing banner branch)
 - `lib/features/content_counter/content_counter_appearance/presentation/widgets/widget_palette.dart` (`WallPalette` / `wallPaletteFor`, `legibleOn`, `onColorFor`, `legibleFill`), `lib/core/design_system/tokens/app_tokens.g.dart` (the spec palettes)
 - `lib/features/additional_feature/appearance/presentation/appearance_screen.dart` (`_BlockScreenSection`)
-- `lib/core/design_system/components/buttons.dart` (`SecondaryButton` — one tree for both states, so going disabled fades and keeps its 48 dp floor — and `InfoButton`, which opens its copy in a sheet; the editor uses them), `components/toggle.dart` (`AppToggle`, which fades to disabled too), `components/feedback.dart` (`AppReveal`, `NoticeLine`), `components/badges.dart` (`AppBadge`, the preview's Off), `foundations/liquid_glass_border.dart` (the rim), `foundations/motion.dart` (`AppPressable`'s press)
+- `lib/core/design_system/components/buttons.dart` (`SecondaryButton` — one tree for both states, so going disabled fades and keeps its 48 dp floor — and `InfoButton`, which opens its copy in a sheet; the editor uses them), `components/toggle.dart` (`AppToggle`, which fades to disabled too), `components/feedback.dart` (`AppReveal`, `NoticeLine`), `components/badges.dart` (`AppBadge`, the preview's Off), `foundations/motion.dart` (`AppPressable`'s press)
 - `lib/core/constants/channel_constants.dart`, `lib/core/platform_channels/engine_channel.dart`
 - `lib/core/services/firebase/analytics/{analytics_events,analytics_service,native_event_reporter}.dart`
 - `lib/core/navigation/{routes,app_router}.dart`, `lib/core/di/injector.dart`, `lib/main.dart`

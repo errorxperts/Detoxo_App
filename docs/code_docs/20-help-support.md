@@ -170,7 +170,7 @@ Both tiles push the same reusable
 - `lib/features/additional_feature/showcase_view/showcase_view.dart` (barrel doc)
 - `lib/core/navigation/routes.dart`
 - `lib/core/navigation/app_router.dart`
-- `lib/core/design_system/foundations/ambient_background.dart` (`GlassAppBar.globalActions` opt-out)
+- `lib/core/design_system/foundations/glass_scaffold.dart` (`GlassAppBar.globalActions` opt-out)
 - `lib/features/dashboard/presentation/widgets/app_drawer.dart`
 - `lib/features/settings/presentation/settings_screen.dart` (tour tile removed)
 

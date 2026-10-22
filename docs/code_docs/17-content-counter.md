@@ -851,9 +851,9 @@ on/off toggles and the links into those editors now live on the shared
   `ValueNotifier`; the live watch time rebuilds only the stage).
   `widgets/stage_carousel.dart` holds `StagePage` / `RailThumb` for both
   pickers and the bubble stage's `StageSurface`: the design system's
-  `GlassContainer` (selected: lit with the theme's primary; no backdrop blur,
-  since the preview animates on it), so the stage follows the app's
-  light/dark theme and its ground gradient; the hint reads in `onGlassMuted`. (The
+  `GlassContainer` panel (panels never blur, so the animating preview costs no
+  backdrop), so the stage follows the app's light/dark theme over its ground
+  gradient; the hint reads in `ink2`. (The
   board's fixed dark/light stage gradients are gone.) Every slider's value is
   formatted once for both the visible label and the screen reader
   (`AdaptiveSlider.semanticFormatter`), so TalkBack says "56 dp", not a bare
@@ -996,8 +996,7 @@ Dart (`lib/…`):
   `core/navigation/app_router.dart` — DI + routes; `main.dart` provides the
   two cubits app-wide.
 - `core/design_system/components/variant_carousel.dart` — the style-variant
-  picker (promoted from the feature; also the shape of the Appearance
-  background picker).
+  picker (promoted from the feature).
 - `features/content_counter/content_counter.dart` — the public barrel.
 - `features/content_counter/content_counter_core/domain/entities/content_count.dart`
 - `features/content_counter/content_counter_core/domain/entities/app_content_count.dart`
@@ -1039,13 +1038,13 @@ and the native `ReelTrackerTest`, `ContentCounterStoreTest` and
 `widget/{WidgetPayload,WidgetModel,WidgetGeometry,ReelWidgetSync,HomeWidgets,…}Test`
 (run by `bash tool/dev.sh precommit` when a JDK 17 is present).
 
-Cross-feature (the migrated counter hub; theme + background live here too):
+Cross-feature (the migrated counter hub; the app theme lives here too):
 
 - `features/additional_feature/appearance/presentation/appearance_screen.dart` — the
   shared **Appearance** screen that now hosts the **Count short videos** master switch
   and the Bubble / Home-widget hero cards (large live `BubblePreview` / `WidgetPreview`,
   tapped to edit; bubble on/off on its card, widget gated by the master), plus the app
-  theme (a Light/Dark `GlassSegmented` control + Match system) and background picker.
+  theme (one System / Light / Dark `GlassSegmented` control; there is no background picker).
   `GlassSegmented` (design system, `components/selection.dart`) is the shared
   Frozen Glass OPTION segmented control — a quiet `fillQuiet` pill track (no shadow)
   with a solid `optionBase` chip that slides 500 ms on the chip overshoot plus the

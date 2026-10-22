@@ -131,7 +131,7 @@ Android device. The agent-facing runbook is `.claude/skills/detoxo-auto-test/SKI
 
 | Layer | Command | What it gates |
 |---|---|---|
-| 1 — static + unit | `bash tool/qa.sh functional` | `dart format`, `flutter analyze`, `flutter test`, `check_boundaries.sh` |
+| 1 — static + unit | `bash tool/qa.sh functional` | `dart format`, both token `--check`s (home widget, design system), `flutter analyze`, `flutter test`, the native JVM tests (JDK 17), `check_boundaries.sh` |
 | 2 — real-boot E2E | `bash tool/qa.sh -d <serial> e2e` | `integration_test/app_e2e_test.dart` + screenshots |
 | 2b — engine smoke | `bash tool/qa.sh -d <serial> blocking` | service bound; real block is half-manual |
 | 3 — performance | `bash tool/qa.sh -d <serial> perf` | `build/qa/metrics.json` vs `baseline.json` |
@@ -139,8 +139,8 @@ Android device. The agent-facing runbook is `.claude/skills/detoxo-auto-test/SKI
 Artifacts land in `build/qa/` (gitignored via `/build/`).
 
 ### Layer 1 — Dart (runs today: `flutter test`)
-**26 test files / 240 tests** under `test/` — pure Dart + widget tests, no device needed. Grouped
-by where business rules live:
+**100 test files / 1,183 passing tests** (one skipped; 2026-10-22) under `test/` — pure Dart +
+widget tests, no device needed. A selection, grouped by where business rules live:
 
 | Area | Tests |
 |---|---|
@@ -154,7 +154,7 @@ by where business rules live:
 | Help & upgrade | `help_test.dart`, `app_upgrader_test.dart`, `legal_web_view_test.dart` |
 | Dashboard widgets | `blocker_tile_test.dart`, `mode_selector_test.dart` |
 | Feedback | `app_feedback_test.dart` |
-| Design system | `test/core/design_system/*` (6 files: toggle, glass container, segmented, buttons, avatar, liquid border) |
+| Design system | `test/core/design_system/*` (15 files: design tokens `--check` + spot values, contrast in both themes, theme slots + scheme, glass container roles, pressable, accent fixture + `AccentScope` glide, buttons, overlays (sheet drag / lock, toast), segmented, chip, toggle, chip rail, list tile, progress ring, avatar), `test/app/live_accent_test.dart` (`accentModeOf`), `test/design_system_text_scale_test.dart` (2× text) |
 | Firebase | `test/core/services/firebase/*` (3 files: bloc observer, native event reporter, analytics service) |
 
 `flutter analyze` is clean.
@@ -188,8 +188,10 @@ it and `always_use_package_imports` forbids the relative import; both files carr
 `// ignore:`, which beats two divergent copies of `bootApp()`.
 
 Constraints that shape every on-device test:
-- **`pumpAndSettle` never converges.** `GlassScaffold`'s ambient background repeats forever, so
-  settle by pumping fixed frames instead (`settle()`).
+- **Settle by fixed frames on a real boot (`settle()`).** `GlassScaffold` is a static gradient
+  now, so a widget test of one screen can `pumpAndSettle` again, but the boot walk still meets
+  looping animations (the splash spinner, onboarding's `CaughtHero`) that never let the frame
+  queue drain.
 - **Only one test per file may call `app.main()`.** `configureDependencies()` uses
   `registerSingleton` with no `allowReassignment` and nothing calls `sl.reset()`.
 - **`app.main()` hijacks the harness's error handling.** `installGlobalHandlers()` replaces
@@ -237,8 +239,12 @@ remaining entries share one root cause, `blocking/shared/presentation/settings_c
 reached into by five features.
 
 ### Native (Kotlin)
-- **No instrumented/unit tests are bundled** for the engine. The detection/block hot path is
-  validated on a device via `bash tool/qa.sh blocking`, which splits honestly in two:
+- **No instrumented tests.** The pure-Kotlin rules have JVM unit tests under
+  `android/app/src/test/` (e.g. `ReelTrackerTest`, `RuleEngineTest`, `AccentResolverTest` on the
+  shared `test/fixtures/accent_cases.json`, `BlockScreenGeometryTest` on the generated
+  `DxTokens`), run by `precommit` on a JDK 17 ([23](23-testing-runbook.md)). The
+  detection/block hot path is validated on a device via `bash tool/qa.sh blocking`, which splits
+  honestly in two:
   - **automated** — `dumpsys accessibility` proves the service is bound and receiving events;
     `pm list packages` proves a target app is present.
   - **manual** — reaching an actual reel needs a logged-in account and a real scroll inside a
@@ -323,6 +329,8 @@ release.
 - `README.md`
 - `pubspec.yaml`
 - `tool/check_boundaries.sh`
+- `tool/dev.sh` (`t_precommit`: `design_tokens` / `widget_tokens` checks, `native_tests`)
+- `test/core/design_system/`, `test/app/live_accent_test.dart`, `test/design_system_text_scale_test.dart`
 - `test/domain_test.dart`, `test/app_settings_test.dart`, `test/plans_pause_curious_test.dart`, `test/usage_ladder_test.dart`, `test/access_protection_test.dart`, `test/web_blocker_test.dart`, `test/blocklist_install_filter_test.dart`, `test/counter_style_test.dart`, `test/content_counter_test.dart`, `test/app_feedback_test.dart`
 - `lib/core/storage/local_store.dart`
 - `lib/features/blocking/shared/data/repositories/config_repository_impl.dart`

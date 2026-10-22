@@ -19,7 +19,7 @@ bash tool/qa.sh [-d <serial>] [--reset] [--baseline] \
 
 | Command | Device? | Time | What it does |
 |---|---|---|---|
-| `functional` | no | ~30s | format → analyze → 188 unit/widget tests → boundary check |
+| `functional` | no | ~3m | format → token checks → analyze → ~1,180 unit/widget tests → native JVM tests → boundary check |
 | `devices` | no | instant | list attached, authorised phones |
 | `prep` | yes | ~10s–5m | grant accessibility + overlay, keep the screen awake |
 | `e2e` | yes | ~4m | boot the real app, walk every gate, screenshot each step |
@@ -35,8 +35,11 @@ The Android-free engine logic has plain JVM tests too (`engine/ReelTracker`, the
 counter's identity + dwell state machine; `engine/UsageQuery`, the usage-stats filters, local
 midnight and the opens-today transition count; `overlay/BlockScreenGeometry`, the block screen's
 flags, strip math, button-text contrast pick, plan labels, payload sanitiser, style parsing (old
-keys ignored), the `wallIsDark` table and the wall palette / `legibleOn` / `legibleFill` contrast;
-`overlay/QuoteWall` and `overlay/QuoteBook`, the Quotes wall's motion maths and quote picking). `dev.sh precommit` (and so
+keys ignored), the `wallIsDark` table and the wall palette / `legibleOn` / `legibleFill` contrast,
+its palettes read from the generated `DxTokens`;
+`overlay/QuoteWall` and `overlay/QuoteBook`, the Quotes wall's motion maths and quote picking;
+`overlay/AccentResolver`, the live-accent mirror, on every row of `test/fixtures/accent_cases.json`,
+which the Dart `accent_test` reads too). `dev.sh precommit` (and so
 `qa.sh functional`) runs them through `native_tests()` when it can find a JDK 17+
 (`$JAVA_HOME`, macOS `java_home -v 17+`, or the Homebrew `openjdk@17` keg) and
 **warns and skips** otherwise — a host without a JDK never fails the gate, it just
@@ -49,7 +52,7 @@ cd android && JAVA_HOME=<jdk17> ./gradlew :app:testDebugUnitTest --tests '*ReelT
 # report: build/app/reports/tests/testDebugUnitTest/index.html
 ```
 
-`all` runs cheapest-first so a red Layer 1 shows up in ~30s instead of 17 minutes. Each device
+`all` runs cheapest-first so a red Layer 1 shows up in minutes instead of 17. Each device
 layer is self-contained — `perf` installs its own profile APK and clears its own
 onboarding/permission gates — so you can run them individually, in any order.
 
@@ -57,8 +60,20 @@ onboarding/permission gates — so you can run them individually, in any order.
 
 ```bash
 flutter test test/<feature>_test.dart   # while iterating on one feature — seconds, not minutes
-bash tool/dev.sh precommit     # before every commit — format, analyze, test, native tests (JDK 17), boundaries
+bash tool/dev.sh precommit     # before every commit — format, token checks, analyze, test, native tests (JDK 17), boundaries
 ```
+
+`precommit` checks both generated token sets before it analyzes anything:
+`widget_tokens` (`tool/home_widget/gen_tokens.dart --check`) and `design_tokens`
+(`tool/design/gen_design_tokens.dart --check`, which fails when `app_tokens.g.dart` or
+`DxTokens.kt` no longer match `tool/design/{tokens,recipes}.json`). After editing either JSON,
+run the generator without `--check` and commit its outputs.
+`test/core/design_system/design_tokens_test.dart` runs the same check through `Process.run`, so
+it needs `dart` on `PATH` (present under `dev.sh` and in the IDEs).
+
+Theme a widget test with `AppTheme.dark()` / `AppTheme.light()` rather than a hand-built `ThemeData`:
+`context.tokens` follows the theme's brightness and needs no registration, and the text slots and
+the scheme then match the app.
 
 `/detoxo-auto-test` scopes itself to the feature named in the chat (targeted tests first, the
 full gate once at the end) and only runs the whole suite for "ready to ship" style asks — see
@@ -176,7 +191,9 @@ Put shared helpers in `integration_test/qa_walk.dart` and import it with the doc
 cannot reach it. Then:
 
 - Boot with **`bootApp()`**, never a bare `app.main()`.
-- Never `pumpAndSettle` — the ambient background repeats forever. Use `settle()` / `waitFor()`.
+- Settle with `settle()` / `waitFor()`, not `pumpAndSettle`: the boot walk still meets looping
+  animations (the splash spinner, onboarding's `CaughtHero`). `GlassScaffold` itself is a static
+  gradient, so a widget test of one screen may `pumpAndSettle`.
 - **One** `app.main()` per file; `configureDependencies()` cannot be re-registered.
 - `find.text` matches the *rendered* string: `SectionHeader` uppercases, the nav bar renders
   every tab name as a clipped `Text` (so `'Activity'` matches even while that tab is inactive —
@@ -186,6 +203,7 @@ cannot reach it. Then:
 ## Source files
 
 - `tool/qa.sh` · `tool/qa_metrics.py` · `tool/dev.sh` · `tool/check_boundaries.sh`
+- `tool/design/gen_design_tokens.dart` · `tool/home_widget/gen_tokens.dart` · `test/core/design_system/design_tokens_test.dart`
 - `integration_test/qa_walk.dart` · `app_e2e_test.dart` · `app_perf_test.dart`
 - `test_driver/perf_driver.dart`
 - `.idea/runConfigurations/*.xml` · `.vscode/launch.json` · `.vscode/tasks.json`

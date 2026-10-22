@@ -99,7 +99,8 @@ screens).
 A handful of directories exist specifically to *wire features together* and are
 therefore exempt from the cross-feature rule:
 
-- `lib/app/**` — the app entry (`main.dart`), `splash_screen.dart`, `unsupported_screen.dart`
+- `lib/app/**` — the app entry (`main.dart`), `splash_screen.dart`, `unsupported_screen.dart`,
+  `live_accent.dart`
 - `lib/core/di/**` — the `get_it` service locator
 - `lib/core/navigation/**` — the `go_router` graph
 - `lib/features/dashboard/**` — the home shell that hosts feature tabs
@@ -150,10 +151,13 @@ resolving its repository from the locator `sl`:
 | `PermissionsCubit` | `PermissionRepository` |
 | `PinCubit` | `PinRepository` |
 
-`SettingsCubit` doubles as the app's appearance source: a `BlocSelector` drives
-theme mode + ambient background, and a `BlocListener` mirrors the vibration
+`SettingsCubit` doubles as the app's appearance source: a `BlocSelector` on
+`AppThemeMode` drives the theme, and a `BlocListener` mirrors the vibration
 preference into `AppHaptics`. The tree then renders `AppResumeSync` →
-`PinAutoRelock` → `MaterialApp.router` wired to the go_router config.
+`PinAutoRelock` → `MaterialApp.router` wired to the go_router config, with
+`AppTheme.light()` / `.dark()` and a `builder:` that wraps every route in
+`LiveAccent` (the live accent) and the per-theme system-bar `AnnotatedRegion`
+([the design system](#the-frozen-glass-design-system--libcoredesign_system)).
 `AppResumeSync` (`lib/app/app_resume_sync.dart`) re-runs the Dart↔native syncs
 on every app resume — cheap refreshes (permissions, service status, counter,
 settings re-push) every time, the heavy config/blocklist re-push at most every
@@ -290,8 +294,8 @@ back to home, and the bootstrap would never run.
 
 ### The home shell — `lib/features/dashboard/presentation/home_shell.dart`
 
-`HomeShell` is a two-tab surface (**Dashboard** / **Activity**) over the ambient
-gradient, with a frosted floating bottom bar. The former "More" tab now lives in
+`HomeShell` is a two-tab surface (**Dashboard** / **Activity**) over the ground
+gradient, with a floating glass bottom bar. The former "More" tab now lives in
 a right-side `AppDrawer`. Deeper screens (settings, blockers, daily limit,
 analytics, content-counter appearance) are reached via routes.
 
@@ -341,43 +345,198 @@ section resolves `AppBlockRepository` and `WebBlockRepository` through `sl`
 instead, counts the entries with `enabled == true`, and re-reads them when the
 user pops back from either blocker screen, so the captions never go stale.
 
-### Glass surfaces — `lib/core/design_system/foundations/`
+### The Frozen Glass design system — `lib/core/design_system/`
 
-`GlassContainer` is the one glass primitive; nothing else calls `BackdropFilter`
-directly. It clips a rounded rect (`AppRadius.continuous`) over a backdrop blur, adds
-a top-weighted sheen, and lights the edge with a `LiquidGlassBorder`.
+The app's look is the **"02 Frozen Glass"** design system (the claude.ai Design System
+artifact *Detoxo Design System*). Light and Dark stand on equal footing: every screen sits on
+one vertical ground gradient, surfaces are picked **by role**, text is Manrope in named styles
+with tabular figures, and **one live accent** — chosen by the blocking mode and today's share of
+the daily limit — is the only colour that moves. Screens import the single barrel
+`design_system.dart` (it re-exports `flutter_animate` too) and read the tokens through
+`context.tokens`; they never write a hex value or a magic number a token covers.
 
-**Glass surfaces cast no drop shadow.** Depth comes from the glass itself — the
-fill gradient, the sheen, and the lit rim — so cards sit cleanly on the ambient
-background instead of on a grey smudge. Don't reintroduce a `BoxShadow` here;
-`test/core/design_system/glass_container_test.dart` fails if you do. (A `BoxShadow`
-with its `color` omitted defaults to **opaque black**, which is how this
-regressed once already.)
+#### Tokens: one generated source for Flutter and the native wall
 
-`LiquidGlassBorder` is the Apple Liquid Glass / visionOS edge: two stroked paths,
-no `saveLayer`, no `MaskFilter`, no shader asset, nothing animated.
+| File | Role |
+|---|---|
+| `tool/design/tokens.json` | A **byte copy** of the spec's `tokens.json`. Never edited, so a spec update is a plain diff |
+| `tool/design/recipes.json` | Everything the spec keeps in `components/bundle.css` rather than `tokens.json`, in the same `{name, value, usage}` shape: accent strengths `k*`, component colours (pill, lens, slide track, knob, icon well, grabber, soft button, the Session sheet's `control` / `start` / `started`, the sheet `scrim`), extra shadows, surface blur/saturate, fixed constants, type variants (`eyebrow`, `numberLg`, `eyebrowLg`, `count`, `labelStrong`) and **overrides** — today one: Light `ink-3` `#7d8699` (3.03:1 on `card-to`; the spec's `#8a93a6` is 2.55:1, under its own 3:1 icon rule) |
+| `tool/design/gen_design_tokens.dart` | Reads both and writes the two outputs below; `--check` exits 1 on drift. Pure helpers (CSS colour parsing, casing, the write/`--check` loop) live in `tool/tokens_common.dart`, shared with the home-widget generator |
+| `tokens/app_tokens.g.dart` (`part of app_tokens.dart`) | `AppTokens.light` / `.dark` + `forBrightness`, `ConfirmTone.{caution, critical, neutral}` (`a, b, c, ink, knob`), `AppTypography`, and the spacing / radius / blur / fixed statics |
+| `android/.../overlay/DxTokens.kt` | `internal object DxTokens`: flat `<TOKEN>_<THEME>` ARGB ints, `PALETTE_<P>_<THEME>` IntArrays, type in sp (tracking in em), `SHADOW_*` lists of `DxShadowLayer` — for the native wall |
 
-- **Rim** — a hairline stroke of `shape.getOuterPath(...)` shaded by a
-  `SweepGradient`. The arcs are deliberately asymmetric: a wide, bright key light
-  at the top-left (sweep fraction `0.625`) and a tighter, dimmer bounce where
-  that light exits again at the bottom-right (`0.125`), falling back to the plain
-  hairline token elsewhere. Equal arcs read as a decorative gradient; unequal
-  ones read as a lit object. The boosted specular is capped below full opacity —
-  an opaque hairline is an outline again.
-- **Thickness** — a second stroke inset ~1.2px, lit top-down rather than
-  diagonally, so it is a different cue from the corner arcs rather than a fainter
-  copy of them.
+Generator rules: a `P-main / -light / -deep` set becomes an `AccentPalette` (`blockall` →
+`blockAll`, `onereel` → `oneReel`); `tone-<t>-<f>` becomes `ConfirmTone`; a shadow keeps the CSS
+layer order and the CSS **blur radius** (painted as a Gaussian σ of blur / 2); a type style keeps
+the CSS line box (`height: L / S`, even leading, tabular figures); a `%` value is a fraction.
+New values go in `recipes.json`, then `dart run tool/design/gen_design_tokens.dart`; never
+hand-edit either output. `bash tool/dev.sh precommit` runs the `--check`
+(`design_tokens()`), and so does `test/core/design_system/design_tokens_test.dart`.
 
-Because it takes a `ShapeBorder`, squircles, circles, stadiums and any radius all
-work with no separate code path. Every colour comes from the `GlassTokens`
-extension (`context.glass`), so the edge tracks the live theme and the selected
-background; only the alphas belong to the widget, and `intensity` scales them
-together.
+The hand-written side is small:
 
-`liquidEdge` defaults to **true**, so every glass surface in the app gets the lit
-edge. `selected` tints the rim with the brand instead of casting a glow shadow.
-Set `liquidEdge: false` to fall back to the plain 1px hairline — one painter
-cheaper, but visibly flatter.
+- `tokens/app_tokens.dart` — `AccentPalette(main, light, deep)` (`lerp` = CSS `color-mix` per
+  stop), `DxShadow`, `context.tokens`, and `t.accentText(p)` / `t.statusText(c)`: coloured text
+  that reads at 4.5:1 (Light mixes toward `#0b1020` by 40 %, Dark uses the `light` stop / the
+  raw colour).
+- `tokens/app_spacing.dart` — `AppSpacing` (the spec steps `inset 8 · gap 14 · card 16 ·
+  gutter 20 · section 32`, plus `sheetSide 22`, `headerTop 54`, `floatingNavClearance 132`),
+  `AppRadius` (`icon 8 · chip 20 · row 22 · cardSm 26 · card 28 · bar 32 · sheet 40 · pill`),
+  `AppSizes` (`controlHeight 44`, `minTapTarget 48`), `AppInsets`.
+- `tokens/app_motion.dart` — the motion tokens (below).
+
+The fields are the spec's: ground and surfaces (`bgTop/bgBottom`, `cardFrom/To`,
+`panelTop/Bottom`, `glassTop/Bottom`, `sheetTop/Bottom`, `optionBase`), the ring materials, the
+ink ramp `ink / ink2 / ink3`, `hairline`, `fillQuiet`, `focus`, status `statusOn/Paused/Setup`,
+`streak`, `tileApp/tileWeb`, the six palettes `brand, blockAll, conscious, pause, oneReel, over`,
+the strengths and the shadow recipes (`shadowCard`, `shadowGlass`, `shadowSheet`, `shadowGroove`,
+`shadowDisc`, `shadowButton`, `pillEdge`, `lensEdge`, `trackShadow`, `startShadow`,
+`startedShadow`). Mixing follows the CSS: `color-mix(X k%, transparent)` is
+`X.withValues(alpha: k)`, an opaque mix is `Color.lerp(optionBase, main, k)`.
+`test/core/design_system/contrast_test.dart` checks every text and icon token on its real
+surfaces in both themes (translucent ones composited first): 4.5:1 for text, 3:1 for icons and
+the focus ring. Status dots are exempt by design — a word always carries the status.
+
+#### Theme — `theme/app_theme.dart`
+
+`AppTheme.light()` / `.dark()` are built once, only from `AppTokens`. The scheme carries the
+**static** `brand` and the ink ramp — `primary` `brand.main` (on it the neutral tone ink, since
+white is 3.84:1), `secondary` `accentText(brand)`, `error` `accentText(over)`, `onSurface` `ink`,
+`onSurfaceVariant` `ink2`, `outline` `ink3`, `outlineVariant` `hairline` — so the slider,
+progress, cursor and time picker take the static brand, and the live accent never enters it.
+All 15 `TextTheme` slots map to a named style (`displayLarge/Medium` `number`, `headline*`
+`titleXl` / `titleSheet`, `titleLarge` `title`, `titleMedium` `headline`, `bodyLarge`
+`message`, `bodyMedium` `body`, `bodySmall` `subhead`, `labelMedium` `caption`, `labelSmall`
+`tab`…). `AppTheme.overlay(b)` gives transparent system bars with the right icon brightness,
+applied by the `AnnotatedRegion` in `MaterialApp.router(builder:)`. A theme switch snaps
+(`themeAnimationDuration: Duration.zero`), and `_CalmTransitions` keeps Android's
+predictive-back page transition but drops it under Reduce Motion. Appearance offers System /
+Light / Dark; Dark is the default.
+
+#### Surfaces — `foundations/glass_container.dart`
+
+`GlassContainer(surface:, borderRadius:, padding:, color:, backdrop:)` is the **one** surface
+primitive; nothing else calls `BackdropFilter` for a surface. It paints one of five roles:
+
+| `DxSurface` | Where | Fill · radius | Shadow | Backdrop |
+|---|---|---|---|---|
+| `glass` | floating controls: header buttons, toasts, FABs, the tab bar | `glassTop → glassBottom` · pill | `shadowGlass` | blur 22, saturate 1.8 |
+| `panel` | section panels and list groups | `panelTop → panelBottom` · 22 | `shadowCard` | **never** |
+| `tile` | blocker tiles | 145° `cardFrom → cardTo` · 28 | `shadowCard` | none |
+| `option` | solid choices: mode card, quick picks, segment tracks | `optionBase` (or `color:`) · 28 | none | none |
+| `sheet` | bottom sheets and dialogs | `sheetTop → sheetBottom` · 40 | `shadowSheet` | blur 30, saturate 1.7 |
+
+`DxSurfacePainter` paints a CSS box exactly as a browser stacks it: outer shadow layers in
+**reverse** recipe order, each clipped to *outside* the shape (so a translucent fill is never
+darkened by its own shadow) and blurred with `MaskFilter.blur(normal, blur / 2)` — never
+`BoxShadow.blurRadius`; then `background-color`, then the linear gradient on the CSS angle line
+(`cssLine`, corner-exact at any aspect); then inset layers inside the shape. The backdrop is
+`ImageFilter.compose(saturate matrix (cssSaturate), blur)`, for `glass` and `sheet` only;
+`backdrop: false` turns it off where it is invisible (header buttons over the static ground).
+Panels never blur — only the smooth ground sits behind them (a `ponytail:` note marks where to
+add one). Each surface sits in a `RepaintBoundary`.
+
+The role reaches the subtree through `GlassContainer.surfaceOf(context)`: a `GlassListTile`,
+`PanelGroup` or `PermissionCard` already on a panel or sheet draws **no surface of its own** —
+no glass inside glass — and a standalone one wraps itself in one panel.
+
+`foundations/glass_scaffold.dart` holds the screen chrome: `GlassScaffold` (a transparent
+`Scaffold` over the static `bgTop → bgBottom` ground — one paint, no blur, nothing that moves)
+and `GlassAppBar`, the plain header: transparent, 64 tall, the title in `title`, a
+`GlassIconButton` back button on a pushed route, and the app-wide `globalActionsBuilder` (the
+feedback button) after the screen's own actions.
+
+#### Motion — `tokens/app_motion.dart`, `foundations/motion.dart`
+
+| Token | Duration | Curve | Used by |
+|---|---|---|---|
+| `press` | 400 ms | `Cubic(.34, 1.56, .64, 1)` | every pressable |
+| `chip` | 500 ms | `Cubic(.34, 1.25, .64, 1)` | a selection chip sliding to its pick |
+| `lens` | 550 ms | `Cubic(.34, 1.3, .64, 1)` | the tab lens |
+| `detail` | 500 ms | `Cubic(.2, .8, .2, 1)` | a detail row opening; the ring arc |
+| `glide` | 1000 ms | CSS `ease` | any accent change; the sheet scrim's fade |
+| `sheet` / `scrim` | 600 / 450 ms | `Cubic(.32, .72, 0, 1)` / `ease` | a bottom sheet and its scrim |
+
+`AppCurves.squish` drives each segment of `Squish` (1 → 1.08/.93 → .98/1.03 → 1 at 30/35/35 %),
+which the selection chips wear. `context.motion(d)` returns zero under Reduce Motion, and every
+component routes its timing through it. `AppPressable` is the one custom tappable: scale to
+`pressedScale` (cards .975, buttons .95, glass circles grow to 1.06) on the press curve, none
+under Reduce Motion; a `button` semantics node with `enabled` / `selected` /
+`inMutuallyExclusiveGroup` (one radio node per option); Enter / Space activation; and a
+`FocusRing` — a 2 px `focus` stroke 3 px outside the shape — while focused. `minTapTarget`
+pads small controls to the 48 dp floor. `PressScale` is the same press without a recognizer
+(for Material buttons); `StatusDot` is a static dot. **Nothing loops**: the entrance helpers
+(`EntranceX`, `EntranceList`) play once and skip under Reduce Motion, and the only exemption is
+an indeterminate `LoadingState` spinner, held still under Reduce Motion.
+
+#### The live accent — `foundations/accent.dart`, `lib/app/live_accent.dart`
+
+`resolveAccent(t, mode, used:, pauseLeft:)` picks the palette for an `AccentMode`
+(`none, blockAll, conscious, pause, oneReel`) and `used`, today's share of the daily limit:
+
+- **none** (blocking off): `brand` up to 60 % used, blending to `pause` by 85 % and to `over`
+  at 100 %;
+- **a base mode or One Reel**: its own palette, warming toward that pause → over blend from 60 %
+  used, at most 80 % of the way;
+- **Pause**: `pause`, blending to `over` over the last two minutes of `pauseLeft`; an N-reel
+  unblock passes no `pauseLeft` and stays `pause`.
+
+The expressions are written literally, so the Kotlin `overlay/AccentResolver.kt` (double maths,
+one final rounding; not wired into the wall yet) and the fixture's Python model compute the same
+ARGB: `test/fixtures/accent_cases.json` is read by both `accent_test.dart` and
+`AccentResolverTest.kt`.
+
+`AccentScope(light:, dark:, glideKey:)` publishes both themes' palettes, so a theme switch snaps
+like every other token. A change **glides over 1 s** on CSS `ease`, starting from the colour on
+screen even mid-glide; it is **instant under Reduce Motion**; and it glides only when `glideKey`
+changes with it, so a live Pause's per-second tick **snaps** instead of restarting a glide every
+second. `context.accent` reads it, falling back to the static `brand` with no scope.
+`accentIconFilter(accent, {saturate, opacity})` is the CSS `hue-rotate(hue − 214°)
+saturate(s)` matrix that turns the blue 3D mode icons to the accent.
+
+`LiveAccent` (`lib/app/`, a composition root) is mounted outermost in
+`MaterialApp.router(builder:)`, so every route, sheet and dialog sees it. It reads
+`SettingsCubit`, `ContentCounterCubit` (counting on, time today) and `DailyLimitCubit` (the
+limit), maps the settings to a mode with `accentModeOf` — master switch off → none, else the
+dashboard's own `modeIndex(s, pauseLive:)`, so the lit mode and the accent can never disagree —
+and keys the glide on `(mode, used)`. A 1 Hz timer runs only while a Pause is live. The spec
+lets the accent paint six things only — the ring arc and its glow, the mode card and its chip,
+the mode icons, the Unblock pill tint, the tab lens; today `CommandCenterCard`'s ring is its
+reader.
+
+#### Components — `components/`
+
+| Area | Components |
+|---|---|
+| Buttons (`buttons.dart`) | `PrimaryButton` — the spec **soft button**: a 54 px pill on the 145° `buttonFrom → buttonTo` with `shadowButton`, the label in `button` / `ink`, no accent, `.45` when disabled, `expand` / `icon`. `SecondaryButton` — an `ink2` label with no surface on a 48 dp target; `destructive: true` sets it in `accentText(over)`, never a red fill. `AnimatedIconButton` — the soft button with a morphing icon. `LiquidPill(tint:)` — the spec **accent pill**: 44 px, `tint` at `kPill` under the `pillHi → pillLo` sheen and `pillEdge`, a `tint` glow at `kPillGlow`. `GlassFab` — a floating glass pill, glyph + label. `GlassIconButton` — a 44 px glass circle, 22 px ink icon, 48 dp target, a `Tooltip` carrying its label. `InfoButton(message)` — a `GlassIconButton` that opens the message in a sheet. `DrawerMenuButton` (`menu_button.dart`) — the header's sidebar button |
+| Overlays (`overlays.dart`, `dialog.dart`) | `GlassBottomSheet.show({child, title, dismissible, glow})` — the spec **SHEET**: a `sheet` surface inset 10 px from the edges, padded 0 / 22 / 22, a 40×5 grabber in a 30 px band, an optional `titleSheet` title, over the **scrim** (the backdrop blurred 8 at saturate 1.2 under a radial `scrim` dim, `120% 70% at 50% 100%`, stops `kScrim0/60/100`). It slides 600 ms, the scrim fades 450 ms; neither moves under Reduce Motion. Dragging the grabber or title down past **110 px** closes it, a shorter drag springs back on the press curve; `dismissible: false` locks the barrier, the drag and back. `glow` paints a 340×260 light behind the top edge. `AppDialog.show` / `.confirm` render **in the sheet**: an optional neutral `IconBadge`, a centred `titleSheet`, a `message` and/or `content`, the actions stacked full-width with the confirm on top. `GlassToast.show(context, message, tone:, action:)` — a glass pill with the tone's glyph and the message in `ink` (never a tone colour), an optional inline `action` such as **Undo**; it stays **4 s**, **6 s** with an action, **10 s** while a screen reader or switch access navigates, and drops its slide under Reduce Motion |
+| Selection & input (`selection.dart`, `toggle.dart`, `inputs.dart`, `variant_carousel.dart`) | All **OPTION and accent-free**. `GlassSegmented` — a `fillQuiet` track with a solid `optionBase` chip that slides on the chip curve plus `Squish`; the picked label goes `ink2` → `ink` behind a 16 px check; tap, scrub along the track, or focus each segment as one radio. `AppChip` — `fillQuiet`, selected `optionBase` + a check, 48 dp floor; `ChipRail` lays them in two scrolling rows. `AppToggle` — 48×28: on `statusOn` with the `knob`, off `fillQuiet` with a hairline rim and an `ink3` thumb. `AppSearchField` — a `fillQuiet` pill with a focus ring. `VariantCarousel` — OPTION cards, the pick solid `optionBase` with an ink check badge |
+| Lists & status (`list_tiles.dart`, `section_header.dart`, `badges.dart`) | `GlassListTile` — a flat row (56 min, `label` over a two-line `subhead`), a 18 px `ink3` chevron when tappable with no trailing, a check when `selected: true`; it is its own panel only when standalone. `PanelGroup` — the section idiom: rows in **one** panel split by inset hairlines. `AppToggleTile`. `SectionHeader(label, note:)` — the uppercase `eyebrow` (caption, 1.6 tracking, `ink2`), `section` 32 above and 12 below, a header to TalkBack. `Pill` — a **status label**: an 8 px dot in `toneColor` (or `dotColor:`) or an icon in `toneText`, then the word in `subhead` `ink2`; no fill or border. `toneColor` / `toneText` map an `AppTone` to its dot and its 4.5:1 text colour. `AppBadge` — the "+N" quiet pill |
+| Cards & feedback (`cards.dart`, `feedback.dart`, `permission_card.dart`) | `GlassCard` — a panel, optionally tappable; `AppCard`, `StatCard` / `StatCardPair`, a neutral `IconBadge`. `ProgressRing(progress:, size:, palette:, child:)` — the spec ring in its materials, every measure the 300 px ring scaled to `size` (stroke 24·size/300): the groove, the track, a three-stop arc of `palette` (default `brand`) with a blurred copy at `kArcGlow`, the knob with its `kHalo` halo and `knobShadow`, and the centre disc with its `discWash`; a null `progress` draws no arc and no knob. `ProgressBar`, `LoadingState`, `EmptyState` (no loop), `AppReveal`, `NoticeLine`. `PermissionCard` — a neutral badge, the title, the why and the status in words (On / Needs access / Checking…), its own panel only when not on a surface |
+
+`adaptive/` keeps one control, `AdaptiveSlider` (a native `CNSlider` on iOS/macOS, Material
+`Slider` on Android); `foundations/animated_icons.dart` wraps the Lucide `AppIcon` catalogue,
+which never plays on its own.
+
+#### Rules that hold app-wide
+
+- **Roles, not looks.** Floating controls are glass; groups are one panel; a choice is an
+  OPTION; nothing on a panel or sheet draws a second surface.
+- **The accent stays in its six places.** Buttons, selection, toggles and status are neutral;
+  Material affordances take the static brand from the scheme.
+- **Status is a dot plus a word**, never colour alone; coloured text goes through `accentText` /
+  `statusText` / `toneText`.
+- **Destructive is `over` accent text**, never a red fill.
+- **Nothing loops**, and every timing goes through `context.motion`, so Reduce Motion stills it.
+- **Targets are 48 dp**, focus draws the ring, every custom tappable is one semantics node.
+- **No raw hex and no magic numbers** a token covers; a new value is a `recipes.json` entry.
+
+Tests: `test/core/design_system/` — `design_tokens_test` (the `--check` plus a spot value per
+parser branch), `contrast_test`, `theme_test`, `glass_container_test`, `pressable_test`,
+`accent_test`, `buttons_test`, `overlays_test`, `glass_segmented_test`, `app_chip_test`,
+`toggle_test`, `chip_rail_test`, `list_tile_test`, `progress_ring_test`, `app_icon_avatar_test`
+— plus `test/app/live_accent_test.dart`, `test/design_system_text_scale_test.dart` and the
+native `overlay/AccentResolverTest.kt`.
 
 ---
 
@@ -456,6 +615,7 @@ lib/
     bootstrap.dart              ordered, individually-guarded app-start work
     starter_rule_sync.dart      writes the first run's rule on the grant edge
     unsupported_screen.dart     iOS/web honest "runs on Android" state
+    live_accent.dart            resolves + publishes the live accent (AccentScope)
   core/                         infra reused by 2+ features
     constants/                  app_constants (EngineTimings) · channel_constants
     di/                         injector.dart — get_it locator `sl`
@@ -463,8 +623,8 @@ lib/
     platform/                   platform_capabilities.dart (Android gate)
     platform_channels/          engine_channel.dart (MethodChannel/EventChannel wrapper)
     storage/                    local_store.dart (key-value)
-    design_system/  theme/      tokens, foundations, components, glass UI
-                                foundations: glass_container · liquid_glass_border
+    design_system/              Frozen Glass: tokens (generated) · theme · foundations · components
+                                foundations: glass_container · glass_scaffold · motion · accent
     error/ utils/ widgets/      shared helpers + common widgets
   features/
     blocking/                   CORE: shared(spine) · engine · blocklist · plans
@@ -495,6 +655,7 @@ engine/
   ServiceEventBus.kt · UsageLadder.kt   (UsageLadder: block screen only)
 overlay/
   ContentCounterBubble.kt       WindowManager overlay bubble host (anchor, drag, edge-snap, tap = timer)
+  DxTokens.kt · AccentResolver.kt   generated Frozen Glass tokens + the live-accent mirror
   bubble/                       BubbleView shell + model/envelope/look + six faces/*Face.kt
 widget/
   ContentCounterWidgetProvider.kt · WidgetBitmapRenderer.kt   home-screen widget
@@ -541,8 +702,15 @@ Detailed treatment lives in the persistence and configuration docs.
 - `lib/core/constants/channel_constants.dart`
 - `lib/core/platform_channels/engine_channel.dart`
 - `lib/core/platform/platform_capabilities.dart`
-- `lib/core/design_system/foundations/glass_container.dart`
-- `lib/core/design_system/foundations/liquid_glass_border.dart`
+- `lib/core/design_system/design_system.dart` (barrel)
+- `lib/core/design_system/tokens/app_tokens.dart` (+ generated `app_tokens.g.dart`), `tokens/app_spacing.dart`, `tokens/app_motion.dart`
+- `lib/core/design_system/theme/app_theme.dart`
+- `lib/core/design_system/foundations/glass_container.dart`, `foundations/glass_scaffold.dart`, `foundations/motion.dart`, `foundations/accent.dart`
+- `lib/core/design_system/components/` (`buttons`, `overlays`, `dialog`, `selection`, `toggle`, `inputs`, `variant_carousel`, `list_tiles`, `section_header`, `badges`, `cards`, `feedback`, `permission_card`, `menu_button`)
+- `lib/app/live_accent.dart`
+- `tool/design/tokens.json`, `tool/design/recipes.json`, `tool/design/gen_design_tokens.dart`, `tool/tokens_common.dart`
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/DxTokens.kt` (generated), `overlay/AccentResolver.kt`
+- `test/fixtures/accent_cases.json`
 - `lib/features/dashboard/presentation/home_shell.dart`
 - `lib/features/dashboard/presentation/dashboard_tab.dart`
 - `lib/features/dashboard/presentation/widgets/blocker_section.dart`
