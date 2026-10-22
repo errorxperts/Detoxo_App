@@ -9,6 +9,12 @@ If you just want the big picture first, read [Product Overview](01-product-overv
 For the "why does it need that?" behind each permission, see
 [Permissions Explained](03-permissions-explained.md).
 
+**Getting around.** The home screen has two tabs in the glass bar at the bottom:
+**Today** (your blocking mode, the screen-time ring and your blockers) and
+**Insights** (your numbers for the day, §15). The **Menu** button at the top right
+opens the sidebar: **Daily limit**, **Appearance**, **PIN lock**, **Settings** and
+**Help & support**.
+
 ---
 
 ## 1. First run: the setup conversation

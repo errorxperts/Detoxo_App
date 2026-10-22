@@ -165,6 +165,37 @@ void main() {
         }
       });
 
+      test('tab bar labels read at 4.5:1 per palette', () {
+        // The 13 px label band spans 60–90 % of the lens's vertical sheen
+        // and 60–80 % of the bar's glass gradient, over the bg fade.
+        final glass = _over({
+          'glass@60%': Color.lerp(t.glassTop, t.glassBottom, .6)!,
+          'glass@80%': Color.lerp(t.glassTop, t.glassBottom, .8)!,
+        }, bg);
+        _expectContrast('idle tab label', t.ink2, glass, 4.5);
+        final dark = t.brightness == Brightness.dark;
+        var accentFails = false;
+        for (final MapEntry(key: name, value: p) in palettes.entries) {
+          final lens = _over({
+            'lens@60%': Color.lerp(t.lensHi, t.lensLo, .6)!,
+            'lens@90%': Color.lerp(t.lensHi, t.lensLo, .9)!,
+          }, _over({'$name tint': p.main.withValues(alpha: t.kTab)}, glass));
+          // AppTabBar: accent text in Light, ink in Dark.
+          _expectContrast(
+            'current tab label',
+            dark ? t.ink : t.accentText(p),
+            lens,
+            4.5,
+          );
+          accentFails |= lens.values.any(
+            (g) => _contrast(t.accentText(p), g) < 4.5,
+          );
+        }
+        // Why Dark falls back to ink: its accent text misses 4.5:1 on the
+        // lens for some palette. Light's never does.
+        expect(accentFails, dark);
+      });
+
       test('Session sheet controls read at their minimums', () {
         // Quick picks: ink-2 on control, the selected label on control-on
         // (accentText in Light, ink in Dark), glyphs in accentText(brand).

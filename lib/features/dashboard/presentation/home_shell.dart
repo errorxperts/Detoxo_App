@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/services/firebase/firebase.dart';
@@ -9,21 +11,23 @@ import 'package:detoxo/features/dashboard/presentation/dashboard_tab.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/app_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 
-/// The main authenticated surface: Dashboard / Activity over the ambient
-/// gradient, with a frosted floating bar that hides as you scroll. The active
-/// tab expands into an accent "pill"; the others stay icon-only (compact). The
-/// former "More" tab now lives in a right-side [AppDrawer], openable from each
-/// tab's header menu button. (All blocking management now lives in the App
-/// Blocker screen, reached from the dashboard capsule.)
+/// The main authenticated surface: the Today and Insights tabs over the ground
+/// gradient, with the static glass [AppTabBar] floating 30 above the bottom
+/// inset on a fade to `bgBottom`. The sidebar ([AppDrawer]) opens from each
+/// tab header's Menu button. Only the active tab is built.
 class HomeShell extends StatefulWidget {
-  const HomeShell({this.dashboardRequest, super.key});
+  const HomeShell({this.dashboardRequest, this.tabBuilder, super.key});
 
-  /// Changes each time something asks for the Dashboard tab (a Plan widget
-  /// tap, EVO-073, via `/home?dashboard=<n>`): the shell switches to it even
-  /// when it is already showing, on another tab.
+  /// Changes each time something asks for the Today tab (a Plan widget tap,
+  /// EVO-073, via `/home?dashboard=<n>`): the shell switches to it even when
+  /// it is already showing, on another tab.
   final String? dashboardRequest;
+
+  /// Builds tab `index`'s body in place of Today / Insights, so a test can
+  /// pump the shell without every cubit the real tabs read.
+  @visibleForTesting
+  final Widget Function(int index, VoidCallback onMenu)? tabBuilder;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -39,35 +43,43 @@ class _HomeShellState extends State<HomeShell> {
     if (request != null && request != old.dashboardRequest) _index = 0;
   }
 
-  // Drives the end-drawer (the former "More" tab) via the inner Scaffold.
+  // Drives the end-drawer (the sidebar) via the inner Scaffold.
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   void _openDrawer() => _scaffoldKey.currentState?.openEndDrawer();
 
-  static const _items = [
-    (icon: AppIcon.dashboard, label: 'Dashboard'),
-    (icon: AppIcon.activity, label: 'Activity'),
+  static const _tabs = <TabItem>[
+    (
+      label: 'Today',
+      icon: Icons.dashboard_outlined,
+      selectedIcon: Icons.dashboard,
+    ),
+    (
+      label: 'Insights',
+      icon: Icons.leaderboard_outlined,
+      selectedIcon: Icons.leaderboard,
+    ),
   ];
 
-  Widget _tab(ScrollController controller) {
-    // Only the active tab is built, so the floating bar's single controller
-    // attaches cleanly to exactly one scrollable for hide-on-scroll.
-    return switch (_index) {
-      0 => DashboardTab(scrollController: controller, onMenu: _openDrawer),
-      _ => AnalyticsTab(scrollController: controller, onMenu: _openDrawer),
-    };
+  /// The `screen_view` name of each tab: the names from before the
+  /// Today / Insights rename, so the analytics series stay continuous.
+  static const _screens = ['Dashboard', 'Activity'];
+
+  void _select(int i) {
+    if (i == _index) return;
+    setState(() => _index = i);
+    // Tabs don't change the route, so log the view manually.
+    unawaited(sl<AnalyticsService>().logScreenView(_screens[i]));
   }
+
+  Widget _tab() =>
+      widget.tabBuilder?.call(_index, _openDrawer) ??
+      switch (_index) {
+        0 => DashboardTab(onMenu: _openDrawer),
+        _ => AnalyticsTab(onMenu: _openDrawer),
+      };
 
   @override
   Widget build(BuildContext context) {
-    // Size the floating bar to its content (one 48dp tap slot per item) so it
-    // stays a compact centered capsule instead of stretching to the screen width.
-    const slot = AppSizes.minTapTarget;
-    final screenMax = MediaQuery.sizeOf(context).width - AppSpacing.xl;
-    final contentWidth = _items.length * slot + AppSpacing.xxs;
-    final barWidth = contentWidth > screenMax ? screenMax : contentWidth;
-    // The scaffold opts out of safe area, so lift the floating bar above the
-    // gesture home indicator ourselves.
-    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     // Lighter drawer dim in light theme: the scrim sits behind the glass drawer
     // and is blurred into it, so a heavy black scrim would make the frosted
     // panel read murky/dark instead of as light glass.
@@ -81,41 +93,24 @@ class _HomeShellState extends State<HomeShell> {
         scaffoldKey: _scaffoldKey,
         endDrawer: const AppDrawer(),
         drawerScrimColor: Colors.black.withValues(alpha: dark ? 0.5 : 0.22),
-        body: BottomBar(
-          fit: StackFit.expand,
-          borderRadius: AppRadius.brPill,
-          barColor: Colors.transparent,
-          width: barWidth,
-          offset: bottomInset,
-          duration: AppDurations.normal,
-          curve: AppCurves.standard,
-          showIcon: false,
-          body: (context, controller) => buildFeatureShowcaseScope(
-            // Persist on finish AND dismiss so a skipped tour is remembered too.
-            onSeen: () =>
-                context.read<SettingsCubit>().setShowcaseSeen(value: true),
-            child: SafeArea(bottom: false, child: _tab(controller)),
-          ),
-          child: GlassContainer(
-            surface: DxSurface.glass,
-            padding: EdgeInsets.zero,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                for (var i = 0; i < _items.length; i++)
-                  _NavPillItem(
-                    icon: _items[i].icon,
-                    label: _items[i].label,
-                    selected: _index == i,
-                    onTap: () {
-                      AppHaptics.selection();
-                      setState(() => _index = i);
-                      // Tabs don't change the route, so log the view manually.
-                      sl<AnalyticsService>().logScreenView(_items[i].label);
-                    },
-                  ),
-              ],
+        // The Scaffold's bottom bar, so floating toasts sit above it.
+        bottomBar: _TabBarHost(
+          items: _tabs,
+          current: _index,
+          onSelect: _select,
+        ),
+        body: buildFeatureShowcaseScope(
+          // Persist on finish AND dismiss so a skipped tour is remembered too.
+          onSeen: () =>
+              context.read<SettingsCubit>().setShowcaseSeen(value: true),
+          child: SafeArea(
+            bottom: false,
+            // With the lists' `inset` on top, the tab header sits headerTop
+            // below the screen top, or `inset` below a taller status bar.
+            minimum: const EdgeInsets.only(
+              top: AppSpacing.headerTop - AppSpacing.inset,
             ),
+            child: _tab(),
           ),
         ),
       ),
@@ -123,114 +118,58 @@ class _HomeShellState extends State<HomeShell> {
   }
 }
 
-/// A bottom-nav item: a muted icon when unselected, and a primary→secondary
-/// gradient circle when selected. The Lucide icon morph replays each time the
-/// tab becomes selected (controller-driven, so the opaque [GestureDetector]
-/// keeps owning the tap).
-class _NavPillItem extends StatefulWidget {
-  const _NavPillItem({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
+/// The bottom bar slot: a fade to `bgBottom` behind the [AppTabBar], which
+/// floats [_lift] above the bottom inset. The fade never takes a touch, so
+/// the list under it stays scrollable.
+class _TabBarHost extends StatelessWidget {
+  const _TabBarHost({
+    required this.items,
+    required this.current,
+    required this.onSelect,
   });
 
-  final AppIcon icon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
+  final List<TabItem> items;
+  final int current;
+  final ValueChanged<int> onSelect;
 
-  @override
-  State<_NavPillItem> createState() => _NavPillItemState();
-}
+  /// The bar's gap above the bottom inset (spec TabBar).
+  static const double _lift = 30;
 
-class _NavPillItemState extends State<_NavPillItem> {
-  final AnimatedIconController _controller = AnimatedIconController();
-
-  bool get _reduceMotion =>
-      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.selected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !_reduceMotion) _controller.animate();
-      });
-    }
-  }
-
-  @override
-  void didUpdateWidget(_NavPillItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selected && !oldWidget.selected) {
-      if (!_reduceMotion) _controller.animate();
-    } else if (!widget.selected && oldWidget.selected) {
-      _controller.reset();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  /// How far the fade reaches above the bar.
+  static const double _fade = AppSpacing.xl;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final iconColor = widget.selected
-        ? scheme.onPrimary
-        : scheme.onSurfaceVariant;
-    return Semantics(
-      button: true,
-      selected: widget.selected,
-      label: widget.label,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        // 48dp tap slot around the compact 32/40 visual, plus a press-squish so
-        // re-tapping the active tab still feels responsive.
-        child: SizedBox(
-          width: AppSizes.minTapTarget,
-          height: AppSizes.minTapTarget,
-          child: Center(
-            child: PressScale(
-              child: AnimatedContainer(
-                duration: AppDurations.instant,
-                curve: AppCurves.standard,
-                width: widget.selected ? 36 : 28,
-                height: widget.selected ? 36 : 28,
-                alignment: Alignment.center,
+    final inset = MediaQuery.viewPaddingOf(context).bottom;
+    final ground = context.tokens.bgBottom;
+    return SizedBox(
+      height: _fade + AppTabBar.size.height + _lift + inset,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: widget.selected
-                      ? LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [scheme.primary, scheme.secondary],
-                        )
-                      : null,
-                  boxShadow: widget.selected
-                      ? [
-                          BoxShadow(
-                            color: scheme.secondary.withValues(alpha: 0.40),
-                            blurRadius: 20,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: AppAnimatedIcon(
-                  icon: widget.icon,
-                  size: 24,
-                  color: iconColor,
-                  controller: _controller,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [ground.withValues(alpha: 0), ground],
+                    stops: const [0, .55],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+          Padding(
+            padding: EdgeInsets.only(bottom: _lift + inset),
+            child: AppTabBar(
+              items: items,
+              current: current,
+              onSelect: onSelect,
+            ),
+          ),
+        ],
       ),
     );
   }

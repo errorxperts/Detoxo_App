@@ -161,7 +161,7 @@ Locked rules are rationed separately, and always: lifting one costs an override,
 
 ## Where can I see what's currently unblocked?
 
-The home screen shows an **Allowed right now** card whenever something is — the app, feed or site, when it goes back to being blocked, and a **Resume** button to end it early. It isn't there when nothing is allowed. The **Activity → Events** tab also shows how many overrides you've spent this period and the reasons you gave.
+The home screen shows an **Allowed right now** card whenever something is — the app, feed or site, when it goes back to being blocked, and a **Resume** button to end it early. It isn't there when nothing is allowed. The **Insights** tab also shows how many overrides you've spent this period and the reasons you gave.
 
 ## Does Pause switch my rules off too?
 

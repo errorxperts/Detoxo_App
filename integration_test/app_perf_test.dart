@@ -65,8 +65,9 @@ void main() {
     // Let entrance animations finish so they do not dominate the sample.
     await settle(tester, frames: 25);
 
-    // The dashboard ListView. ModeSelector's horizontal SingleChildScrollView is
-    // nested below it, so `.first` is the vertical list we mean to fling.
+    // The Today ListView (the tab bar is static, so the fling never moves it).
+    // ModeSelector's horizontal SingleChildScrollView is nested below it, so
+    // `.first` is the vertical list we mean to fling.
     final list = find.byType(Scrollable).first;
     await binding.traceAction(() async {
       for (var i = 0; i < 5; i++) {

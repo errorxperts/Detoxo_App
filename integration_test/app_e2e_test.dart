@@ -26,23 +26,25 @@ import 'package:integration_test/integration_test.dart';
 // package: cannot reach it. See the header of qa_walk.dart.
 import 'qa_walk.dart';
 
-/// Opens the right-side app drawer.
+/// Opens the sidebar from the Today tab header's Menu button.
 ///
-/// DashboardTopBar — and therefore DrawerMenuButton — is the FIRST CHILD of the
-/// dashboard ListView (dashboard_tab.dart), so the header scrolls away with the
+/// The TabHeader — and therefore the Menu button — is the FIRST CHILD of the
+/// Today ListView (dashboard_tab.dart), so the header scrolls away with the
 /// content. The showcase tour scrolls the mode pills into view and leaves the
-/// list offset, which parks the button above the viewport's clip: `find.byIcon`
+/// list offset, which parks the button above the viewport's clip: the finder
 /// still matches it, but `tap()` warns "would not hit test on the specified
 /// widget" and the drawer never opens. Snap to the top first.
 ///
 /// `jumpTo`, not a drag: overscrolling at the top fires the RefreshIndicator.
+/// `byTooltip`, not `bySemanticsLabel`: GlassIconButton's Tooltip carries the
+/// same 'Menu', and it needs no semantics tree switched on.
 Future<void> openDrawer(WidgetTester tester) async {
   final position = tester
       .state<ScrollableState>(find.byType(Scrollable).first)
       .position;
   if (position.pixels != 0) position.jumpTo(0);
   await settle(tester);
-  await tester.tap(find.byIcon(Icons.menu_rounded));
+  await tester.tap(find.byTooltip('Menu'));
   await settle(tester, frames: 12);
 }
 
@@ -121,28 +123,25 @@ void main() {
     await tester.pageBack();
     await settle(tester, frames: 12);
 
-    await openDrawer(tester);
-    // Scoped to the drawer: the bottom nav renders every tab name as a Text
-    // (clipped to 0 px while inactive), so a bare find.text('Activity') is
-    // ambiguous on the home screen.
-    await tester.tap(
-      find.descendant(of: find.byType(Drawer), matching: find.text('Activity')),
-    );
+    // Scoped to the tab bar: the Insights TabHeader shares the string.
+    Finder tab(String label) =>
+        find.descendant(of: find.byType(AppTabBar), matching: find.text(label));
+    await tester.tap(tab('Insights'));
     await settle(tester, frames: 16);
-    // Prove we navigated rather than screenshotting a stale dashboard: the home
-    // marker is gone, and the pushed route's GlassAppBar titles itself
-    // 'Activity' (the drawer item that shared the string went with the drawer).
-    expect(home, findsNothing, reason: 'still on the dashboard');
+    // Prove we switched rather than screenshotting a stale Today: the home
+    // marker is gone (only the active tab is built), and the Insights
+    // TabHeader titles the tab.
+    expect(home, findsNothing, reason: 'still on Today');
     expect(
       find.descendant(
-        of: find.byType(GlassAppBar),
-        matching: find.text('Activity'),
+        of: find.byType(TabHeader),
+        matching: find.text('Insights'),
       ),
       findsOneWidget,
     );
     await step(tester, 'analytics');
 
-    await tester.pageBack();
+    await tester.tap(tab('Today'));
     await settle(tester, frames: 12);
     expect(await waitFor(tester, home), isTrue);
     await step(tester, 'home-final');
