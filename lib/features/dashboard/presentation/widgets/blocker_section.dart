@@ -174,8 +174,29 @@ class _BlockerSectionState extends State<BlockerSection> {
           ],
         ),
         // EVO-051: absent entirely when nothing is allowed — it exists to be
-        // noticed exactly when something is. Brings its own top gap.
-        const ActiveUnblocksCard(),
+        // noticed exactly when something is. Brings its own top gap. Names
+        // come from what this section already loaded; a host is its own name.
+        ActiveUnblocksCard(
+          nameOf: (g) =>
+              switch (g.targetType) {
+                UnblockTargetType.reel =>
+                  targets
+                      .where((f) => f.platformId == g.targetId)
+                      .firstOrNull
+                      ?.displayName,
+                UnblockTargetType.app =>
+                  _locks
+                          .where((e) => e.packageName == g.targetId)
+                          .firstOrNull
+                          ?.appName ??
+                      targets
+                          .where((f) => f.packageName == g.targetId)
+                          .firstOrNull
+                          ?.appName,
+                UnblockTargetType.website => null,
+              } ??
+              g.targetId,
+        ),
         const SizedBox(height: AppSpacing.gap),
         // Equal heights when large text grows one tile past the 180 floor.
         IntrinsicHeight(

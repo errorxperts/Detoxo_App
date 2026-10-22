@@ -1,7 +1,7 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/utils/clock_format.dart';
-import 'package:detoxo/core/widgets/common_widgets.dart';
+import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:detoxo/features/limits/daily_limit/domain/entities/daily_limit.dart';
 import 'package:detoxo/features/limits/daily_limit/presentation/daily_limit_cubit.dart';
@@ -13,6 +13,7 @@ import 'package:detoxo/features/limits/rules/domain/usecases/rule_summary.dart';
 import 'package:detoxo/features/limits/rules/presentation/rules_cubit.dart';
 import 'package:detoxo/features/limits/rules/presentation/widgets/rule_kind_icon.dart';
 import 'package:detoxo/features/permissions/permissions.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -71,9 +72,9 @@ class _RulesScreenState extends State<RulesScreen> {
           final now = DateTime.now();
           return ListView(
             padding: EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.md,
+              AppSpacing.gutter,
+              0,
+              AppSpacing.gutter,
               // The extended FAB, not the home shell's floating nav — same clearance
               // the App/Web blocker screens use.
               96 + MediaQuery.viewPaddingOf(context).bottom,
@@ -92,26 +93,32 @@ class _RulesScreenState extends State<RulesScreen> {
               else if (state.rules.isEmpty) ...[
                 const EmptyState(
                   icon: Icons.rule_folder_outlined,
-                  animatedIcon: AppIcon.rules,
                   title: 'No rules yet',
                   subtitle:
                       'Block apps on a schedule, or cap how long and how '
                       'often you use them each day.',
                 ),
-                const SizedBox(height: AppSpacing.md),
                 // No CTA on the empty state itself — the FAB is the blank-page
                 // entry point (the App Blocker screen makes the same call).
                 // These are the shortcut past it.
                 const SectionHeader('Start from a preset'),
-                for (final preset in RulePreset.all) ...[
-                  _PresetTile(preset: preset),
-                  const SizedBox(height: AppSpacing.xs),
-                ],
+                PanelGroup(
+                  children: [
+                    for (final preset in RulePreset.all)
+                      _PresetTile(preset: preset),
+                  ],
+                ),
               ] else
-                for (final rule in state.rules) ...[
-                  _RuleTile(rule: rule, status: state.statusOf(rule), now: now),
-                  const SizedBox(height: AppSpacing.xs),
-                ],
+                PanelGroup(
+                  children: [
+                    for (final rule in state.rules)
+                      _RuleTile(
+                        rule: rule,
+                        status: state.statusOf(rule),
+                        now: now,
+                      ),
+                  ],
+                ),
             ],
           );
         },
@@ -128,19 +135,16 @@ class _RulesScreenState extends State<RulesScreen> {
     final kind = await GlassBottomSheet.show<RuleKind>(
       context: context,
       title: 'New rule',
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      // Flat rows on the sheet itself, split by hairlines.
+      child: PanelGroup(
         children: [
-          for (final k in RuleKind.values) ...[
+          for (final k in RuleKind.values)
             GlassListTile(
-              leading: Icon(ruleKindIcon(k)),
+              leading: Icon(ruleKindIcon(k), color: context.tokens.ink2),
               title: k.label,
               subtitle: _kindHint(k),
-              trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).pop(k),
             ),
-            const SizedBox(height: AppSpacing.xs),
-          ],
         ],
       ),
     );
@@ -166,10 +170,13 @@ class _PresetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GlassListTile(
-    leading: Icon(ruleKindIcon(preset.template.kind)),
+    leading: Icon(
+      ruleKindIcon(preset.template.kind),
+      color: context.tokens.ink2,
+    ),
     title: preset.template.name,
-    subtitle: preset.description,
-    trailing: const Icon(Icons.add_circle_outline),
+    subtitle: preset.describe(localTimeFormat(context)),
+    trailing: Icon(Icons.add_circle_outline, color: context.tokens.ink2),
     onTap: () => context.push(
       Routes.ruleEditor,
       extra: RuleEditorArgs(
@@ -210,10 +217,12 @@ class _RuleTile extends StatelessWidget {
         ? AppTone.warning
         : AppTone.neutral;
     return GlassListTile(
-      leading: Icon(rule.locked ? Icons.lock_outline : ruleKindIcon(rule.kind)),
+      leading: Icon(
+        rule.locked ? Icons.lock_outline : ruleKindIcon(rule.kind),
+        color: context.tokens.ink2,
+      ),
       title: rule.name,
       subtitle: RuleSummary.describe(rule, time: time),
-      selected: rule.enabled && status.activeNow,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -226,9 +235,9 @@ class _RuleTile extends StatelessWidget {
           // would refuse it anyway (`LockGuard`). The way out is an override,
           // which the editor offers and which costs quota.
           if (rule.locked)
-            const Padding(
-              padding: EdgeInsets.only(right: AppSpacing.xxs),
-              child: Icon(Icons.lock, size: 18),
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.xxs),
+              child: Icon(Icons.lock, size: 18, color: context.tokens.ink2),
             )
           else
             AppToggle(
@@ -279,24 +288,22 @@ class _UsageAccessHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const InlineHint(
-          icon: Icons.insights_outlined,
-          text:
-              'Usage access lets Detoxo count app time and opens for your '
-              'limits. Until it is granted, limits cannot enforce.',
-        ),
-        SecondaryButton(
-          label: 'Grant usage access',
-          // The one entry point: disclosure, the restricted-settings
-          // walkthrough and the cubit re-read live there, not here.
-          onPressed: () =>
-              requestPermission(context, AppPermission.usageAccess),
-        ),
-        const SizedBox(height: AppSpacing.md),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Pill(label: 'Usage access needed', tone: AppTone.warning),
+          ),
+          SecondaryButton(
+            label: 'Grant',
+            // The one entry point: disclosure, the restricted-settings
+            // walkthrough and the cubit re-read live there, not here.
+            onPressed: () =>
+                requestPermission(context, AppPermission.usageAccess),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -312,25 +319,26 @@ class _DailyReelLimitRow extends StatelessWidget {
       builder: (context, limit) {
         if (limit.limit == Duration.zero) return const SizedBox.shrink();
         final count = context.watch<ContentCounterCubit>().state;
-        final used = count.timeToday.inMinutes;
-        final max = limit.limit.inMinutes;
+        final t = context.tokens;
         final reached = count.enabled && count.timeToday >= limit.limit;
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SectionHeader('Daily reel limit'),
             GlassListTile(
-              leading: const Icon(Icons.timelapse),
-              title: 'Reels · $max min a day',
+              leading: Icon(Icons.timelapse, color: t.ink2),
+              title: 'Reels · ${formatHm(limit.limit)} a day',
               subtitle: count.enabled
                   ? 'Blocks every reel feed at the limit, until midnight'
-                  : 'Reel counter is off — the limit cannot be enforced',
-              selected: reached,
+                  : 'Reel counter is off, so the limit can’t be enforced',
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Pill(
-                    label: reached ? 'Limit reached' : '$used/$max min',
+                    label: reached
+                        ? 'Limit reached'
+                        : '${formatHm(count.timeToday)} of '
+                              '${formatHm(limit.limit)}',
                     tone: reached
                         ? AppTone.warning
                         : count.enabled
@@ -338,12 +346,13 @@ class _DailyReelLimitRow extends StatelessWidget {
                         : AppTone.warning,
                   ),
                   const SizedBox(width: AppSpacing.xs),
-                  const Icon(Icons.chevron_right),
+                  // A trailing value replaces the row's own chevron, so it is
+                  // drawn here (the Insights limit row does the same).
+                  Glyph(Assets.svg.chevronRight, size: 18, color: t.ink3),
                 ],
               ),
               onTap: () => context.push(Routes.dailyLimit),
             ),
-            const SizedBox(height: AppSpacing.md),
           ],
         );
       },

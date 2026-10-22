@@ -754,7 +754,7 @@ void main() {
       ),
       'Fri, Sat · 22:00–06:00 (next day) · 1 category, 2 sites',
     );
-    expect(RuleSummary.describe(_timeLimit()), '30 min a day · 1 app');
+    expect(RuleSummary.describe(_timeLimit()), '30m a day · 1 app');
     expect(
       RuleSummary.describe(_openLimit(maxOpens: 1)),
       '1 open a day · 1 app',
@@ -771,7 +771,7 @@ void main() {
         const RuleStatus(usedMs: 22 * 60000),
         _now,
       ),
-      '22/30 min',
+      '22m of 30m',
     );
     expect(
       RuleSummary.status(
@@ -789,6 +789,30 @@ void main() {
       ),
       'Limit reached',
     );
+
+    // Presets read their hours from the template, in the device's clock.
+    String twelve(int m) {
+      final h = m ~/ 60 % 12 == 0 ? 12 : m ~/ 60 % 12;
+      return '$h ${m < 12 * 60 ? 'AM' : 'PM'}';
+    }
+
+    expect(
+      RulePreset.workHours.describe(twelve),
+      'Weekdays 9 AM–5 PM · reels and social',
+    );
+    expect(
+      RulePreset.workHours.describe(RuleSchedule.formatHHmm),
+      'Weekdays 09:00–17:00 · reels and social',
+    );
+    expect(
+      RulePreset.sleep.describe(twelve),
+      'Every day 10 PM–7 AM · reels, social and streaming',
+    );
+    expect(
+      RulePreset.reelBudget.describe(twelve),
+      '30m of reels a day, then blocked until midnight',
+    );
+    expect(RulePreset.reelBudget.template.name, 'Reel budget');
 
     // The Blocker rules row. `_now` is Wed 2 Sep 2026, 10:00.
     String next(List<Rule> rules, Map<String, RuleStatus> statuses) =>

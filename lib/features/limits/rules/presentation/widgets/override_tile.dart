@@ -3,6 +3,7 @@ import 'package:detoxo/core/utils/clock_format.dart';
 import 'package:detoxo/features/limits/rules/domain/entities/rule.dart';
 import 'package:detoxo/features/limits/rules/domain/usecases/rule_summary.dart';
 import 'package:detoxo/features/limits/rules/presentation/rules_cubit.dart';
+import 'package:detoxo/features/limits/unblock/domain/entities/bypass_config.dart';
 import 'package:detoxo/features/limits/unblock/domain/entities/bypass_entry.dart';
 import 'package:detoxo/features/limits/unblock/presentation/unblock_cubit.dart';
 import 'package:detoxo/features/limits/unblock/presentation/widgets/unblock_duration_sheet.dart';
@@ -24,47 +25,56 @@ class OverrideTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     final state = context.watch<UnblockCubit>().state;
     final live = context.read<UnblockCubit>().activeOverrideFor(rule.id);
     final time = localTimeFormat(context);
     // Is the rule actually blocking right now? An override buys a window
     // starting NOW, so spending one on a closed schedule (or an unspent budget)
     // costs a scarce resource and lifts nothing.
-    final status = context.watch<RulesCubit>().state.statusOf(rule);
-    final enforcing = status.enforcing;
+    final enforcing = context
+        .watch<RulesCubit>()
+        .state
+        .statusOf(rule)
+        .enforcing;
+    final lockOpen = Icon(Icons.lock_open, color: t.ink2);
     if (live != null) {
-      return AppCard(
-        leading: IconBadge(
-          icon: Icons.lock_open,
-          color: context.tokens.statusText(context.tokens.statusSetup),
-        ),
+      return GlassListTile(
+        leading: lockOpen,
         title:
             'Lifted until ${RuleSummary.clock(live.untilMs, DateTime.now(), time: time)}',
         subtitle: live.reason?.label,
+        trailing: StatusDot(color: t.statusPaused),
       );
     }
     final left = state.overridesLeft;
     final resets = state.overridesResetAtMs;
-    final available = left > 0 && enforcing;
-    return AppCard(
-      leading: IconBadge(
-        icon: Icons.lock_open,
-        color: available
-            ? context.tokens.brand.main
-            : context.tokens.statusText(context.tokens.statusSetup),
-      ),
+    return GlassListTile(
+      leading: lockOpen,
       title: 'Lift this rule for a while',
       subtitle: !enforcing
-          ? "Not blocking right now — you don't need one"
+          ? 'Not blocking right now'
           : left > 0
-          ? '$left of ${state.config.overrideLimit} overrides left'
+          ? _leftLine(state)
           : resets > 0
-          ? 'None left — back ${RuleSummary.clock(resets, DateTime.now(), time: time)}'
+          ? 'None left. Back ${RuleSummary.clock(resets, DateTime.now(), time: time)}'
           : 'None left',
-      // Never lead the user into a sheet that will refuse.
-      onTap: available ? () => showOverrideSheet(context, rule) : null,
+      // Never lead the user into a sheet that will refuse: no tap, no chevron.
+      onTap: left > 0 && enforcing
+          ? () => showOverrideSheet(context, rule)
+          : null,
     );
   }
+}
+
+/// "1 override left this week" / "2 overrides left today" — the quota's
+/// period, not a hard-coded week, so a daily config reads true.
+String _leftLine(UnblockState state) {
+  final left = state.overridesLeft;
+  final period = state.config.overridePeriod == BypassPeriod.day
+      ? 'today'
+      : 'this week';
+  return '$left ${left == 1 ? 'override' : 'overrides'} left $period';
 }
 
 /// Reason first, then the window on the [ConfirmSheet] — in that order on
@@ -90,13 +100,11 @@ Future<void> showOverrideSheet(BuildContext context, Rule rule) async {
     ),
   );
   if (reason == null || !context.mounted) return;
-  final left = unblock.state.overridesLeft;
   final window = await showUnblockDurationSheet(
     context,
     title: 'Lift ${rule.name} for a while?',
     icon: Assets.images.icons.iconBlockerRules,
-    message:
-        'You have $left ${left == 1 ? 'override' : 'overrides'} left this week.',
+    message: 'You have ${_leftLine(unblock.state)}.',
     action: 'Slide to lift',
     cancel: 'Keep it locked',
     maxWindow: Duration(milliseconds: unblock.state.config.overrideMaxWindowMs),

@@ -1,3 +1,4 @@
+import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/features/limits/rules/domain/entities/rule.dart';
 import 'package:detoxo/features/limits/rules/domain/entities/rule_snapshot.dart';
 
@@ -44,7 +45,7 @@ abstract final class RuleSummary {
                   '${time(r.schedule!.startMin)}–'
                   '${time(r.schedule!.endMin)}'
                   '${r.schedule!.isOvernight ? ' (next day)' : ''}',
-      RuleKind.timeLimit => '${r.thresholdMs ~/ 60000} min a day',
+      RuleKind.timeLimit => '${_hm(r.thresholdMs)} a day',
       RuleKind.openLimit => '${count(r.maxOpens, 'open', 'opens')} a day',
     };
     // Locked implies strict on the wire, so the chip is derived from the same
@@ -73,7 +74,7 @@ abstract final class RuleSummary {
     return parts.isEmpty ? 'No targets' : parts.join(', ');
   }
 
-  /// The status pill: "Off", "Active now", "Limit reached", "22/30 min",
+  /// The status pill: "Off", "Active now", "Limit reached", "22m of 30m",
   /// "3 of 5 opens", "Needs usage access" or "Next Mon 09:00".
   static String status(
     Rule r,
@@ -95,7 +96,7 @@ abstract final class RuleSummary {
             : '';
       case RuleKind.timeLimit:
         if (!s.usageKnown) return 'Needs usage access';
-        return '${s.usedMs ~/ 60000}/${r.thresholdMs ~/ 60000} min';
+        return '${_hm(s.usedMs)} of ${_hm(r.thresholdMs)}';
       case RuleKind.openLimit:
         if (!s.usageKnown) return 'Needs usage access';
         return '${s.opens} of ${r.maxOpens} opens';
@@ -180,4 +181,6 @@ abstract final class RuleSummary {
   /// editor's tile subtitles and headline all read, so the copy cannot drift.
   static String count(int n, String one, String many) =>
       '$n ${n == 1 ? one : many}';
+
+  static String _hm(int ms) => formatHm(Duration(milliseconds: ms));
 }

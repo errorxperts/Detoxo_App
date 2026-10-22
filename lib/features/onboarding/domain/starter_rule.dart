@@ -7,7 +7,7 @@ import 'package:detoxo/features/onboarding/domain/entities/onboarding_progress.d
 /// |-----------------------------------|---------------------------------------------|
 /// | `SLEEP`                           | Schedule, daily 22:00–07:00 (overnight wrap) |
 /// | `FOCUS`                           | Schedule, Mon–Fri 09:00–17:00                |
-/// | `PRESENT`/`MENTAL`/`OTHER`/skipped | Time limit, 30 min/day, `END_OF_DAY`         |
+/// | `PRESENT`/`MENTAL`/`OTHER`/skipped | Reel budget, 30m a day, `END_OF_DAY`         |
 ///
 /// **Null is a real answer, not a missing one.** Skipping the survey used to
 /// leave `mattersMost` null, which the commitment screen rendered as the
@@ -24,7 +24,7 @@ RulePreset starterPreset(MattersMost? mattersMost) => switch (mattersMost) {
   MattersMost.present ||
   MattersMost.mental ||
   MattersMost.other ||
-  null => RulePreset.doomscrollBudget,
+  null => RulePreset.reelBudget,
 };
 
 /// The one rule onboarding writes, mapped from the survey so the mapping stays

@@ -82,7 +82,7 @@ abstract final class LockGuard {
   static const String disableRefused =
       'This rule is locked. Use an override to lift it for a while.';
   static const String unlockRefused =
-      'A locked rule cannot be unlocked. That was the point when you made it.';
+      'A locked rule stays locked. Use an override to lift it for a while.';
   static const String narrowRefused =
       'A locked rule can be widened, never narrowed.';
   static const String scheduleRefused =

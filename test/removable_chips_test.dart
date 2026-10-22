@@ -1,5 +1,4 @@
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/features/limits/rules/presentation/widgets/removable_chips.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -31,6 +30,15 @@ void main() {
       tester.getSemantics(find.text('Alpha')).label,
       contains('Remove Alpha'),
     );
+    // The whole chip is the close target: at least 48 x 48.
+    final hit = tester.getSize(
+      find.ancestor(
+        of: find.text('Alpha'),
+        matching: find.byType(AppPressable),
+      ),
+    );
+    expect(hit.width, greaterThanOrEqualTo(48));
+    expect(hit.height, greaterThanOrEqualTo(48));
     await tester.tap(find.text('Alpha'));
     expect(removed, ['com.a']);
     semantics.dispose();

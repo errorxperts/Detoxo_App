@@ -28,7 +28,7 @@ lib/features/limits/unblock/
 ├── data/repositories/{temporary_unblock,bypass_ledger}_repository_impl.dart
 └── presentation/
     ├── unblock_cubit.dart                          app-wide; grants, quota, the wall hand-off
-    └── widgets/{unblock_duration_sheet,pending_unblock_listener}.dart
+    └── widgets/{unblock_duration_sheet,pending_unblock_listener,active_unblocks_card,override_history_card}.dart
 
 android/.../engine/UnblockRegistry.kt               Android-free; JVM-tested
 ```
@@ -79,10 +79,17 @@ not on the wall, so `offersUnblock` is unchanged. That is the accepted ceiling.
 ### EVO-051 / EVO-052 — the state, said back
 
 `ActiveUnblocksCard` (Today, between the Blockers header and the blocker tiles, with its own
-top gap) is the one place that lists what is open right
-now, including a `REEL` grant, which had no surface at all. `OverrideHistoryCard`
-(the Insights tab, under the By app section) says what the override ledger recorded — the reasons the
-user picked themselves. Both hide entirely when there is nothing true to say.
+top gap) is the one place that lists what is open right now, including a `REEL` grant, which had
+no surface at all. It is one panel of flat `GlassListTile` rows: the kind glyph, the grant's
+**name**, "Allowed until 11 PM" (`RuleSummary.clock` in the device clock) and a trailing
+`SecondaryButton` "Block now" (announced "Block {name} now") that calls `endEarly(type, id)` with
+no confirm — ending a grant strengthens protection. The card takes an optional
+`nameOf(TemporaryUnblock)` and falls back to the stored id; `BlockerSection` resolves names from
+what it already loaded, so the card never waits on the installed-apps scan: a reel → the
+`TargetsCubit` target's `displayName`, an app → the App Blocker entry's label (else a built-in
+target's `appName`), a site → its host. `OverrideHistoryCard` (the Insights tab, last) says how
+many overrides are left this period ("1 override left this week"), once one was spent; it no
+longer lists reasons or a spent count. Both hide entirely when there is nothing true to say.
 
 ### Durations
 
@@ -100,10 +107,17 @@ nobody waits and slides into a refusal. The caller commits and toasts only once 
 | App Blocker row | "Unblock {app}?" (+ allowances line) | `iconAppBlocker` | "{app} unblocked for 15 min" |
 | Website row | "Unblock {site}?" (+ allowances line) | `iconWebBlocker` | "{site} unblocked for 15 min" |
 | Block-screen wall (`PendingUnblockListener`, still behind the gate wait and routed through `appNavigatorKey`) | "Unblock this app?" / "this feed?" / "{host}?" | `iconWebBlocker` for a website, else `iconAppBlocker` | "Unblocked for 15 min" |
-| Override (`OverrideTile` / `showOverrideSheet` in the rule editor — no separate screen or route) | "Lift {rule} for a while?", message "You have N overrides left this week.", "Slide to lift" / "Keep it locked" | `iconBlockerRules` | "{rule} lifted for 15 min", or the refusal |
+| Override (`OverrideTile` / `showOverrideSheet` in the rule editor — no separate screen or route) | "Lift {rule} for a while?", message "You have 1 override left this week." ("today" for a daily period), "Slide to lift" / "Keep it locked" | `iconBlockerRules` | "{rule} lifted for 15 min", or the refusal |
 
 The override still asks for its reason first, has no PIN by design, and passes `maxWindow` so it
 cannot buy more than the quota allows.
+
+`OverrideTile` is a flat row in the editor's Commitment panel: the lock-open glyph, "Lift this rule
+for a while", and a subtitle that says why it can or cannot be used — "1 override left this week"
+(the quota's period), "Not blocking right now" (no override is needed), or "None left. Back Mon
+9 AM" ("None left" when no reset is known). Only the first is tappable and shows the chevron;
+the others have no tap, so the user is never led into a sheet that will refuse. While a lift is
+live the row reads "Lifted until 5:30 PM" over the reason picked, with a `statusPaused` dot.
 
 ### Wire — `pushTemporaryUnblocks {json}`
 
@@ -348,7 +362,8 @@ mutation funnels through — **`RulesCubit._commit`**, behind `save` / `remove` 
 pure `LockGuard.check(previous, next)` refuses **deleting, disabling, unlocking and narrowing** a
 locked rule (narrowing includes flipping `BLOCK` → `ALL_EXCEPT`, which frees every target it names,
 and shrinking the lock scope). Renaming and *widening* stay allowed — tightening a commitment is
-never the thing you regret at 1 a.m.
+never the thing you regret at 1 a.m. The refusals are calm sentences the editor toasts as they are:
+an unlock reads "A locked rule stays locked. Use an override to lift it for a while."
 
 Hiding the toggle would not be enough: this cubit is reachable from Today's Blocker rules row, the resume
 sync and the splash reload, and a rule that can be disabled through a side door is not locked. The
@@ -388,8 +403,8 @@ behind, so a wrong-shaped request must not be able to burn one either:
 
 1. **`enforcingNow`** — checked first. An override buys a window starting *now*, so spending one on
    a schedule that is closed (or a limit whose budget is not spent) costs a scarce resource and
-   lifts nothing; the rule was going to let you in anyway. The editor also greys the tile for the
-   same condition, so the user is never led into a sheet that will refuse, and the status is
+   lifts nothing; the rule was going to let you in anyway. The editor's tile also drops its tap
+   for the same condition, so the user is never led into a sheet that will refuse, and the status is
    re-read at commit time because the sheet is two taps long and a window can close inside it.
 2. `remaining > 0`, 3. a reason is present, 4. `start < end`, 5. window ≤ `maxWindow`. The six reason tokens
 are C2's, verbatim: `FEELING_SICK`, `MEDICAL_APPOINTMENT`, `FAMILY`, `SCHEDULE_CHANGE`,
@@ -506,6 +521,9 @@ Event types stay at **9**; command methods go 50 → **52** (`pushTemporaryUnblo
   actually changing props when a grant lapses**, a corrupt store aborting the push instead of
   clearing native, the pending hand-off and its malformed inputs), and every branch of
   `migrateWebPauses` including idempotency.
+- Dart `test/active_unblocks_card_test.dart` — the row shows the caller's name, not the id;
+  "Block now" (announced "Block {name} now") calls `endEarly` with the grant's type and id; the card
+  renders nothing when nothing is allowed.
 - Dart `test/override_quota_test.dart` — the six reasons round-trip and never leak a wire token into
   a label; an unknown `kind` is dropped, not miscounted; a hostile config is clamped (`limit: 0` can
   never be created); the rolling window at exactly `periodMs`; emergency entries not spending the
@@ -548,6 +566,7 @@ Event types stay at **9**; command methods go 50 → **52** (`pushTemporaryUnblo
 - `lib/features/limits/rules/domain/usecases/{lock_guard,resolve_snapshot,rule_summary}.dart`
 - `lib/features/limits/rules/domain/rule_sync.dart` (the ledger leg)
 - `lib/features/limits/rules/presentation/{rules_cubit,rules_screen,rule_editor_screen}.dart`, `presentation/widgets/override_tile.dart` (reason sheet, then the override `ConfirmSheet`)
+- `lib/features/limits/unblock/presentation/widgets/active_unblocks_card.dart` + its one call (with `nameOf`) in `lib/features/dashboard/presentation/widgets/blocker_section.dart`
 - `lib/features/limits/web_blocker/domain/entities/web_block_entry.dart` (`pausedUntil` removed)
 - `lib/features/limits/web_blocker/domain/web_block_sync.dart`, `presentation/{web_block_cubit,web_block_screen}.dart`
 - `lib/features/limits/app_blocker/presentation/app_block_screen.dart` (the per-row Allow action)

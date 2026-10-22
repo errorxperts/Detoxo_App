@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
 import 'package:detoxo/features/limits/limits.dart';
 import 'package:detoxo/features/limits/rules/presentation/rules_screen.dart';
@@ -148,6 +147,45 @@ void main() {
     await rules.close();
     await boundaries.close();
     semantics.dispose();
+  });
+
+  /// M4: one panel per section, compact copy, the device clock on presets.
+  testWidgets('compact rows, the usage-access line and no chevron icons', (
+    tester,
+  ) async {
+    final (rules, boundaries) = await pumpScreen(tester);
+    addTearDown(boundaries.close);
+    await rules.load();
+    await settle(tester);
+    expect(find.text('Usage access needed'), findsOneWidget);
+    expect(find.text('Grant'), findsOneWidget);
+    expect(find.text('30m a day · 1 app'), findsOneWidget);
+    expect(find.text('Needs usage access'), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+    await rules.close();
+  });
+
+  testWidgets('presets read in the 12-hour clock, as one panel', (
+    tester,
+  ) async {
+    final (rules, boundaries) = await pumpScreen(tester, repo: _FakeRules([]));
+    addTearDown(boundaries.close);
+    await rules.load();
+    await settle(tester);
+    expect(find.text('Weekdays 9 AM–5 PM · reels and social'), findsOneWidget);
+    expect(find.text('Reel budget'), findsOneWidget);
+    expect(
+      find.text('30m of reels a day, then blocked until midnight'),
+      findsOneWidget,
+    );
+    expect(
+      find.ancestor(
+        of: find.text('Reel budget'),
+        matching: find.byType(PanelGroup),
+      ),
+      findsOneWidget,
+    );
+    await rules.close();
   });
 
   /// C10: one tap turns a rule off; once the state lands, '<rule> off' offers

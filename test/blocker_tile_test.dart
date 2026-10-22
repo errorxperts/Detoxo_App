@@ -327,8 +327,10 @@ void main() {
       await tester.pump(); // the repository reads land
 
       double top(String text) => tester.getTopLeft(find.text(text)).dy;
-      expect(top('Blockers'), lessThan(top('Allowed right now')));
-      expect(top('Allowed right now'), lessThan(top('App Blocker')));
+      // The grant row is named from the loaded lock, never its package id.
+      expect(find.text('com.youtube'), findsNothing);
+      expect(top('Blockers'), lessThan(top('YouTube')));
+      expect(top('YouTube'), lessThan(top('App Blocker')));
       expect(top('App Blocker'), lessThan(top('Blocker rules')));
 
       // One YouTube lock plus Instagram's two feeds, which count once.
