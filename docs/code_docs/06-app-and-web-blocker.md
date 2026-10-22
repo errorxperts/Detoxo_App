@@ -175,11 +175,15 @@ inside the app when the block lands. `onAppBlocked(pkg)`:
 
 ### Screen
 
-`app_blocker/presentation/app_block_screen.dart` — titled **"Block apps"**. It
-is a *management* surface unifying two systems that **enforce differently**:
+`app_blocker/presentation/app_block_screen.dart` — titled **"App Blocker"**
+(Title Case: feature names are Title Case, everything else sentence case). It
+is a *management* surface unifying two systems that **enforce differently**.
+Each section is an uppercase `SectionHeader` over **one `PanelGroup`** of flat
+rows split by hairlines (no card per row); the list keeps the 20 px gutters
+(`AppSpacing.gutter`) and clears the FAB at the bottom.
 
 1. **Custom apps** — the whole-app locks above (`AppBlockCubit`). An "Add app"
-   FAB opens the shared installed-app picker (`core/widgets/app_picker_sheet.dart`
+   `GlassFab` opens the shared installed-app picker (`core/widgets/app_picker_sheet.dart`
    → `showAppPickerSheet`): a searchable, multi-select bottom sheet of the
    device's launchable apps (icon + name + package, from
    `EngineRepository.installedApps()` — cached process-wide), drawn as flat
@@ -202,9 +206,18 @@ is a *management* surface unifying two systems that **enforce differently**:
    (`ProtectedAppCatalog.byPackage`) are refused regardless of entry path. The
    toast reads **"Added X"** and counts only landed adds, and an
    all-refused batch shows the refusal reason as a warning instead. Each saved
-   row shows the app's real device icon (from the cached scan; letter-tile
-   fallback), an enable toggle and a delete button; when the custom list is
-   empty the section is hidden entirely (the FAB is the entry point).
+   row is a `GlassListTile`: the app's real device icon (from the cached scan;
+   letter-tile fallback) and its name — no package id — then an "Allow {app}
+   for a while" timer button (only while the lock is on), the enable toggle
+   ("Block {app}") and a "Remove {app}" button. A row with a live grant swaps
+   the timer for a status line under the name: `AllowedUntil` (the paused dot
+   and "Allowed until 11:37 PM", `limits/unblock/presentation/widgets/
+   allowed_until.dart`, shared with the Web Blocker rows; not a `Pill`, whose
+   0.4x width cap ellipsised the clock) and a **Block now** `SecondaryButton`
+   that ends the grant (`UnblockCubit.endEarly`). Once a lock is live and
+   Notification silence is off, the panel's last row is the EVO-037 hint
+   "Locked apps can still notify you", which opens Settings. When the custom
+   list is empty the section is hidden entirely (the FAB is the entry point).
    **Undo toasts (C10):** switching a lock off and Remove both stay one tap.
    Once the cubit's state shows the change landed (a failed save reverts, so
    no toast), a `GlassToast` reads **"{app} unblocked"** / **"{app} removed"**
@@ -224,16 +237,24 @@ is a *management* surface unifying two systems that **enforce differently**:
    (`togglePlatform(id, enabled: true)`, only while `TargetsCubit` still lists
    the platform as installed); `SettingsCubit._commit` throws on a failed save,
    which is what keeps that toast from showing. Browsers
-   are split into their own sub-group. A search field appears once there are more
-   than 8 targets.
+   are split into their own section and panel. A search field appears once there
+   are more than 8 targets. Each app is one `BlockAppTile`
+   (`blocking/blocklist/presentation/widgets/block_app_tile.dart`, also used by
+   onboarding's selection step), a flat row with no surface of its own: a
+   single-surface app is a switch row (surface name over the app name); a
+   multi-surface app is a header ("Instagram" over "1 of 3 blocked", ink-3 spec
+   chevron turning down when open, `Semantics(expanded:)`) that expands
+   (`AnimatedSize` on `context.motion`) to indented switch rows split by
+   hairlines. Every switch is named "Block {surface}" for TalkBack. No selected
+   glow; uninstalled apps are dimmed, read-only and never expand.
 
 Only the `AppBlockCubit` is route-scoped (`BlocProvider` in the screen);
 `TargetsCubit` and `SettingsCubit` are global (created in `main.dart`).
 
-Like the web blocker, the screen carries no intro paragraph: the app-bar
-`InfoButton` explains the feed-vs-whole-app split, and section labels use the
-shared `SectionHeader` (`design_system/components/section_header.dart`) and
-`InlineHint` (`core/widgets/common_widgets.dart`).
+Like the Web Blocker, the screen carries no intro paragraph: the app-bar
+`InfoButton` explains the feed-vs-whole-app split in at most three lines, and
+section labels use the shared `SectionHeader`
+(`design_system/components/section_header.dart`).
 
 The practical takeaway: adding a *custom app* takes effect immediately — the
 list syncs to native and the service HOME-bounces the app on open; toggling a
@@ -434,8 +455,8 @@ engine support them.
 
 ### Screen
 
-`web_blocker/presentation/web_block_screen.dart` — titled **"Website
-blocker"**. `BlocConsumer` surfaces transient `error` strings as a toast; no
+`web_blocker/presentation/web_block_screen.dart` — titled **"Web
+Blocker"**. `BlocConsumer` surfaces transient `error` strings as a toast; no
 `buildWhen` — stats ticks are rare while this screen is visible (blocks happen
 while the user is in the browser), so the full rebuild beats selector
 plumbing. The stats `Row` deliberately does **not** use
@@ -444,44 +465,53 @@ and stretch hands the cards an infinite height constraint — layout aborts the
 frame (blank body) and then `!semantics.parentDataDirty` spams every frame.
 Latent since inception, first triggered 2026-08-17 by the first on-device
 `webBlocked` stat while the screen was open; guarded by
-`test/web_block_screen_semantics_test.dart`. Layout:
+`test/web_block_screen_semantics_test.dart`. The stats section carries the
+screen's one `.entrance()` (it appears with the first block, often while the
+screen is open); nothing else animates on the emits that follow. Layout (20 px
+gutters; the chip rail alone bleeds off the right edge):
 
 - **Stats dashboard** (`_StatsSection`) — three `StatCard`s (Blocked today,
-  Total blocked, Focus saved [min]) plus a "Most blocked" line; only shown
-  when `state.hasStats`.
+  Total blocked, Focus saved as `formatHm`, e.g. "1h 20m") plus a "Most
+  blocked" line; only shown when `state.hasStats`.
 - **Popular sites** — `AppChip`s from `PopularSites.all` in a `ChipRail`
   (design system, `components/selection.dart`: two rows inside one horizontal
   scroll, both rows scroll together; the rule editor's categories use the same
-  widget); selected state driven by `state.activePopularIds`. A **Protection
-  pill** (`_ProtectionChip`) is the rail's `leading` and opens the first row, a
-  trailing "Add website" chip closes the second (each row carries one extra
-  chip, so the site split is an even half). The pill is deliberately not an `AppChip`: always seed-tinted
-  with a trailing chevron so it reads as "opens a screen", not "toggles a
-  site"; it shows how many batch protections are on ("Protection · N"),
-  pushes `Routes.webProtection`, and re-`load()`s the cubit on return so the
-  count is fresh. The "Add website" chip opens the same add sheet as the FAB.
+  widget); the chips are OPTION chips, selected state driven by
+  `state.activePopularIds`. A trailing "Add website" chip closes the second
+  row and opens the same add sheet as the FAB.
   Tapping a chip whose domain already exists as a *custom* entry upgrades that
   entry to the popular one in place (never deletes the user's entry).
-- **Your blocklist** — searchable rows (search appears past 8 entries, matching
-  the sibling screens, and stays visible while a query is active so the filter
-  can always be cleared; the section header shows the entry count). Each row
-  keeps only the enable toggle inline (with a site-named `semanticLabel`);
+- **Protection row** (`_ProtectionRow`) — one standalone `GlassListTile` under
+  the chips: a neutral shield glyph, "Protection" over "N of 2 on", and the
+  ink-3 chevron that says it opens a screen. It is one button node TalkBack
+  reads ("Protection, 1 of 2 on") and activates — the old pill's
+  `Semantics(excludeSemantics)` wrapper hid the tap action. It pushes
+  `Routes.webProtection` and re-`load()`s the cubit on return so the count is
+  fresh.
+- **Your blocklist** — searchable rows in one `PanelGroup` (search appears past
+  8 entries, matching the sibling screens, and stays visible while a query is
+  active so the filter can always be cleared; the section header's note shows
+  "N sites"). Each row is a `GlassListTile` led by a 34 px `SiteLetter` (the
+  entry's brand colour, else `tileWeb`), the label, and for popular rows the
+  domain under it; it keeps only the enable toggle inline (with a site-named
+  `semanticLabel`);
   allow/resume (EVO-012, generalised by M8: the shared
   `showUnblockDurationSheet` — the caution `ConfirmSheet` "Unblock {site}?" with
   `iconWebBlocker`, 5/15/30/60-minute chips (5 picked) and the allowances line,
   committed only after its 5 s wait and slide, then toasted "{site} unblocked for
   15 min"; the same sheet the App Blocker rows ("Unblock {app}?",
   `iconAppBlocker`) and the block screen use; allowed rows show
-  a warning `Pill` "Allowed until HH:MM" **selected off `UnblockCubit`'s derived
-  `active` list**, so the row actually rebuilds when the grant lapses instead of
-  holding a dead countdown; native re-arms the block at expiry;
-  allowed/disabled rows dim their leading badge), edit (custom
+  the shared `AllowedUntil` line (paused dot, "Allowed until 11:37 PM") under
+  the row, **selected off `UnblockCubit`'s derived `active` list**, so the row
+  actually rebuilds when the grant lapses instead of holding a dead countdown;
+  native re-arms the block at expiry; allowed/disabled rows dim their site
+  letter), edit (custom
   only — also enforced in `editEntry`) and delete live in a **flutter_slidable
   end action pane** (`DrawerMotion`; each `_RowAction` is its own rounded
   surface — `AppRadius.continuous(AppRadius.lg)`, tone fill at 0.18 alpha,
   tone border at 0.35 — with an `AppSpacing.xs` gap so the pane reads as
   sibling cards of the row; site-named `Semantics` labels for TalkBack).
-  Swiping left or tapping the card opens the pane; `SlidableAutoCloseBehavior`
+  Swiping left or tapping the row opens the pane; `SlidableAutoCloseBehavior`
   keeps one pane open at a time. This is the repo's first/only swipe surface. The primary empty state is
   an `EmptyState` with an "Add website" CTA. Add/edit use a `GlassBottomSheet` with inline feedback from the
   shared `DomainValidator.check` rule; the sheet awaits the cubit commit and
@@ -498,9 +528,14 @@ Latent since inception, first triggered 2026-08-17 by the first on-device
   nothing. The toast speaks from `Scaffold.of(context).context` (a deleted row
   unmounts with its entry). Turning anything on shows no toast.
 
+- **Unsupported browsers** (EVO-047) — a `NoticeLine` "Not covered: {names}"
+  at the bottom, only when native answered with a non-empty list; its tap opens
+  an `AppDialog` explaining that the blocklist and the 18+ filter don't apply
+  there.
+
 On-screen explanatory copy is kept to a minimum: the app-bar `InfoButton`
-(tap-to-open `Tooltip`) carries the feature explanation instead of an intro
-paragraph.
+(a sheet of at most three lines) carries the feature explanation instead of an
+intro paragraph.
 
 ### Protection screen
 
@@ -508,10 +543,11 @@ paragraph.
 **"Protection"**, route `Routes.webProtection` (`/web-block/protection`). The
 two batch toggles, split out of the main screen to keep it clean: "Block
 websites of blocked apps" (`setBlockForApps`) and "Block adult content (18+)"
-(`setBlockAdult`), each an `AppToggleTile` with a subtitle and `selected`
-highlight, under a one-line intro. The 18+ subtitle states the scope — "every
-page of 200+ known adult sites and every .xxx, .porn, .sex or .adult address"
-— and `test/adult_blocklist_test.dart` pins that "200+" to the shipped list.
+(`setBlockAdult`), two `AppToggleTile` rows in **one `PanelGroup`** with
+neutral ink-2 glyphs and one-sentence subtitles (no selected highlight, no
+entrance animation), under a one-line intro. The 18+ subtitle states the scope
+— "200+ known adult sites and every .xxx, .porn, .sex or .adult address" — and
+`test/adult_blocklist_test.dart` pins that "200+" to the shipped list.
 Turning either one **on** is direct. Turning one **off** opens a critical
 `ConfirmSheet` first (`_turnOff`; `iconWebBlocker`, "Slide to turn off"): "Turn
 off the 18+ filter?" / "Adult sites open again in every browser." / "Keep it on",
@@ -747,8 +783,11 @@ must not reach logcat); the `webBlocked` event is consumed by
 - `lib/features/limits/app_blocker/presentation/app_block_screen.dart`
 - `lib/app/app_resume_sync.dart` (resume-time blocklist re-sync)
 - `test/app_block_sync_test.dart`
-- `test/app_block_screen_undo_test.dart` (C10 Undo toasts: lock off, feed off, Remove)
-- `test/web_block_screen_semantics_test.dart` (semantics regressions + C10 Undo toasts: site off, chip, Delete)
+- `test/app_block_screen_undo_test.dart` (C10 Undo toasts: lock off, feed off, Remove; a grant's "Allowed until" line + Block now)
+- `test/web_block_screen_semantics_test.dart` (semantics regressions + C10 Undo toasts: site off, chip, Delete; the Protection row's one button node; "Allowed until")
+- `lib/features/blocking/blocklist/presentation/widgets/block_app_tile.dart` (`BlockAppTile` / `BlockAppGroup` — the Apps & feeds rows)
+- `test/blocklist_install_filter_test.dart` (install-aware catalog, `BlockAppGroup`, `BlockAppTile` rows and "Block {surface}" switches)
+- `lib/features/limits/unblock/presentation/widgets/allowed_until.dart` (`AllowedUntil` — a granted row's status line)
 - `lib/core/widgets/app_picker_sheet.dart` (shared installed-app picker)
 - `lib/core/platform_channels/installed_app.dart`
 - `lib/core/utils/package_name.dart` (package-id validation)

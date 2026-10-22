@@ -10,9 +10,9 @@ import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// The website blocker's batch protections, split out of the main screen:
+/// The Web Blocker's batch protections, split out of the main screen:
 /// each toggle blocks a whole category of sites at once. Reached from the
-/// "Protection" pill on the website-blocker screen.
+/// "Protection" row on the Web Blocker screen.
 class WebProtectionScreen extends StatelessWidget {
   const WebProtectionScreen({super.key});
 
@@ -73,9 +73,8 @@ class _WebProtectionView extends StatelessWidget {
         title: Text('Protection'),
         actions: [
           InfoButton(
-            'Batch protections block whole categories of sites at once — no '
-            'need to add them one by one. They work in any supported browser '
-            'alongside your blocklist.',
+            'Each switch blocks a whole category of sites in every supported '
+            'browser, on top of your blocklist.',
           ),
         ],
       ),
@@ -91,68 +90,64 @@ class _WebProtectionView extends StatelessWidget {
               return const LoadingState(message: 'Loading…');
             }
             final cubit = context.read<WebBlockCubit>();
+            final ink2 = context.tokens.ink2;
             return ListView(
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.gutter,
+                AppSpacing.md,
+                AppSpacing.gutter,
+                AppSpacing.xxl,
+              ),
               children: [
                 Text(
                   'One switch, a whole category of sites.',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: context.tokens.ink2),
+                  style: AppTypography.subhead.copyWith(color: ink2),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                AppToggleTile(
-                  title: 'Block websites of blocked apps',
-                  subtitle:
-                      'Apps you block stay blocked in the browser too — '
-                      'their web versions are closed automatically.',
-                  leading: IconBadge(
-                    icon: Icons.apps_outlined,
-                    color: context.tokens.brand.main,
-                    shape: BoxShape.rectangle,
-                  ),
-                  value: state.blockForApps,
-                  selected: state.blockForApps,
-                  onChanged: (v) => v
-                      ? cubit.setBlockForApps(value: true)
-                      : _turnOff(
-                          context,
-                          title: 'Unblock sites of blocked apps?',
-                          message: 'Their websites open again in your browser.',
-                          cancel: 'Keep them blocked',
-                          toast: 'Sites of blocked apps unblocked',
-                          commit: () => cubit.setBlockForApps(value: false),
-                          landed: () => !cubit.state.blockForApps,
-                        ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                AppToggleTile(
-                  title: 'Block adult content (18+)',
-                  subtitle:
-                      'Blocks every page of 200+ known adult sites and every '
-                      '.xxx, .porn, .sex or .adult address — in any supported '
-                      'browser, on top of your own blocklist.',
-                  leading: IconBadge(
-                    icon: Icons.shield_outlined,
-                    color: context.tokens.over.main,
-                    shape: BoxShape.rectangle,
-                  ),
-                  value: state.blockAdult,
-                  selected: state.blockAdult,
-                  onChanged: (v) => v
-                      ? cubit.setBlockAdult(value: true)
-                      : _turnOff(
-                          context,
-                          title: 'Turn off the 18+ filter?',
-                          message: 'Adult sites open again in every browser.',
-                          cancel: 'Keep it on',
-                          toast: '18+ filter off',
-                          commit: () => cubit.setBlockAdult(value: false),
-                          landed: () => !cubit.state.blockAdult,
-                        ),
+                PanelGroup(
+                  children: [
+                    AppToggleTile(
+                      title: 'Block websites of blocked apps',
+                      subtitle: 'Apps you block stay blocked in the browser',
+                      leading: Icon(Icons.apps_outlined, color: ink2),
+                      value: state.blockForApps,
+                      onChanged: (v) => v
+                          ? cubit.setBlockForApps(value: true)
+                          : _turnOff(
+                              context,
+                              title: 'Unblock sites of blocked apps?',
+                              message:
+                                  'Their websites open again in your browser.',
+                              cancel: 'Keep them blocked',
+                              toast: 'Sites of blocked apps unblocked',
+                              commit: () => cubit.setBlockForApps(value: false),
+                              landed: () => !cubit.state.blockForApps,
+                            ),
+                    ),
+                    AppToggleTile(
+                      title: 'Block adult content (18+)',
+                      subtitle:
+                          'Blocks 200+ known adult sites and every .xxx, '
+                          '.porn, .sex or .adult address',
+                      leading: Icon(Icons.shield_outlined, color: ink2),
+                      value: state.blockAdult,
+                      onChanged: (v) => v
+                          ? cubit.setBlockAdult(value: true)
+                          : _turnOff(
+                              context,
+                              title: 'Turn off the 18+ filter?',
+                              message:
+                                  'Adult sites open again in every browser.',
+                              cancel: 'Keep it on',
+                              toast: '18+ filter off',
+                              commit: () => cubit.setBlockAdult(value: false),
+                              landed: () => !cubit.state.blockAdult,
+                            ),
+                    ),
+                  ],
                 ),
               ],
-            ).animate().fadeIn(duration: AppDurations.normal);
+            );
           },
         ),
       ),

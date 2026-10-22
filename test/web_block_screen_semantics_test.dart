@@ -33,12 +33,14 @@ class _MockEngine extends Mock implements EngineRepository {}
 
 /// The row reads its "Allowed until" pill off this (M8), so the screen needs
 /// one above it — empty stores mean no grants and no quota spent.
-class _EmptyGrants implements TemporaryUnblockRepository {
-  @override
-  Future<List<TemporaryUnblock>> load() async => const [];
+class _Grants implements TemporaryUnblockRepository {
+  List<TemporaryUnblock> grants = const [];
 
   @override
-  Future<void> save(List<TemporaryUnblock> grants) async {}
+  Future<List<TemporaryUnblock>> load() async => grants;
+
+  @override
+  Future<void> save(List<TemporaryUnblock> next) async => grants = next;
 }
 
 class _EmptyLedger implements BypassLedgerRepository {
@@ -65,6 +67,7 @@ void main() {
   late _MockStatsRepo statsRepo;
   late _MockEngine engine;
   late StreamController<WebBlockStats> statsCtrl;
+  late _Grants grants;
 
   setUpAll(() => registerFallbackValue(<WebBlockEntry>[]));
 
@@ -76,6 +79,7 @@ void main() {
     statsRepo = _MockStatsRepo();
     engine = _MockEngine();
     statsCtrl = StreamController<WebBlockStats>.broadcast();
+    grants = _Grants();
     when(() => repo.load()).thenAnswer(
       (_) async => [
         WebBlockEntry(pattern: 'example.com', createdAt: DateTime(2026)),
@@ -104,8 +108,7 @@ void main() {
   Future<void> pumpScreen(WidgetTester tester) async {
     await tester.pumpWidget(
       BlocProvider(
-        create: (_) =>
-            UnblockCubit(_EmptyGrants(), _EmptyLedger(), engine)..load(),
+        create: (_) => UnblockCubit(grants, _EmptyLedger(), engine)..load(),
         child: MaterialApp(theme: _theme(), home: const WebBlockScreen()),
       ),
     );
@@ -130,6 +133,10 @@ void main() {
         mostBlockedHost: 'example.com',
       ),
     );
+    // The idle screen schedules no frame, so the first pump only delivers
+    // the event; the next builds the stats and starts their entrance, and the
+    // last lets it run out.
+    await tester.pump();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 700));
 
@@ -156,6 +163,38 @@ void main() {
 
     expect(tester.takeException(), isNull);
     semantics.dispose();
+  });
+
+  testWidgets('the Protection row is one button: "Protection, 1 of 2 on"', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    when(
+      () => settings.load(),
+    ).thenAnswer((_) async => const AppSettings(blockAdultWebsites: true));
+    await pumpScreen(tester);
+
+    final row = find.bySemanticsLabel('Protection\n1 of 2 on');
+    expect(row, findsOneWidget);
+    expect(
+      tester.getSemantics(row),
+      isSemantics(isButton: true, hasTapAction: true),
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('an allowed site reads "Allowed until"', (tester) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    grants.grants = [
+      TemporaryUnblock(
+        targetType: UnblockTargetType.website,
+        targetId: 'example.com',
+        startMs: now,
+        endMs: now + const Duration(minutes: 30).inMilliseconds,
+      ),
+    ];
+    await pumpScreen(tester);
+    expect(find.textContaining('Allowed until'), findsOneWidget);
   });
 
   testWidgets('swipe pane reveals delete and removes the row', (tester) async {

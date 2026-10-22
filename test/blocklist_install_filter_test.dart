@@ -1,13 +1,14 @@
 import 'dart:convert';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
 import 'package:detoxo/features/blocking/blocklist/presentation/widgets/block_app_tile.dart';
 import 'package:detoxo/features/blocking/shared/data/repositories/config_repository_impl.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/blocking/shared/domain/repositories/blocking_repositories.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -214,6 +215,102 @@ void main() {
 
       expect(groups.single.isInstalled, isFalse);
       expect(groups.single.isSingle, isTrue);
+    });
+  });
+
+  /// M3: one flat row per app in a section panel; every switch is named for
+  /// its surface, and an expandable header says whether it is open.
+  group('BlockAppTile', () {
+    BlockTarget surface(String id, String name, {bool installed = true}) =>
+        BlockTarget(
+          platformId: id,
+          packageName: 'com.insta',
+          appName: 'Instagram',
+          displayName: name,
+          iconUrl: '',
+          detectionType: DetectionType.legacy,
+          premiumExclusive: false,
+          defaultEnabled: true,
+          isBrowser: false,
+          isInstalled: installed,
+        );
+
+    Future<List<(String, bool)>> pumpTile(
+      WidgetTester tester,
+      List<BlockTarget> surfaces,
+    ) async {
+      final toggles = <(String, bool)>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          home: Scaffold(
+            body: PanelGroup(
+              children: [
+                BlockAppTile(
+                  group: BlockAppGroup(surfaces),
+                  enabledIds: const {'ig_reels'},
+                  onToggle: (id, {required enabled}) =>
+                      toggles.add((id, enabled)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      return toggles;
+    }
+
+    testWidgets('a single surface is one switch row named "Block <name>"', (
+      tester,
+    ) async {
+      final toggles = await pumpTile(tester, [
+        surface('ig_reels', 'Instagram Reels'),
+      ]);
+      expect(find.text('Instagram'), findsOneWidget, reason: 'subtitle');
+      await tester.tap(find.bySemanticsLabel('Block Instagram Reels'));
+      expect(toggles, [('ig_reels', false)]);
+    });
+
+    testWidgets('a multi-surface header expands to named switches', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      final toggles = await pumpTile(tester, [
+        surface('ig_feed', 'Feed'),
+        surface('ig_reels', 'Reels'),
+      ]);
+      final header = find.bySemanticsLabel(RegExp('^Instagram'));
+      expect(find.text('1 of 2 blocked'), findsOneWidget);
+      expect(
+        tester.getSemantics(header),
+        isSemantics(isButton: true, hasExpandedState: true),
+      );
+      expect(find.bySemanticsLabel('Block Feed'), findsNothing);
+
+      await tester.tap(header);
+      await tester.pumpAndSettle();
+      expect(
+        tester.getSemantics(header),
+        isSemantics(hasExpandedState: true, isExpanded: true),
+      );
+      await tester.tap(find.bySemanticsLabel('Block Feed'));
+      await tester.tap(find.bySemanticsLabel('Block Reels'));
+      expect(toggles, [('ig_feed', true), ('ig_reels', false)]);
+      semantics.dispose();
+    });
+
+    testWidgets('an uninstalled app is read-only and does not expand', (
+      tester,
+    ) async {
+      final toggles = await pumpTile(tester, [
+        surface('ig_feed', 'Feed', installed: false),
+        surface('ig_reels', 'Reels', installed: false),
+      ]);
+      expect(find.text('Not installed'), findsOneWidget);
+      await tester.tap(find.text('Instagram'));
+      await tester.pumpAndSettle();
+      expect(find.text('Feed'), findsNothing);
+      expect(toggles, isEmpty);
     });
   });
 }

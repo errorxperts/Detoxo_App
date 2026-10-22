@@ -56,12 +56,14 @@ class _FakeSettings implements SettingsRepository {
   Stream<AppSettings> watch() => const Stream.empty();
 }
 
-class _EmptyGrants implements TemporaryUnblockRepository {
-  @override
-  Future<List<TemporaryUnblock>> load() async => const [];
+class _Grants implements TemporaryUnblockRepository {
+  List<TemporaryUnblock> grants = const [];
 
   @override
-  Future<void> save(List<TemporaryUnblock> grants) async {}
+  Future<List<TemporaryUnblock>> load() async => grants;
+
+  @override
+  Future<void> save(List<TemporaryUnblock> next) async => grants = next;
 }
 
 class _EmptyLedger implements BypassLedgerRepository {
@@ -93,9 +95,11 @@ void main() {
   late _FakeSettings settingsRepo;
   late _MockTargets targets;
   late _MockEngine engine;
+  late _Grants grants;
 
   setUp(() async {
     await sl.reset();
+    grants = _Grants();
     appBlocks = _FakeAppBlocks([_foo]);
     settingsRepo = _FakeSettings(
       const AppSettings(enabledPlatformIds: {'ig_reels'}),
@@ -134,8 +138,7 @@ void main() {
       MultiBlocProvider(
         providers: [
           BlocProvider(
-            create: (_) =>
-                UnblockCubit(_EmptyGrants(), _EmptyLedger(), engine)..load(),
+            create: (_) => UnblockCubit(grants, _EmptyLedger(), engine)..load(),
           ),
           BlocProvider.value(value: settings),
           BlocProvider<TargetsCubit>.value(value: targets),
@@ -220,12 +223,36 @@ void main() {
     });
   });
 
+  testWidgets('a live grant reads "Allowed until"; Block now ends it', (
+    tester,
+  ) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    grants.grants = [
+      TemporaryUnblock(
+        targetType: UnblockTargetType.app,
+        targetId: _foo.packageName,
+        startMs: now,
+        endMs: now + const Duration(minutes: 30).inMilliseconds,
+      ),
+    ];
+    await pumpScreen(tester);
+    expect(find.textContaining('Allowed until'), findsOneWidget);
+    expect(find.byTooltip('Allow Foo for a while'), findsNothing);
+
+    await tester.tap(find.text('Block now'));
+    await settle(tester);
+    expect(find.textContaining('Allowed until'), findsNothing);
+    expect(find.byTooltip('Allow Foo for a while'), findsOneWidget);
+    final later = DateTime.now().millisecondsSinceEpoch;
+    expect(grants.grants.where((g) => g.isActiveAt(later)), isEmpty);
+  });
+
   group('built-in feed', () {
     testWidgets('off toasts "<feed> unblocked"; Undo turns it back on', (
       tester,
     ) async {
       final settings = await pumpScreen(tester);
-      await tester.tap(find.bySemanticsLabel('Instagram Reels'));
+      await tester.tap(find.bySemanticsLabel('Block Instagram Reels'));
       await settle(tester);
       expect(settings.state.enabledPlatformIds, isEmpty);
       expect(find.text('Instagram Reels unblocked'), findsOneWidget);
@@ -237,7 +264,7 @@ void main() {
 
     testWidgets('Undo does nothing once the feed is gone', (tester) async {
       final settings = await pumpScreen(tester);
-      await tester.tap(find.bySemanticsLabel('Instagram Reels'));
+      await tester.tap(find.bySemanticsLabel('Block Instagram Reels'));
       await settle(tester);
       // Instagram uninstalled meanwhile: the catalog no longer lists it.
       when(() => targets.state).thenReturn(const TargetsState());
@@ -250,7 +277,7 @@ void main() {
     testWidgets('turning a feed on shows no toast', (tester) async {
       settingsRepo.settings = const AppSettings();
       final settings = await pumpScreen(tester);
-      await tester.tap(find.bySemanticsLabel('Instagram Reels'));
+      await tester.tap(find.bySemanticsLabel('Block Instagram Reels'));
       await settle(tester);
       expect(settings.state.enabledPlatformIds, {'ig_reels'});
       expect(find.text('Undo'), findsNothing);
@@ -263,7 +290,7 @@ void main() {
       // what keeps the toast from being reached.
       Object? thrown;
       await runZonedGuarded(() async {
-        await tester.tap(find.bySemanticsLabel('Instagram Reels'));
+        await tester.tap(find.bySemanticsLabel('Block Instagram Reels'));
         await settle(tester);
       }, (e, _) => thrown = e);
       expect(thrown, isException);

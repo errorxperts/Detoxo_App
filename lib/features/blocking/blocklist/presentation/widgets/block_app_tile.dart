@@ -1,5 +1,6 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/blocking/shared/domain/entities/block_target.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 
 /// One app's blockable surfaces, grouped from the flat target list so the
@@ -27,10 +28,11 @@ class BlockAppGroup {
   }
 }
 
-/// Compact, expandable tile for one app. A single-surface app renders as a plain
-/// switch row; a multi-surface app collapses to a summary header (app + "N of M
-/// blocked") that expands to reveal one switch per surface. Uninstalled apps are
-/// dimmed, read-only and non-expandable.
+/// One app's row in a section panel. A single-surface app is a plain switch
+/// row; a multi-surface app is a summary header (app + "N of M blocked") that
+/// expands to one indented switch per surface. Uninstalled apps are dimmed,
+/// read-only and don't expand. On a panel it draws no surface of its own:
+/// stack tiles in a [PanelGroup].
 class BlockAppTile extends StatefulWidget {
   const BlockAppTile({
     required this.group,
@@ -50,156 +52,116 @@ class BlockAppTile extends StatefulWidget {
 class _BlockAppTileState extends State<BlockAppTile> {
   bool _expanded = false;
 
-  int get _enabledCount => widget.group.surfaces
-      .where((t) => widget.enabledIds.contains(t.platformId))
-      .length;
+  /// Where the row's title starts: the row inset, the 34 avatar and its gap.
+  /// The surface rows indent to it so they read as children of the app.
+  static const double _textInset = AppSpacing.md + 34 + AppSpacing.sm;
 
   bool _isOn(BlockTarget t) =>
       widget.group.isInstalled && widget.enabledIds.contains(t.platformId);
+
+  /// Named per surface: a screen reader hears "Block Instagram Reels", not
+  /// the same bare "switch" once per row.
+  Widget _switch(BlockTarget t) => AppToggle(
+    value: _isOn(t),
+    enabled: widget.group.isInstalled,
+    semanticLabel: 'Block ${t.displayName}',
+    onChanged: (v) => widget.onToggle(t.platformId, enabled: v),
+  );
 
   @override
   Widget build(BuildContext context) {
     final group = widget.group;
     final installed = group.isInstalled;
+    final avatar = AppIconAvatar(
+      iconUrl: group.iconUrl,
+      appName: group.appName,
+      dimmed: !installed,
+    );
 
     // Single surface → a plain switch row; nothing to expand.
     if (group.isSingle) {
       final t = group.surfaces.first;
-      return _padded(
-        AppToggleTile(
-          leading: AppIconAvatar(
-            iconUrl: group.iconUrl,
-            appName: group.appName,
-            dimmed: !installed,
-          ),
-          title: t.displayName,
-          subtitle: installed ? t.appName : 'Not installed',
-          enabled: installed,
-          value: _isOn(t),
-          selected: _isOn(t),
-          onChanged: installed
-              ? (v) => widget.onToggle(t.platformId, enabled: v)
-              : null,
-        ),
+      return GlassListTile(
+        leading: avatar,
+        title: t.displayName,
+        subtitle: installed ? t.appName : 'Not installed',
+        trailing: _switch(t),
       );
     }
 
-    return _padded(
-      GlassContainer(
-        padding: EdgeInsets.zero,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _header(context, installed),
-            // Only installed apps expand (uninstalled switches would be inert).
-            AnimatedSize(
-              duration: AppDurations.normal,
+    final on = group.surfaces.where(_isOn).length;
+    final header = GlassListTile(
+      leading: avatar,
+      title: group.appName,
+      subtitle: !installed
+          ? 'Not installed'
+          : on == 0
+          ? 'Tap to choose what to block'
+          : '$on of ${group.surfaces.length} blocked',
+      // Only installed apps expand (uninstalled switches would be inert). The
+      // spec chevron turns to point down while open.
+      trailing: installed
+          ? AnimatedRotation(
+              turns: _expanded ? .25 : 0,
+              duration: context.motion(AppDurations.fast),
               curve: AppCurves.standard,
-              alignment: Alignment.topCenter,
-              child: _expanded && installed
-                  ? _body(context)
-                  : const SizedBox(width: double.infinity),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _padded(Widget child) => Padding(
-    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-    child: child,
-  );
-
-  Widget _header(BuildContext context, bool installed) {
-    final text = Theme.of(context).textTheme;
-    final total = widget.group.surfaces.length;
-    final on = _enabledCount;
-    final highlight = installed && on > 0;
-    final subtitle = !installed
-        ? 'Not installed'
-        : on == 0
-        ? 'Tap to choose what to block'
-        : '$on of $total blocked';
-
-    final row = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
-        children: [
-          AppIconAvatar(
-            iconUrl: widget.group.iconUrl,
-            appName: widget.group.appName,
-            dimmed: !installed,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.group.appName,
-                  style: text.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: text.bodySmall?.copyWith(
-                    color: highlight
-                        ? Theme.of(context).colorScheme.secondary
-                        : context.tokens.ink2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (installed) ...[
-            const SizedBox(width: AppSpacing.sm),
-            AnimatedRotation(
-              turns: _expanded ? 0.5 : 0,
-              duration: AppDurations.fast,
-              curve: AppCurves.standard,
-              child: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: context.tokens.ink2,
+              child: Glyph(
+                Assets.svg.chevronRight,
+                size: 18,
+                color: context.tokens.ink3,
               ),
-            ),
-          ],
-        ],
-      ),
+            )
+          : null,
+      onTap: installed ? () => setState(() => _expanded = !_expanded) : null,
     );
-
-    if (!installed) return row;
-    return AppPressable(
-      pressedScale: 0.99,
-      onTap: () => setState(() => _expanded = !_expanded),
-      child: row,
-    );
-  }
-
-  Widget _body(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Column(
+    final tile = Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Divider(height: 1, thickness: 1, color: context.tokens.hairline),
-        for (final t in widget.group.surfaces)
-          Padding(
-            // Indent past the avatar so surfaces read as children of the app.
-            padding: const EdgeInsets.fromLTRB(56, 6, 14, 6),
-            child: Row(
-              children: [
-                Expanded(child: Text(t.displayName, style: text.bodyMedium)),
-                const SizedBox(width: AppSpacing.sm),
-                AppToggle(
-                  value: widget.enabledIds.contains(t.platformId),
-                  onChanged: (v) => widget.onToggle(t.platformId, enabled: v),
-                ),
-              ],
-            ),
-          ),
-        const SizedBox(height: 6),
+        Semantics(expanded: installed ? _expanded : null, child: header),
+        AnimatedSize(
+          duration: context.motion(AppDurations.normal),
+          curve: AppCurves.standard,
+          alignment: Alignment.topCenter,
+          child: _expanded && installed
+              ? _surfaces(context)
+              : const SizedBox(width: double.infinity),
+        ),
       ],
     );
+    // Standalone, the header and its surfaces share one panel, as a
+    // GlassListTile would make its own.
+    if (GlassContainer.surfaceOf(context) != null) return tile;
+    return GlassContainer(padding: EdgeInsets.zero, child: tile);
   }
+
+  Widget _surfaces(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      for (final t in widget.group.surfaces) ...[
+        const Divider(height: 1, indent: _textInset, endIndent: AppSpacing.md),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            _textInset,
+            AppSpacing.xxs,
+            AppSpacing.md,
+            AppSpacing.xxs,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  t.displayName,
+                  style: AppTypography.body.copyWith(color: context.tokens.ink),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              _switch(t),
+            ],
+          ),
+        ),
+      ],
+    ],
+  );
 }
