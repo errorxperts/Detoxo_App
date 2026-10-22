@@ -695,13 +695,13 @@ on/off toggles and the links into those editors now live on the shared
   the bubble on without the grant opens the system screen), `requestOverlay()`,
   and `refresh()` — which re-pulls the snapshot so `timeToday` is fresh on
   demand **and re-reads the overlay grant** (usage time advances between
-  counted reels, which the `contentCounted` stream doesn't emit; the dashboard
-  hero calls it on mount and on pull-to-refresh, and `AppResumeSync` calls it on
+  counted reels, which the `contentCounted` stream doesn't emit; Today
+  (`dashboard_tab.dart`) calls it on mount and on pull-to-refresh, and `AppResumeSync` calls it on
   **every app resume** — the day-rollover repair for a dashboard kept in
   recents across midnight, and what clears a "needs permission" state after the
   user returns from Settings). Provided once, globally, in `lib/main.dart`
-  (the Activity screen no longer creates a second instance).
-- **UI**: the counter has no card of its own any more. The **Activity** screen
+  (the Insights screen no longer creates a second instance).
+- **UI**: the counter has no card of its own any more. The **Insights** screen
   reads `ContentCounterCubit` directly — a compact **Reels** tile (today,
   with the all-time total as its caption) in the Today panel, and a **Reels**
   segment in the By app section whose rows are the shared `AppLimitRow`

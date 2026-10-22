@@ -992,8 +992,9 @@ Everything else stays exactly as protected as it was.
   out the clock.
 - **You never leave the app to do it.** The block screen's **Allow for a while** opens the
   durations right there — no switching to Detoxo, no PIN, no round trip.
-- **One place lists what's open.** The home screen shows an *Allowed right now* card while
-  anything is, with a Resume button beside each one. It disappears when nothing is.
+- **One place lists what's open.** The **Today** tab shows an *Allowed right now* card, just
+  under **Blockers**, while anything is, with a resume button beside each one. It disappears
+  when nothing is.
 - **You can cap how often.** Under **Settings → Protection → Allowances** you can limit yourself
   to 1, 2, 3 or 5 a day. It ships as *Unlimited*, so nothing changes unless you ask for it. The
   sheet shows how many you have left, and once they are gone Detoxo says so straight away

@@ -150,8 +150,8 @@ the limit is set ([27](27-rules-engine.md) §3).
 
 The **cubit is not in the locator** (get_it). It has **one shared instance**: a
 **global** `DailyLimitCubit(sl<DailyLimitRepository>())..load()` registered as a
-`BlocProvider` in `lib/main.dart`. Both the dashboard hero (`dashboard_tab.dart`,
-which watches `limit` for its screen-time ring) **and** the editing screen
+`BlocProvider` in `lib/main.dart`. Both Today (`dashboard_tab.dart`,
+which watches `limit` for its `TimeLeftRing`) **and** the editing screen
 (`DailyLimitScreen`, §5) read and mutate this same instance — so a limit saved on
 the screen re-emits to the dashboard **live**, with no restart.
 
@@ -340,7 +340,7 @@ a cleanup that drops it is a schema touch and deliberately out of scope here.
 
 ## 8. Under-limit streak — `Streak`
 
-The dashboard hero's second stat pill is a **day streak**: the number of
+The second figure under Today's `TimeLeftRing` (after the reels) is a **day streak**: the number of
 consecutive days the user has stayed **under their daily limit** (it replaced the
 old raw "blocked today" count). It lives in the sibling sub-feature
 `lib/features/limits/streak/`, mirrors this feature's slice
@@ -362,17 +362,17 @@ default state (`base:0, lastDay:'', todayFailed:true`) reads `0`.
 ### Evaluation — `StreakCubit`
 
 A **global** `StreakCubit(sl<StreakRepository>())..load()` is registered in
-`lib/main.dart`. The dashboard hero (`dashboard_tab.dart`) — which already computes
+`lib/main.dart`. Today (`_TodayLive` in `dashboard_tab.dart`) — which already computes
 `underLimit = hasLimit && spent < limit` for the ring — calls
 `observe(now, underLimit)` in a post-frame callback each build (bloc skips equal
 states, so re-observes are cheap no-ops), but **only once every input is real**:
 the counter snapshot has landed (`ContentCount.loaded`), the limit has loaded
 (`DailyLimit.dateSignature` non-empty — `load()` always stamps today's), and
 counting is on (`ContentCount.enabled`; with it off usage-time isn't measured,
-so a zero must not earn a day — and the streak pill shows "—", since the stored
+so a zero must not earn a day — and the streak figure shows "—", since the stored
 streak isn't reconciled until counting resumes, when a skipped gap resets it).
 `StreakCubit.observe` additionally ignores calls until its own `load()` has
-emitted. Before these guards the hero's first build
+emitted. Before these guards Today's first build
 observed the unloaded defaults — no limit → "today failed", and the empty
 `Streak()` advanced and **persisted** over the real one — which wiped or froze
 the streak on cold starts. The pure transition (`StreakCubit.advance`,

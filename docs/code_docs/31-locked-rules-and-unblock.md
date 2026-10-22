@@ -350,7 +350,7 @@ locked rule (narrowing includes flipping `BLOCK` → `ALL_EXCEPT`, which frees e
 and shrinking the lock scope). Renaming and *widening* stay allowed — tightening a commitment is
 never the thing you regret at 1 a.m.
 
-Hiding the toggle would not be enough: this cubit is reachable from the dashboard card, the resume
+Hiding the toggle would not be enough: this cubit is reachable from Today's Blocker rules row, the resume
 sync and the splash reload, and a rule that can be disabled through a side door is not locked. The
 rules screen renders **no `AppToggle`** for a locked rule — absent, not greyed, because a disabled
 switch is an invitation to keep tapping.

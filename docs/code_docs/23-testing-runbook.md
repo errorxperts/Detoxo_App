@@ -195,10 +195,10 @@ cannot reach it. Then:
   animations (the splash spinner, onboarding's `CaughtHero`). `GlassScaffold` itself is a static
   gradient, so a widget test of one screen may `pumpAndSettle`.
 - **One** `app.main()` per file; `configureDependencies()` cannot be re-registered.
-- `find.text` matches the *rendered* string: `SectionHeader` uppercases, the nav bar renders
-  every tab name as a clipped `Text` (so `'Activity'` matches even while that tab is inactive —
-  scope such finders to the `Drawer` / `GlassAppBar`), and widgets below a lazy sliver are
-  never built at all.
+- `find.text` matches the *rendered* string: `SectionHeader` uppercases, the `AppTabBar`
+  renders both tab names (so `'Insights'` matches the tab label as well as the tab's header —
+  scope such finders to the `AppTabBar` / `TabHeader` / `GlassAppBar`), and widgets below a lazy
+  sliver are never built at all.
 
 ## Source files
 
