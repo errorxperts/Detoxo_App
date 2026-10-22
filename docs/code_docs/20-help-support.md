@@ -66,8 +66,9 @@ offers two replayable tours:
   it spotlights all **four mode pills** — Block All, Conscious, Pause (whose step now covers
   unblocking by time *or* reel count), **One Reel** (position 4) — in `DashboardMode` order at
   indices 0–3 (wrapped by `ModeSelector.showcaseBuilder`, which maps mode `i` →
-  `featureShowcaseSteps[i]`) — then the **App Blocker** and **Web Blocker** capsules at
-  `featureShowcaseSteps[4]` / `[5]`. Each step's badge shows the same
+  `featureShowcaseSteps[i]`) — then the **App Blocker** and **Web Blocker** tiles at
+  `featureShowcaseSteps[4]` / `[5]`. `showcaseTarget(radius:)` rounds the spotlight to its target
+  (`AppRadius.chip` by default; the tiles pass `AppRadius.card`). Each step's badge shows the same
   artwork as the widget it points at: `ShowcaseStep.image` is an
   `assets/images/illustration/*.png` path, clipped to a circle inside a tone-lit `IconBadge`
   (the art is a glow on an opaque backdrop, so the circular clip is what makes it an icon).

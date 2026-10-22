@@ -16,7 +16,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 ///
 /// Hides itself entirely when nothing is allowed, so the ordinary dashboard is
 /// unchanged. Reads the cubit's DERIVED `active` list, which is re-emitted when
-/// a grant lapses — so a row leaves on its own, without a ticker.
+/// a grant lapses — so a row leaves on its own, without a ticker. On Today it
+/// sits under the Blockers header and brings its own top gap.
 class ActiveUnblocksCard extends StatelessWidget {
   const ActiveUnblocksCard({super.key});
 
@@ -28,7 +29,7 @@ class ActiveUnblocksCard extends StatelessWidget {
         if (state.active.isEmpty) return const SizedBox.shrink();
         final time = localTimeFormat(context);
         return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          padding: const EdgeInsets.only(top: AppSpacing.gap),
           child: AppCard(
             leading: IconBadge(
               icon: Icons.lock_open,

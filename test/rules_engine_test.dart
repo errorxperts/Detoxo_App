@@ -790,36 +790,66 @@ void main() {
       'Limit reached',
     );
 
-    final until = DateTime(2026, 9, 2, 17).millisecondsSinceEpoch;
+    // The Blocker rules row. `_now` is Wed 2 Sep 2026, 10:00.
+    String next(List<Rule> rules, Map<String, RuleStatus> statuses) =>
+        RuleSummary.nextEvent(rules, statuses, _now);
+    int at(int day, int hour) =>
+        DateTime(2026, 9, day, hour).millisecondsSinceEpoch;
     expect(
-      RuleSummary.nextEvent(
+      next(
         [_schedule()],
-        {'s1': RuleStatus(activeNow: true, nextChangeMs: until)},
-        _now,
+        {'s1': RuleStatus(activeNow: true, nextChangeMs: at(2, 17))},
       ),
-      'Work hours · until 17:00',
+      'Work hours on until 17:00',
     );
-    final monday = DateTime(2026, 9, 7, 9).millisecondsSinceEpoch;
     expect(
-      RuleSummary.nextEvent(
+      next(
         [_schedule()],
-        {'s1': RuleStatus(nextChangeMs: monday)},
-        _now,
+        {'s1': RuleStatus(activeNow: true, nextChangeMs: at(5, 9))},
       ),
-      'Next: Work hours · Mon 09:00',
+      'Work hours on until 09:00 on Sat',
     );
     expect(
-      RuleSummary.nextEvent(const [], const {}, _now),
-      'Schedules and daily limits',
+      next([_schedule()], {'s1': RuleStatus(nextChangeMs: at(7, 9))}),
+      'Next: Work hours at 09:00 on Mon',
     );
     expect(
-      RuleSummary.nextEvent(
-        [_schedule(enabled: false)],
-        {'s1': RuleStatus.off},
-        _now,
-      ),
-      'All rules are off',
+      next([_schedule()], {'s1': RuleStatus(nextChangeMs: at(3, 9))}),
+      'Next: Work hours at 09:00 tomorrow',
     );
+    expect(
+      next([_schedule()], {'s1': RuleStatus(nextChangeMs: at(2, 18))}),
+      'Next: Work hours at 18:00',
+    );
+    expect(next(const [], const {}), 'Tap to set up');
+    expect(
+      next([_schedule(enabled: false)], {'s1': RuleStatus.off}),
+      'All rules off',
+    );
+    expect(
+      next([_timeLimit()], {'t1': const RuleStatus(usedMs: 5 * 60000)}),
+      'Daily limit only',
+    );
+    // A spent limit is also active; it still says "limit reached", and a
+    // running schedule outranks it.
+    final spent = RuleStatus(
+      spent: true,
+      activeNow: true,
+      nextChangeMs: at(3, 0),
+    );
+    expect(next([_timeLimit()], {'t1': spent}), 'Insta budget limit reached');
+    expect(
+      next(
+        [_timeLimit(), _schedule()],
+        {
+          't1': spent,
+          's1': RuleStatus(activeNow: true, nextChangeMs: at(2, 17)),
+        },
+      ),
+      'Work hours on until 17:00',
+    );
+    // An enabled schedule with no next start (an all-default status).
+    expect(next([_schedule()], {'s1': RuleStatus.off}), 'Nothing scheduled');
   });
 
   test('the bundled catalog resolves the categories a rule can pick', () {

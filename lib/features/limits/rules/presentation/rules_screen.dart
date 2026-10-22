@@ -40,7 +40,7 @@ class _RulesScreenState extends State<RulesScreen> {
   Widget build(BuildContext context) {
     return GlassScaffold(
       appBar: const GlassAppBar(
-        title: Text('Rules'),
+        title: Text('Blocker rules'),
         actions: [
           InfoButton(
             'Schedules block their targets during the hours you pick. Daily '

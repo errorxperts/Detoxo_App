@@ -24,18 +24,18 @@ lib/features/limits/rules/
 ├── domain/repositories/rule_repository.dart
 ├── domain/usecases/rule_calendar.dart   inWeeklyWindow, scheduleWindows, todayInterval, countOpens — pure
 ├── domain/usecases/resolve_snapshot.dart rules + usage + now → snapshot + per-rule status — pure
-├── domain/usecases/rule_summary.dart    the list / pill / dashboard copy — pure
+├── domain/usecases/rule_summary.dart    the list / pill / Blocker rules row copy — pure
 ├── domain/rule_sync.dart                syncRules(): THE push path
 ├── data/repositories/rule_repository_impl.dart
 ├── presentation/{rules_cubit, rules_screen, rule_editor_screen}.dart
 └── presentation/widgets/{rule_kind_icon, reel_feed_sheet, website_sheet, removable_chips, override_tile}.dart
 
 android/.../engine/RuleEngine.kt         Android-free: snapshot + now → blocking Entry?  (JVM-tested)
-lib/features/dashboard/presentation/widgets/rules_card.dart   the dashboard entry point
+lib/features/dashboard/presentation/widgets/blocker_section.dart   the Today entry point (Blocker rules row)
 ```
 
 The `limits.dart` barrel exports the domain, `syncRules` and — like `content_counter.dart` — the
-app-wide `RulesCubit`, so the dashboard card and `AppResumeSync` reach it without a boundary
+app-wide `RulesCubit`, so the Today Blocker rules row and `AppResumeSync` reach it without a boundary
 violation. `tool/boundaries_baseline.txt` is unchanged (zero entries).
 
 ## 2. Data model — Hive `StoreKeys.rules`
@@ -154,8 +154,12 @@ usageKnown, dailyReelLimit, catalog, horizonDays})` → `RulesEvaluation(snapsho
 `rule_summary.dart` — `describe(rule)` ("Weekdays · 09:00–17:00 · 2 apps, 1 category" — counts,
 never labels, so the list renders without the installed-apps scan), `status(rule, status, now)`
 (the pill: "Off" / "Active now" / "Limit reached" / "22/30 min" / "3 of 5 opens" /
-"Needs usage access" / "Next Mon 09:00"), `nextEvent(...)` (the dashboard subtitle), `clock(ms, now)`
-("09:00" today, "Mon 09:00" otherwise — 24 h like the web blocker's "Paused until").
+"Needs usage access" / "Next Mon 09:00"), `nextEvent(...)` (the Blocker rules row's summary, first
+match wins: "Tap to set up" with no rules; the rule running now, "Bedtime on until 7 AM", plus
+" on Sat" only when the end is a day or more away; a spent limit, "Insta budget limit reached"; the
+next start, "Next: Bedtime at 11 PM", " tomorrow" or " on Sat"; then "All rules off", "Daily limit
+only" when only limit rules are on, else "Nothing scheduled"), `clock(ms, now)` ("09:00" today,
+"Mon 09:00" otherwise — 24 h like the web blocker's "Paused until").
 
 ## 4. The push path — `syncRules`
 
@@ -390,7 +394,7 @@ Settings → Reset app data wipes the store and then `context.go(Routes.splash)`
 the process**, `splash_screen.dart` re-loads all three — otherwise their state survives the wipe and
 the next save writes it back.
 
-**`RulesScreen`** (`Routes.rules = '/rules'`) — `GlassScaffold`, `InfoButton` (states the Pause
+**`RulesScreen`** (`Routes.rules = '/rules'`, titled "Blocker rules") — `GlassScaffold`, `InfoButton` (states the Pause
 semantics), an `InlineHint` + "Grant usage access" (`PermissionRepository.request(AppPermission.usageAccess)`)
 when a limit rule exists and the grant is not known-true, the pinned **Daily reel limit** row
 (`DailyLimitCubit` + `ContentCounterCubit.timeToday`, → `Routes.dailyLimit`), then one
@@ -434,11 +438,12 @@ consumes its own refusal toasts (see `RulesScreen`). Validation: ≥ 1 target; �
 `AppDialog.confirm`. The sheets, the override tile, `RemovableChips` and `ruleKindIcon` live in
 `presentation/widgets/`; counts and the open-limit headline read `RuleSummary.count`.
 
-**Dashboard** — `RulesCard` (tinted `GlassCard` status row, `AppIcon.rules` = Lucide
-`CalendarClock`) sits full-width between the session banners and the App / Web Blocker pair in
-`DashboardTab`: success tint + pulsing `StatusDot` while a rule is live, the house accent when
-rules exist but none is active, plain glass when none are set up; "N active" / "N on" /
-"Not set up" `Pill`, `RuleSummary.nextEvent` as the subtitle, chevron; taps → `Routes.rules`.
+**Today** — the rules entry point is the last row of the Blockers section
+(`dashboard/.../blocker_section.dart`): the design-system `BlockerRulesRow`
+(`core/design_system/components/blockers.dart`), a 64 dp panel row with the 40 px
+`iconBlockerRules`, "Blocker rules" over the one-line `RuleSummary.nextEvent` summary, "N on"
+(`RulesState.enabledCount`, hidden with no rules) and a chevron; it reads "Blocker rules, 2 on.
+Next: Bedtime at 11 PM" and taps → `Routes.rules`. The old `RulesCard` is gone.
 
 **Daily limit screen** — "used" now reads `ContentCounterCubit.state.timeToday` (the meter that
 enforces), and the banner tells the truth: enforced until midnight, or "Reel counter is off" when
@@ -448,6 +453,9 @@ the meter is disabled (`ContentCount.enabled == false`).
 `showTimePicker` honours it — picking "5:00 PM" and reading back "17:00" was a real mismatch.
 `RuleSchedule.formatHHmm` stays the storage and wire form; `RuleSummary`'s `describe` / `status` /
 `nextEvent` / `clock` take an optional `TimeFormat` and the UI passes the locale-aware one.
+`formatLocalTime` drops a zero minute on a 12-hour clock ("11 PM", "7:30 AM"; checked through
+`hourFormat(of: timeOfDayFormat(...)) == HourFormat.h`, so a locale that is 24-hour by default is
+untouched); a 24-hour clock keeps "23:00".
 
 ## 8. Deferred (lean core)
 
@@ -522,7 +530,7 @@ document and the wire.
 - `lib/features/catalog/domain/entities/catalog.dart` (`categoriesWithBehavior`)
 - `lib/features/limits/limits.dart`
 - `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart` (meter-backed "used" + banner)
-- `lib/features/dashboard/presentation/widgets/{rules_card,blocker_section}.dart`
+- `lib/features/dashboard/presentation/widgets/blocker_section.dart`, `lib/core/design_system/components/blockers.dart` (`BlockerRulesRow`)
 - `lib/core/design_system/foundations/animated_icons.dart` (`AppIcon.rules`)
 - `lib/core/navigation/{routes,app_router}.dart`, `lib/core/di/injector.dart`, `lib/main.dart`, `lib/app/app_resume_sync.dart`
 - `lib/core/storage/local_store.dart` (`StoreKeys.rules`), `lib/core/utils/clock_format.dart`

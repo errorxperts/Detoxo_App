@@ -6,8 +6,8 @@ import 'package:detoxo/features/limits/rules/domain/entities/rule_snapshot.dart'
 /// 12-hour does not pick "5:00 PM" and then read it back as "17:00".
 typedef TimeFormat = String Function(int minutesAfterMidnight);
 
-/// The one-line strings the rules list, its status pills and the dashboard
-/// card render. Pure, so the copy is unit-testable and lives in one place.
+/// The one-line strings the rules list, its status pills and the Blocker
+/// rules row render. Pure, so the copy is unit-testable and lives in one place.
 abstract final class RuleSummary {
   static const List<String> _day = [
     'Mon',
@@ -102,40 +102,65 @@ abstract final class RuleSummary {
     }
   }
 
-  /// The dashboard card's subtitle.
+  /// The Blocker rules row's summary, first match wins: the rule running now
+  /// ("Bedtime on until 7 AM", plus " on Sat" when the end is a day or more
+  /// away), a spent limit ("Insta budget limit reached"), the next start
+  /// ("Next: Bedtime at 11 PM", " tomorrow", " on Sat"), then "All rules
+  /// off", "Daily limit only" or "Nothing scheduled".
   static String nextEvent(
     List<Rule> rules,
     Map<String, RuleStatus> statuses,
     DateTime now, {
     TimeFormat time = RuleSchedule.formatHHmm,
   }) {
-    if (rules.isEmpty) return 'Schedules and daily limits';
-    Rule? active;
+    if (rules.isEmpty) return 'Tap to set up';
+    Rule? running;
+    Rule? spent;
     Rule? next;
     var soonest = 0;
     for (final r in rules) {
       if (!r.enabled) continue;
       final s = statuses[r.id];
       if (s == null) continue;
-      if (s.activeNow) {
-        active ??= r;
+      if (s.spent) {
+        spent ??= r;
+      } else if (s.activeNow) {
+        running ??= r;
       } else if (s.nextChangeMs > 0 &&
           (next == null || s.nextChangeMs < soonest)) {
         next = r;
         soonest = s.nextChangeMs;
       }
     }
-    if (active != null) {
-      final s = statuses[active.id]!;
-      return s.spent
-          ? '${active.name} · limit reached'
-          : '${active.name} · until ${clock(s.nextChangeMs, now, time: time)}';
+    String at(DateTime t) => time(t.hour * 60 + t.minute);
+    String day(DateTime t) => _day[t.weekday - 1];
+    if (running != null) {
+      final endMs = statuses[running.id]!.nextChangeMs;
+      if (endMs <= 0) return '${running.name} on';
+      final end = DateTime.fromMillisecondsSinceEpoch(endMs);
+      final far = end.difference(now) >= const Duration(days: 1);
+      return '${running.name} on until ${at(end)}${far ? ' on ${day(end)}' : ''}';
     }
+    if (spent != null) return '${spent.name} limit reached';
     if (next != null) {
-      return 'Next: ${next.name} · ${clock(soonest, now, time: time)}';
+      final start = DateTime.fromMillisecondsSinceEpoch(soonest);
+      // Calendar days apart; UTC dates, so a DST night is still one day.
+      final days = DateTime.utc(
+        start.year,
+        start.month,
+        start.day,
+      ).difference(DateTime.utc(now.year, now.month, now.day)).inDays;
+      final when = switch (days) {
+        <= 0 => '',
+        1 => ' tomorrow',
+        _ => ' on ${day(start)}',
+      };
+      return 'Next: ${next.name} at ${at(start)}$when';
     }
-    if (rules.every((r) => !r.enabled)) return 'All rules are off';
-    return 'Nothing active right now';
+    final on = rules.where((r) => r.enabled);
+    if (on.isEmpty) return 'All rules off';
+    if (on.every((r) => r.kind != RuleKind.schedule)) return 'Daily limit only';
+    return 'Nothing scheduled';
   }
 
   /// "09:00" today, "Mon 09:00" on another day.
