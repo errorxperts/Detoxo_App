@@ -89,6 +89,20 @@ class FrozenGlassTest {
     }
 
     @Test
+    fun aShortColumnShedsTheWellThenTheSizeThenLinesThenTheWriterThenTheHeader() {
+        // header 68, well 112, the quote 112 at title / 88 at headline (4 lines of 22), writer 28.
+        fun fit(room: Float) = wallFit(room, 68f, 112f, 112f, 88f, 22f, 28f)
+        val all = Int.MAX_VALUE
+        assertEquals(WallFit(true, true, false, all, true), fit(400f)) // roomy
+        assertEquals(WallFit(true, false, false, all, true), fit(300f)) // tight: no well
+        assertEquals(WallFit(true, false, true, all, true), fit(190f)) // tighter: headline
+        assertEquals(WallFit(true, false, true, 2, true), fit(140f)) // fewer lines
+        assertEquals(WallFit(true, false, true, 1, false), fit(100f)) // no writer
+        assertEquals(WallFit(false, false, true, 2, false), fit(50f)) // no header
+        assertEquals(WallFit(false, false, true, 1, false), fit(10f)) // never no quote
+    }
+
+    @Test
     fun theSlideConfirmsFrom88Percent() {
         assertFalse(slideConfirms(0.879f))
         assertTrue(slideConfirms(0.88f))

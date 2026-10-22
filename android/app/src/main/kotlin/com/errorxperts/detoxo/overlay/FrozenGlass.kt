@@ -152,6 +152,41 @@ internal fun heroIconFor(reason: String, plan: String, allowance: Int): String =
     }
 }
 
+/** What the wall's column shows: [maxLines] is `Int.MAX_VALUE` unless the quote is cut. */
+internal data class WallFit(
+    val header: Boolean,
+    val well: Boolean,
+    val headline: Boolean,
+    val maxLines: Int,
+    val writer: Boolean,
+)
+
+/**
+ * Fits the wall's column into [room] px (above the line, the meta and the
+ * buttons, which always show), shedding in order: the icon well, the quote's
+ * title size for headline, quote lines (ellipsised), the writer, the header.
+ * Each height includes its own gap; [headlineLine] is one headline line.
+ * Pure, so landscape and 2× text are pinned on the JVM.
+ */
+internal fun wallFit(
+    room: Float,
+    header: Float,
+    well: Float,
+    titleQuote: Float,
+    headlineQuote: Float,
+    headlineLine: Float,
+    writer: Float,
+): WallFit {
+    val all = Int.MAX_VALUE
+    if (header + well + titleQuote + writer <= room) return WallFit(true, true, false, all, true)
+    if (header + titleQuote + writer <= room) return WallFit(true, false, false, all, true)
+    if (header + headlineQuote + writer <= room) return WallFit(true, false, true, all, true)
+    fun lines(space: Float) = (space / headlineLine).toInt()
+    if (lines(room - header - writer) >= 1) return WallFit(true, false, true, lines(room - header - writer), true)
+    if (lines(room - header) >= 1) return WallFit(true, false, true, lines(room - header), false)
+    return WallFit(false, false, true, lines(room).coerceAtLeast(1), false)
+}
+
 /** The ambient light's alpha at [distance] from its centre: [k] there, falling linearly to 0 at [radius]. */
 internal fun ambientAlphaAt(distance: Float, radius: Float, k: Float): Float =
     k * (1f - distance / radius).coerceAtLeast(0f)

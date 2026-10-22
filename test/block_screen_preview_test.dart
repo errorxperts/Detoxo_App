@@ -48,7 +48,6 @@ void main() {
     await tester.pumpWidget(
       host(const BlockScreenPreview(style: style, height: 640)),
     );
-    expect(find.text('Put it face down.'), findsOneWidget);
     expect(find.text('Instagram can wait. Your peace can’t.'), findsOneWidget);
     expect(
       find.text(
@@ -68,11 +67,7 @@ void main() {
         brightness: Brightness.dark,
       ),
     );
-    expect(find.text('Put it face down.'), findsNothing);
-    expect(
-      find.text('Instagram is resting. Move your finger to find the light.'),
-      findsOneWidget,
-    );
+    expect(find.text('Instagram can wait. Your peace can’t.'), findsOneWidget);
     expect(find.text('HERMANN HESSE'), findsOneWidget);
   });
 
@@ -162,7 +157,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Put it face down.'), findsNothing);
+      expect(find.textContaining('can wait'), findsNothing);
       expect(find.textContaining('Back to'), findsNothing);
     }
   });

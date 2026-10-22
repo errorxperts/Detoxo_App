@@ -1,37 +1,54 @@
 package com.errorxperts.detoxo.overlay
 
-import com.errorxperts.detoxo.widget.blend
+import com.errorxperts.detoxo.widget.withAlpha
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.math.roundToInt
 
 /**
  * Pins the wall's pure half: window flags, the strip-width formula at both SDK
  * branches, the plan-label mapping (the wire token `CURIOUS` must never reach
- * a screen), the payload sanitiser (EVO-018), the style spec, and the colours
- * (the palette and every accent-on-ground rule, for each spec palette main).
- * Window lifecycle needs a device — see the device-sanity list in
- * docs/code_docs/25-block-screen.md.
+ * a screen), the payload sanitiser (EVO-018), the style spec, and the
+ * contrast of every text and glyph on what it sits on, in both themes, for
+ * every accent the wall can take. Window lifecycle needs a device — see the
+ * device-sanity list in docs/code_docs/25-block-screen.md.
  */
 class BlockScreenGeometryTest {
 
-    // Every accent the wall can take: the main of each spec palette (brand, Block All,
-    // Conscious, Pause, One Reel, over) in each theme, from the generated DxTokens.
-    private val darkMains = intArrayOf(
-        DxTokens.BRAND_MAIN_DARK, DxTokens.BLOCK_ALL_MAIN_DARK, DxTokens.CONSCIOUS_MAIN_DARK,
-        DxTokens.PAUSE_MAIN_DARK, DxTokens.ONE_REEL_MAIN_DARK, DxTokens.OVER_MAIN_DARK,
-    )
-    private val lightMains = intArrayOf(
-        DxTokens.BRAND_MAIN_LIGHT, DxTokens.BLOCK_ALL_MAIN_LIGHT, DxTokens.CONSCIOUS_MAIN_LIGHT,
-        DxTokens.PAUSE_MAIN_LIGHT, DxTokens.ONE_REEL_MAIN_LIGHT, DxTokens.OVER_MAIN_LIGHT,
-    )
+    /**
+     * Every accent main the wall can take in [dark]: each spec palette's, and
+     * the live resolver's at the warm steps (used 0 / .6 / .85 / 1) for no
+     * mode, Block All and a Pause in its last second.
+     */
+    private fun accents(dark: Boolean): Set<Int> {
+        val mains = if (dark) {
+            intArrayOf(
+                DxTokens.BRAND_MAIN_DARK, DxTokens.BLOCK_ALL_MAIN_DARK, DxTokens.CONSCIOUS_MAIN_DARK,
+                DxTokens.PAUSE_MAIN_DARK, DxTokens.ONE_REEL_MAIN_DARK, DxTokens.OVER_MAIN_DARK,
+            )
+        } else {
+            intArrayOf(
+                DxTokens.BRAND_MAIN_LIGHT, DxTokens.BLOCK_ALL_MAIN_LIGHT, DxTokens.CONSCIOUS_MAIN_LIGHT,
+                DxTokens.PAUSE_MAIN_LIGHT, DxTokens.ONE_REEL_MAIN_LIGHT, DxTokens.OVER_MAIN_LIGHT,
+            )
+        }
+        val resolved = listOf(0.0, 0.6, 0.85, 1.0).flatMap { used ->
+            listOf(
+                AccentResolver.resolve(dark, AccentResolver.Mode.NONE, used, null),
+                AccentResolver.resolve(dark, AccentResolver.Mode.BLOCK_ALL, used, null),
+                AccentResolver.resolve(dark, AccentResolver.Mode.PAUSE, used, 0L),
+            ).map { it[0] }
+        }
+        return mains.toSet() + resolved
+    }
 
-    /** `BrandTint.FALLBACK`: the accent before Dart has ever pushed one. */
-    private val fallback = 0xFF1C3D78.toInt()
-    private val everyAccent = darkMains + lightMains + fallback
+    /** [text] (maybe translucent, as Dark ink-2 is) on the opaque [ground]. */
+    private fun reads(text: Int, ground: Int) = contrastRatio(alphaOver(text, ground), ground)
+
+    private fun alpha(k: Float) = (k * 255f).roundToInt()
 
     @Test
     fun windowFlagsAre808() {
@@ -48,19 +65,6 @@ class BlockScreenGeometryTest {
     fun stripWidthIs50dpBelowApi30() {
         assertEquals(125, stripWidthPx(29, 24, 32, 2.5f))
         assertEquals(100, stripWidthPx(24, 0, 0, 2f))
-    }
-
-    @Test
-    fun primaryButtonTextFollowsItsFill() {
-        val navy = 0xFF0B1326.toInt()
-        val white = 0xFFFFFFFF.toInt()
-        assertEquals(navy, onColorFor(0xFF12A594.toInt())) // light accent: navy 6.0:1, white 3.1:1
-        assertEquals(navy, onColorFor(0xFF44E2CD.toInt())) // dark accent
-        assertEquals(navy, onColorFor(0xFF30A46C.toInt())) // green
-        assertEquals(white, onColorFor(0xFFC63A3E.toInt())) // deep red: navy 3.6:1
-        assertTrue(contrastRatio(navy, 0xFF12A594.toInt()) >= 4.5)
-        assertTrue(contrastRatio(white, 0xFFC63A3E.toInt()) >= 4.5)
-        assertEquals(21.0, contrastRatio(navy.and(0xFF000000.toInt()), white), 0.01) // black on white
     }
 
     @Test
@@ -172,85 +176,48 @@ class BlockScreenGeometryTest {
     }
 
     @Test
-    fun theWallPaletteReadsForEveryThemePrimary() {
+    fun theWallReadsInBothThemesForEveryAccent() {
         for (dark in listOf(false, true)) {
-            for (accent in everyAccent) {
-                val p = wallPalette(dark, accent)
-                val tag = "dark=$dark accent=${Integer.toHexString(accent)}"
-                assertTrue("ink $tag", contrastRatio(p.ink, p.ground) >= 7.0)
-                assertTrue("muted $tag", contrastRatio(p.muted, p.ground) >= 4.5)
+            val t = DxTheme(dark)
+            val tag = "dark=$dark"
+            // The ground, and the panel over the ground under the ambient at 84 dp (.09 at most).
+            for (bg in intArrayOf(t.bgTop, t.bgBottom)) assertTrue("ink on bg $tag", reads(t.ink, bg) >= 4.5)
+            for (accent in accents(dark)) {
+                val at = "$tag accent=${Integer.toHexString(accent)}"
+                val lit = alphaOver(withAlpha(accent, alpha(ambientAlphaAt(84f, 120f, t.kAmb))), t.bgTop)
+                for (panel in t.panel) {
+                    val under = alphaOver(panel, lit)
+                    assertTrue("ink-2 on panel $at", reads(t.ink2, under) >= 4.5)
+                    assertTrue("ink on panel $at", reads(t.ink, under) >= 4.5)
+                }
+                // Open Detoxo: the accent at k-pill, then the sheen, over the ground.
+                for (bg in intArrayOf(t.bgTop, t.bgBottom)) {
+                    val base = alphaOver(withAlpha(accent, alpha(t.kPill)), bg)
+                    for (sheen in t.pill) assertTrue("ink on pill $at", reads(t.ink, alphaOver(sheen, base)) >= 4.5)
+                }
             }
-        }
-        // The light wall is the board's own, whatever the accent.
-        assertEquals(
-            Palette(0xFFECEFF4.toInt(), 0xFF12151B.toInt(), 0xFF5A6170.toInt()),
-            wallPalette(false, DxTokens.BRAND_MAIN_LIGHT),
-        )
-        // The dark ground carries a breath of the accent: two accents, two grounds.
-        assertNotEquals(
-            wallPalette(true, DxTokens.BRAND_MAIN_DARK).ground,
-            wallPalette(true, DxTokens.ONE_REEL_MAIN_DARK).ground,
-        )
-    }
-
-    @Test
-    fun legibleOnMakesEveryAccentReadOnBothWalls() {
-        for (dark in listOf(false, true)) {
-            for (accent in everyAccent) {
-                val p = wallPalette(dark, accent)
-                val c = legibleOn(accent, p.ground, p.ink)
-                assertTrue("dark=$dark accent=${Integer.toHexString(accent)}", contrastRatio(c, p.ground) >= 4.5)
+            // The chips, the text exits and the slide.
+            assertTrue("ink-2 on a chip $tag", reads(t.ink2, alphaOver(t.fillQuiet, t.bgBottom)) >= 4.5)
+            assertTrue("ink on a picked chip $tag", reads(t.ink, t.optionBase) >= 4.5)
+            assertTrue("ink-2 on the ground $tag", reads(t.ink2, t.bgBottom) >= 4.5)
+            for (track in t.track) {
+                assertTrue("ink-2 on the track $tag", reads(t.ink2, track) >= 4.5)
+                assertTrue("the countdown on the waiting knob $tag", reads(t.ink2, alphaOver(t.waitKnob, track)) >= 4.5)
             }
+            // Home's glyph on the glass circle: an icon, 3:1.
+            for (glass in t.glass) assertTrue("glyph on glass $tag", reads(t.ink, alphaOver(glass, t.bgBottom)) >= 3.0)
         }
     }
 
     @Test
-    fun chipLabelsReadOnTheirOwnTintedFill() {
-        for (dark in listOf(false, true)) {
-            for (accent in everyAccent) {
-                val p = wallPalette(dark, accent)
-                val fill = outlinedFill(accent, p.ground)
-                val tag = "dark=$dark accent=${Integer.toHexString(accent)}"
-                assertTrue(tag, contrastRatio(legibleOn(accent, fill, p.ink), fill) >= 4.5)
-            }
+    fun theSlidesToneReadsOnItsFill() {
+        // The label's fill copy is the tone ink over the caution stops it can sit on.
+        for (stop in intArrayOf(DxTokens.TONE_CAUTION_A, DxTokens.TONE_CAUTION_B, DxTokens.TONE_CAUTION_C)) {
+            assertTrue(Integer.toHexString(stop), contrastRatio(DxTokens.TONE_CAUTION_INK, stop) >= 4.5)
         }
-    }
-
-    @Test
-    fun theSpotlightKeepsItsMutedTextReadableUnderTheLight() {
-        // At the light's centre the writer and meta sit on the glow AND the lit logo.
-        for (accent in darkMains + fallback) {
-            val p = wallPalette(true, accent)
-            val lit = blend(accent, blend(accent, p.ground, GLOW_ALPHA / 255f), LIT_LOGO_ALPHA / 255f)
-            assertTrue(Integer.toHexString(accent), contrastRatio(p.muted, lit) >= 4.5)
-        }
-    }
-
-    @Test
-    fun legibleOnLeavesAnAccentThatAlreadyReadsAlone() {
-        val light = wallPalette(false, DxTokens.BRAND_MAIN_LIGHT)
-        // The light wall deepens every light main (each is under 4.5:1 on #ECEFF4), not the fallback.
-        for (c in lightMains) assertNotEquals(c, legibleOn(c, light.ground, light.ink))
-        assertEquals(fallback, legibleOn(fallback, light.ground, light.ink))
-        // The dark wall leaves every dark main alone and lifts only the fallback navy.
-        for (c in darkMains) {
-            val p = wallPalette(true, c)
-            assertEquals(c, legibleOn(c, p.ground, p.ink))
-        }
-        val p = wallPalette(true, fallback)
-        assertNotEquals(fallback, legibleOn(fallback, p.ground, p.ink))
-        assertEquals(p.ink, legibleOn(p.ink, p.ground, p.ink))
-    }
-
-    @Test
-    fun legibleFillDarkensOnlyWhatNeedsIt() {
-        // Only Light over-main (#e5384f) needs darkening; every other accent already reads.
-        val over = DxTokens.OVER_MAIN_LIGHT
-        val fixed = legibleFill(over)
-        assertNotEquals(over, fixed)
-        assertTrue(contrastRatio(onColorFor(fixed), fixed) >= 4.5)
-        for (ok in everyAccent) {
-            if (ok != over) assertEquals(Integer.toHexString(ok), ok, legibleFill(ok))
+        // Its chevrons on the white knob: an icon, 3:1.
+        for (knob in intArrayOf(DxTokens.KNOB_LIGHT, DxTokens.KNOB_DARK)) {
+            assertTrue(contrastRatio(DxTokens.TONE_CAUTION_KNOB, knob) >= 3.0)
         }
     }
 }

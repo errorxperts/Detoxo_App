@@ -1,6 +1,5 @@
 package com.errorxperts.detoxo.overlay
 
-import com.errorxperts.detoxo.engine.ContentCounterStore
 import com.errorxperts.detoxo.engine.UsageQuery
 import android.content.Context
 import android.os.Build
@@ -15,11 +14,12 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import android.widget.Button
 import android.widget.TextView
 import com.errorxperts.detoxo.R
 import com.errorxperts.detoxo.widget.WidgetBitmapRenderer
-import com.errorxperts.detoxo.widget.blend
 import org.json.JSONObject
+import java.util.Calendar
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
@@ -107,7 +107,7 @@ data class BlockScreenPayload(
  * (`block_screen_style` in `detoxo_engine_prefs`). `enabled` is the wall's own
  * switch: off → the trigger sites fall back to the toast + BACK/HOME they
  * always had. The look itself is not here: it follows the app theme
- * ([wallIsDark], `ContentCounterStore.brand`), so a map persisted before that
+ * ([wallIsDark]) and the live accent ([AccentResolver.forWall]), so a map persisted before that
  * (with `theme`, `background`, `design`, `accentByUsage`) parses with those
  * keys ignored. Malformed JSON → defaults, never a crash.
  */
@@ -149,50 +149,10 @@ internal fun planLabel(token: String, allowance: Int): String = when (token) {
     else -> ""
 }
 
-/** Navy — the primary button's text on a light fill; white takes the dark ones. */
-private const val ON_ACCENT = 0xFF0B1326.toInt()
-
-/**
- * Text colour for a button filled with [fill]: navy where it reads best, white
- * otherwise. The theme's deep primaries (Magenta, Rose, Indigo) drop navy
- * under 3.6:1 — white is above 5:1 there. Pure; pinned by the JVM test.
- */
-internal fun onColorFor(fill: Int): Int =
-    if (contrastRatio(ON_ACCENT, fill) >= contrastRatio(0xFFFFFFFF.toInt(), fill)) ON_ACCENT else 0xFFFFFFFF.toInt()
-
-/**
- * [fill], darkened toward navy in 3 % steps until [onColorFor] reads at
- * ≥ 4.5:1 — the primary button's fill now that the accent is the app theme's
- * primary. Only Sky (`#2F6BFF`, white 4.499:1) needs it; every other theme
- * primary and the fallback brand come back unchanged. Pure; the Dart
- * `legibleFill` mirrors it.
- */
-internal fun legibleFill(fill: Int): Int {
-    var f = fill
-    var i = 0
-    while (i++ < 40 && contrastRatio(onColorFor(f), f) < 4.5) f = blend(f, ON_ACCENT, 0.97f)
-    return f
-}
-
-/**
- * [color], blended toward [ink] in 3 % steps until it reads at ≥ 4.5:1 on
- * [ground] — the accent as text or glyph on the wall: Home's icon and the ghost
- * labels on the bare ground, a chip's label on its own fill ([outlinedFill]).
- * On the bare light ground it deepens Sky, Teal and Rose a little; on the dark
- * one it lifts only the never-pushed fallback navy. A colour that already
- * reads comes back unchanged. Pure; the Dart `legibleOn` mirrors it.
- */
-internal fun legibleOn(color: Int, ground: Int, ink: Int): Int {
-    var c = color
-    var i = 0
-    while (i++ < 40 && contrastRatio(c, ground) < 4.5) c = blend(c, ink, 0.97f)
-    return c
-}
-
 /**
  * The wall's brightness: the APP's theme choice ([appTheme], pushed as
- * `themeMode`) — Face Down when Detoxo is light, Spotlight when it is dark.
- * Only an app on "Match system", or one that never pushed, falls through to
+ * `themeMode`), light or dark like Detoxo itself. Only an app on "Match
+ * system", or one that never pushed, falls through to
  * the device's night mode. The Flutter preview reads the app theme's
  * brightness, so the two agree. Pure.
  */
@@ -205,11 +165,11 @@ internal fun wallIsDark(appTheme: String, systemDark: Boolean): Boolean = when (
 // ── Renderer ─────────────────────────────────────────────────────────────────
 
 /**
- * Builds the wall: the Canvas-drawn [QuoteWallView] (Face Down on a light
- * wall, Spotlight on a dark one) with real buttons over its foot — the app's
- * own, drawn natively by [WallButtons] — so TalkBack gets one focusable target
- * per action. Colours come from [wallPalette] and the app theme's primary,
- * which the Flutter preview mirrors.
+ * Builds the wall: the Canvas-drawn [QuoteWallView] — one Frozen Glass layout
+ * in both themes — with real buttons over its foot, the app's own drawn
+ * natively by [WallButtons], so TalkBack gets one focusable target per
+ * action. Colours come from the generated tokens ([DxTheme]) and the live
+ * accent ([AccentResolver.forWall]), which the Flutter preview reads too.
  *
  * ponytail: content renders on a Canvas, so the wall cannot reuse the Flutter
  * design system. Upgrade path = a Flutter-rendered wall, which costs a second
@@ -253,17 +213,19 @@ object BlockScreenRenderer {
         onAction: (String) -> Unit,
     ): View {
         val dark = wallIsDark(appTheme, WidgetBitmapRenderer.isSystemDark(context))
-        // The app theme's primary for this brightness (Dart pushes both as brandLight / brandDark).
-        val accent = ContentCounterStore(context).brand(dark)
-        val palette = wallPalette(dark, accent)
+        val theme = DxTheme(dark)
+        // The accent the Today screen shows right now; computed once, so a
+        // standing wall does not glide (an in-place rebuild picks up a change).
+        val accent = AccentResolver.forWall(context, dark)[0]
         val copy = WallCopy.from(context, payload, spec)
+        val icon = heroIconFor(payload.blockReason, payload.plan, payload.allowance)
 
-        // Nothing in the stack clips, so the primary's shadow can fall outside its 48 dp box.
+        // Nothing in the stack clips, so the controls' shadows can fall outside their 48 dp boxes.
         val root = FrameLayout(context).apply {
             clipChildren = false
             clipToPadding = false
         }
-        val wall = QuoteWallView(context, copy, quote, palette, accent, dark, fadeIn = animateIn)
+        val wall = QuoteWallView(context, copy, quote, theme, accent, icon, fadeIn = animateIn)
         wall.tag = TAG_WALL
         root.addView(
             wall,
@@ -272,7 +234,7 @@ object BlockScreenRenderer {
                 ViewGroup.LayoutParams.MATCH_PARENT,
             ),
         )
-        val actions = buildActions(context, payload, WallButtons(context, palette, accent, dark), onAction)
+        val actions = buildActions(context, payload, theme, WallButtons(context, theme, accent), onAction)
         root.addView(
             actions,
             FrameLayout.LayoutParams(
@@ -285,16 +247,18 @@ object BlockScreenRenderer {
         // column's laid-out height is what the backdrop reserves.
         actions.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ -> wall.reservedBottom = v.height }
         // The window draws under the system bars (setFitInsetsTypes(0)), so the
-        // button column pads itself clear of the navigation bar / gesture area.
-        val side = dp(context, 24f)
+        // header starts clear of the status bar and the button column pads
+        // itself clear of the navigation bar / gesture area.
+        val side = dp(context, DxTokens.SPACE_GUTTER)
         actions.setPadding(side, 0, side, dp(context, 20f))
         root.setOnApplyWindowInsetsListener { _, insets ->
-            val bottom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                insets.getInsets(WindowInsets.Type.systemBars()).bottom
+            val (top, bottom) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                insets.getInsets(WindowInsets.Type.systemBars()).let { it.top to it.bottom }
             } else {
                 @Suppress("DEPRECATION")
-                insets.systemWindowInsetBottom
+                insets.systemWindowInsetTop to insets.systemWindowInsetBottom
             }
+            wall.topInset = top
             actions.setPadding(side, 0, side, bottom + dp(context, 20f))
             insets
         }
@@ -313,16 +277,17 @@ object BlockScreenRenderer {
     }
 
     /**
-     * The exits, top to bottom: a row of Home (an icon) and Open Detoxo (the
-     * primary), then "Back to {app}" — the ghost exit the overlay counts down
-     * and relabels — then "Allow for a while" when offered. An app wall has no
-     * way back into the app, so no ghost exit there. The text exits sit 6 dp
-     * under the row and flush with each other: each 48 dp view carries its own
-     * air.
+     * The exits, top to bottom: a row of Home (a glass circle) and Open Detoxo
+     * (the accent pill), then "Back to {app}" — the text exit the overlay
+     * counts down and relabels — then "Allow for a while" when offered. An app
+     * wall has no way back into the app, so no back exit there. The text exits
+     * sit 6 dp under the row and flush with each other: each 48 dp view
+     * carries its own air.
      */
     private fun buildActions(
         context: Context,
         p: BlockScreenPayload,
+        theme: DxTheme,
         kit: WallButtons,
         onAction: (String) -> Unit,
     ): LinearLayout {
@@ -352,12 +317,12 @@ object BlockScreenRenderer {
             // screens (DMs, the previous tab) is a first-class exit. Tagged for
             // the overlay, which counts it down (EVO-025) and relabels it (EVO-026).
             val label = p.appLabel.ifBlank { p.displayName }.ifBlank { res.getString(R.string.wall_this_app) }
-            val back = kit.ghost(res.getString(R.string.wall_back_to, label)) { onAction(ACTION_DISMISS) }
+            val back = kit.text(res.getString(R.string.wall_back_to, label)) { onAction(ACTION_DISMISS) }
             back.tag = TAG_BACK
             column.addView(back, slot(context, top))
             top = 0
         }
-        if (p.offersUnblock) addUnblock(context, column, kit, top, onAction)
+        if (p.offersUnblock) addUnblock(context, column, theme, kit, top, onAction)
         return column
     }
 
@@ -369,10 +334,17 @@ object BlockScreenRenderer {
      * path (a key with no TTL, a tap eaten by the PIN screen, a sheet with no
      * Navigator) existed only because the question was asked somewhere other
      * than where it was raised.
+     *
+     * The tap reveals, in place, the duration chips (5 min picked) and the
+     * app's wait + slide ([SlideToConfirmView]), whose 5 s wait starts then;
+     * a chip only changes the pick, and only the confirmed slide posts
+     * `UNBLOCK_<picked>`. No "Keep it blocked": Home, Back and Open Detoxo
+     * are the ways out, and the knob's seconds show the wait.
      */
     private fun addUnblock(
         context: Context,
         column: LinearLayout,
+        theme: DxTheme,
         kit: WallButtons,
         top: Int,
         onAction: (String) -> Unit,
@@ -382,51 +354,69 @@ object BlockScreenRenderer {
             orientation = LinearLayout.HORIZONTAL
             visibility = View.GONE
         }
+        var picked = UNBLOCK_MINUTES[0]
         // A double tap's second half lands on a chip still fading in under the
-        // finger: ignore taps for a double-tap timeout, or the wall would grant
-        // a duration nobody picked.
+        // finger: ignore taps for a double-tap timeout, or the pick would be
+        // one nobody made.
         var shownAt = 0L
+        val options = ArrayList<Button>(UNBLOCK_MINUTES.size)
         for (m in UNBLOCK_MINUTES) {
+            lateinit var chip: Button
+            chip = kit.chip(res.getString(R.string.wall_unblock_minutes, m)) {
+                if (SystemClock.uptimeMillis() - shownAt >= ViewConfiguration.getDoubleTapTimeout()) {
+                    picked = m
+                    for (o in options) kit.select(o, o === chip)
+                }
+            }
+            options += chip
             chips.addView(
-                kit.chip(res.getString(R.string.wall_unblock_minutes, m)) {
-                    if (SystemClock.uptimeMillis() - shownAt >= ViewConfiguration.getDoubleTapTimeout()) {
-                        onAction("$ACTION_UNBLOCK_PREFIX$m")
-                    }
-                },
+                chip,
                 LinearLayout.LayoutParams(0, dp(context, 48f), 1f).apply {
                     if (chips.childCount > 0) marginStart = dp(context, 8f)
                 },
             )
         }
-        // The chips take the trigger's slot (same height, same margin) rather
-        // than pushing the exits around, which would move a button under a
-        // finger already travelling towards it. `lateinit` so the trigger can
-        // hide itself.
+        kit.select(options[0], true)
+        val slide = SlideToConfirmView(context, theme) { onAction("$ACTION_UNBLOCK_PREFIX$picked") }.apply {
+            visibility = View.GONE
+        }
+        // The chips take the trigger's slot (same height, same margin) and the
+        // slide follows. `lateinit` so the trigger can hide itself.
         lateinit var trigger: View
-        trigger = kit.ghost(res.getString(R.string.wall_unblock)) {
+        trigger = kit.text(res.getString(R.string.wall_unblock)) {
             shownAt = SystemClock.uptimeMillis()
-            fitChips(chips, column.width - column.paddingLeft - column.paddingRight, dp(context, 8f))
+            fitChips(chips, column.width - column.paddingLeft - column.paddingRight, dp(context, 8f), kit.checkRoom())
             trigger.visibility = View.GONE
-            chips.alpha = 0f
-            chips.visibility = View.VISIBLE
-            chips.animate().alpha(1f).setDuration(200L)
-            // TalkBack's focus went with the trigger: hand it to the first chip.
+            for (v in arrayOf(chips, slide)) {
+                v.alpha = 0f
+                v.visibility = View.VISIBLE
+                v.animate().alpha(1f).setDuration(200L)
+            }
+            slide.start()
+            // TalkBack's focus went with the trigger: hand it to the picked chip.
             chips.post {
-                chips.getChildAt(0)?.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
+                options.firstOrNull { it.isSelected }
+                    ?.performAccessibilityAction(AccessibilityNodeInfo.ACTION_ACCESSIBILITY_FOCUS, null)
             }
             onAction(ACTION_UNBLOCK)
         }
         column.addView(trigger, slot(context, top))
         column.addView(chips, slot(context, top))
+        column.addView(
+            slide,
+            LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 64f)).apply {
+                topMargin = dp(context, 12f)
+            },
+        )
     }
 
     /**
      * A big font scale can overflow a quarter-width chip ("60 min" needs 82 dp
      * at 2× where a 360 dp phone gives its label 64): shrink all four alike so
-     * every label stays whole. [inner] is the row's width, [gap] the space
-     * between chips.
+     * every label stays whole, the picked one's [check] included. [inner] is
+     * the row's width, [gap] the space between chips.
      */
-    private fun fitChips(chips: LinearLayout, inner: Int, gap: Int) {
+    private fun fitChips(chips: LinearLayout, inner: Int, gap: Int, check: Int) {
         val n = chips.childCount
         if (n == 0 || inner <= 0) return
         val each = (inner - gap * (n - 1)) / n
@@ -434,7 +424,7 @@ object BlockScreenRenderer {
         for (i in 0 until n) {
             val b = chips.getChildAt(i) as TextView
             val want = b.paint.measureText(b.text.toString())
-            val room = each - b.paddingLeft - b.paddingRight
+            val room = each - b.paddingLeft - b.paddingRight - check
             if (want > room) scale = minOf(scale, room / want)
         }
         if (scale < 1f) {
@@ -552,9 +542,16 @@ internal data class WallCopy(
         /**
          * Wall clock for [ms] in the DEVICE's 12/24-hour setting — the same
          * promise the Dart side keeps (`core/utils/clock_format.dart`), so a
-         * rule picked as "5:30 PM" is never read back as "17:30".
+         * rule picked as "5:30 PM" is never read back as "17:30", and a zero
+         * minute drops on a 12-hour clock ("7 PM") as it does there.
          */
-        private fun clockAt(context: Context, ms: Long): String =
-            android.text.format.DateFormat.getTimeFormat(context).format(java.util.Date(ms))
+        private fun clockAt(context: Context, ms: Long): String {
+            val c = Calendar.getInstance().apply { timeInMillis = ms }
+            return clockLabel(
+                c.get(Calendar.HOUR_OF_DAY),
+                c.get(Calendar.MINUTE),
+                android.text.format.DateFormat.is24HourFormat(context),
+            )
+        }
     }
 }

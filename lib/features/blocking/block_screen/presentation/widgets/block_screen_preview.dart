@@ -352,7 +352,7 @@ class _WallState extends State<_Wall> with TickerProviderStateMixin {
           ),
         ),
       ];
-      final line = dark ? copy.spotlightLine : copy.faceDownLine;
+      final line = copy.line;
       final ease = moving ? const Duration(milliseconds: 200) : Duration.zero;
       body = Padding(
         padding: const EdgeInsets.fromLTRB(24, 48, 24, 20),
@@ -384,21 +384,6 @@ class _WallState extends State<_Wall> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-              Text(
-                BlockScreenCopy.faceDownTitle,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: _type(
-                  context,
-                  24,
-                  p.ink,
-                  weight: FontWeight.w800,
-                  height: 1.15,
-                  spacing: -0.48, // −0.02 em
-                ),
-              ),
-              SizedBox(height: gap),
               ...words,
             ],
             SizedBox(height: gap),

@@ -227,9 +227,9 @@ void main() {
         plan: BlockingPlan.blockAll,
       );
       final copy = BlockScreenCopy.from(p.sanitised(), style);
-      expect(copy.reason, 'Locked in your App blocker');
+      expect(copy.reason, 'Locked in your App Blocker');
       expect(copy.stats, isEmpty);
-      expect(copy.meta, 'Locked in your App blocker');
+      expect(copy.meta, 'Locked in your App Blocker');
       expect(copy.buttons.map((b) => b.label), ['Go home', 'Open Detoxo']);
       final allow = BlockScreenCopy.from(
         p.copyWith(offersUnblock: true).sanitised(),
@@ -263,14 +263,11 @@ void main() {
         'Open Detoxo',
         'Back to Chrome · 5',
       ]);
-      expect(
-        copy.spotlightLine,
-        'Chrome is resting. Move your finger to find the light.',
-      );
-      expect(copy.faceDownLine, isNot(contains('example.test')));
+      expect(copy.line, 'Chrome can wait. Your peace can’t.');
+      expect(copy.line, isNot(contains('example.test')));
     });
 
-    test('a website wall names the host', () {
+    test('a website wall names the host and its Web Blocker list', () {
       const web = BlockScreenPayload(
         referenceType: BlockReferenceType.website,
         referenceId: 'reddit.com',
@@ -278,10 +275,9 @@ void main() {
         appLabel: 'Chrome',
         blockReason: BlockReason.webRule,
       );
-      expect(
-        BlockScreenCopy.from(web, style).faceDownLine,
-        'reddit.com can wait. Your peace can’t.',
-      );
+      final copy = BlockScreenCopy.from(web, style);
+      expect(copy.line, 'reddit.com can wait. Your peace can’t.');
+      expect(copy.reason, 'On your Web Blocker list');
     });
 
     test('showCount off drops the count line only', () {
@@ -301,11 +297,7 @@ void main() {
         copy.meta,
         'Block All is on · 12 reels today · Instagram opened 7 times today',
       );
-      expect(copy.faceDownLine, 'Instagram can wait. Your peace can’t.');
-      expect(
-        copy.spotlightLine,
-        'Instagram is resting. Move your finger to find the light.',
-      );
+      expect(copy.line, 'Instagram can wait. Your peace can’t.');
     });
   });
 
