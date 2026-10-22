@@ -232,7 +232,7 @@ they do **not** route through the service instance — `BlockScreenOverlay` is a
 | `hideBlockScreen` | — | `BlockScreenOverlay.hide()` | `true` | `hideBlockScreen()` |
 | `isBlockScreenShowing` | — | `BlockScreenOverlay.isShowing()` | `Boolean` | `isBlockScreenShowing()` |
 | `goHome` | — | `ACTION_MAIN` + `CATEGORY_HOME` + `NEW_TASK` | `true` | `goHome()` |
-| `setBlockScreenStyle` | `{style: Map}` (`BlockScreenStyle.toWire()`: `enabled`, `showCount`, `showOpens`, `backDelaySec` 0–60; older keys are ignored) | persists `ConfigStore.blockScreenStyleJson`, rebuilds a showing wall | `true` (malformed → skipped, still `true`) | `setBlockScreenStyle(Map)` |
+| `setBlockScreenStyle` | `{style: Map}` (`BlockScreenStyle.toWire()`: `enabled`, `showCount`, `showOpens`, `backDelaySec` 0–60; older keys are ignored) | persists `ConfigStore.blockScreenStyleJson`, rebuilds a showing wall. The onboarding hand-off sends `showOpens: false` once, so new installs start with the opens line off ([25](25-block-screen.md) §6) | `true` (malformed → skipped, still `true`) | `setBlockScreenStyle(Map)` |
 | `blockScreenStyle` | — | parses the persisted JSON | the style as a `Map` (`{}` when never saved / malformed) | `blockScreenStyle()` |
 
 ### PIN lock / Smart Auto Lock

@@ -320,7 +320,11 @@ directly (`WallCopy` renders it) so "Try it" mirrors the Flutter preview.
 Native is the single source of truth: `ConfigStore.blockScreenStyleJson` (key `block_screen_style`
 in `detoxo_engine_prefs`, default `""`), parsed by `BlockScreenStyleSpec.fromJson` — `enabled`
 (default **true**), `showCount`, `showOpens` (default true), `backDelaySec` (default **5**, clamped
-0–60; 0 = instant); malformed → defaults. A map persisted before 2026-10-16 may still hold
+0–60; 0 = instant); malformed → defaults. **New installs start with `showOpens` off**: the
+onboarding hand-off writes `BlockScreenStyleCubit.setShowOpens(show: false)` before
+`setOnboarded` ([13](13-onboarding-permissions.md)); the entity and native defaults stay `true`,
+so an upgraded install, which never walks onboarding again, keeps its stored choice, and a Reset
+app data run comes back through the hand-off like a fresh install. A map persisted before 2026-10-16 may still hold
 `theme`, `background`, `design` and `accentByUsage`: they are ignored, and the next save drops
 them. Read once per new wall in `show()`, never per accessibility event and not for an
 already-standing wall.
@@ -329,8 +333,8 @@ There is no theme or background choice: the wall **follows the app**. Dart pushe
 with the settings (`themeMode`, whitelisted into `ConfigStore.appThemeMode`, key
 `app_theme_mode`); the pure `wallIsDark(appTheme, systemDark)` reads LIGHT / DARK from it and falls
 back to the device's night mode for "Match system" or a store that was never pushed. The Flutter
-preview reads the app theme's brightness. The accent is always the theme primary for that
-brightness (`ContentCounterStore.brand(dark)`, §5).
+preview reads the app theme's brightness. The accent is the live one the Today screen shows
+(`AccentResolver.forWall`, below); the preview takes `context.accent`, from the same inputs.
 
 Dart (`lib/features/blocking/block_screen/`):
 
@@ -342,8 +346,8 @@ Dart (`lib/features/blocking/block_screen/`):
 | domain | `repositories/block_screen_repository.dart` | `style()`, `setStyle()`, `preview(payload)`, `hide()` |
 | data | `repositories/block_screen_repository_impl.dart` | over `EngineChannel`: `blockScreenStyle` / `setBlockScreenStyle` / `showBlockScreen` / `hideBlockScreen` |
 | presentation | `block_screen_style_cubit.dart` | app-wide (`main.dart`); emit now, 120 ms debounced push, dirty-guard against a late hydrate (`CounterAppearanceCubit` shape); `setEnabled`, `setShowCount`, `setShowOpens`, `setBackDelay(on:)` (5 / 0), `preview(payload)` for "Try it" (pushes an edit still in the debounce first) |
-| presentation | `block_screen_style_screen.dart` | route `Routes.blockScreenStyle` = `/block-screen/style`: an ⓘ `InfoButton` in the app bar (the 100 quotes; the look follows the app theme; change it under Appearance; what off leaves to a toast); a **Show block screen** switch at the top — the hub card's own, in one `GlassCard`, caption "For app & website blocks"; one big live preview (the user's current plan and allowance, selected as two-field records so counter ticks don't rebuild the editor) cross-fading on a theme flip; the hint "Face Down / Spotlight · follows your app theme"; **Try it on your phone** (disabled while off or without the grant, with the `NoticeLine` fix under it); **Options** — one `GlassCard` of three flat switch rows (`_SwitchRow`, hairlines between): Reel count today, Times opened today ("Needs Usage access"), Wait 5 seconds to go back; each row is one `MergeSemantics` node, so TalkBack reads a caption with its own switch; while the block screen is off the options fade and their switches announce as disabled (`_SwitchRow.enabled`) |
-| presentation | `widgets/block_screen_preview.dart` | Flutter mirror of the wall, drawn on a fixed board in native dp (360 × 780, or the Appearance card's 352 × 220 `compact` crop: header, the quote in 2 lines, the button row) that a `FittedBox` scales to `height`, text scaling off inside — so every size is the native one; `IgnorePointer` + `ExcludeFocus`, one `Semantics` label. Brightness from the app theme, accent `context.tokens.brand.main` (the static spec brand), palette `wallPaletteFor` + `legibleOn` / `onColorFor` / `legibleFill` from `content_counter_appearance/.../widget_palette.dart`. Open Detoxo is `_WallPill`, a private copy of the native `LiquidPill` drawable (the app's own `LiquidPill` is now the Frozen Glass accent pill; the wall keeps its skin until the native track restyles it); Home an outlined circle; the ghost labels text (a locked one at 55 %). `_Wall` runs one ticker, only on the full stage and never under "Remove animations"; `_PhonePainter` / `_SpotlightPainter` / `_LogoPainter` mirror `QuoteWall.kt` (the idle drift only — a finger would fight the editor's scroll), the canvas's sample quotes (sr 46 / sr 48; the compact Spotlight card takes the short sr 62, which its two lines hold), the foot in the system sans as natively; the foot eases through `AnimatedSize` + `AnimatedSwitcher`. The logo from `ResizeImage(AssetImage('assets/images/Detoxo_logo.png'), width: 512)`, cropped by `_logoCrop` (the native `LOGO_CROP`), recoloured on the light wall, Spotlight's lit through a `saveLayer` + `dstIn` gradient. Switched off (`style.enabled` false) it eases over 300 ms to a 60 % greyscale — through an always-mounted `ColorFiltered`, the identity while on, so a toggle never rebuilds the wall and replays the quote's fade-up — an **Off** `AppBadge` fades in, the label reads "Block screen preview, off.", and the ticker pauses on its frame and resumes from it. Approximations: the quote does not shrink (its `maxLines` is the guard), and Face Down's spare height goes to the phone slot rather than around the quote |
+| presentation | `block_screen_style_screen.dart` | route `Routes.blockScreenStyle` = `/block-screen/style`: an ⓘ `InfoButton` in the app bar ("Shows a quote when something is blocked. It follows your app theme. Off, app and website blocks show a short message instead."); a **Show block screen** switch at the top — the hub card's own, on one `PanelGroup`, caption "For app & website blocks"; one big live preview (the user's current plan and allowance, selected as two-field records so counter ticks don't rebuild the editor) on a quiet `fill-quiet` stage, cross-fading on a theme flip; the hint "Follows your app theme"; **Try it on your phone** (disabled while off or without the grant, with the `NoticeLine` fix under it); **Options** — a `SectionHeader` over one `PanelGroup` of three flat switch rows (`_SwitchRow`, in the `GlassListTile` metrics: 56 min height, an ink-2 glyph, `label` title, `subhead` caption): Reel count today, Times opened today ("Needs Usage access"), Wait 5 seconds to go back; each row is one `MergeSemantics` node, so TalkBack reads a caption with its own switch; while the block screen is off the options fade and their switches announce as disabled (`_SwitchRow.enabled`) |
+| presentation | `widgets/block_screen_preview.dart` | Flutter mirror of the wall (public API frozen: `style`, `payload`, `height`, `compact`), drawn on a fixed board in native dp (360 × 780, or the Appearance card's 352 × 220 `compact` crop: the header, a two-line quote at `headline` size on the panel, the button row) that a `FittedBox` scales to `height`, text scaling off inside — so every size is the native one; `IgnorePointer` + `ExcludeFocus`, one `Semantics` label. The same layout as §5b on DS widgets and the generated `AppTokens`: the `bg-top → bg-bottom` ground; the ambient `RadialGradient(accent.main @ kAmb)` of radius 120 on the well; `DetoxoLogo(height: 44)` + "Detoxo" in `AppTypography.titleXl`; the 88 well (`well-from → well-to` at (−.3, −.4), radius .955) with `Icon3d(58, accentTint:)` for a mode icon — the private `_heroIcon` mirrors Kotlin's `heroIconFor`, with the same table in both tests; the quote on a `GlassContainer` panel (radius 28) in `AppTypography.title` (`maxLines` is the guard) with its writer as the uppercase `eyebrow`; the line (`body`) and meta (`subhead`) in ink-2; `GlassIconButton(Icons.home_rounded)`, `LiquidPill(tint: context.accent.main)` "Open Detoxo" and the text exits in `label` ink-2 (a locked one at 55 %). The accent is `context.accent`, the live one. The entrance plays once on the full stage — the quote fades up 10 dp over 1.2 s and the writer 0.3 s later, through `context.motion` (nothing under Reduce Motion) — and then nothing moves: no ticker, so `pumpAndSettle` returns. Switched off (`style.enabled` false) it eases over 300 ms to a 60 % greyscale — through an always-mounted `ColorFiltered`, the identity while on, so a toggle never rebuilds the wall and replays the fade-up — an **Off** `AppBadge` fades in, and the label reads "Block screen preview, off." |
 
 The plan label itself lives with the enum — `planLabel(BlockingPlan?, {allowance})` in
 `blocking/shared/domain/entities/enums.dart` — and the dashboard status label and the Unblock
@@ -471,24 +475,29 @@ deep-link landing on the dashboard is M6's shell work.
   does not (the real `org.json` is on the unit-test classpath).
 - Dart: `test/block_screen_test.dart` — the payload (round-trips, the sample-12 rule, adult
   anonymisation, the plan rule of `sanitised()`), `planLabel`, `BlockScreenCopy` (Conscious never
-  "curious", the locked ghost label, the opens line and its toggle, Unblock-5, an app wall keeps
-  Home and Open Detoxo with no way back in, an adult wall is unnamed and offers the browser back, a
-  website names the host, `showCount`, `meta`), the wall palette (ink / muted / `legibleOn` on both
-  grounds for every spec palette main of both themes and the fallback, Face Down's board ground,
-  Spotlight's accent breath, `legibleFill` for every main — only Light over-main darkens), `onColorFor`, `BlockScreenStyle` (defaults, a
+  "curious", the locked label of the way back, the opens line and its toggle, Unblock-5, an app
+  wall keeps Home and Open Detoxo with no way back in and reads "Locked in your App Blocker", an
+  adult wall is unnamed and offers the browser back, a website names the host and "On your Web
+  Blocker list", `showCount`, `meta`, `line`), "the wall reads" (the native sweep on the Dart
+  tokens via `Color.alphaBlend`: ink on the ground, ink-2 on the panel under the ambient at
+  84 dp — .09 Dark / .048 Light — and ink on the Open Detoxo pill, for each palette main and the
+  live accent's warm steps, both themes), `BlockScreenStyle` (defaults, a
   round-trip writing its four keys only, old keys ignored, `backDelaySec` clamping and tolerance),
   and that the settings push carries `themeMode`; `test/block_screen_cubit_test.dart` (hydrate,
   debounce, dirty guard, `enabled=false` push, the 5 s / instant back delay, Try it right after the
 switch pushes it first — and only once — while nothing pending goes straight to the wall, failed
 hydrate);
-  `test/block_screen_preview_test.dart` (light → Face Down, dark → Spotlight, Open Detoxo is a
-  wall pill full and compact, the logo ships in the bundle and both walls draw it once decoded,
-  the stage holds still under "Remove animations" and moves otherwise, a compact card never runs a
-  ticker, and the editor's three switches drive the cubit with no Design / Background / Theme
-  picker left, each row one TalkBack node with its caption; switched off the preview greys under
-  an **Off** badge and stops its loop, and on brings both back; the editor's own switch, Try it and
-  the options disabled while off, and a missing grant fixed in place by the `NoticeLine`);
-  `test/appearance_block_screen_card_test.dart` (switched off, the hub tile's status says what off
+  `test/block_screen_preview_test.dart` (one layout in Light and Dark: the "Detoxo" wordmark and
+  `DetoxoLogo`, the quote and its uppercase writer, the line and the meta, `LiquidPill` "Open
+  Detoxo", `Icons.home_rounded`, the counted way back, one `Icon3d` tinted for a plan wall; the
+  icon per block reason, the same table as `FrozenGlassTest`; the compact card; the logo and the
+  seven icon WebPs load from `rootBundle`; the entrance plays once and `pumpAndSettle` returns
+  with no frame scheduled, and under "Remove animations" nothing is scheduled at all; switched off
+  the preview greys under an **Off** badge, and on brings it back; the editor's own switch and
+  three options on panels drive the cubit, with its `InfoButton` copy and no look picker, Face
+  Down or Spotlight left, each row one TalkBack node with its caption; Try it and the options
+  disabled while off, and a missing grant fixed in place by the `NoticeLine`);
+  `test/appearance_block_screen_card_test.dart` (the compact preview; switched off, the hub tile's status says what off
   means and the tile still opens the editor; on, it reads On; without the grant, Needs access
   opens it); `native_event_reporter_test.dart` (`blockScreenAction` logged, preview skipped;
   `block_triggered` carries `wall`); `test/block_mode_picker_test.dart` (the four-row picker, the
@@ -584,7 +593,7 @@ Pinned by `UsageQueryTest`.
 - `lib/features/blocking/shared/domain/entities/enums.dart` (`planLabel`, `BlockingMode.blockScreen`), `engine_event.dart` (`BlockEvent.wall`)
 - `lib/features/settings/presentation/widgets/block_mode_picker.dart` (`blockModes`, `BlockModeOptions`, `BlockModeTile`, `OptionTile`, `PermissionNeededRow`) and the `_BlockModeSheet` / `_BlockModeTile` wrappers in `settings_screen.dart`
 - `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart` (the overlay-missing banner branch)
-- `lib/features/content_counter/content_counter_appearance/presentation/widgets/widget_palette.dart` (`WallPalette` / `wallPaletteFor`, `legibleOn`, `onColorFor`, `legibleFill`), `lib/core/design_system/tokens/app_tokens.g.dart` (the spec palettes)
+- `lib/core/design_system/tokens/app_tokens.g.dart` (the spec tokens and palettes), `foundations/accent.dart` (`resolveAccent`, `accentIconFilter`), `components/dx_icons.dart` (`Icon3d`, `DetoxoLogo`), `components/buttons.dart` (`LiquidPill`, `GlassIconButton`), `foundations/glass_container.dart` (`GlassContainer`), `components/list_tiles.dart` (`PanelGroup`)
 - `lib/features/additional_feature/appearance/presentation/appearance_screen.dart` (`_BlockScreenSection`)
 - `lib/core/design_system/components/buttons.dart` (`SecondaryButton` — one tree for both states, so going disabled fades and keeps its 48 dp floor — and `InfoButton`, which opens its copy in a sheet; the editor uses them), `components/toggle.dart` (`AppToggle`, which fades to disabled too), `components/feedback.dart` (`AppReveal`, `NoticeLine`), `components/badges.dart` (`AppBadge`, the preview's Off), `foundations/motion.dart` (`AppPressable`'s press)
 - `lib/core/constants/channel_constants.dart`, `lib/core/platform_channels/engine_channel.dart`

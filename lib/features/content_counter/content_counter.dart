@@ -11,7 +11,6 @@
 ///   the app builder).
 library;
 
-export 'content_counter_appearance/presentation/widgets/widget_palette.dart';
 export 'content_counter_bubble/domain/bubble_model.dart';
 export 'content_counter_bubble/domain/entities/bubble_style.dart';
 export 'content_counter_bubble/domain/repositories/bubble_repository.dart';
