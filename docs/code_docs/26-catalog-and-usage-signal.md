@@ -140,7 +140,7 @@ raw `List<Map>?` rows through it.
 window throws before the channel is touched. Registered in `injector.dart` after
 `PermissionRepository`. Its Dart consumers are `rule_sync` (spent limits, [27](27-rules-engine.md))
 and the insights rollups ([28](28-insights.md)), which own the day-keyed cache this layer
-deliberately does not have. The dashboard hero still keeps `ContentCounterCubit.timeToday`; the
+deliberately does not have. Today's `TimeLeftRing` still reads `ContentCounterCubit.timeToday`; the
 block screen's "opened N times today" line reads the layer natively, never through this
 repository.
 

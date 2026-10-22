@@ -417,8 +417,8 @@ contributes no semantics node at all.
 - `lib/main.dart` (the lazy, app-wide `InsightsCubit` provider — EVO-058)
 - `test/activity_screen_test.dart`
 - `lib/core/storage/local_store.dart` (`StoreKeys.usageDaily`)
-- `lib/core/utils/duration_format.dart` (`formatHm` — the app's one duration form, shared with the
-  dashboard hero and the onboarding dial, mirrored by Kotlin `UsageQuery.formatHm`)
+- `lib/core/utils/duration_format.dart` (`formatHm` — the app's one duration form, shared with
+  Today's ring and the onboarding dial, mirrored by Kotlin `UsageQuery.formatHm`)
 - `lib/features/limits/rules/domain/entities/rule_editor_args.dart` (moved out of `presentation/`
   for EVO-033)
 - `lib/core/di/injector.dart`

@@ -143,7 +143,7 @@ void main() {
             SecondaryButton(label: 'Grant', onPressed: () {}),
             AnimatedIconButton(
               label: 'Upgrade',
-              icon: AppIcon.dashboard,
+              icon: AppIcon.check,
               onPressed: () {},
             ),
           ],

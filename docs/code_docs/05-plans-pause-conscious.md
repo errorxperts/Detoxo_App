@@ -112,7 +112,7 @@ This gate is **purely clock-based**, so it holds even if the Flutter UI is dead.
 
 ### Pause ticker (UI truth)
 
-While a pause is live, `SettingsCubit` runs a 1 Hz `_ticker` whose only job is to settle UI state back to the **base mode** (`state.baseMode` — `activePlan` is already the base) and drop the session the instant `pauseEnd` passes — native already enforces this via `pauseUntil`; the ticker just keeps the banner/state honest when the app is awake.
+While a pause is live, `SettingsCubit` runs a 1 Hz `_ticker` whose only job is to settle UI state back to the **base mode** (`state.baseMode` — `activePlan` is already the base) and drop the session the instant `pauseEnd` passes — native already enforces this via `pauseUntil`; the ticker just keeps the state (and Today's ring) honest when the app is awake.
 
 ---
 
@@ -285,13 +285,13 @@ a platform) can never refill the session mid-watch; only an explicit mode tap do
 After the Nth reel the native gate blocks and the app **auto-reverts to the base
 mode** (§7.4) — it no longer sits blocked waiting for a re-tap.
 
-**How the UI arms.** **One Reel** arms directly at count 1 (no picker). An N-reel
+**How the UI arms.** **One Reel** arms at count 1 once its caution `ConfirmSheet` is slid (no picker). An N-reel
 session opens `SessionDialogs.showReels` — the Session sheet **By reel count** (a −/+
 stepper over **1–20**, hold to repeat from 420 ms, each repeat ×.78 sooner down to 60 ms,
 plus quick picks) — whose **Start** calls `setOneReel(count:)`. A count of 1 is simply One
-Reel. `showReels` has no Today entry point yet; the Today rebuild wires the ring's Unblock
-pill to it. While a session runs the dashboard lights the Pause pill with the "N left"
-badge. Its bounds live in `SessionDefaults`: `unblockMin` 1 / `unblockMax` 20 (native
+Reel. Today's ring **Unblock** pill opens it. While a session runs, Today's `ModeCard`
+lights **Pause** and the ring counts the reels left ("of 5 reels", §9). Its bounds live
+in `SessionDefaults`: `unblockMin` 1 / `unblockMax` 20 (native
 clamps the allowance to 1..20), `unblockDefault` 10, `unblockPicks` 5/10/15/20.
 
 ### 7.2 Native gate — a reel counts after 2s of dwell
@@ -454,7 +454,7 @@ All content widgets honour reduce-motion (still glyph / plain text).
 
 ### 8.4 Mount status (accuracy note)
 
-`ContentRepositoryImpl` is DI-registered and the widgets (`AnimatedEmoji`, `QuoteBox`) are built and reduce-motion-aware, but **they are not currently mounted on a live screen** — no presentation code calls `emojiPlacement`/`randomQuote`, and the emoji/quote assets aren't yet wired into the Pause/Conscious surfaces. The live plan surfaces today are the **`SessionDialogs`** and the **dashboard hero ring** (§9). Treat the emoji-band/quote engine as **built infrastructure awaiting a screen (planned / follow-up)**, not a live feature. (`daily_limit_emoji_bands.json` / `DAILY_LIMIT_HERO` is consumed by the daily-limit feature — see [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).)
+`ContentRepositoryImpl` is DI-registered and the widgets (`AnimatedEmoji`, `QuoteBox`) are built and reduce-motion-aware, but **they are not currently mounted on a live screen** — no presentation code calls `emojiPlacement`/`randomQuote`, and the emoji/quote assets aren't yet wired into the Pause/Conscious surfaces. The live plan surfaces today are the **`SessionDialogs`** and Today's **`TimeLeftRing`** and **`ModeCard`** (§9). Treat the emoji-band/quote engine as **built infrastructure awaiting a screen (planned / follow-up)**, not a live feature. (`daily_limit_emoji_bands.json` / `DAILY_LIMIT_HERO` is consumed by the daily-limit feature — see [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).)
 
 ---
 
@@ -476,7 +476,7 @@ The Today screen (`lib/features/dashboard/presentation/dashboard_tab.dart`, its 
 
 **Start a Pause (4 min):** Today's **Pause** option → `showPause` (By time) → `SettingsCubit.startPause(4 min)` → `AppSettings` gets `activePlan = baseMode` + `PauseSession(cooldown=0, planToResume=baseMode)` → `_commit` persists + pushes `{activePlan: <base wire>, pauseUntil: pauseEnd}` → native gate `now < pauseUntil` suspends reel/web blocking (whole-app locks stay enforced) → at `pauseEnd`, native gate re-arms and the 1 Hz UI ticker settles the session back to the **base mode**.
 
-**Turn on Conscious:** `SessionDialogs` → `SettingsCubit.enterConscious()` → `setPlan(curious)` (records `baseMode = curious`) → `_commit` pushes `{activePlan: CURIOUS, consciousEarnDivisor, consciousMaxBankMs}` (stored **verbatim**, no bank reset) → then `enterConscious` `await`s `resetConsciousBank` → `CommandHandler` empties the bank (store + the service's cache, via `onConsciousBankReset()`) + `reload()` → `syncConscious()` starts the 1 Hz accountant → each tick accrues while abstaining / drains 1:1 while watching, booting reels on empty → `consciousState` events stream to `ConsciousCubit` for the hero/dialog. (An auto-revert *into* Conscious skips the reset, so the bank survives.)
+**Turn on Conscious:** `SessionDialogs` → `SettingsCubit.enterConscious()` → `setPlan(curious)` (records `baseMode = curious`) → `_commit` pushes `{activePlan: CURIOUS, consciousEarnDivisor, consciousMaxBankMs}` (stored **verbatim**, no bank reset) → then `enterConscious` `await`s `resetConsciousBank` → `CommandHandler` empties the bank (store + the service's cache, via `onConsciousBankReset()`) + `reload()` → `syncConscious()` starts the 1 Hz accountant → each tick accrues while abstaining / drains 1:1 while watching, booting reels on empty → `consciousState` events stream to `ConsciousCubit` for the mode card's description and the dialog. (An auto-revert *into* Conscious skips the reset, so the bank survives.)
 
 **Turn on One Reel / Unblock (allow 3):** Today's ring **Unblock** pill → `showReels` (By reel count) → `SettingsCubit.setOneReel(count: 3)` → `_commit` pushes `{activePlan: ONE_REEL, reelAllowance: 3}` (persists the target, does *not* reset the count) → then the imperative `armReelSession(3)` → `CommandHandler` sets `reelAllowance=3`, `activePlan=ONE_REEL`, `resetReelSession()` (count→0), calls `service.armReelSession()` (zero runtime dwell state, reload, emit) → in the detector loop `allowReelOrBlock` counts a reel once it's watched ≥ 2s: reels 1–3 each increment `reelsConsumed`; a fresh 4th reel (allowance spent) is blocked and emits `reelSessionState {blocked:true}` → `SettingsCubit._onReelSession` flips `activePlan → baseMode` (**auto-revert**, §7.4); events also stream to `ReelSessionCubit`.
 
@@ -485,7 +485,7 @@ The Today screen (`lib/features/dashboard/presentation/dashboard_tab.dart`, its 
 ## Source files
 
 - `lib/features/blocking/plans/domain/entities/sessions.dart` — `PauseSession`, `SessionPhase` phase math.
-- `lib/features/blocking/plans/domain/entities/session_defaults.dart` — Pause slider + Conscious tuning constants.
+- `lib/features/blocking/plans/domain/entities/session_defaults.dart` — the Session sheet's bounds, defaults and quick picks (By time 1–10 min, By reel count 1–20) + Conscious tuning constants.
 - `lib/features/blocking/plans/domain/entities/conscious_state.dart` — Conscious bank snapshot entity.
 - `lib/features/blocking/plans/domain/entities/reel_session_state.dart` — One Reel / Unblock session snapshot entity (`consumed`/`allowance`/`blocked`/`active`, `remaining`).
 - `lib/features/blocking/plans/domain/entities/emoji_band.dart` — `EmojiAnimation`, `EmojiItem`, `EmojiSet`, `EmojiPlacement`, `EmojiPlacementId`.

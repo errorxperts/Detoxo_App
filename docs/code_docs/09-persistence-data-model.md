@@ -162,7 +162,7 @@ Each key maps to exactly one repository that owns its JSON shape:
 - **`daily_limit`** — `DailyLimit.toJson()`; defaults to `const DailyLimit()`
   when absent. See [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).
 - **`daily_limit_streak`** — `Streak.toJson()` (`{base, lastDay, todayFailed}`);
-  the "days under your daily limit" streak surfaced on the dashboard hero.
+  the "days under your daily limit" streak shown under Today's ring.
   Defaults to `const Streak()` when absent. Owned by `StreakRepositoryImpl`,
   advanced once per day by `StreakCubit`. See
   [07-daily-limit-scheduler.md](07-daily-limit-scheduler.md).
@@ -175,7 +175,7 @@ Each key maps to exactly one repository that owns its JSON shape:
   `daySignature` (`dd-MM-yyyy`) — see §2.3 below. See
   [28-insights.md](28-insights.md).
 - **`analytics_events`** — **retired.** It held the Dart-side block-event buffer
-  behind the Activity tab's old Events feed; the feed was replaced by tiles over
+  behind the old Activity tab's Events feed (the tab is Insights now); the feed was replaced by tiles over
   the native `block_today` / `block_total` counters and the key was deleted with
   it ([12](12-analytics-notifications-resilience.md) §1.1). An upgraded install's
   stale document is deleted once at bootstrap (`lib/app/bootstrap.dart`, beside

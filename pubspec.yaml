@@ -182,7 +182,6 @@ flutter:
     - assets/images/
     # Frozen Glass 3D icons + logo (design-system artifact 8CurH1ViCsKXpFeYNtmMRZ).
     - assets/images/icons/
-    - assets/images/illustration/
     - assets/images/social_icon_pack/
     - assets/lottie/
     - assets/svg/

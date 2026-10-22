@@ -161,7 +161,7 @@ Locked rules are rationed separately, and always: lifting one costs an override,
 
 ## Where can I see what's currently unblocked?
 
-The home screen shows an **Allowed right now** card whenever something is — the app, feed or site, when it goes back to being blocked, and a **Resume** button to end it early. It isn't there when nothing is allowed. The **Insights** tab also shows how many overrides you've spent this period and the reasons you gave.
+The **Today** tab shows an **Allowed right now** card, just under **Blockers**, whenever something is — the app, feed or site, when it goes back to being blocked, and a resume button to end it early. It isn't there when nothing is allowed. The **Insights** tab also shows how many overrides you've spent this period and the reasons you gave.
 
 ## Does Pause switch my rules off too?
 
@@ -179,9 +179,9 @@ Yes — when a schedule or a daily limit raises the wall, it says when it lifts:
 
 Every block screen shows a short quote and its author — about work, success, peace of mind, time and achievement. Detoxo ships 100 of them inside the app and picks a different one each time the card appears (never the same one twice in a row); nothing is downloaded. When Detoxo's theme is light the card is *Face Down* — a phone that turns itself over — and when it is dark *Spotlight*, a soft light you can move with your finger. Both hold still if you've turned off animations in your phone's accessibility settings.
 
-## What is the "day streak" on my dashboard?
+## What is the "day streak" on the Today tab?
 
-The small **day streak** beside your reels count is how many days in a row you've stayed **under your daily limit**. It ticks up each day you finish under the limit and resets if you go over or skip a day — a gentle motivator to keep your scrolling in check. It's counted on your device while the app is open; nothing is uploaded.
+The **day streak** under the Today ring, beside your reels count, is how many days in a row you've stayed **under your daily limit**. It ticks up each day you finish under the limit and resets if you go over or skip a day — a gentle motivator to keep your scrolling in check. It's counted on your device while the app is open; nothing is uploaded.
 
 ## The floating bubble needs "Display over apps" — why?
 

@@ -109,11 +109,11 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 
 | Package | Version | Status | Role in Detoxo |
 | --- | --- | --- | --- |
-| `flutter_animate` | `^4.5.2` | **Wired** (5 files) | Declarative entrance/motion effects across the design system. |
+| `flutter_animate` | `^4.5.2` | **Wired** (re-exported by `design_system.dart`) | Declarative entrance/motion effects across the design system (`foundations/motion.dart`'s `.entrance()` helpers). |
 | `cupertino_native` | `^0.1.1` | **Wired** | The one adaptive control left, `AdaptiveSlider` (`lib/core/design_system/adaptive/adaptive_controls.dart`): a native `CNSlider` on iOS/macOS, Material `Slider` on Android. |
 | `not_static_icons` | `^0.46.0` | **Wired** | Animated (Lucide-style) icons, wrapped in `lib/core/design_system/foundations/animated_icons.dart` (re-exports `AnimatedIconController`). |
 | `showcaseview` | `^5.1.0` | **Wired** | Onboarding coach-marks / feature tour (`lib/features/additional_feature/showcase_view/`). |
-| `flutter_svg` | `^2.3.0` | **Wired** (2 files) | Renders bundled SVG art. |
+| `flutter_svg` | `^2.3.0` | **Wired** (through FlutterGen's `SvgGenImage`) | Renders the spec glyphs in `assets/svg/` through `Glyph` (`components/dx_icons.dart`), §9. |
 | `cached_network_image` | `^3.4.1` | **Wired** | Remote-icon fallback in `AppIconAvatar` (`app_icon_avatar.dart`, used by blocklist tiles + the reel-counter card). App icons ship **locally** in `assets/images/social_icon_pack/` as 160² quantised PNGs; this only handles `http…` `iconUrl`s from remote config. Note it drags `flutter_cache_manager` → `sqflite` → the `sqflite_android` native plugin. |
 | `intl` | `^0.20.2` | **Wired** (2 files) | Number/date formatting and localisation-safe strings. |
 
@@ -179,6 +179,7 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 | `lottie_tgs` | Nothing renders a Lottie file anywhere in `lib/`. `assets/lottie/` is likewise unreferenced and is a standing cleanup candidate (4.86 MB install / ~0.59 MB download). | dex / AOT |
 | `flutter_gen` | A build-time CLI mis-declared as a runtime dependency — see §2. | dex / AOT |
 | `sleek_circular_slider` | Its one user, the old dashboard hero's countdown ring, went with the Today rebuild: a live Pause now counts down in the `TimeLeftRing` (the design system's `ProgressRing`). | dex / AOT |
+| `flutter_floating_bottom_bar` | Its one user, the old hide-on-scroll home bar, went with the Frozen Glass shell: `HomeShell` floats the static glass `AppTabBar` (`components/navigation.dart`) in the `GlassScaffold`'s bottom-bar slot, with no scroll listener. | dex / AOT |
 | `google_fonts` | Manrope 600/700/800 is bundled (§9), so the generated `AppTypography` names the family directly: no runtime font fetch, and widget tests no longer stall on one. | dex / AOT |
 
 Re-add any of these only when something actually imports them.
@@ -226,8 +227,21 @@ Re-add any of these only when something actually imports them.
   bubble text (700/800). One copy serves Flutter and the native renderers, which
   read them from `flutter_assets/assets/fonts/` through `widget/Manrope.kt`
   (`semiBold`, `bold`, `extraBold`; [17](17-content-counter.md) §5.2).
-- `assets/images/illustration/` — 23 hero illustrations as **512² lossy WebP**
-  (~29 KB each). They render at 50–80 dp, so 512 px leaves 2× headroom on a 3× screen.
+- `assets/images/icons/` — the Frozen Glass **3D icons**, byte copies of the design-system
+  artifact's 192² WebPs (≈ 9–16 KB each): `icon-block-all`, `icon-conscious`, `icon-pause`,
+  `icon-one-reel` (the four modes, hue-shifted to the live accent), `icon-app-blocker`,
+  `icon-web-blocker`, `icon-blocker-rules`, plus `icon-reel-count` (256², the Session sheet's
+  By reel count header) and `detoxo-logo.webp` (100×192, never recoloured). Drawn only through
+  `Icon3d` / `DetoxoLogo` (`components/dx_icons.dart`), never cropped: the mode card, the blocker
+  tiles, the rules row, the ConfirmSheet and Session sheet headers and the feature tour's badges.
+- `assets/svg/` — the spec's single-ink **glyphs** (24 × 24 SVGs, drawn `srcIn` by `Glyph`):
+  `check` (the success toast, the confirmed knob), `chevron-right` (list and drawer rows, the
+  rules row), `chevrons-right` (the ready slide knob), `flame` (the streak), `lock` / `lock-open`
+  (the ring's Block now / Unblock pill), `play-circle` (the reels line) and `sidebar` (the tab
+  header's Menu button).
+- `assets/images/illustration/` — **removed** (Frozen Glass C12). The 23 512² hero illustrations
+  (≈ 700 KB) lost their last users when the mode selector, the old blocker tiles and the feature
+  tour moved to the 3D icons above.
 - `assets/images/social_icon_pack/` — bundled app icons: one icon per app
   (`<base>.png`, a white glyph on the app's brand-colored tile) plus `a.png`–`z.png`
   letter-tile fallbacks, all **160² quantised PNG**. Rendered by `AppIconAvatar`
@@ -285,6 +299,8 @@ belongs in `tool/branding/` for the same reason.
 - `lib/core/design_system/tokens/app_tokens.dart` (+ generated `app_tokens.g.dart`), `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/DxTokens.kt` (generated)
 - `lib/core/design_system/adaptive/adaptive_controls.dart`
 - `lib/core/design_system/foundations/animated_icons.dart`
+- `lib/core/design_system/components/dx_icons.dart` (`Icon3d`, `Glyph`, `DetoxoLogo` — the only widgets that draw `assets/images/icons/` and `assets/svg/`)
+- `lib/core/design_system/components/navigation.dart` (`AppTabBar`, which replaced `flutter_floating_bottom_bar`)
 - `lib/features/onboarding/presentation/onboarding_screen.dart`
 - `lib/features/blocking/blocklist/presentation/widgets/block_app_tile.dart`
 - `lib/main.dart`

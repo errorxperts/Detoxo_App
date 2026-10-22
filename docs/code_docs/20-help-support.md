@@ -57,10 +57,10 @@ A searchable, category-grouped list of static content that mirrors
 [`FeatureTutorialScreen`](../../lib/features/help/feature_tutorial/presentation/feature_tutorial_screen.dart)
 offers two replayable tours:
 
-- **Dashboard tour** — the walkthrough **moved here from Settings**. Its target keys only exist
-  on the dashboard, so it replays via the established pattern:
-  `SettingsCubit.setShowcaseSeen(value: false)` + `context.go(Routes.home)`; the dashboard's
-  coordinator restarts the tour on the flag's true→false edge once front-most. The tour is
+- **Dashboard tour** (the tile's label) — the walkthrough **moved here from Settings**. Its
+  target keys only exist on the Today tab, so it replays via the established pattern:
+  `SettingsCubit.setShowcaseSeen(value: false)` + `context.go(Routes.home)`; Today's
+  (`dashboard_tab.dart`) coordinator restarts the tour on the flag's true→false edge once front-most. The tour is
   **six steps** (`featureShowcaseStepCount = 6`, defined in
   [`feature_showcase_steps.dart`](../../lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart)):
   it spotlights all **four mode options** — Block All, Conscious, Pause (whose step now covers
@@ -69,10 +69,12 @@ offers two replayable tours:
   points at `showcaseTarget(step: featureShowcaseSteps[i])`) — then the **App Blocker** and **Web Blocker** tiles at
   `featureShowcaseSteps[4]` / `[5]`. `showcaseTarget(radius:)` rounds the spotlight to its target
   (`AppRadius.chip` by default; the tiles pass `AppRadius.card`). Each step's badge shows the same
-  artwork as the widget it points at: `ShowcaseStep.image` is an
-  `assets/images/illustration/*.png` path, clipped to a circle inside a tone-lit `IconBadge`
-  (the art is a glow on an opaque backdrop, so the circular clip is what makes it an icon).
-  `ShowcaseStep.icon` is the alternative for a step with no artwork — an `AppAnimatedIcon`
+  spec 3D icon as the widget it points at: `ShowcaseStep.image` is an `AssetGenImage`
+  (`Assets.images.icons.iconBlockAll`, `iconConscious`, `iconPause` — the stopwatch —,
+  `iconOneReel`, `iconAppBlocker`, `iconWebBlocker` — the globe), drawn by `Icon3d` at 40 inside
+  the 52 tone-lit `IconBadge`, **uncropped** (the spec never crops its icons) and untinted. The
+  old `assets/images/illustration/` art and its circular clip are gone.
+  `ShowcaseStep.icon` is the alternative for a step with no 3D icon — an `AppAnimatedIcon`
   glyph, used by the feedback coach-mark below. A step asserts that at least one is set;
   `image` wins when both are.
 - **Feedback button** — an independent, single-step coach-mark spotlighting the **real
@@ -164,10 +166,11 @@ Both tiles push the same reusable
 - `lib/features/help/legal/presentation/legal_web_view_screen.dart`
 - `lib/core/constants/app_constants.dart` (`AppLegal` URLs)
 - `pubspec.yaml` (`webview_flutter` dependency)
-- `lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart` (7-step keys/order/content)
-- `lib/features/additional_feature/showcase_view/domain/showcase_step.dart` (`image` / `icon` badge art)
+- `lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart` (6-step keys/order/content, the spec icons)
+- `lib/features/additional_feature/showcase_view/domain/showcase_step.dart` (`image` 3D icon / `icon` glyph badge art)
 - `lib/features/additional_feature/showcase_view/presentation/feature_showcase.dart` (scoped-tour helpers)
-- `lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart` (optional `scope`)
+- `lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart` (optional `scope`; `_StepBadge` draws `Icon3d` at 40)
+- `lib/core/design_system/components/dx_icons.dart` (`Icon3d`), `assets/images/icons/` (the tour's badge art)
 - `lib/features/additional_feature/showcase_view/showcase_view.dart` (barrel doc)
 - `lib/core/navigation/routes.dart`
 - `lib/core/navigation/app_router.dart`

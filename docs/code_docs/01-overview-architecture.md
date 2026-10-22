@@ -85,7 +85,7 @@ lib/features/blocking/
   engine/     presentation only (ServiceCubit — live service status)
   blocklist/  presentation only (TargetsCubit + blocklist UI)
   plans/      domain (session-phase rules) + data (bundled content)
-              + presentation (pause, countdown, ConsciousCubit)
+              + presentation (session dialogs, ConsciousCubit, ReelSessionCubit)
 ```
 
 The **content_counter** context is likewise split into cooperating sub-features
@@ -294,24 +294,46 @@ back to home, and the bootstrap would never run.
 
 ### The home shell — `lib/features/dashboard/presentation/home_shell.dart`
 
-`HomeShell` is a two-tab surface (**Dashboard** / **Activity**) over the ground
-gradient, with a floating glass bottom bar. The former "More" tab now lives in
-a right-side `AppDrawer`. Deeper screens (settings, blockers, daily limit,
-analytics, content-counter appearance) are reached via routes.
+`HomeShell` holds the two tabs, **Today** (`DashboardTab`) and **Insights** (`AnalyticsTab`),
+over the ground gradient. The tab bar is the static glass `AppTabBar` (Today
+`Icons.dashboard_outlined` / `dashboard`, Insights `leaderboard_outlined` / `leaderboard`) in
+the `GlassScaffold`'s `bottomBar` slot, which is what keeps floating toasts above it.
+`_TabBarHost` floats it 30 above the bottom inset over a fade to `bgBottom` that reaches
+`AppSpacing.xl` above the bar and never takes a touch, so the list under it keeps scrolling. The
+bar never hides; nothing in the shell listens to scroll.
+
+- **Analytics.** Tabs do not change the route, so a switch logs `screen_view` itself, under the
+  **pre-rename names** `'Dashboard'` / `'Activity'`: the series run on unbroken
+  ([19](19-firebase-telemetry.md)). A tap on the current tab does nothing.
+- **`/home?dashboard=<n>`** (a Plan widget tap, EVO-073) switches to Today whenever `n` changes,
+  even from Insights.
+- **The sidebar** is the end drawer `AppDrawer` (`widgets/app_drawer.dart`), opened by each tab
+  header's glass Menu button (`TabHeader(onMenu:)`). It is a `sheet` surface inset 10 from the
+  screen edges: the "Detoxo" title and a close button, one `PanelGroup` of flat `GlassListTile`
+  rows (Daily limit, Appearance, PIN lock, Settings, Help & support) and
+  `v<AppConstants.appVersion>` at the foot. It has **no Activity row**, and no blocker rows: the
+  numbers are the Insights tab and the blockers sit on Today. The pushed `/analytics` route
+  stays for deep links (a home-widget tap). Each row closes the drawer, then pushes.
+- **Hosts.** `UpgradeGate` (the automatic update check, [21](21-app-upgrader.md)) wraps the
+  scaffold, and `buildFeatureShowcaseScope(onSeen:)` (the tour host; finishing or skipping the
+  tour sets `hasSeenFeatureShowcase`) wraps the body. The body's `SafeArea` keeps a top minimum of
+  `headerTop − inset`, so with the lists' own `inset` the tab header sits 54 below the screen
+  top, or `inset` below a taller status bar.
+- **`tabBuilder`** is a `@visibleForTesting` seam that swaps the tab bodies, so
+  `test/home_shell_test.dart` pumps the shell without every cubit the real tabs read.
 
 `Routes.blocklist` used to register a *second* `HomeShell` on `/blocklist`,
 which is how the two tabs came to share one navigation stack; that constant is
 gone and `/home` is the only registration.
 
 **Why no `StatefulShellRoute.indexedStack`, and no per-tab deep link.** Both tabs
-are leaves — every drawer destination pushes *above* this shell — so there is no
+are leaves — every sidebar destination pushes *above* this shell — so there is no
 per-tab back stack for an indexed stack to preserve. It would, however, keep both
-tabs alive at once, and `_tab()` deliberately builds **only the active one** so
-the floating bar's single `ScrollController` attaches to exactly one scrollable
-for hide-on-scroll. A `?tab=` query seam was briefly added and then removed: no
-caller anywhere in the app produced such a URL and the gate's redirect returns a
-bare `Routes.home`, so the parameter was provably never non-default. Add it back
-the day something actually links to a tab.
+tabs alive at once, and `_tab()` deliberately builds **only the active one**. A
+`?tab=` query seam was briefly added and then removed: no caller anywhere in the app
+produced such a URL and the gate's redirect returns a bare `Routes.home`, so the
+parameter was provably never non-default. `?dashboard=` is the one seam, and it
+only ever selects Today; add a tab parameter the day something links to Insights.
 
 `DashboardTab` (the **Today** tab) is one short page built whole: a `SingleChildScrollView`
 over a `Stack`, so every section mounts once and rises in once with `.entrance()`. Behind the
@@ -375,13 +397,25 @@ Rebuild/state notes on Today:
   ticker, the tour targets, the streak guard, and 2× text on a 360 dp phone in both themes.
 
 `BlockerSection` (`presentation/widgets/blocker_section.dart`) is the exception
-that owns its own data: it renders the App Blocker / Web Blocker pair as two
-design-system `BlockerTile`s and reads the live entry counts itself. Both blocker cubits are
-screen-scoped — created inside `BlocProvider`s in `app_block_screen.dart` /
-`web_block_screen.dart` — so there is nothing to watch from the dashboard. The
-section resolves `AppBlockRepository` and `WebBlockRepository` through `sl`
-instead, counts the entries with `enabled == true`, and re-reads them when the
-user pops back from either blocker screen, so the captions never go stale.
+that owns its own data. It lays out the "Blockers" title with "N of 2 on", the
+`ActiveUnblocksCard` (only while something is allowed), the App Blocker / Web Blocker pair as two
+design-system `BlockerTile`s (`iconAppBlocker` / `iconWebBlocker`; feature-tour steps 4 and 5,
+spotlit at `AppRadius.card`), then the `BlockerRulesRow` ([27](27-rules-engine.md)). Both blocker
+cubits are screen-scoped — created inside `BlocProvider`s in `app_block_screen.dart` /
+`web_block_screen.dart` — so there is nothing to watch from Today. The section resolves
+`AppBlockRepository` and `WebBlockRepository` (and the two web protections) through `sl` in a
+try/catch that keeps the last good lists, and re-reads them when the user pops back from either
+blocker screen, so the tiles never go stale. The master switch and the built-in feeds come live
+from `SettingsCubit` / `TargetsCubit`.
+
+- **App Blocker** stacks the custom locks that are on (every lock when nothing is), then the
+  installed feeds that are on, one icon per package (Instagram's Reels and Stories count as one
+  app): the first three, "+N", and "N apps".
+- **Web Blocker** stacks the sites that are on (every site when none is) as `SiteLetter`s (brand
+  colour, else `tileWeb`), "N sites", and "Protection on" when a web protection is on.
+- **Status** is `blockerStatus(total:, enabled:, masterOn:)` from `today_copy.dart`: nothing set
+  up → Not set up; master off or nothing on → Paused; else On. A web protection counts as an
+  entry that is on.
 
 ### The Frozen Glass design system — `lib/core/design_system/`
 
@@ -549,7 +583,7 @@ the mode icons, the Unblock pill tint, the tab lens. On Today the `TimeLeftRing`
 | Buttons (`buttons.dart`) | `PrimaryButton` — the spec **soft button**: a 54 px pill on the 145° `buttonFrom → buttonTo` with `shadowButton`, the label in `button` / `ink`, no accent, `.45` when disabled, `expand` / `icon`. `SecondaryButton` — an `ink2` label with no surface on a 48 dp target; `destructive: true` sets it in `accentText(over)`, never a red fill. `AnimatedIconButton` — the soft button with a morphing icon. `LiquidPill(tint:)` — the spec **accent pill**: 44 px, `tint` at `kPill` under the `pillHi → pillLo` sheen and `pillEdge`, a `tint` glow at `kPillGlow`. `GlassFab` — a floating glass pill, glyph + label. `GlassIconButton` — a 44 px glass circle, 22 px ink icon, 48 dp target, a `Tooltip` carrying its label. `InfoButton(message)` — a `GlassIconButton` that opens the message in a sheet |
 | Overlays (`overlays.dart`, `dialog.dart`) | `GlassBottomSheet.show({child, title, dismissible, glow})` — the spec **SHEET**: a `sheet` surface inset 10 px from the edges, padded 0 / 22 / 22, a 40×5 grabber in a 30 px band, an optional `titleSheet` title, over the **scrim** (the backdrop blurred 8 at saturate 1.2 under a radial `scrim` dim, `120% 70% at 50% 100%`, stops `kScrim0/60/100`). It slides 600 ms, the scrim fades 450 ms; neither moves under Reduce Motion. Dragging the grabber or title down past **110 px** closes it, a shorter drag springs back on the press curve; `dismissible: false` locks the barrier, the drag and back. `glow` paints a 340×260 light behind the top edge. `AppDialog.show` / `.confirm` render **in the sheet**: an optional neutral `IconBadge`, a centred `titleSheet`, a `message` and/or `content`, the actions stacked full-width with the confirm on top. `GlassToast.show(context, message, tone:, action:)` — a glass pill with the tone's glyph (success: the spec check `Glyph`) and the message in `ink` (never a tone colour), an optional inline `action` such as **Undo**; it stays **4 s**, **6 s** with an action, **10 s** while a screen reader or switch access navigates, and drops its slide under Reduce Motion. While a sheet or dialog covers the page (the caller's route is a popup or not current) it floats on the root overlay under the status bar instead of as a SnackBar, which would sit beneath the sheet |
 | Selection & input (`selection.dart`, `toggle.dart`, `inputs.dart`, `variant_carousel.dart`) | All **OPTION and accent-free**. `GlassSegmented` — a `fillQuiet` track with a solid `optionBase` chip that slides on the chip curve plus `Squish`; the picked label goes `ink2` → `ink` behind a 16 px check; tap, scrub along the track, or focus each segment as one radio. `AppChip` — `fillQuiet`, selected `optionBase` + a check, 48 dp floor; `ChipRail` lays them in two scrolling rows. `AppToggle` — 48×28: on `statusOn` with the `knob`, off `fillQuiet` with a hairline rim and an `ink3` thumb. `AppSearchField` — a `fillQuiet` pill with a focus ring. `VariantCarousel` — OPTION cards, the pick solid `optionBase` with an ink check badge |
-| Spec art (`dx_icons.dart`) | `Icon3d(asset, size:, accentTint:, selected:)` — a spec 3D icon; `accentTint` turns it to the live accent through `accentIconFilter`, idle at `iconSaturateOff` / `iconOpacityOff`. `Glyph(svg, size:, color:)` — a spec SVG glyph drawn `srcIn`, `ink` by default. `DetoxoLogo(height:)` — the logo at 100:192, never recoloured, over its `logoGlow` drop-shadows (Dark σ 8; Light a σ 1 contour plus a σ 10 glow). All are decorative unless given a `semanticLabel` |
+| Spec art (`dx_icons.dart`) | `Icon3d(asset, size:, accentTint:, selected:)` — a spec 3D icon; `accentTint` turns it to the live accent through `accentIconFilter`, idle at `iconSaturateOff` / `iconOpacityOff`. `Glyph(svg, size:, color:)` — a spec SVG glyph drawn `srcIn`, `ink` by default. `DetoxoLogo(height:)` — the logo at 100:192, never recoloured, over its `logoGlow` drop-shadows (Dark σ 8; Light a σ 1 contour plus a σ 10 glow). All are decorative unless given a `semanticLabel`. The art: the 3D icons and logo in `assets/images/icons/`, the glyphs in `assets/svg/` ([14](14-flutter-package-map.md) §9) |
 | Lists & status (`list_tiles.dart`, `section_header.dart`, `badges.dart`) | `GlassListTile` — a flat row (56 min, `label` over a two-line `subhead`), the 18 px `ink3` chevron `Glyph` when tappable with no trailing (drawer rows and the rules card use it too), a check when `selected: true`; it is its own panel only when standalone. `PanelGroup` — the section idiom: rows in **one** panel split by inset hairlines. `AppToggleTile`. `SectionHeader(label, note:)` — the uppercase `eyebrow` (caption, 1.6 tracking, `ink2`), `section` 32 above and 12 below, a header to TalkBack. `Pill` — a **status label**: an 8 px dot in `toneColor` (or `dotColor:`) or an icon in `toneText`, then the word in `subhead` `ink2`; no fill or border. `toneColor` / `toneText` map an `AppTone` to its dot and its 4.5:1 text colour. `AppBadge` — the "+N" quiet pill |
 | Cards & feedback (`cards.dart`, `feedback.dart`, `permission_card.dart`) | `GlassCard` — a panel, optionally tappable; `AppCard`, `StatCard` / `StatCardPair`, a neutral `IconBadge`. `ProgressRing(progress:, size:, palette:, child:)` — the spec ring in its materials, every measure the 300 px ring scaled to `size` (stroke 24·size/300): the groove, the track, a three-stop arc of `palette` (default `brand`) with a blurred copy at `kArcGlow`, the knob with its `kHalo` halo and `knobShadow`, and the centre disc with its `discWash`; a null `progress` draws no arc and no knob. `ProgressBar`, `LoadingState`, `EmptyState` (no loop), `AppReveal`, `NoticeLine`. `PermissionCard` — a neutral badge, the title, the why and the status in words (On / Needs access / Checking…), its own panel only when not on a surface |
 | Confirm (`confirm_sheet.dart`) | `ConfirmSheet.show(context, icon:, title:, message:, content:, action:, cancel:, tone:, waitSeconds: 5) → Future<bool>` — the one confirm for actions that weaken protection, in the sheet: an 88 well with a 6 px tone halo and a 4 px wait ring, a `titleSheet` title (≤ 2 lines), a message (≤ 3 lines), optional content, then a 64 px track and a 56 knob. It waits `waitSeconds` (1–30; `AnimationBehavior.preserve`, so Reduce Motion never shortens it) showing "Take a breath…"; the ready knob shows tone chevrons and nudges once. A release at ≥ 88 % ("Release to confirm") shows a check and "Confirmed", then closes true after 1 s; an earlier release springs back; a tap hints "Slide all the way →". During the wait the knob reads "X, available in N seconds" and is disabled; afterwards TalkBack, Enter or Space confirm. Cancel, barrier, back and drag return false. Callers commit, then toast. `ConfirmSheet.iconSize` (58) sizes the callers' icon; `ConfirmSheet.waitKnob(t)` is the waiting-knob recipe (Light `knob` @ 55 %, Dark `lerp(trackTo, knob, .18)`) |
@@ -558,6 +592,50 @@ the mode icons, the Unblock pill tint, the tab lens. On Today the `TimeLeftRing`
 | Today (`mode_card.dart`) | `ModeCard(options:, selectedIndex:, onSelected:, title:, detail:, decorateOption:)` — the spec **MODE CARD**: one solid `option` surface, `optionBase` mixed with the live accent at `kOption` (radius 28, inset 8, no shadow or border); a 72 px row of equal options, each a 34 px `Icon3d(accentTint:)` (vivid at 1.08 when picked, soft at .94, .88 while pressed) over a verbatim `caption` label (`ink2`; picked `accentText` in Light, `ink` in Dark); behind the pick a radius-20 chip at `kChip` that slides on the chip curve plus `Squish` and fades out with no pick. With a pick and a `title`, a hairline and a row (accent dot, `title`, `detail`) open on the detail curve. Each option is one radio (`AppPressable` selected + `inMutuallyExclusiveGroup`, focus ring) in a "Blocking mode" group and reports every tap, the picked one too; `decorateOption` wraps each one for the tour |
 | Blockers (`blockers.dart`) | `BlockerTile` — a `tile` surface for App / Web Blocker: a 3D icon, the name, the status as dot + word (On / Paused / Not set up), the first few apps (or `SiteLetter`s) with a "+N" badge, or a note; `BlockerRulesRow` — the 64 px "Blocker rules" panel row with the count on and what happens next (`RuleSummary.nextEvent`, 12-hour forms such as "Next: Bedtime at 11 PM") and the chevron `Glyph`. Today's `blocker_section.dart` lays out "Blockers" + "N of 2 on", `ActiveUnblocksCard`, the tile pair, then the rules row |
 | Navigation (`navigation.dart`) | `AppTabBar(items:, current:, onSelect:)` — the 208×64 glass bar (radius 32, padding 6) with a half-width accent **lens** (`lensHi → lensLo` over main @ `kTab`, `lensEdge`, a main @ `kTabGlow` glow) that slides on the lens curve with a `Squish`; the current tab's filled icon in accent text at 1.08, its label in accent text (Light) or `ink` (Dark, where accent text misses 4.5:1 on the lens), others `ink2`; text scale clamped at 1.3; still under Reduce Motion. `TabHeader(title, onMenu:, actions:)` — `titleXl` ink, actions and the glass Menu button, at `max(54, safe top + 8)`; `TabHeader.listPadding` is gutter 20, 8 on top, 132 + inset below |
+
+#### Where the ConfirmSheet, the Session sheet and Undo are used
+
+**ConfirmSheet** guards every action that weakens protection — 12 call sites. Each one awaits
+`true`, then commits, then toasts only once the state shows the commit landed; a failed commit
+toasts its own error, and a cancel changes nothing.
+
+| Action | Where | Tone · icon | Title · slide | Toast |
+|---|---|---|---|---|
+| One Reel | Today's `ModeCard` (`dashboard_tab.dart`) | caution · `iconOneReel`, tinted | "Watch one reel?" · "Slide to unblock" | "One reel unblocked" |
+| Allow an app · a site · the wall fallback · an override | `showUnblockDurationSheet` (`limits/unblock`), called from `app_block_screen.dart`, `web_block_screen.dart`, `pending_unblock_listener.dart`, `override_tile.dart` | caution · `iconAppBlocker` / `iconWebBlocker` / `iconBlockerRules` | "Unblock {app}?", "Unblock {site}?", "Unblock this app?", "Lift {rule} for a while?", with 5 / 15 / 30 / 60-minute chips | "{app} unblocked for 15 min", "Unblocked for 15 min", "{rule} lifted for 15 min" ([31](31-locked-rules-and-unblock.md)) |
+| 18+ filter off · sites of blocked apps off | `web_protection_screen.dart` | critical · `iconWebBlocker` | "Turn off the 18+ filter?" · "Unblock sites of blocked apps?" · "Slide to turn off" | "18+ filter off" · "Sites of blocked apps unblocked" |
+| Blocking off (master switch) | `settings_screen.dart` | critical · `iconBlockAll`, tinted | "Turn off blocking?" · "Slide to turn off" | "Blocking is off" |
+| PIN lock off (the Settings switch and the setup screen's None) | `confirmPinOff` in `pin_gate.dart` | critical · `DetoxoLogo` | "Turn off PIN lock?" · "Slide to turn off" | "PIN lock turned off" |
+| Reset app data | `settings_screen.dart` | critical · `DetoxoLogo` | "Reset app data?" · "Slide to reset" | none (the splash is the feedback) |
+| Delete a rule | `rule_editor_screen.dart` | critical · `iconBlockerRules` | "Delete {rule}?" · "Slide to delete" | "{rule} deleted", then pop |
+
+- **PIN first.** Where a PIN guards the action (blocking off, PIN off, reset) the order is the PIN
+  (`requirePin(context, PinScope.settings)`, or the setup route's `PinGuard` for None), then the
+  sheet, then the commit ([08](08-pin-lock-recovery.md) §9). The override asks for its reason
+  first and has no PIN, by design.
+- **Switches stay bound to state**, so a cancelled PIN or sheet snaps them back. Turning anything
+  back on is direct, with no sheet.
+- `AppDialog.confirm` remains only for asks that weaken nothing: "Set a PIN first" (Settings) and
+  "Lock this rule?" (the rule editor).
+
+**Session sheet** — Pause and N-reel unblocks start here, with no wait and no slide
+([05](05-plans-pause-conscious.md) §9). The `ModeCard`'s **Pause** opens `SessionDialogs.showPause`
+**By time**: 1–10 min, default 5, picks 1 · 3 · 5 · 10. The ring's **Unblock** pill opens
+`SessionDialogs.showReels` **By reel count**: 1–20 reels, default 10, picks 5 · 10 · 15 · 20. The
+bounds live in `SessionDefaults`, and native clamps a reel allowance to 1..20 as well. Neither sheet
+has a switch inside.
+
+**Undo toasts** — switching a target off stays one tap; once the state shows it landed, a
+`GlassToast` with an inline **Undo** confirms it. Undo re-resolves the target at tap time and does
+nothing if it is gone or already back. Turning anything on shows no toast.
+
+| Switch off | Where | Toast | Undo |
+|---|---|---|---|
+| A custom app lock · Remove | `app_block_screen.dart` | "{app} unblocked" · "{app} removed" | toggle it on · re-insert it ([06](06-app-and-web-blocker.md)) |
+| A built-in feed | `app_block_screen.dart` | "{feed} unblocked" | `togglePlatform(id, enabled: true)` |
+| A site · swipe Delete | `web_block_screen.dart` | "{site} unblocked" · "{site} removed" | `toggleEntry` · `restoreEntry` |
+| A popular-site chip | `web_block_screen.dart` | "{site} unblocked" | `togglePopular` |
+| A rule | `rules_screen.dart` | "{rule} off" | `setEnabled(id, enabled: true)` ([27](27-rules-engine.md)) |
 
 `adaptive/` keeps one control, `AdaptiveSlider` (a native `CNSlider` on iOS/macOS, Material
 `Slider` on Android); `foundations/animated_icons.dart` wraps the Lucide `AppIcon` catalogue,
@@ -759,8 +837,13 @@ Detailed treatment lives in the persistence and configuration docs.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/DxTokens.kt` (generated), `overlay/AccentResolver.kt`
 - `test/fixtures/accent_cases.json`
 - `lib/features/dashboard/presentation/home_shell.dart`
-- `lib/features/dashboard/presentation/dashboard_tab.dart`
-- `lib/features/dashboard/presentation/widgets/blocker_section.dart`
+- `lib/features/dashboard/presentation/dashboard_tab.dart`, `presentation/today_copy.dart`
+- `lib/features/dashboard/presentation/widgets/blocker_section.dart`, `widgets/app_drawer.dart`
+- `lib/features/blocking/plans/presentation/widgets/session_dialogs.dart`, `lib/features/blocking/plans/domain/entities/session_defaults.dart`
+- `lib/features/access_protection/presentation/pin_gate.dart` (`confirmPinOff`), `lib/features/limits/unblock/presentation/widgets/unblock_duration_sheet.dart`
+- the other ConfirmSheet and Undo call sites: `lib/features/settings/presentation/settings_screen.dart`, `lib/features/limits/web_blocker/presentation/{web_block_screen,web_protection_screen}.dart`, `lib/features/limits/app_blocker/presentation/app_block_screen.dart`, `lib/features/limits/rules/presentation/{rules_screen,rule_editor_screen}.dart`, `lib/features/limits/rules/presentation/widgets/override_tile.dart`, `lib/features/limits/unblock/presentation/widgets/pending_unblock_listener.dart`
+- `lib/core/design_system/foundations/animated_icons.dart`
+- `assets/images/icons/`, `assets/svg/` (the spec 3D icons and glyphs; [14](14-flutter-package-map.md) §9)
 - `lib/features/` (feature tree: `blocking`, `content_counter`, `limits`, `access_protection`, `monetization/premium`, `analytics`, `permissions`, `onboarding`, `settings`, `dashboard`, `additional_feature`)
 - `tool/check_boundaries.sh`
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/MainActivity.kt`
