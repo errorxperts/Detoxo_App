@@ -506,7 +506,7 @@ The dashboard (`lib/features/dashboard/presentation/dashboard_tab.dart` + `widge
 - `lib/features/blocking/shared/presentation/settings_cubit.dart` — plan state machine, `baseMode` recording, Pause ticker + base-mode revert, One Reel / Unblock auto-revert (`reelSessionStream` sub, `_onReelSession`), `enterConscious` (+ `resetConsciousBank`) / `stopConscious`, `setOneReel`.
 - `lib/features/blocking/shared/data/repositories/engine_repository_impl.dart` — `pushSettings` derivation (+ `reelAllowance`), `resetConsciousBank`, `consciousStream`/`consciousCurrent`, `armReelSession`/`reelSessionStream`/`reelSessionCurrent`.
 - `lib/features/dashboard/presentation/dashboard_tab.dart` — plan surfaces, `_statusLabel` (`curious → 'CONSCIOUS'`), dialog + `ModeSelector` wiring (`setOneReel`).
-- `lib/features/dashboard/presentation/widgets/command_center_card.dart` — `SessionCountdown`, hero ring, `StatStrip`.
+- `lib/features/dashboard/presentation/widgets/command_center_card.dart` — `SessionCountdown`, hero ring (`ProgressRing` in the live accent, `palette: context.accent`), `StatStrip`.
 - `lib/features/dashboard/presentation/widgets/mode_selector.dart` — horizontal pill-scroll plan picker (Block All / Conscious / Pause / One Reel); active reel pill (One Reel, or Pause for an N-reel unblock) shows a `reelSession.remaining` badge; no `baseMode` param.
 - `lib/features/dashboard/presentation/widgets/stat_pill.dart` — `StatStrip` hero stat row.
 - `lib/core/constants/app_constants.dart` — bundled content asset paths, `EngineTimings`.

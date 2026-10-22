@@ -123,8 +123,6 @@ class CommandCenterCard extends StatelessWidget {
     TextTheme text,
     ColorScheme scheme,
   ) {
-    // Interim: the static brand until F7c's ProgressRing takes the accent.
-    final ringColor = context.tokens.brand.main;
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(end: progress),
       duration: AppDurations.slow,
@@ -132,7 +130,7 @@ class CommandCenterCard extends StatelessWidget {
       builder: (context, value, _) => ProgressRing(
         progress: value,
         size: 240,
-        arcColor: ringColor,
+        palette: context.accent,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -1,45 +1,48 @@
+import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
-/// Semantic tone shared by pills, badges and toasts.
+/// Semantic tone shared by status labels, badges and toasts.
 enum AppTone { neutral, accent, success, warning, danger }
 
-/// Resolves a tone to its accent colour (context needed for `neutral`).
+/// A tone's colour for dots and fills. [AppTone.neutral] has none of its own
+/// (a neutral status shows the word only) and falls back to ink-2 where a
+/// fill is unavoidable.
 Color toneColor(BuildContext context, AppTone tone) {
   final t = context.tokens;
   return switch (tone) {
     AppTone.neutral => t.ink2,
-    AppTone.accent => t.accentText(t.brand),
+    AppTone.accent => t.brand.main,
     AppTone.success => t.statusOn,
     AppTone.warning => t.statusSetup,
     AppTone.danger => t.over.main,
   };
 }
 
-/// Text colour to use ON a [toneColor] fill. The tone is a *surface* accent:
-/// painted as 11 sp label text over the pill's 16 %-alpha fill it lands around
-/// 2:1 (`warning`) and 3.2:1 (`success`) in light theme, both under WCAG AA.
-/// Dark theme already clears AA comfortably, so only light is darkened — to a
-/// fixed lightness ceiling, which holds for any hue.
-Color onToneColor(BuildContext context, AppTone tone) {
-  final color = toneColor(context, tone);
-  if (Theme.of(context).brightness == Brightness.dark) return color;
-  final hsl = HSLColor.fromColor(color);
-  return hsl.lightness <= _maxOnToneLightness
-      ? color
-      : hsl.withLightness(_maxOnToneLightness).toColor();
+/// A tone's colour for text and icons: [toneColor] darkened in Light so it
+/// reads at 4.5:1 ([AppTokenText.accentText] / [AppTokenText.statusText]).
+Color toneText(BuildContext context, AppTone tone) {
+  final t = context.tokens;
+  return switch (tone) {
+    AppTone.neutral => t.ink2,
+    AppTone.accent => t.accentText(t.brand),
+    AppTone.success => t.statusText(t.statusOn),
+    AppTone.warning => t.statusText(t.statusSetup),
+    AppTone.danger => t.accentText(t.over),
+  };
 }
 
-const double _maxOnToneLightness = 0.32;
-
-/// A small rounded status chip — "Required", "Premium", "Active". Replaces the
-/// ad-hoc inline chips that were scattered across screens.
+/// A status label (spec `.dx-status`): an 8 px dot in [toneColor] (or
+/// [dotColor]) or an [icon] in [toneText], 7 px, then the word in subhead
+/// ink-2. No fill or border; a neutral tone shows the word alone. The word
+/// carries the status, so the dot is decoration.
 class Pill extends StatelessWidget {
   const Pill({
     required this.label,
     this.tone = AppTone.neutral,
     this.icon,
+    this.dotColor,
     super.key,
   });
 
@@ -47,46 +50,37 @@ class Pill extends StatelessWidget {
   final AppTone tone;
   final IconData? icon;
 
+  /// A dot outside the tone table, e.g. `statusPaused`.
+  final Color? dotColor;
+
   @override
   Widget build(BuildContext context) {
-    final color = toneColor(context, tone);
-    final onTone = onToneColor(context, tone);
-    return Container(
-      // A pill lives in trailing slots that are NOT flex children (see
+    final dot =
+        dotColor ?? (tone == AppTone.neutral ? null : toneColor(context, tone));
+    final lead = icon != null
+        ? Icon(icon, size: 14, color: toneText(context, tone))
+        : dot == null
+        ? null
+        : StatusDot(color: dot);
+    return ConstrainedBox(
+      // A label lives in trailing slots that are NOT flex children (see
       // GlassListTile — making one squeezes the title's Expanded instead), so
-      // it has to bound itself: a long label ("Needs usage access") at large
+      // it has to bound itself: a long word ("Needs usage access") at large
       // system font scale otherwise overflows the row it sits in. Ellipsis
-      // beats overflow, and no status chip is legitimately this wide.
+      // beats overflow, and no status is legitimately this wide.
       constraints: BoxConstraints(
         maxWidth: MediaQuery.sizeOf(context).width * 0.4,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.16),
-        borderRadius: AppRadius.brPill,
-        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
-            Icon(icon, size: 13, color: onTone),
-            const SizedBox(width: 4),
-          ],
-          // Flexible + ellipsis: a pill is a trailing slot, and a long label
-          // ("Needs usage access") must give way rather than overflow the row.
+          if (lead != null) ...[lead, const SizedBox(width: 7)],
           Flexible(
             child: Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: onTone,
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTypography.subhead.copyWith(color: context.tokens.ink2),
             ),
           ),
         ],
@@ -95,33 +89,26 @@ class Pill extends StatelessWidget {
   }
 }
 
-/// A tiny label/dot marker (e.g. a stat trend). Named to avoid clashing with
-/// Material's own `Badge`.
+/// A count or trend marker (spec `.dx-more`, the "+3" after an icon stack):
+/// a 24 px quiet-fill pill with a caption in ink-2. Named to avoid clashing
+/// with Material's own `Badge`.
 class AppBadge extends StatelessWidget {
-  const AppBadge.label(this.label, {this.tone = AppTone.neutral, super.key});
+  const AppBadge.label(this.label, {super.key});
 
   final String label;
-  final AppTone tone;
 
   @override
   Widget build(BuildContext context) {
-    final color = toneColor(context, tone);
+    final t = context.tokens;
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
-        vertical: 2,
-      ),
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.16),
-        borderRadius: AppRadius.brSm,
+        color: t.fillQuiet,
+        borderRadius: AppRadius.brPill,
       ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+      child: Text(label, style: AppTypography.caption.copyWith(color: t.ink2)),
     );
   }
 }

@@ -6,10 +6,11 @@ import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
-/// Branded loading indicator (replaces bare `CircularProgressIndicator`).
+/// Branded loading indicator (replaces bare `CircularProgressIndicator`): the
+/// brand spinner, held still at three quarters under Reduce Motion.
 class LoadingState extends StatelessWidget {
   const LoadingState({this.message, super.key});
 
@@ -17,14 +18,18 @@ class LoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(
+          SizedBox(
             width: 28,
             height: 28,
-            child: CircularProgressIndicator(strokeWidth: 2.5),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              value: still ? 0.75 : null,
+            ),
           ),
           if (message != null) ...[
             const SizedBox(height: AppSpacing.md),
@@ -36,93 +41,100 @@ class LoadingState extends StatelessWidget {
   }
 }
 
-/// A shimmering placeholder block for skeleton screens.
-class Skeleton extends StatelessWidget {
-  const Skeleton({
-    this.width,
-    this.height = 16,
-    this.radius = AppRadius.sm,
-    super.key,
-  });
-
-  final double? width;
-  final double height;
-  final double radius;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-          width: width,
-          height: height,
-          decoration: BoxDecoration(
-            color: context.tokens.fillQuiet,
-            borderRadius: BorderRadius.circular(radius),
-          ),
-        )
-        .animate(onPlay: (c) => c.repeat())
-        .shimmer(
-          duration: 1200.ms,
-          color: context.tokens.ink2.withValues(alpha: 0.12),
-        );
-  }
-}
-
-/// A circular progress ring with centred content — used by the pause countdown.
+/// The spec ring (TimeLeftRing): the groove, a track with a three-stop arc of
+/// [palette] and its blurred copy, a knob at the arc's end, and the centre
+/// disc holding [child]. Every measure is the spec's 300 px ring scaled to
+/// [size]; the stroke is 24·size/300.
 class ProgressRing extends StatelessWidget {
   const ProgressRing({
     required this.progress,
-    this.size = 220,
-    this.strokeWidth = 24,
-    this.color,
-    this.arcColor,
+    this.size = 300,
+    this.palette,
     this.child,
     super.key,
   });
 
-  /// 0..1 remaining fraction.
-  final double progress;
+  /// 0..1 arc, clockwise from 12 o'clock. Null draws the bare ring: no arc
+  /// and no knob.
+  final double? progress;
   final double size;
-  final double strokeWidth;
 
-  /// Reserved tint override; the ring otherwise uses the live brand sweep.
-  final Color? color;
-
-  /// Optional solid arc tone. When null the arc uses the brand sweep gradient;
-  /// when set (e.g. a usage-vs-limit ladder color) the whole arc + glow adopt it.
-  final Color? arcColor;
+  /// Arc, halo and disc wash. Defaults to the static brand; Today passes the
+  /// live accent.
+  final AccentPalette? palette;
   final Widget? child;
+
+  static List<DxShadow> _scale(List<DxShadow> shadows, double k) => [
+    for (final s in shadows)
+      DxShadow(
+        color: s.color,
+        offset: s.offset * k,
+        blur: s.blur * k,
+        spread: s.spread * k,
+        inset: s.inset,
+      ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
+    final t = context.tokens;
+    final p = palette ?? t.brand;
+    final k = size / 300;
+    final dark = t.brightness == Brightness.dark;
+    final disc = 224 * k;
+    return SizedBox.square(
+      dimension: size,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Interim disc inside the arc (the ring materials arrive in F7c).
-          SizedBox(
-            width: size * 0.72,
-            height: size * 0.72,
-            child: const GlassContainer(
-              surface: DxSurface.tile,
-              borderRadius: AppRadius.pill,
-              padding: EdgeInsets.zero,
-              child: SizedBox.expand(),
-            ),
-          ),
           CustomPaint(
             size: Size.square(size),
-            painter: _RingPainter(
-              progress: progress.clamp(0, 1),
-              strokeWidth: strokeWidth,
-              trackColor: context.tokens.hairline,
-              arcColor: arcColor,
-              accent: Theme.of(context).colorScheme.secondary,
-              accentAlt: Theme.of(context).colorScheme.primary,
+            painter: DxSurfacePainter(
+              radius: BorderRadius.circular(size / 2),
+              gradient: [t.ringGrooveFrom, t.ringGrooveTo],
+              angle: 145,
+              shadows: _scale(t.shadowGroove, k),
             ),
           ),
-          ?child,
+          // Its own layer: a ticking arc never repaints the groove or disc.
+          RepaintBoundary(
+            child: CustomPaint(
+              size: Size.square(size),
+              painter: _RingPainter(
+                progress: progress,
+                k: k,
+                track: t.ringTrack,
+                arc: dark
+                    ? [p.light, p.main, p.deep]
+                    : [
+                        p.main,
+                        Color.lerp(p.main, p.deep, AppTokens.arcMidMix)!,
+                        p.deep,
+                      ],
+                glow: t.kArcGlow,
+                halo: (dark ? p.light : p.main).withValues(alpha: t.kHalo),
+                knobShadow: t.knobShadow,
+              ),
+            ),
+          ),
+          SizedBox.square(
+            dimension: disc,
+            child: CustomPaint(
+              painter: DxSurfacePainter(
+                radius: BorderRadius.circular(disc / 2),
+                gradient: [t.ringDiscFrom, t.ringDiscTo],
+                angle: 145,
+                shadows: _scale(t.shadowDisc, k),
+              ),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: p.main.withValues(alpha: AppTokens.discWash),
+                ),
+                child: Center(child: child),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -130,105 +142,98 @@ class ProgressRing extends StatelessWidget {
 }
 
 class _RingPainter extends CustomPainter {
-  _RingPainter({
+  const _RingPainter({
     required this.progress,
-    required this.strokeWidth,
-    required this.trackColor,
-    required this.accent,
-    required this.accentAlt,
-    this.arcColor,
+    required this.k,
+    required this.track,
+    required this.arc,
+    required this.glow,
+    required this.halo,
+    required this.knobShadow,
   });
 
-  final double progress;
-  final double strokeWidth;
-  final Color trackColor;
-
-  /// Live brand colours (background-adaptive) for the sweep + glow.
-  final Color accent;
-  final Color accentAlt;
-  final Color? arcColor;
+  final double? progress;
+  final double k;
+  final Color track;
+  final List<Color> arc;
+  final double glow;
+  final Color halo;
+  final Color knobShadow;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
-    final radius = (size.width - strokeWidth) / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
-    const start = -math.pi / 2;
-    final sweep = math.pi * 2 * progress;
+    final radius = 131 * k;
+    final stroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 24 * k;
+    canvas.drawCircle(center, radius, Paint.from(stroke)..color = track);
 
-    // Faint full-circle track.
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round
-        ..color = trackColor,
-    );
+    final p = progress;
+    if (p == null) return;
+    final sweep = math.pi * 2 * p.clamp(0, 1);
+    if (sweep > 0) {
+      final rect = Rect.fromCircle(center: center, radius: radius);
+      // The SVG arc's bounding-box gradient runs top-left → bottom-right
+      // before its −90° turn, so on screen it runs bottom-left → top-right.
+      Shader shader(List<Color> colors) => LinearGradient(
+        begin: Alignment.bottomLeft,
+        end: Alignment.topRight,
+        colors: colors,
+      ).createShader(rect);
+      stroke.strokeCap = StrokeCap.round;
+      canvas
+        ..drawArc(
+          rect,
+          -math.pi / 2,
+          sweep,
+          false,
+          Paint.from(stroke)
+            ..shader = shader([
+              for (final c in arc) c.withValues(alpha: c.a * glow),
+            ])
+            ..maskFilter = MaskFilter.blur(BlurStyle.normal, 9 * k),
+        )
+        ..drawArc(
+          rect,
+          -math.pi / 2,
+          sweep,
+          false,
+          Paint.from(stroke)..shader = shader(arc),
+        );
+    }
 
-    if (progress <= 0) return;
-
-    // Glowing bead at the leading edge of the arc.
-    final angle = start + sweep;
-    final tip = center + Offset(math.cos(angle), math.sin(angle)) * radius;
-
-    // Bloom/bead tone follows the arc color when one is supplied.
-    final glow = arcColor ?? accent;
-
+    // The knob sits in the arc's rotated frame, so its shadow keeps the
+    // spec offset (+1.5 along the travel, +2 toward the centre) all round.
+    final top = Offset(0, -radius);
     canvas
-      // Ambient bloom: a wider, blurred copy of the arc glowing behind it.
-      ..drawArc(
-        rect,
-        start,
-        sweep,
-        false,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeWidth + 6
-          ..strokeCap = StrokeCap.round
-          ..color = glow.withValues(alpha: 0.35)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
-      )
-      // Crisp arc: a solid laddered tone when [arcColor] is given, else the
-      // brand sweep gradient (mint → bright violet → mint).
-      ..drawArc(
-        rect,
-        start,
-        sweep,
-        false,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeWidth
-          ..strokeCap = StrokeCap.round
-          ..shader = arcColor == null
-              ? SweepGradient(
-                  colors: [accent, accentAlt, accent],
-                ).createShader(rect)
-              : null
-          ..color = glow,
-      )
-      // Bead glow, then bright core.
+      ..save()
+      ..translate(center.dx, center.dy)
+      ..rotate(sweep)
+      ..drawCircle(top, 17 * k, Paint()..color = halo)
       ..drawCircle(
-        tip,
-        strokeWidth * 0.9,
-        Paint()
-          ..color = glow.withValues(alpha: 0.5)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+        top + Offset(1.5 * k, 2 * k),
+        9.5 * k,
+        Paint()..color = knobShadow,
       )
-      ..drawCircle(tip, strokeWidth * 0.42, Paint()..color = Colors.white);
+      ..drawCircle(top, 9 * k, Paint()..color = Colors.white)
+      ..restore();
   }
 
   @override
   bool shouldRepaint(_RingPainter old) =>
       old.progress != progress ||
-      old.arcColor != arcColor ||
-      old.accent != accent ||
-      old.accentAlt != accentAlt;
+      old.k != k ||
+      old.track != track ||
+      !listEquals(old.arc, arc) ||
+      old.glow != glow ||
+      old.halo != halo ||
+      old.knobShadow != knobShadow;
 }
 
-/// A glass linear progress bar (daily-limit usage, permissions completion,
-/// the insights distraction share and per-app split).
+/// A linear progress bar (daily-limit usage, permissions completion, the
+/// insights distraction share and per-app split): a solid brand fill on a
+/// quiet track.
 ///
 /// The **one** proportion bar in the app: private re-implementations kept
 /// drifting apart (6 px here, 8 px there). Set [animate] for the growing fill;
@@ -261,12 +266,7 @@ class ProgressBar extends StatelessWidget {
     final fill = Container(
       height: height,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.secondary,
-            Theme.of(context).colorScheme.primary,
-          ],
-        ),
+        color: context.tokens.brand.main,
         borderRadius: BorderRadius.circular(height),
       ),
     );
@@ -274,7 +274,7 @@ class ProgressBar extends StatelessWidget {
       borderRadius: BorderRadius.circular(height),
       child: Stack(
         children: [
-          Container(height: height, color: context.tokens.hairline),
+          Container(height: height, color: context.tokens.fillQuiet),
           if (animate && !reduce)
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: target),
@@ -304,8 +304,8 @@ class ProgressBar extends StatelessWidget {
   }
 }
 
-/// A calm empty / placeholder state. [animatedIcon] draws a still glyph that
-/// never plays on its own.
+/// A calm empty / placeholder state: the icon in ink-2, the subtitle in body
+/// ink-2. [animatedIcon] draws a still glyph that never plays on its own.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     required this.icon,
@@ -324,7 +324,7 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final outline = Theme.of(context).colorScheme.outline;
+    final ink2 = context.tokens.ink2;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -332,9 +332,9 @@ class EmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (animatedIcon != null)
-              AppAnimatedIcon(icon: animatedIcon!, size: 44, color: outline)
+              AppAnimatedIcon(icon: animatedIcon!, size: 44, color: ink2)
             else
-              Icon(icon, size: 44, color: outline),
+              Icon(icon, size: 44, color: ink2),
             const SizedBox(height: AppSpacing.sm),
             Text(
               title,
@@ -346,9 +346,7 @@ class EmptyState extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+                style: AppTypography.body.copyWith(color: ink2),
               ),
             ],
             if (action != null) ...[

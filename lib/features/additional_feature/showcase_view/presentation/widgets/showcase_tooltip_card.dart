@@ -137,7 +137,11 @@ class _StepBadge extends StatelessWidget {
       fillAlpha: 0.16,
       bordered: true,
       child: image == null
-          ? AppAnimatedIcon(icon: step.icon!, size: size * 0.46, color: color)
+          ? AppAnimatedIcon(
+              icon: step.icon!,
+              size: size * 0.46,
+              color: toneText(context, step.tone),
+            )
           : ClipOval(
               child: Image.asset(
                 image,

@@ -145,7 +145,6 @@ class _PermissionsScreenState extends State<PermissionsScreen>
         // Genuinely unknown (no granted history): neutral "Checking…", not a
         // red denied row.
         unknown: status.state == PermissionState.unknown,
-        isRequired: status.kind.required,
         permanentlyDenied: status.permanentlyDenied,
         actionLabel: status.blockedByRestrictedSettings ? 'Fix this' : null,
         onGrant: () => requestPermission(context, status.kind),

@@ -1,13 +1,16 @@
 import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/components/buttons.dart';
+import 'package:detoxo/core/design_system/components/cards.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
-/// Generic shell for a permission row: leading icon, title + required/optional
-/// pill, a one-line "why", and a trailing grant control or granted check.
-/// Feature code (PermissionRow) binds an `AppPermission` to this shell.
+/// Generic shell for a permission row: a neutral icon badge, the title, a
+/// one-line "why", then the status in words — On, Needs access or Checking… —
+/// with the grant control beside it. Its own panel only when it is not on a
+/// surface already. Feature code (PermissionRow) binds an `AppPermission` to
+/// this shell.
 class PermissionCard extends StatelessWidget {
   const PermissionCard({
     required this.icon,
@@ -15,7 +18,6 @@ class PermissionCard extends StatelessWidget {
     required this.why,
     required this.granted,
     required this.onGrant,
-    this.isRequired = false,
     this.unknown = false,
     this.permanentlyDenied = false,
     this.actionLabel,
@@ -26,7 +28,6 @@ class PermissionCard extends StatelessWidget {
   final String title;
   final String why;
   final bool granted;
-  final bool isRequired;
 
   /// The status read didn't answer (channel hiccup) and there is no granted
   /// history to fall back on — render a neutral "Checking…" row, not a red
@@ -48,99 +49,55 @@ class PermissionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final accent = Theme.of(context).colorScheme.secondary;
-    return GlassContainer(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.16),
-              borderRadius: AppRadius.brMd,
-            ),
-            child: Icon(icon, color: accent),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        title,
-                        style: text.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+    final t = context.tokens;
+    // An unknown state with no way out is a dead end: the permission funnel
+    // re-reads on its own, but a screen whose data failed to load needs the
+    // user to ask again. Opt-in via [actionLabel] so the funnel's rows, which
+    // recover by themselves, stay button-free.
+    final action = granted || (unknown && actionLabel == null)
+        ? null
+        : SecondaryButton(
+            label:
+                actionLabel ?? (permanentlyDenied ? 'Open settings' : 'Grant'),
+            onPressed: onGrant,
+          );
+    final status = granted
+        ? const Pill(label: 'On', tone: AppTone.success)
+        : unknown
+        ? const Pill(label: 'Checking…')
+        : const Pill(label: 'Needs access', tone: AppTone.warning);
+    final body = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        IconBadge(icon: icon),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AppTypography.label.copyWith(color: t.ink)),
+              const SizedBox(height: 2),
+              Text(why, style: AppTypography.subhead.copyWith(color: t.ink2)),
+              const SizedBox(height: AppSpacing.xs),
+              Row(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: status,
                     ),
-                    if (isRequired) ...[
-                      const SizedBox(width: AppSpacing.xs),
-                      const Pill(label: 'Required', tone: AppTone.danger),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(why, style: text.bodySmall),
-                const SizedBox(height: AppSpacing.sm),
-                if (granted)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.check_circle,
-                        color: context.tokens.statusText(
-                          context.tokens.statusOn,
-                        ),
-                        size: 18,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      const Text('Granted'),
-                    ],
-                  )
-                else if (unknown)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.sync,
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        size: 18,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        'Checking…',
-                        style: text.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      // An unknown state with no way out is a dead end: the
-                      // permission funnel re-reads on its own, but a screen
-                      // whose data failed to load needs the user to ask again.
-                      // Opt-in via [actionLabel] so the funnel's rows, which
-                      // recover by themselves, stay button-free.
-                      if (actionLabel != null) ...[
-                        const Spacer(),
-                        SecondaryButton(
-                          label: actionLabel!,
-                          onPressed: onGrant,
-                        ),
-                      ],
-                    ],
-                  )
-                else
-                  SecondaryButton(
-                    label:
-                        actionLabel ??
-                        (permanentlyDenied ? 'Open settings' : 'Grant'),
-                    onPressed: onGrant,
                   ),
-              ],
-            ),
+                  ?action,
+                ],
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
+    if (GlassContainer.surfaceOf(context) != null) {
+      return Padding(padding: AppInsets.card, child: body);
+    }
+    return GlassContainer(child: body);
   }
 }

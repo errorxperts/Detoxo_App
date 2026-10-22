@@ -48,7 +48,7 @@ class AppIconAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = borderRadius ?? AppRadius.brMd;
+    final radius = borderRadius ?? BorderRadius.circular(AppRadius.icon);
     final fallback = _letterOrBadge(radius);
     final child = _icon(radius, fallback);
     return dimmed ? Opacity(opacity: 0.4, child: child) : child;
