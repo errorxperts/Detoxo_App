@@ -30,7 +30,7 @@ class GlassCard extends StatelessWidget {
 /// A metric tile that animates its value when it changes — making a live
 /// refresh visible. The first paint counts up from zero; a later change tweens
 /// from the value on screen, never back through zero (a tile fed by a live
-/// stream — the Activity tab's block counts — would otherwise rewind on every
+/// stream — the Insights tab's block counts — would otherwise rewind on every
 /// event). Sits in a `Row` (caller wraps in `Expanded`); uses a flat
 /// translucent glass (cheap, no per-frame saveLayer), or no surface at all
 /// with [contained] false.

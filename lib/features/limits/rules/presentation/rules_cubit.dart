@@ -243,7 +243,7 @@ class RulesCubit extends Cubit<RulesState> {
     // M8: the locked-rule invariant, checked here rather than in each of
     // `save` / `remove` / `setEnabled` — one choke point, and a fourth mutation
     // added later inherits it. Enforced in the domain, not only in the UI:
-    // this cubit is reachable from the dashboard card, the resume sync and the
+    // this cubit is reachable from Today's Blocker rules row, the resume sync and the
     // splash reload, and a rule that can be disabled through a side door is not
     // locked.
     final refused = LockGuard.check(state.rules, next);

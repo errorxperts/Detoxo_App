@@ -32,8 +32,8 @@ class PermissionStatus extends Equatable {
 
 /// Runtime permissions the app guides the user through.
 ///
-/// [why] lives here rather than in each screen because three surfaces render it
-/// (the funnel, the settings sheet, the dashboard card) and the copies drifted.
+/// [why] lives here rather than in each screen because two surfaces render it
+/// (the funnel and the settings sheet) and the copies drifted.
 enum AppPermission {
   accessibility(
     'Accessibility',

@@ -6,7 +6,7 @@ import 'package:detoxo/features/limits/rules/domain/entities/rule.dart';
 /// > mutation attempt is rejected in the domain layer, not the UI only.
 ///
 /// Hiding the toggle is not enough: `RulesCubit` is reachable from other
-/// features (the dashboard card, the resume sync, the splash reload), and a
+/// features (Today's Blocker rules row, the resume sync, the splash reload), and a
 /// rule that can be disabled through a side door is not locked. So this runs on
 /// the ONE choke point every mutation funnels through — `RulesCubit._commit` —
 /// rather than on `save` / `remove` / `setEnabled` separately, which is both a

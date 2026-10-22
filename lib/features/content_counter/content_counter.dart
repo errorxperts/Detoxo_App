@@ -6,7 +6,7 @@
 /// - `ContentCounterCubit` / `CounterAppearanceCubit` — provided app-wide in
 ///   `main.dart`; screens read them from context;
 /// - `BubblePreview`, `WidgetPreview` — the counter's embeddable surfaces
-///   (Appearance hub previews). The Activity tab reads the cubit directly;
+///   (Appearance hub previews). The Insights tab reads the cubit directly;
 /// - `WidgetTapListener` — opens what a home-widget tap asked for (mounted in
 ///   the app builder).
 library;

@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// The single entry point for granting a permission from anywhere in the app —
-/// the funnel, the settings sheet and the dashboard card all route through here
+/// the funnel and the settings sheet both route through here
 /// so the disclosure and the recovery flow can't drift between them.
 ///
 /// Order matters: if Android's restricted-settings gate is already swallowing

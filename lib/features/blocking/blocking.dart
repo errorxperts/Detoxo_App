@@ -16,7 +16,7 @@ export 'package:detoxo/features/blocking/block_screen/presentation/widgets/block
 // entries from tool/boundaries_baseline.txt.
 export 'package:detoxo/features/blocking/blocklist/presentation/targets_cubit.dart';
 export 'package:detoxo/features/blocking/blocklist/presentation/widgets/block_app_tile.dart';
-// Live engine status + the native block counters, read by the Activity tab.
+// Live engine status + the native block counters, read by the Insights tab.
 export 'package:detoxo/features/blocking/engine/presentation/service_cubit.dart';
 export 'package:detoxo/features/blocking/plans/domain/entities/sessions.dart';
 export 'package:detoxo/features/blocking/shared/domain/entities/app_notice.dart';

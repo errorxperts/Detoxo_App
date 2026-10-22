@@ -23,8 +23,8 @@ class _FakePinRepo implements PinRepository {
   Future<({int elapsedMs, int bootCount})?> monotonicNow() async => null;
 }
 
-/// Runs on the REAL macOS engine (native CNButton/CNSwitch), so it reproduces
-/// native platform-view layout that `flutter test` fakes away.
+/// Runs on a real device engine, so the sheet, its wait and the slide are
+/// exercised as they ship rather than in the test binding.
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 

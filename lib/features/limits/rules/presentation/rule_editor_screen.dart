@@ -178,7 +178,7 @@ class _RuleEditorScreenState extends State<RuleEditorScreen> {
           TextField(
             controller: _name,
             // Bounded like every other input here: the name is persisted and
-            // rendered in a list row and on the dashboard card.
+            // rendered in a list row and in Today's Blocker rules row.
             maxLength: 40,
             textCapitalization: TextCapitalization.sentences,
             textInputAction: TextInputAction.done,

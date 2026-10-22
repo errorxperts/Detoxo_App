@@ -20,7 +20,7 @@ export 'package:detoxo/features/limits/rules/domain/usecases/resolve_snapshot.da
 export 'package:detoxo/features/limits/rules/domain/usecases/rule_calendar.dart';
 export 'package:detoxo/features/limits/rules/domain/usecases/rule_summary.dart';
 // The rules cubit is provided app-wide in `main.dart` (the content_counter
-// precedent), so the dashboard card and the resume sync reach it through here.
+// precedent), so Today's Blocker rules row and the resume sync reach it through here.
 export 'package:detoxo/features/limits/rules/presentation/rules_cubit.dart';
 export 'package:detoxo/features/limits/streak/domain/entities/streak.dart';
 export 'package:detoxo/features/limits/streak/domain/repositories/streak_repository.dart';
