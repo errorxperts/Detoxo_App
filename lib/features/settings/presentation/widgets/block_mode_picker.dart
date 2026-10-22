@@ -1,6 +1,8 @@
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart';
 import 'package:detoxo/features/blocking/blocking.dart' show BlockingMode;
+import 'package:detoxo/features/permissions/permissions.dart'
+    show AppPermission;
 import 'package:flutter/material.dart';
 
 /// The block-mode picker and its entry tile, cubit-free so a widget test can
@@ -18,11 +20,7 @@ const blockModes = <(BlockingMode, String, String)>[
     'Block screen',
     'Exits the reel and shows a full-screen wall with a way back',
   ),
-  (
-    BlockingMode.killApp,
-    'Close the app',
-    'Force-closes (exit app) the offending app',
-  ),
+  (BlockingMode.killApp, 'Close the app', 'Closes the app'),
   (
     BlockingMode.lockApp,
     'Lock app',
@@ -33,42 +31,11 @@ const blockModes = <(BlockingMode, String, String)>[
 String blockModeTitle(BlockingMode m) =>
     blockModes.firstWhere((e) => e.$1 == m, orElse: () => blockModes.first).$2;
 
-/// A radio-style row for the pickers. `selected` reaches Semantics through
-/// [GlassListTile], so a screen reader announces which option is active.
-class OptionTile extends StatelessWidget {
-  const OptionTile({
-    required this.title,
-    required this.subtitle,
-    required this.selected,
-    required this.onTap,
-    super.key,
-  });
-
-  final String title;
-  final String subtitle;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassListTile(
-      leading: Icon(
-        selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-        color: selected
-            ? Theme.of(context).colorScheme.secondary
-            : context.tokens.ink2,
-      ),
-      title: title,
-      subtitle: subtitle,
-      selected: selected,
-      onTap: onTap,
-    );
-  }
-}
-
-/// "Needs X — tap to allow": the truthful row under a feature whose switch is
-/// on but whose Android grant is missing (EVO-036 / EVO-042). One shape for
-/// the block mode, the soft nudge and notification silence.
+/// The truthful row under a feature whose switch is on but whose Android grant
+/// is missing (EVO-036 / EVO-042): the grant's name, what is not happening,
+/// and the status 'Needs access'; a tap asks for the grant. One shape for the
+/// block mode, the soft nudge and notification silence, drawn in the panel of
+/// the row it belongs to.
 class PermissionNeededRow extends StatelessWidget {
   const PermissionNeededRow({
     required this.title,
@@ -83,22 +50,19 @@ class PermissionNeededRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: GlassListTile(
-        leading: Icon(
-          Icons.error_outline,
-          color: context.tokens.statusText(context.tokens.statusSetup),
-        ),
-        title: title,
-        subtitle: subtitle,
-        onTap: onTap,
-      ),
+    return GlassListTile(
+      // Indents the text to the row above's title (a 24 px glyph).
+      leading: const SizedBox(width: 24),
+      title: title,
+      subtitle: subtitle,
+      trailing: const Pill(label: 'Needs access', tone: AppTone.warning),
+      onTap: onTap,
     );
   }
 }
 
-/// The four selectable modes.
+/// The four modes as option rows; the picked one carries the check and is
+/// announced as selected.
 class BlockModeOptions extends StatelessWidget {
   const BlockModeOptions({
     required this.selected,
@@ -111,18 +75,14 @@ class BlockModeOptions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+    return PanelGroup(
       children: [
         for (final e in blockModes)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-            child: OptionTile(
-              title: e.$2,
-              subtitle: e.$3,
-              selected: selected == e.$1,
-              onTap: () => onSelect(e.$1),
-            ),
+          GlassListTile(
+            title: e.$2,
+            subtitle: e.$3,
+            selected: selected == e.$1,
+            onTap: () => onSelect(e.$1),
           ),
       ],
     );
@@ -158,8 +118,8 @@ class BlockModeTile extends StatelessWidget {
         ),
         if (needsOverlay)
           PermissionNeededRow(
-            title: 'Needs “Display over other apps”',
-            subtitle: 'No block screen can appear yet — tap to allow',
+            title: AppPermission.overlay.label,
+            subtitle: 'No block screen can appear until you allow it',
             onTap: onGrant,
           ),
       ],

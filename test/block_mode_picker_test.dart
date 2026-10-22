@@ -1,7 +1,6 @@
 import 'dart:ui' show Tristate;
 
 import 'package:detoxo/core/design_system/design_system.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/features/blocking/blocking.dart' show BlockingMode;
 import 'package:detoxo/features/settings/presentation/widgets/block_mode_picker.dart';
 import 'package:flutter/material.dart';
@@ -39,12 +38,14 @@ void main() {
     ]) {
       expect(find.text(label), findsOneWidget);
     }
-    // Exactly one row is selected, and the glyph is not the only signal.
+    // Exactly one row is selected, and the check is not the only signal.
     final selected = tester
-        .widgetList<OptionTile>(find.byType(OptionTile))
-        .where((t) => t.selected)
+        .widgetList<GlassListTile>(find.byType(GlassListTile))
+        .where((t) => t.selected ?? false)
         .toList();
     expect(selected.map((t) => t.title), ['Block screen']);
+    expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+    expect(find.text('Closes the app'), findsOneWidget);
     expect(
       tester.getSemantics(find.text('Block screen')).flagsCollection.isSelected,
       Tristate.isTrue,
@@ -83,8 +84,9 @@ void main() {
         ),
       );
       expect(find.text('Block screen'), findsOneWidget);
-      expect(find.text('Needs “Display over other apps”'), findsOneWidget);
-      await tester.tap(find.text('Needs “Display over other apps”'));
+      expect(find.text('Display over other apps'), findsOneWidget);
+      expect(find.text('Needs access'), findsOneWidget);
+      await tester.tap(find.text('Display over other apps'));
       expect(granted, 1);
 
       await _pump(
@@ -96,7 +98,7 @@ void main() {
           onGrant: () {},
         ),
       );
-      expect(find.text('Needs “Display over other apps”'), findsNothing);
+      expect(find.text('Needs access'), findsNothing);
     },
   );
 }

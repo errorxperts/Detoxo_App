@@ -1,4 +1,5 @@
 import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/features/blocking/shared/domain/entities/enums.dart';
 import 'package:detoxo/features/permissions/domain/entities/permission_status.dart';
 import 'package:detoxo/features/permissions/presentation/permissions_cubit.dart';
 import 'package:detoxo/features/permissions/presentation/widgets/restricted_settings_sheet.dart';
@@ -36,6 +37,43 @@ Future<bool> requestPermission(BuildContext context, AppPermission kind) async {
 
   await cubit.request(kind);
   return true;
+}
+
+/// One permission as a [PermissionCard], bound to the cubit and to
+/// [requestPermission]: the funnel and the Settings sheet render the same row,
+/// so its glyph, its status words and its action can't drift between them.
+class PermissionRow extends StatelessWidget {
+  const PermissionRow(this.status, {super.key});
+
+  final PermissionStatus status;
+
+  static IconData _icon(AppPermission p) => switch (p) {
+    AppPermission.accessibility => Icons.accessibility_new,
+    AppPermission.overlay => Icons.layers,
+    AppPermission.notifications => Icons.notifications,
+    AppPermission.usageAccess => Icons.bar_chart,
+    AppPermission.batteryOptimization => Icons.battery_charging_full,
+    AppPermission.deviceAdmin => Icons.shield,
+    AppPermission.notificationListener => Icons.notifications_off,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final cubit = context.read<PermissionsCubit>();
+    return PermissionCard(
+      icon: _icon(status.kind),
+      title: status.kind.label,
+      why: status.kind.why,
+      // The gate's predicate, so a flaky (unknown) read never shows a working
+      // grant as missing.
+      granted: cubit.effectivelyGranted(status),
+      // Genuinely unknown (no granted history): neutral "Checking…".
+      unknown: status.state == PermissionState.unknown,
+      permanentlyDenied: status.permanentlyDenied,
+      actionLabel: status.blockedByRestrictedSettings ? 'Fix this' : null,
+      onGrant: () => requestPermission(context, status.kind),
+    );
+  }
 }
 
 /// The two grants whose scope is wider than their name suggests, and which Play

@@ -118,7 +118,7 @@ class _Host extends StatelessWidget {
                 builder: (inner) => Center(
                   child: ElevatedButton(
                     onPressed: () {
-                      GlassToast.show(inner, 'PIN saved.');
+                      GlassToast.show(inner, 'PIN saved');
                       Navigator.of(inner).pop();
                     },
                     child: const Text('do save+pop'),

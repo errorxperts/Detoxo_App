@@ -132,10 +132,18 @@ which is the fail-safe direction.
 ## 5. UI & the self-bypass PIN gate
 
 Settings → **Privacy** → **Protected apps** (`Routes.protectedApps`,
-route-local `ProtectedAppsCubit(repo, engine, config)`): two sections —
-**Your apps** (manual additions, delete only) and **Auto-protected**
-(installed catalog apps, read-only cards with a category pill; when install
-state is unknown the whole catalog renders). The FAB opens the shared
+route-local `ProtectedAppsCubit(repo, engine, config)`), in the Frozen Glass
+panel idiom: one body / ink-2 intro line ("Detoxo never reads, counts, blocks
+or interrupts these apps. It pauses while you use them.") replaces the old
+three inline hints and the app-bar info button; a search field appears past 8
+apps; then up to two sections, each a `SectionHeader` over **one**
+`PanelGroup` of flat `GlassListTile` rows (20 px gutters) — **Your apps**
+(manual additions: the app icon and name, a remove button; the section is
+absent until the first add, the FAB being the way in) and **Auto-protected**
+(installed catalog apps, read-only rows with the category as the subhead
+subtitle — sentence case, e.g. "Password manager"; when install state is
+unknown the whole catalog renders). While searching, an empty section
+disappears and "No matches" shows. The `GlassFab` "Add app" opens the shared
 installed-app picker (`core/widgets/app_picker_sheet.dart` →
 `showAppPickerSheet`): a searchable, multi-select bottom sheet of the device's
 launchable apps (icon + name + package, from
@@ -177,7 +185,7 @@ turning blocking off:
    them entirely. With the multi-select picker the PIN is asked **once per batch**
 when *any* picked package is monitored. Adding a bank has zero friction. The
 gate **fails closed**: an empty monitored set (load pending or failed)
-PIN-gates every add, and the "Add app" FAB is disabled until a load succeeds —
+PIN-gates every add, and the "Add app" `GlassFab` is disabled until a load succeeds —
 adding over a failed load would also overwrite stored protections, since state
 would show an empty list. A failed load renders `EmptyState` + Retry and
 always keeps whatever the repo returned.

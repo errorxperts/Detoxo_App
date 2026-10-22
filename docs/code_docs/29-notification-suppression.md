@@ -249,6 +249,6 @@ mid-session → silent degradation, no crash; toggle accessibility → unrelated
 - `lib/features/permissions/domain/entities/permission_status.dart` (`AppPermission.notificationListener`)
 - `lib/features/permissions/data/repositories/permission_repository_impl.dart` (`_read`, `request`)
 - `lib/features/permissions/presentation/permission_actions.dart` (`_disclosureFor`), `lib/features/permissions/presentation/permissions_screen.dart`
-- `lib/features/settings/presentation/settings_screen.dart` (the Privacy toggle, `_setSuppressNotifications`, `_permissionIcon`)
+- `lib/features/settings/presentation/settings_screen.dart` (the Privacy toggle `_GrantedSwitch`, `_setSuppressNotifications`)
 - `android/app/src/test/kotlin/com/errorxperts/detoxo/engine/SuppressionDecisionTest.kt`
 - `test/notification_suppression_test.dart`

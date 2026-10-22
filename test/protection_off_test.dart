@@ -118,8 +118,10 @@ Future<void> _toggle(WidgetTester tester, String title) async {
     of: find.widgetWithText(AppToggleTile, title),
     matching: find.byType(AppToggle),
   );
+  // Hit-testable, not merely built: a row in the lazy list's cache extent
+  // below the fold has an element but can't take a tap.
   await tester.scrollUntilVisible(
-    toggle,
+    toggle.hitTestable(),
     200,
     scrollable: find.byType(Scrollable).first,
   );
