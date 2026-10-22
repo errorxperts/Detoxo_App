@@ -12,19 +12,15 @@ FeedbackThemeData glassFeedbackTheme(Brightness brightness) {
     background: t.bgBottom,
     // Transparent, but the RGB channels are kept dark/light so the package's
     // brightness estimation (which ignores alpha) resolves the right Material
-    // theme for the form's text field.
+    // theme for its own controls. The form itself is given `AppTheme`.
     feedbackSheetColor: brightness == Brightness.dark
         ? const Color(0x00000000)
         : const Color(0x00FFFFFF),
     // A compact collapsed sheet keeps a large screenshot preview above it; it
     // is draggable to expand and grows automatically when the keyboard opens.
     feedbackSheetHeight: 0.42,
-    activeFeedbackModeColor: t.brand.light,
+    // The active Navigate / Draw control in ink: the accent is reserved.
+    activeFeedbackModeColor: t.ink,
     drawColors: [t.over.main, t.pause.main],
-    bottomSheetDescriptionStyle: TextStyle(
-      color: t.ink,
-      fontWeight: FontWeight.w600,
-    ),
-    bottomSheetTextInputStyle: TextStyle(color: t.ink),
   );
 }

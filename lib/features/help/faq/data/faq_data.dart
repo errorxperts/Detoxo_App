@@ -17,13 +17,13 @@ const List<FaqEntry> kFaqEntries = [
     category: FaqCategory.setup,
     question: 'Which permissions are required and which are optional?',
     answer:
-        'Only two are required to block: Accessibility and Display over apps. '
-        'Notifications, Usage access, Unrestricted battery and Uninstall '
+        'Only two are required to block: Accessibility and Display over other '
+        'apps. Notifications, Usage access, Unrestricted battery and Uninstall '
         'protection are recommended but optional — you can add them later.',
   ),
   FaqEntry(
     category: FaqCategory.setup,
-    question: 'Why does Detoxo need "Display over apps"?',
+    question: 'Why does Detoxo need "Display over other apps"?',
     answer:
         'So it can draw the block screen and PIN prompt on top of other apps, '
         'and float the optional reel-counter bubble. Without it, blocking still '
@@ -54,7 +54,9 @@ const List<FaqEntry> kFaqEntries = [
     answer:
         'Block All closes every reel on sight. Conscious lets you earn '
         'watch-time by staying off reels. One Reel allows a single clip, then '
-        'blocks the rest. Pause suspends all blocking for a short, timed break.',
+        'blocks the rest, and Unblock does the same for a count of 1 to 20 '
+        'reels. Pause lifts reel and website blocking for a short, timed '
+        'break.',
   ),
   FaqEntry(
     category: FaqCategory.blocking,
@@ -84,17 +86,17 @@ const List<FaqEntry> kFaqEntries = [
     category: FaqCategory.blocking,
     question: 'How do I take a quick break?',
     answer:
-        'Use Pause on the home Command Center: pick 2–10 minutes and everything '
-        'is allowed until the timer ends, then blocking turns itself back on '
-        'automatically — no way to forget to re-enable it.',
+        'Tap Pause on Today, pick 1 to 10 minutes and tap Start. Reels and '
+        'websites stay unblocked until the timer ends, then blocking turns '
+        'itself back on. App locks stay on.',
   ),
   FaqEntry(
     category: FaqCategory.blocking,
     question: 'How do I turn blocking off entirely?',
     answer:
-        'Open Settings and switch off Protection (the master switch for all '
-        'detection). If you have set a PIN, Detoxo asks for it first — an '
-        'intentional speed bump against an impulsive "just turn it off".',
+        'Open Settings and switch off Blocking active. If you set a PIN, '
+        'Detoxo asks for it first; then you wait a moment and slide to '
+        'confirm.',
   ),
 
   // ── Reel counter ──────────────────────────────────────────────────────────
@@ -125,7 +127,7 @@ const List<FaqEntry> kFaqEntries = [
     category: FaqCategory.counter,
     question: 'Where can I see my count?',
     answer:
-        'Three ways: inside the app on the Reel counter screen, on an optional '
+        'Three ways: inside the app on Today and in Insights, on an optional '
         'floating bubble that hovers while you watch, and on an optional 2×2 '
         'home-screen widget. The bubble and widget work even when Detoxo is '
         'closed.',
@@ -135,11 +137,11 @@ const List<FaqEntry> kFaqEntries = [
     question: 'Why does the floating bubble need a permission?',
     answer:
         'The bubble floats on top of other apps, which needs the Display over '
-        'apps permission. It is optional — skip it and counting still works '
-        'everywhere; you just won’t see the bubble.',
+        'other apps permission. It is optional — skip it and counting still '
+        'works everywhere; you just won’t see the bubble.',
   ),
 
-  // ── App & web blocker, daily limit ────────────────────────────────────────
+  // ── App Blocker & Web Blocker, daily limit ────────────────────────────────
   FaqEntry(
     category: FaqCategory.blockersLimits,
     question: 'Can I block whole apps and websites too?',
@@ -149,7 +151,7 @@ const List<FaqEntry> kFaqEntries = [
   ),
   FaqEntry(
     category: FaqCategory.blockersLimits,
-    question: 'How does the website blocker work?',
+    question: 'How does the Web Blocker work?',
     answer:
         'It reads your browser’s address bar (using the same Accessibility '
         'permission) and presses Back when you land on a blocked site — no VPN '
@@ -159,9 +161,9 @@ const List<FaqEntry> kFaqEntries = [
     category: FaqCategory.blockersLimits,
     question: 'What is the daily limit?',
     answer:
-        'A personal per-day target for your reel time that you can set, see and '
-        'reset — a self-awareness tool. For a firm cut-off, use Block All or '
-        'Conscious.',
+        'A cap on your reel time each day. Once today’s reel time reaches it, '
+        'reel feeds stay blocked until midnight while the rest of each app '
+        'keeps working. Change it in Settings → Daily limit.',
   ),
 
   // ── PIN & recovery ────────────────────────────────────────────────────────
@@ -189,9 +191,10 @@ const List<FaqEntry> kFaqEntries = [
     category: FaqCategory.pin,
     question: 'Can I change my PIN type or turn the lock off?',
     answer:
-        'Yes — open Settings → PIN settings to change the PIN type, what it '
-        'guards, and biometrics, or to turn the lock off entirely. It is gated '
-        'by your current PIN.',
+        'Yes. Open Settings → PIN settings to change the PIN type, what it '
+        'guards and biometrics. To turn the lock off, switch off PIN lock in '
+        'Settings; Detoxo asks for your current PIN, then you wait a moment '
+        'and slide to confirm.',
   ),
 
   // ── Privacy & data ────────────────────────────────────────────────────────
@@ -245,11 +248,12 @@ const List<FaqEntry> kFaqEntries = [
         'If Android showed "Restricted setting" or "App was denied access", '
         'that is Android protecting apps installed outside the Play Store — not '
         'a problem with Detoxo. Open Android Settings → Apps → Detoxo, tap the '
-        '⋮ menu at the top right and choose "Allow restricted settings" (some '
-        'phones list it at the bottom of App info instead), then come back and '
-        'tap Grant. It is a one-time confirmation and unlocks every switch at '
-        'once. Detoxo also offers a "Fix this" button once it notices a switch '
-        'isn’t taking. Installing from the Play Store avoids this entirely.',
+        'three-dot menu at the top right and choose "Allow restricted '
+        'settings" (some phones list it at the bottom of App info instead), '
+        'then come back and tap Grant. It is a one-time confirmation and '
+        'unlocks every switch at once. Detoxo also offers a "Fix this" button '
+        'once it notices a switch isn’t taking. Installing from the Play Store '
+        'avoids this entirely.',
   ),
   FaqEntry(
     category: FaqCategory.troubleshooting,

@@ -75,8 +75,9 @@ abstract final class AppUpgradeDialog {
   }
 }
 
-/// The dialog body: optional "What's new" notes (scrollable, since store notes
-/// can be long) and, for optional updates, a subtle "Skip this version" action.
+/// The dialog body: optional "What's new" notes in a quiet well (scrollable,
+/// since store notes can be long) and, for optional updates, a subtle "Skip
+/// this version" action.
 class _Body extends StatelessWidget {
   const _Body({required this.status, this.onSkip});
 
@@ -85,7 +86,7 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final t = context.tokens;
     final notes = status.releaseNotes?.trim();
     final hasNotes = notes != null && notes.isNotEmpty;
 
@@ -97,30 +98,28 @@ class _Body extends StatelessWidget {
       children: [
         if (hasNotes) ...[
           Text(
-            "What's new",
-            style: text.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+            "What's new".toUpperCase(),
+            style: AppTypography.eyebrow.copyWith(color: t.ink2),
           ),
           const SizedBox(height: AppSpacing.xs),
           Container(
             constraints: const BoxConstraints(maxHeight: 160),
-            padding: const EdgeInsets.all(AppSpacing.sm),
+            padding: const EdgeInsets.all(AppSpacing.card),
             decoration: BoxDecoration(
-              color: context.tokens.fillQuiet,
-              borderRadius: AppRadius.brMd,
-              border: Border.all(color: context.tokens.hairline),
+              color: t.fillQuiet,
+              borderRadius: BorderRadius.circular(AppRadius.row),
             ),
             child: SingleChildScrollView(
               child: Text(
                 notes,
-                style: text.bodySmall?.copyWith(color: context.tokens.ink2),
+                style: AppTypography.subhead.copyWith(color: t.ink2),
               ),
             ),
           ),
         ],
         if (onSkip != null) ...[
           const SizedBox(height: AppSpacing.xs),
-          Align(
-            alignment: Alignment.centerLeft,
+          Center(
             child: SecondaryButton(
               label: 'Skip this version',
               onPressed: onSkip,

@@ -19,8 +19,9 @@ class UpgradeState extends Equatable {
   /// [UpgradeView.updateAvailable].
   final UpgradeStatus? status;
 
-  /// Whether the current check was user-initiated (drawer "Check for updates").
-  /// Lets the UI show an "up to date" confirmation only when the user asked.
+  /// Whether the current check was user-initiated (a tap on the Settings
+  /// version row). Lets the UI show an "up to date" confirmation only when the
+  /// user asked.
   final bool manual;
 
   @override
@@ -35,9 +36,9 @@ class UpgradeCubit extends Cubit<UpgradeState> {
 
   final AppUpgradeService _service;
 
-  /// Runs a store-version check. [manual] is set for the drawer entry so an
-  /// "up to date" result can be surfaced to the user (the automatic launch
-  /// check stays silent when there's nothing to show).
+  /// Runs a store-version check. [manual] is set for the Settings version row
+  /// so an "up to date" result can be surfaced to the user (the automatic
+  /// launch check stays silent when there's nothing to show).
   Future<void> check({bool manual = false}) async {
     emit(UpgradeState(view: UpgradeView.checking, manual: manual));
     try {

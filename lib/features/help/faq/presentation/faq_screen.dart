@@ -1,3 +1,4 @@
+import 'package:detoxo/core/constants/app_constants.dart';
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/help/faq/data/faq_data.dart';
 import 'package:detoxo/features/help/faq/domain/entities/faq_entry.dart';
@@ -29,9 +30,9 @@ class _FaqView extends StatelessWidget {
           final results = filterFaqs(query);
           return ListView(
             padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
+              AppSpacing.gutter,
               0,
-              AppSpacing.md,
+              AppSpacing.gutter,
               AppSpacing.xxl,
             ),
             children: [
@@ -49,7 +50,8 @@ class _FaqView extends StatelessWidget {
                     icon: Icons.search_off,
                     title: 'No results',
                     subtitle:
-                        'Try different keywords, or email errorxperts@gmail.com',
+                        'Try different keywords, or email '
+                        '${AppSupport.supportEmail}',
                   ),
                 )
               else
@@ -63,8 +65,8 @@ class _FaqView extends StatelessWidget {
     );
   }
 
-  /// A section header + its matching entries, or nothing when the category has
-  /// no matches for the current query.
+  /// A section header + one panel of its matching entries, or nothing when the
+  /// category has no matches for the current query.
   List<Widget> _categorySection(
     BuildContext context,
     FaqCategory category,
@@ -74,7 +76,9 @@ class _FaqView extends StatelessWidget {
     if (entries.isEmpty) return const [];
     return [
       SectionHeader(category.label),
-      for (final entry in entries) FaqExpansionTile(entry: entry),
+      PanelGroup(
+        children: [for (final entry in entries) FaqExpansionTile(entry: entry)],
+      ),
     ];
   }
 }

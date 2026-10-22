@@ -24,7 +24,7 @@ class LegalWebViewScreen extends StatefulWidget {
 class _LegalWebViewScreenState extends State<LegalWebViewScreen> {
   late final WebViewController _controller;
 
-  /// First-load spinner; cleared once the page finishes (or errors).
+  /// First-load [LoadingState]; cleared once the page finishes (or errors).
   bool _loading = true;
 
   /// Set when the initial load fails so we can offer a retry.
@@ -72,54 +72,41 @@ class _LegalWebViewScreenState extends State<LegalWebViewScreen> {
       body: Stack(
         children: [
           if (!_failed) WebViewWidget(controller: _controller),
-          if (_loading)
-            const Center(child: CircularProgressIndicator())
-          else if (_failed)
-            _LoadError(onRetry: _load),
+          LegalPageStatus(loading: _loading, failed: _failed, onRetry: _load),
         ],
       ),
     );
   }
 }
 
-/// Full-bleed error state shown when the page can't be reached, with a retry.
-class _LoadError extends StatelessWidget {
-  const _LoadError({required this.onRetry});
+/// The page's loading and error states, drawn over the web view: the
+/// [LoadingState] while [loading], a calm [EmptyState] with Retry once
+/// [failed], otherwise nothing. Public so the states test without a platform
+/// web view.
+class LegalPageStatus extends StatelessWidget {
+  const LegalPageStatus({
+    required this.loading,
+    required this.failed,
+    required this.onRetry,
+    super.key,
+  });
 
+  final bool loading;
+  final bool failed;
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    final muted = context.tokens.ink2;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.cloud_off_outlined, size: 40, color: muted),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              "Couldn't load this page",
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Check your connection and try again.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: muted),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            PrimaryButton(
-              label: 'Retry',
-              icon: Icons.refresh,
-              onPressed: onRetry,
-            ),
-          ],
-        ),
+    if (loading) return const LoadingState();
+    if (!failed) return const SizedBox.shrink();
+    return EmptyState(
+      icon: Icons.cloud_off_outlined,
+      title: "Couldn't load this page",
+      subtitle: 'Check your connection and try again.',
+      action: PrimaryButton(
+        label: 'Retry',
+        icon: Icons.refresh,
+        onPressed: onRetry,
       ),
     );
   }

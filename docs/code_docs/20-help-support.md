@@ -14,12 +14,14 @@ submodules, each reached only through the feature barrel
 ## Hub
 
 [`HelpScreen`](../../lib/features/help/presentation/help_screen.dart) (`Routes.help`) is a
-`GlassScaffold` + `GlassAppBar` listing `FeatureTile`s grouped under **Get help**, **Learn &
-share**, and **Legal** section headers:
+`GlassScaffold` + `GlassAppBar` with three sections — **Get help**, **Learn & share** and
+**Legal** — each an uppercase `SectionHeader` over **one** `PanelGroup` of flat `FeatureTile`
+rows (ink-2 glyph, label/ink title, subhead/ink-2 subtitle, the row's own ink-3 chevron,
+hairline-divided), inside the 20 px gutter:
 
 | Tile | Action |
 |---|---|
-| Report an issue | Opens `ReportIssueDialog` (a dialog — no route) |
+| Report an issue | Opens `ReportIssueDialog` (a sheet — no route) |
 | FAQ | Pushes `Routes.helpFaq` |
 | Feature tutorials | Pushes `Routes.featureTutorial` |
 | Share an idea | Pushes `Routes.shareIdeas` |
@@ -29,12 +31,26 @@ share**, and **Legal** section headers:
 ## 1. Report an issue (`report_issue/`)
 
 [`ReportIssueDialog.show(context)`](../../lib/features/help/report_issue/presentation/report_issue_dialog.dart)
-is an `AppDialog` in the design system's sheet (presentation-only). It explains the bug-report flow, hosts a live
-`AppToggleTile` bound to `settings.showFeedbackButton`
-(`SettingsCubit.setShowFeedbackButton`), and offers **Report a bug now** which pops the dialog
-and calls `FeedbackLauncher.show(context)` — the app-wide `BetterFeedback` overlay captures the
-underlying screen, so the annotated screenshot is of the real screen, not the dialog. Delivery
-reuses the `app_feedback` email path (`FeedbackRepository` → `errorxperts@gmail.com`).
+is an `AppDialog` in the design system's sheet (presentation-only). Its one-line message names
+the button it describes ("Tap Report a bug to capture this screen, mark it up and send it to us
+with your device details."); below it, a flat `AppToggleTile` row under a hairline (ink-2 glyph,
+no panel — the sheet is its surface) bound to `settings.showFeedbackButton`
+(`SettingsCubit.setShowFeedbackButton`). **Report a bug** (`PrimaryButton`, over **Close**) pops
+the sheet and calls `FeedbackLauncher.show(context)` — the app-wide `BetterFeedback` overlay
+captures the underlying screen, so the annotated screenshot is of the real screen, not the
+sheet. Delivery reuses the `app_feedback` email path (`FeedbackRepository` →
+`errorxperts@gmail.com`).
+
+The overlay's form,
+[`GlassFeedbackForm`](../../lib/features/additional_feature/app_feedback/presentation/widgets/glass_feedback_form.dart),
+is drawn as the spec SHEET (10 in from the edges, `AppSpacing.sheetSide` inside, a 40×5
+`grabber` while the package lets it be dragged) and gets `AppTheme` from `main.dart`, so its
+message field is the app's input theme (quiet fill, radius 22, 2 px focus border). The header
+glyph is ink, the category picker is OPTION `AppChip`s, and the rating stars are ink filled /
+ink-2 idle ([`FeedbackRatingSelector`](../../lib/features/additional_feature/app_feedback/presentation/widgets/feedback_rating_selector.dart)).
+[`glassFeedbackTheme`](../../lib/features/additional_feature/app_feedback/presentation/theme/feedback_theme.dart)
+paints the package's own chrome: `bgBottom` behind the screenshot, the active Navigate / Draw
+control in ink (the accent is reserved), draw colours `over` / `pause` main.
 
 ## 2. FAQ (`faq/`)
 
@@ -49,8 +65,20 @@ A searchable, category-grouped list of static content that mirrors
 - [`FaqCubit`](../../lib/features/help/faq/presentation/faq_cubit.dart) — holds only the search
   query (`Cubit<String>`); the view derives the filtered/grouped list.
 - [`FaqScreen`](../../lib/features/help/faq/presentation/faq_screen.dart) — `AppSearchField` +
-  per-category `SectionHeader`s of [`FaqExpansionTile`](../../lib/features/help/faq/presentation/widgets/faq_expansion_tile.dart);
-  no matches renders an `EmptyState`.
+  per category a `SectionHeader` over one `PanelGroup` of
+  [`FaqExpansionTile`](../../lib/features/help/faq/presentation/widgets/faq_expansion_tile.dart)
+  rows; no matches renders an `EmptyState` naming `AppSupport.supportEmail`.
+- `FaqExpansionTile` — a flat row (no surface of its own): the question in label/ink on an
+  `AppPressable` with an ink-3 chevron that turns from down to up, and the answer in
+  subhead/ink-2 opening below it, clipped while it grows (the spec `.dx-detail`:
+  `AppDurations.detail` on `AppCurves.detail`, through `context.motion`, so nothing moves under
+  Reduce Motion). The question is one merged semantics node with the expanded state; a closed
+  answer leaves the tree.
+- Copy follows the voice rules (no "!", Title Case feature names): the category is **App
+  Blocker & Web Blocker**, Pause is "pick 1 to 10 minutes and tap Start", turning blocking off is
+  **Blocking active** + PIN + wait and slide, the count lives "on Today and in Insights", and the
+  permission is "Display over other apps". `test/help_test.dart` pins the search and a stale-name
+  / "!" sweep over every entry, plus the tile's open/close and semantics.
 
 ## 3. Feature tutorials (`feature_tutorial/`)
 
@@ -129,8 +157,13 @@ builds a `FeedbackReport(category: FeedbackCategory.suggestion, rating: 0, scree
 Uint8List(0))` and `send()`s it, which opens the device email composer prefilled to support. The
 empty screenshot is tolerated by `EmailFeedbackRepositoryImpl` (no attachment).
 [`ShareIdeasScreen`](../../lib/features/help/share_ideas/presentation/share_ideas_screen.dart)
-disables Send until the message is non-blank, toasts success/failure via `GlassToast`, and pops
-on success. There is **no new repository** — it is registered nowhere new in the injector.
+disables Send until the message is non-blank, toasts success ("Your idea is on its way. Thank
+you.") / failure via `GlassToast`, and pops on success. Layout: one subhead/ink-2 intro line; a
+**Your idea** `SectionHeader` over one panel holding the collapsed `TextField` (body/ink, ink-2
+hint, the spec `FocusRing` around the panel while it has focus) and the count ("Every idea
+helps" when empty); **Need a nudge?** over momentary OPTION `AppChip`s that insert a starter
+phrase; then `PrimaryButton` **Send idea** and the email footnote. There is **no new
+repository** — it is registered nowhere new in the injector.
 
 ## 5. Legal (`legal/`)
 
@@ -142,8 +175,10 @@ Both tiles push the same reusable
 - The screen owns a `webview_flutter` `WebViewController` built in `initState` with
   `JavaScriptMode.unrestricted` — **required**, because the hosted pages are a single-page site
   that routes by URL fragment (`#privacy` / `#terms`); without JS the correct section won't
-  render. A `NavigationDelegate` clears a first-load spinner on `onPageFinished` and shows an
-  inline **Retry** error state on a main-frame `onWebResourceError`.
+  render. A `NavigationDelegate` clears the first-load `LoadingState` on `onPageFinished` and
+  shows the error state on a main-frame `onWebResourceError`: an `EmptyState` ("Couldn't load
+  this page") with a `PrimaryButton` **Retry**. Both states are `LegalPageStatus`, public so
+  `test/legal_web_view_test.dart` checks them without a platform web view.
 - Chrome is the standard `GlassScaffold` + `GlassAppBar(title: …)`; the app bar's default back
   button pops.
 - The canonical URLs are the single source of truth in
@@ -181,7 +216,8 @@ Both tiles push the same reusable
 - `lib/features/help/share_ideas/presentation/share_ideas_cubit.dart`
 - `lib/features/help/share_ideas/presentation/share_ideas_screen.dart`
 - `lib/features/help/legal/legal.dart`
-- `lib/features/help/legal/presentation/legal_web_view_screen.dart`
+- `lib/features/help/legal/presentation/legal_web_view_screen.dart` (`LegalWebViewScreen`, `LegalPageStatus`)
+- `lib/features/additional_feature/app_feedback/presentation/widgets/glass_feedback_form.dart`, `feedback_rating_selector.dart`, `feedback_category_chips.dart`, `presentation/theme/feedback_theme.dart` (the report form)
 - `lib/core/constants/app_constants.dart` (`AppLegal` URLs)
 - `pubspec.yaml` (`webview_flutter` dependency)
 - `lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart` (6-step keys/order/content, the spec icons)
