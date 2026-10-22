@@ -337,7 +337,7 @@ resolution.
 | Capability | Status |
 |---|---|
 | Block counts (native `block_today` / `block_total`, plus yesterday's rotated count and a bounded per-package tally — the Insights tab's **Blocked** tile and the **By app → Blocks** rows) | Shipped (EVO-059 / EVO-060) |
-| Insights screen (the HomeShell Insights tab + the pushed `/analytics` route, both titled 'Insights'; three headed sections — Today, Distraction, By app — one glass panel each, then the Overrides card; the source note is behind an info button) | Shipped — layout in [28](28-insights.md) §6 |
+| Insights screen (the HomeShell Insights tab + the pushed `/analytics` route, both titled 'Insights'; three headed sections — Today, Distraction, By app — one panel each, then the overrides-left row; the source note is behind an info button) | Shipped — layout in [28](28-insights.md) §6 |
 | Foreground-service notification (`detoxo_protection_channel`, id `1125`, special-use FGS) | Shipped |
 | Protection watchdog (`WatchdogJobService`, job `1126`; "Protection stopped" notification `1127` on `detoxo_watchdog_channel`) | Shipped — detect + notify only (a rebind cannot be forced) |
 | BootReceiver (schedules the watchdog; OS auto-rebinds the accessibility service) | Shipped |

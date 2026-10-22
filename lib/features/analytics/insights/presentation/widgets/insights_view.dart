@@ -12,7 +12,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// The **Distraction** section — how much of today's screen time went to apps
 /// the catalog calls distracting — or the permission card that stands in for
 /// it, under the one header either way. The headline figures (screen time,
-/// pickups) and the per-app list live in the Activity screen's own
+/// pickups) and the per-app list live in the Insights screen's own
 /// `TodayOverview` and `ByAppSection`, which read the same cubit; this view
 /// owns the cubit's lifecycle.
 ///
@@ -29,7 +29,7 @@ class InsightsView extends StatefulWidget {
 
 class _InsightsViewState extends State<InsightsView>
     with WidgetsBindingObserver, AutomaticKeepAliveClientMixin {
-  /// The Activity list is lazy: scrolled past the cache extent this state is
+  /// The Insights list is lazy: scrolled past the cache extent this state is
   /// disposed, and the next scroll back would re-run the mount refresh — two
   /// channel queries, the fold and a Hive write — for nothing.
   @override
@@ -140,9 +140,10 @@ class _UsageAccessCard extends StatelessWidget {
   }
 }
 
-/// How much of the day went to distracting apps, in one glass panel: a share
-/// bar with its caption, a hairline, then the two counts that explain it
-/// (switches, opens) as flat tiles.
+/// How much of the day went to distracting apps, in one panel: a share bar
+/// (the static brand fill, never the live accent) with its caption, a
+/// hairline, then the two counts that explain it (switches, opens) as flat
+/// tiles.
 class _DistractionCard extends StatelessWidget {
   const _DistractionCard({required this.stats});
 
@@ -186,12 +187,11 @@ class _DistractionCard extends StatelessWidget {
               ),
             ),
           ),
-          Divider(
+          // The theme's divider is the hairline.
+          const Divider(
             height: 1,
-            thickness: 1,
             indent: AppSpacing.sm,
             endIndent: AppSpacing.sm,
-            color: context.tokens.hairline,
           ),
           StatCardPair(
             StatCard(

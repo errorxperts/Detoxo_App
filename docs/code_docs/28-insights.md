@@ -213,7 +213,8 @@ state is the `LoadingState` spinner inside a panel of its own, so the section ke
 while the numbers arrive. The headline figures live in the Insights screen's **Today** panel
 (`TodayOverview`, `analytics/presentation/widgets/today_overview.dart`): **Screen time**
 (`formatHm`, yesterday's finished total as a plain `"Yesterday: 4h"` caption) and **Pickups**
-(`"First 7:12"` caption — one reference per tile) sit under Detoxo's own **Reels** and **Blocked**
+(`"First 7:12 AM"` caption via `formatLocalTime` — the device's 12/24-hour form, so `"First 7 AM"`
+or `"First 07:30"`; one reference per tile) sit under Detoxo's own **Reels** and **Blocked**
 tiles, and appear only when the status is `granted`. The top five apps are the **Time** segment
 of the **By app** section (`ByAppSection`, `widgets/by_app_section.dart`), also only when granted.
 Both widgets read the same app-wide cubit, so nothing is a second snapshot of a live number. There
@@ -258,7 +259,8 @@ genuinely quiet day. A genuinely quiet day is a separate, granted state and says
 
 `analytics_screen.dart` is **one scroll of three headed sections** — an uppercase `SectionHeader`
 (`lib/core/design_system/components/section_header.dart`, the Settings / Rules grouped-list idiom) over **one**
-`GlassCard` panel each — then the override card. Each section widget owns its
+`GlassCard` panel each — then the overrides row. The screen is neutral: glyphs in ink-2, hairline
+dividers (the theme's `Divider`), bars in the static brand fill; the live accent belongs to the Today tab. Each section widget owns its
 header, so the headers carry the vertical rhythm (`section` 32 above, `sm` below) and `_ActivityBody`,
 which is stateless, places nothing between them; on the pushed route the list has no top inset
 of its own, the app bar and the first header supply it. Top to bottom:
@@ -277,11 +279,12 @@ of its own, the app bar and the first header supply it. Top to bottom:
    numbers above the Grant card.
 3. **By app** — `ByAppSection`: a `GlassSegmented` **Reels | Blocks | Time** (Time only when
    granted; the index clamps if a grant is revoked from under it) sits bare between the header and
-   the panel, `AppSpacing.lg` above it — the control is the one glass surface that casts a shadow,
-   the card around it used to clip that, and a narrower gap would let the panel's backdrop blur
-   smear it across the rim. The panel is one list of `AppLimitRow`s, busiest first with bars
-   relative to the busiest, each row an `AppPressable` (press scale, haptic, focus ring — the app's
-   one custom-tappable idiom, never a raw `InkWell`) at least 48 dp tall (`vertical:
+   the panel, `AppSpacing.gap` (14) above it — the control is a flat option track with no shadow to
+   clear. The panel is one list of flat `AppLimitRow`s, busiest first with bars relative to the
+   busiest: a 34 dp avatar at `radius-icon` 8, the name in `label` ink, the figure in
+   `labelStrong` (label at w800, tabular), an 18 px ink-3 chevron `Glyph`, then the `ProgressBar`.
+   Each row is an `AppPressable` (the default .975 press, haptic, focus ring — the app's one
+   custom-tappable idiom, never a raw `InkWell`) at least 48 dp tall (`vertical:
    AppSpacing.xs`). The rows are the
    pure, static `ByAppSection.rowsFor(segment, count:, blocks:, stats:)` — sort, top-five cap for
    Time, bar normalisation with the zero guard — dispatched on the `ByAppSegment` enum, never a
@@ -293,12 +296,19 @@ of its own, the app bar and the first header supply it. Top to bottom:
    (`AutomaticKeepAliveClientMixin`), as is `InsightsView`'s: the `ListView` is lazy, and a section
    scrolled past the cache extent would otherwise lose its chosen segment or re-run the mount
    refresh on the way back.
-4. **Overrides** — `OverrideHistoryCard` (EVO-052, hides itself at zero), after an `md` gap.
+4. **Overrides** — `OverrideHistoryCard` (EVO-052,
+   `limits/unblock/presentation/widgets/override_history_card.dart`): one standalone
+   `GlassListTile` (its own panel) with an ink-2 `Icons.lock_open`, saying what is left —
+   "1 override left this week", "2 overrides left this week", "No overrides left this week", or
+   "… today" when `BypassConfig.overridePeriod` is `day`. It shows under the same condition as
+   before (an override spent this period, `UnblockQuota.overrideSummary(...).count > 0`) and never
+   shows the spent count or the reasons: what is left is the useful number, and a tally of lapses
+   reads as a verdict. It carries its own `section` (32) gap, so the gap goes when the row does.
 
-Twelve glass surfaces on a granted scroll became four (three panels and the segmented control):
-the tiles no longer paint glass inside glass, and `SectionHeader` is a `Semantics(header: true)`
+Twelve glass surfaces on a granted scroll became three panels (the segmented control is a flat
+option track): the tiles no longer paint glass inside glass, and `SectionHeader` is a `Semantics(header: true)`
 node, so TalkBack's swipe-by-heading lands on each section as it did on the `AppCard` titles this
-replaced (`test/activity_screen_test.dart` pins the heading and the one-`GlassContainer`-per-section
+replaced (`test/activity_screen_test.dart` pins the heading and the one-panel-per-section
 rule). Those four titled `AppCard`s had themselves replaced three per-app lists in three styles
 (the reel card's own rows, "Where it happened", "Where it went"), two hero cards and four loose
 `StatCard`s. The `ReelCounterCard` hero is gone with its Today / All toggle; the all-time reel
@@ -309,7 +319,8 @@ because native rolls `today` over at read time and a session pulled across midni
 `blocked` event. The reel tile is stream-fed and already live. On the tab the list opens with a
 `TabHeader('Insights')` (title-xl, the feedback button, the glass Menu button that opens the
 sidebar) and pads by `TabHeader.listPadding` — gutter 20, inset 8 on top, 132 plus the bottom inset
-below, clear of the tab bar; the pushed route keeps its `GlassAppBar`, titled 'Insights' too.
+below, clear of the tab bar; the pushed route keeps its `GlassAppBar`, titled 'Insights' too, with
+the same gutter 20 and 20 plus the bottom inset below.
 
 This replaced a `GlassSegmented` **Insights | Events** control whose Events segment listed one
 tile per block from a Dart-side buffer (`AnalyticsCubit`) that only recorded while the tab was
@@ -321,7 +332,7 @@ destination, so a dashboard tile would only have switched tabs.
 ### Accessibility
 
 `StatCard` announces one merged sentence (`"Screen time: 3h 12m, Yesterday: 4h"`,
-`"Pickups: 84, First 7:12"`, `"Blocked: 12, Yesterday: 52"` — the visual "·" is spoken as a comma, since TalkBack
+`"Pickups: 84, First 7:12 AM"`, `"Blocked: 12, Yesterday: 52"` — the visual "·" is spoken as a comma, since TalkBack
 renders U+00B7 as silence) instead of loose nodes, and honours "remove animations" —
 its count-up used to churn the semantics tree on every frame; a `text` figure is never animated.
 The Distraction card's bar and caption are **one spoken sentence** (`"1h 48m, 56 percent of
@@ -378,21 +389,27 @@ contributes no semantics node at all.
   dropped on a rollover rather than relabelled; `refreshIfStale` recomputes across a day, re-checks
   a previously denied grant, and within a day recomputes only when the grant reads `false` (a
   `null` read is not a revocation); concurrent refreshes coalesce.
-- `test/insights_view_test.dart` (7) — denied offers Grant and prints no zero; unavailable renders
+- `test/insights_view_test.dart` (7) — denied offers Grant and prints no zero (one panel, the
+  permission row); unavailable renders
   the neutral state **and a Retry that actually recomputes** (the Distraction card appears); granted
-  draws the distracting line and the switches / opens tiles, and neither `3h 12m` nor a **Reels**
-  tile (those are the Today grid's); a quiet day says so instead of showing the denied card; the
+  draws the distracting line and the switches / opens tiles in one panel, and neither `3h 12m` nor
+  a **Reels** tile (those are the Today grid's); a quiet day says so instead of showing the denied card; the
   info button opens the About sheet with the Digital Wellbeing note; a later mount over the same
   cubit shows the card on its first frame, never the spinner (EVO-058).
-- `test/activity_screen_test.dart` (5) — the Insights screen over real cubits and fakes in `sl`
+- `test/activity_screen_test.dart` (9) — the Insights screen over real cubits and fakes in `sl`
   (the `web_block_screen_semantics_test` idiom): a native status event lands in the Blocked tile
   (`"Blocked: 12, Yesterday: 52"`) and, behind the Blocks segment, the per-app
   rows (most-blocked first, each a button offering a limit); the scroll reads Today → Distraction →
-  By app with `1h` on screen and the info button in place of a footnote; a fresh install claims no
-  yesterday; without Usage access the OS tiles and the Time segment are absent; a complete
-  yesterday reads as `Yesterday: 4h`, pickups carry their first-pickup caption, and the Time
-  segment's top app is
-  labelled, timed and exposed as a button.
+  By app, with exactly one panel per section, `1h` on screen and the info button in place of a
+  footnote; a fresh install claims no yesterday; the Reels segment uses the counter's display
+  names; a revoked grant drops the Time segment and restores it; without Usage access the OS tiles
+  and the Time segment are absent; a complete yesterday reads as `Yesterday: 4h`, pickups carry
+  their first-pickup caption, and the Time segment's top app is labelled, timed and exposed as a
+  button; the first pickup reads `First 7 AM` / `First 7:30 AM` on a 12-hour device and
+  `First 07:30` on a 24-hour one.
+- `test/override_history_card_test.dart` (3) — "1 override left this week", then "2 overrides
+  left this week" after a resync on the same ledger, never the reason ("Family") or a spent count;
+  a daily quota with none left reads "No overrides left today"; nothing spent draws nothing.
 
 ## Source files
 
@@ -411,6 +428,9 @@ contributes no semantics node at all.
 - `lib/features/analytics/presentation/widgets/by_app_section.dart` (the By app section: Reels |
   Blocks | Time over one panel of one row type)
 - `lib/features/analytics/presentation/widgets/app_limit_row.dart` (the shared per-app row)
+- `lib/features/limits/unblock/presentation/widgets/override_history_card.dart` (the overrides
+  row, last on the screen)
+- `lib/core/utils/clock_format.dart` (`formatLocalTime` — the first-pickup time)
 - `lib/core/design_system/components/section_header.dart` (`SectionHeader` — the section headers,
   semantic headings; re-exported from `core/widgets/common_widgets.dart` for its older importers)
 - `lib/core/design_system/components/cards.dart` (`StatCard.contained`, `GlassCard`)

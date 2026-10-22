@@ -241,8 +241,21 @@ void main() {
       tester.getSemantics(find.text('TODAY')).flagsCollection.isHeader,
       isTrue,
     );
-    // One glass surface per section — the panel. The tiles inside are
-    // flat, so nothing is glass-on-glass any more.
+    // One panel per section. The tiles and rows inside are flat, so
+    // nothing is glass-on-glass; By app's segmented control is a flat
+    // option track, not a panel.
+    for (final section in [TodayOverview, InsightsView, ByAppSection]) {
+      expect(
+        find.descendant(
+          of: find.byType(section),
+          matching: find.byWidgetPredicate(
+            (w) => w is GlassContainer && w.surface == DxSurface.panel,
+          ),
+        ),
+        findsOneWidget,
+        reason: '$section',
+      );
+    }
     expect(
       find.descendant(
         of: find.byType(TodayOverview),
@@ -483,7 +496,7 @@ void main() {
     expect(find.text('Yesterday: 4h'), findsOneWidget);
     expect(find.textContaining('than yesterday'), findsNothing);
     expect(find.text('Pickups'), findsOneWidget);
-    expect(find.textContaining('First 7:12'), findsOneWidget);
+    expect(find.text('First 7:12 AM'), findsOneWidget);
     // One reference per tile: the last pickup no longer rides along.
     expect(find.textContaining('Last'), findsNothing);
 
@@ -505,5 +518,41 @@ void main() {
       ),
     );
     semantics.dispose();
+  });
+  testWidgets('the first pickup reads in the device clock form', (
+    tester,
+  ) async {
+    Future<void> pumpPickup(int hour, int minute) async {
+      // A fresh tree, so the providers build fresh cubits.
+      await tester.pumpWidget(const SizedBox());
+      await pumpScreen(
+        tester,
+        insights: _FakeInsights(
+          stats: DailyStats(
+            dayKey: '02-09-2026',
+            screenTimeMs: const Duration(hours: 1).inMilliseconds,
+            pickupCount: 3,
+            firstPickupMs: DateTime(
+              2026,
+              9,
+              2,
+              hour,
+              minute,
+            ).millisecondsSinceEpoch,
+          ),
+        ),
+      );
+    }
+
+    // A 12-hour device drops a zero minute.
+    await pumpPickup(7, 0);
+    expect(find.text('First 7 AM'), findsOneWidget);
+    await pumpPickup(7, 30);
+    expect(find.text('First 7:30 AM'), findsOneWidget);
+
+    tester.platformDispatcher.alwaysUse24HourFormatTestValue = true;
+    addTearDown(tester.platformDispatcher.clearAlwaysUse24HourTestValue);
+    await pumpPickup(7, 30);
+    expect(find.text('First 07:30'), findsOneWidget);
   });
 }

@@ -75,6 +75,8 @@ void main() {
     expect(find.text('Checking…'), findsNothing);
     expect(find.textContaining('0m'), findsNothing);
     expect(find.textContaining('Screen time'), findsNothing);
+    // One panel in every state: the permission row is the section's panel.
+    expect(find.byType(GlassContainer), findsOneWidget);
   });
 
   testWidgets('unavailable renders the neutral state, not a denial', (
@@ -138,6 +140,8 @@ void main() {
     expect(find.text('3h 12m'), findsNothing);
     expect(find.text('Reels'), findsNothing);
     expect(find.text('Usage access'), findsNothing);
+    // One panel; the tiles inside are flat.
+    expect(find.byType(GlassContainer), findsOneWidget);
   });
 
   testWidgets('a genuinely quiet day says so instead of nothing', (

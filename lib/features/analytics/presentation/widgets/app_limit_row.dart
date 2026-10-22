@@ -2,15 +2,17 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/navigation/routes.dart';
 import 'package:detoxo/core/platform_channels/installed_app.dart';
 import 'package:detoxo/features/limits/limits.dart';
+import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 /// A per-app row that is also the way to act on it: avatar, label, a trailing
 /// figure and a bar relative to the busiest app, opening the rule editor
-/// pre-filled with a daily limit for that package.
+/// pre-filled with a daily limit for that package. Flat: the By app panel is
+/// the surface.
 ///
-/// EVO-033's rule, the one row behind the Activity tab's **By app** segments
+/// EVO-033's rule, the one row behind the Insights tab's **By app** segments
 /// — reels, blocks and screen time. Detoxo's whole
 /// argument is that a chart the next morning is too late
 /// (`docs/info_docs/01-product-overview.md`, "The problem"); seeing "1h 10m"
@@ -92,7 +94,6 @@ class AppLimitRow extends StatelessWidget {
     // announcing a button it cannot activate.
     return AppPressable(
       semanticLabel: '$label, ${spokenTrailing ?? trailing}. Set a daily limit',
-      pressedScale: 0.99,
       onTap: () => _limitThisApp(context),
       child: Padding(
         // `xs`, not `xxs`: the 34 dp avatar plus 8 dp each side clears the
@@ -104,14 +105,13 @@ class AppLimitRow extends StatelessWidget {
   }
 
   Widget _row(BuildContext context, String label) {
-    final text = Theme.of(context).textTheme;
+    final t = context.tokens;
     return Row(
       children: [
         AppIconAvatar(
           iconUrl: iconUrl,
           iconBytes: installed?.icon,
           appName: label,
-          borderRadius: AppRadius.brSm,
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
@@ -125,24 +125,16 @@ class AppLimitRow extends StatelessWidget {
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: text.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTypography.label.copyWith(color: t.ink),
                     ),
                   ),
+                  // `labelStrong`: label at w800, tabular.
                   Text(
                     trailing,
-                    style: text.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+                    style: AppTypography.labelStrong.copyWith(color: t.ink),
                   ),
                   const SizedBox(width: AppSpacing.xxs),
-                  Icon(
-                    Icons.chevron_right,
-                    size: 18,
-                    color: context.tokens.ink2,
-                  ),
+                  Glyph(Assets.svg.chevronRight, size: 18, color: t.ink3),
                 ],
               ),
               const SizedBox(height: AppSpacing.xxs),

@@ -12,8 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// One scroll of the user's own behaviour in three headed sections — an
-/// uppercase `SectionHeader` over one glass panel each, the grouped-list idiom
-/// the Settings and Rules screens use — then the ledger:
+/// uppercase `SectionHeader` over one panel each, the grouped-list idiom the
+/// Settings and Rules screens use — then the overrides row:
 ///
 /// 1. **Today** ([TodayOverview]) — the numbers, as flat tiles in one panel:
 ///    Detoxo's own counts (reels, blocks) which never need a permission,
@@ -22,7 +22,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 ///    catalog calls distracting, or the permission card that stands in for it.
 /// 3. **By app** ([ByAppSection]) — the three per-app tallies behind one
 ///    segmented control, every row a tap from a limit.
-/// 4. **Overrides** ([OverrideHistoryCard]) — the ledger, when there is one.
+/// 4. **Overrides** ([OverrideHistoryCard]) — how many are left, once one was
+///    spent this period.
+///
+/// Neutral throughout: glyphs in ink-2, bars in the static brand fill. The
+/// live accent belongs to the Today tab.
 ///
 /// Each section owns its header, so the headers carry the vertical rhythm and
 /// the screen places nothing between them. Reachable two ways that differ
@@ -108,10 +112,10 @@ class _ActivityBody extends StatelessWidget {
         padding: asTab
             ? TabHeader.listPadding(context)
             : EdgeInsets.fromLTRB(
-                AppSpacing.md,
+                AppSpacing.gutter,
                 0,
-                AppSpacing.md,
-                AppSpacing.md + MediaQuery.viewPaddingOf(context).bottom,
+                AppSpacing.gutter,
+                AppSpacing.lg + MediaQuery.viewPaddingOf(context).bottom,
               ),
         children: [
           // A heading, so swipe-by-heading lands on the screen's name before
@@ -122,15 +126,13 @@ class _ActivityBody extends StatelessWidget {
               onMenu: onMenu,
               actions: const [FeedbackActionButton()],
             ),
-          // No gaps between the sections: each header carries `md` above and
-          // `sm` below, the rhythm every grouped list in the app keeps.
+          // No gaps between the sections: each header carries `section` above
+          // and `sm` below, the rhythm every grouped list in the app keeps.
           const TodayOverview(),
           const InsightsView(),
           ByAppSection(initial: segment),
-          const SizedBox(height: AppSpacing.md),
-
-          // EVO-052: what the override ledger has to say. Hides itself when
-          // nothing was spent this period, and carries its own bottom gap.
+          // EVO-052: the overrides left. Hides itself, gap included, when
+          // nothing was spent this period.
           const OverrideHistoryCard(),
         ],
       ),
