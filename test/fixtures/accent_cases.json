@@ -1,5 +1,5 @@
 {
- "_doc": "resolveAccent cases (plan foundation \u00a76), generated once by an independent python3 model of the formula: channels byte/255.0, lerp a*(1-t)+b*t, one final floor(x*255+.5). ARGB ints. Read by test/core/design_system/accent_test.dart and AccentResolverTest.kt.",
+ "_doc": "resolveAccent cases (plan foundation \u00a76), generated once by an independent python3 model of the formula: channels byte/255.0, lerp a*(1-t)+b*t, one final floor(x*255+.5). ARGB ints. `modes` is the mode table (Dart accentModeOf, native AccentResolver.modeOf) row for row; a plan token Dart cannot hold (`dartSkips`) is native only. Read by test/core/design_system/accent_test.dart, test/app/live_accent_test.dart and AccentResolverTest.kt.",
  "cases": [
   {
    "theme": "light",
@@ -414,6 +414,79 @@
    "main": 4294925434,
    "light": 4294948006,
    "deep": 4292421978
+  }
+ ],
+ "modes": [
+  {
+   "plan": "BLOCK_ALL",
+   "allowance": 1,
+   "masterEnabled": false,
+   "pauseLive": true,
+   "mode": "none"
+  },
+  {
+   "plan": "CURIOUS",
+   "allowance": 1,
+   "masterEnabled": false,
+   "pauseLive": false,
+   "mode": "none"
+  },
+  {
+   "plan": "BLOCK_ALL",
+   "allowance": 1,
+   "masterEnabled": true,
+   "pauseLive": true,
+   "mode": "pause"
+  },
+  {
+   "plan": "BLOCK_ALL",
+   "allowance": 1,
+   "masterEnabled": true,
+   "pauseLive": false,
+   "mode": "blockAll"
+  },
+  {
+   "plan": "CURIOUS",
+   "allowance": 1,
+   "masterEnabled": true,
+   "pauseLive": false,
+   "mode": "conscious"
+  },
+  {
+   "plan": "ONE_REEL",
+   "allowance": 1,
+   "masterEnabled": true,
+   "pauseLive": false,
+   "mode": "oneReel"
+  },
+  {
+   "plan": "ONE_REEL",
+   "allowance": 3,
+   "masterEnabled": true,
+   "pauseLive": false,
+   "mode": "pause"
+  },
+  {
+   "plan": "ONE_REEL",
+   "allowance": 3,
+   "masterEnabled": true,
+   "pauseLive": true,
+   "mode": "pause"
+  },
+  {
+   "plan": "PAUSED",
+   "allowance": 1,
+   "masterEnabled": true,
+   "pauseLive": false,
+   "mode": "pause"
+  },
+  {
+   "plan": "LEGACY",
+   "allowance": 1,
+   "masterEnabled": true,
+   "pauseLive": false,
+   "mode": "none",
+   "dartSkips": true
   }
  ]
 }

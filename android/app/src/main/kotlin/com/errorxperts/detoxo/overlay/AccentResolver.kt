@@ -1,5 +1,11 @@
 package com.errorxperts.detoxo.overlay
 
+import android.content.Context
+import com.errorxperts.detoxo.engine.ContentCounterStore
+import com.errorxperts.detoxo.engine.DateKeys
+import com.errorxperts.detoxo.engine.RuleEngine
+import com.errorxperts.detoxo.widget.PlanState
+import com.errorxperts.detoxo.widget.ReelWidgetSync
 import kotlin.math.floor
 
 /**
@@ -10,7 +16,8 @@ import kotlin.math.floor
  * All maths is Double: a channel is byte / 255.0, a blend is `a * (1 - t) + b * t`, and only the final
  * channel rounds (half up). Not `widget/ColorMath.blend`, which works in Float and rounds every step.
  *
- * Ready for the block-screen phase; nothing calls it yet.
+ * The block screen takes its accent from [forWall], from the same inputs the
+ * Today screen reads.
  */
 internal object AccentResolver {
     enum class Mode { NONE, BLOCK_ALL, CONSCIOUS, PAUSE, ONE_REEL }
@@ -35,6 +42,49 @@ internal object AccentResolver {
             doubleArrayOf(((c shr 16) and 0xFF) / 255.0, ((c shr 8) and 0xFF) / 255.0, (c and 0xFF) / 255.0)
         },
     )
+
+    /**
+     * The mode the Today screen lights for [plan] at [nowMs], row for row with
+     * Dart `accentModeOf` (pinned by the fixture's `modes` rows): none while
+     * blocking is off; a live Pause; the base mode; One Reel, or Pause for an
+     * N-reel unblock (a break too). An unknown token is none (brand).
+     */
+    fun modeOf(plan: PlanState, nowMs: Long): Mode = when {
+        !plan.blockingOn -> Mode.NONE
+        plan.pauseUntil > nowMs -> Mode.PAUSE
+        else -> when (plan.plan) {
+            "BLOCK_ALL" -> Mode.BLOCK_ALL
+            "CURIOUS" -> Mode.CONSCIOUS
+            "ONE_REEL" -> if (plan.reelAllowance <= 1) Mode.ONE_REEL else Mode.PAUSE
+            "PAUSED" -> Mode.PAUSE
+            else -> Mode.NONE
+        }
+    }
+
+    /**
+     * Today's share of the daily limit, as the Today ring reads it: 0 while
+     * counting is off or there is no limit, else whole seconds over whole
+     * seconds (Dart's `inSeconds` division).
+     */
+    fun usedFraction(enabled: Boolean, timeTodayMs: Long, limitMs: Long): Double =
+        if (!enabled || limitMs / 1000L <= 0L) 0.0 else (timeTodayMs / 1000L).toDouble() / (limitMs / 1000L)
+
+    /**
+     * The wall's accent (main, light, deep ARGB) in the [dark] or light theme,
+     * read once per build from a bare Context, so a preview works with the
+     * service dead: the engine's own plan ([ReelWidgetSync.plan]), today's reel
+     * time and the daily reel limit (`RuleEngine.DAILY_REEL_LIMIT_ID` in the
+     * rules mirror — not `soonestReelLimitMs`, which counts rule windows too).
+     * Never `payload.plan`: `sanitised()` blanks it for every non-plan block.
+     */
+    fun forWall(context: Context, dark: Boolean, nowMs: Long = System.currentTimeMillis()): IntArray {
+        val plan = ReelWidgetSync.plan(context)
+        val store = ContentCounterStore(context.applicationContext)
+        val limitMs = store.reelLimits().firstOrNull { it.id == RuleEngine.DAILY_REEL_LIMIT_ID }?.reelTimeLimitMs ?: 0L
+        val used = usedFraction(store.enabled, store.timeTodayMs(DateKeys.today(nowMs)), limitMs)
+        val pauseLeft = if (plan.pauseUntil > nowMs) plan.pauseUntil - nowMs else null
+        return resolve(dark, modeOf(plan, nowMs), used, pauseLeft)
+    }
 
     /**
      * The accent (main, light, deep ARGB) for [mode] in the [dark] or light theme, with [used] the

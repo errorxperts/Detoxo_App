@@ -21,7 +21,6 @@ import com.errorxperts.detoxo.widget.WidgetBitmapRenderer
 import com.errorxperts.detoxo.widget.blend
 import org.json.JSONObject
 import kotlin.math.floor
-import kotlin.math.pow
 import kotlin.math.roundToInt
 
 // ── Wire shapes (file-level so the JVM test never touches an Android initializer) ──
@@ -152,24 +151,6 @@ internal fun planLabel(token: String, allowance: Int): String = when (token) {
 
 /** Navy — the primary button's text on a light fill; white takes the dark ones. */
 private const val ON_ACCENT = 0xFF0B1326.toInt()
-
-/** WCAG relative luminance of an ARGB colour (alpha ignored). Pure. */
-private fun luminance(argb: Int): Double {
-    fun channel(v: Int): Double {
-        val c = v / 255.0
-        return if (c <= 0.03928) c / 12.92 else ((c + 0.055) / 1.055).pow(2.4)
-    }
-    return 0.2126 * channel((argb shr 16) and 0xFF) +
-        0.7152 * channel((argb shr 8) and 0xFF) +
-        0.0722 * channel(argb and 0xFF)
-}
-
-/** WCAG contrast ratio between two opaque colours. Pure. */
-internal fun contrastRatio(a: Int, b: Int): Double {
-    val la = luminance(a)
-    val lb = luminance(b)
-    return (maxOf(la, lb) + 0.05) / (minOf(la, lb) + 0.05)
-}
 
 /**
  * Text colour for a button filled with [fill]: navy where it reads best, white

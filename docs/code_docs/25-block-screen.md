@@ -385,7 +385,7 @@ The `blocking.dart` barrel exports the block-screen cubit and preview (the `cont
 precedent) so the Appearance hub reaches them without a boundary violation; the editor screen is
 routed, so `app_router.dart` imports it directly.
 
-### The live accent, natively (ready, not yet wired)
+### The live accent, natively
 
 `overlay/AccentResolver.kt` mirrors Dart's `resolveAccent`
 (`lib/core/design_system/foundations/accent.dart`): mode (none / Block All / Conscious /
@@ -393,8 +393,42 @@ Pause / One Reel), today's share of the daily limit and a live Pause's time left
 accent palette (main, light, deep) for a theme, from the generated `DxTokens.PALETTE_*`. It
 works in Double with one final half-up rounding, not `widget/ColorMath.blend`, so both sides
 agree to the bit: `test/fixtures/accent_cases.json` (46 rows, from an independent Python
-model) drives `AccentResolverTest.kt` and `test/core/design_system/accent_test.dart`. The wall
-still takes the static brand; the block-screen restyle wires the resolver in.
+model) drives `AccentResolverTest.kt` and `test/core/design_system/accent_test.dart`.
+
+`AccentResolver.forWall(ctx, dark)` reads the inputs from a bare Context, so a preview works
+with the service dead:
+- the mode: `modeOf(ReelWidgetSync.plan(ctx), now)` — none while blocking is off, a live Pause
+  (`pauseUntil > now`), `BLOCK_ALL` → Block All, `CURIOUS` → Conscious, `ONE_REEL` → One Reel for
+  an allowance of 1 and Pause above it, `PAUSED` → Pause, an unknown token → none. This is Dart's
+  `accentModeOf` row for row; the fixture's `modes` rows drive both `AccentResolverTest` and
+  `test/app/live_accent_test.dart` (a token Dart cannot hold is native only);
+- the share used: `usedFraction(ContentCounterStore.enabled, timeTodayMs(DateKeys.today(now)),
+  limit)` in whole seconds, as the Today ring divides `inSeconds`, where the limit is the
+  `RuleEngine.DAILY_REEL_LIMIT_ID` entry of `reelLimits()` (never `soonestReelLimitMs`, which
+  counts rule windows too);
+- a live Pause's time left (`pauseUntil − now`); none for an N-reel unblock.
+
+`payload.plan` is never read: `sanitised()` blanks it for every non-plan block.
+
+### The native Frozen Glass kit — `overlay/FrozenGlass.kt`
+
+The wall and the soft nudge draw from the generated `DxTokens` through one file:
+- **Pure helpers** (file-level, no Android types, so the JVM test loads them): `cssLine` (the CSS
+  gradient line, as Dart's), `blurRadius` (a CSS blur is a Gaussian sigma of blur / 2, and
+  HWUI's radius is `(sigma − 0.5) / 0.57735`), `hueOf` and `hueRotateSaturate` /
+  `accentIconMatrix` (the CSS Filter Effects `hue-rotate · saturate` matrix, hand-built — never
+  `ColorMatrix.setRotate`), `clockLabel` (12-hour "11 PM" / "7:30 AM", 24-hour "23:00"),
+  `heroIconFor` (the block reason's 3D icon), `ambientAlphaAt`, `slideConfirms` (≥ 88 %),
+  `waitSecondsLeft`, `alphaOver`, `contrastRatio`, and `DxTheme(dark)`, the tokens of one theme
+  under the Dart field names, with `waitKnob` mirroring `ConfirmSheet.waitKnob`.
+- **`DxDrawable`** — one surface (`fill`, `angleDeg`, `base`, `radiusPx`, `shadows`, `inset`):
+  the fill shader, zero-blur inset layers as exact `Path.op` hairlines, and every blurred layer
+  drawn once into a half-scale software bitmap (`BlurMaskFilter` is ignored on the hardware
+  canvas below API 28). All built in `onBoundsChange`; the bitmaps go when the drawable is
+  hidden. No backdrop blur at any API level.
+- **`DxArt`** — the 3D icons and `detoxo-logo.webp` from `flutter_assets/assets/images/icons/`,
+  decoded once per process (null-safe), and the logo's `logo-glow` per theme as
+  `extractAlpha` masks drawn in the layer colour (never a recolour of the logo).
 
 ## 7. Channel delta
 
@@ -441,6 +475,11 @@ deep-link landing on the dashboard is M6's shell work.
   reel wall in the chosen mode — never by an app or website wall. `overlay/QuoteWallTest.kt`
   (`flipDegrees` keyframes, `turnedAway`, the Lissajous start and bounds, `phoneScale` 1 → 0.5 →
   hidden, `LOGO_CROP` holds the asset's whole visible logo — decoded with the host JVM's ImageIO),
+  `overlay/FrozenGlassTest.kt` (`cssLine` at 180° / 90° / 145°, `blurRadius`, `hueOf`, the identity
+  matrix, the dark Pause matrix turning the 214° blue icon warm, `clockLabel`, `heroIconFor` and every
+  icon shipping as RIFF/WEBP, the 88 % threshold and `waitSecondsLeft`, `ambientAlphaAt`, `alphaOver`,
+  the waiting knob), `overlay/AccentResolverTest.kt` (every `cases` row, every `modes` row, an ended
+  Pause, `usedFraction`),
   `overlay/QuoteBookTest.kt` (the real shipped asset: 100 quotes, none blank, ≤ 220 chars;
   garbage → empty; a pick never repeats the last and can land anywhere first),
   `engine/DetectionConfigTest.kt` (the real config: Instagram's wall surfaces name
@@ -535,9 +574,10 @@ Pinned by `UsageQueryTest`.
 ## Source files
 
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenOverlay.kt` (`show`, `close` / `fadeOutPreview`, `detach`, the countdown and relabel)
-- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenRenderer.kt` (payload, style spec, `planLabel`, `contrastRatio`, `onColorFor`, `legibleFill`, `legibleOn`, `wallIsDark`, `build`, the button column with `addUnblock` / `fitChips`, `WallCopy`)
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenRenderer.kt` (payload, style spec, `planLabel`, `onColorFor`, `legibleFill`, `legibleOn`, `wallIsDark`, `build`, the button column with `addUnblock` / `fitChips`, `WallCopy`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/WallButtons.kt` (`WallButtons`: `primary` / `home` / `ghost` / `chip`, the press squish, the stacked `ripple`; `OUTLINED_FILL` / `outlinedFill`; the `LiquidPill` drawable)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/QuoteWall.kt` (`QuoteWallView`, `flipDegrees`, `turnedAway`, `lissajousX` / `lissajousY`, `phoneScale`, `GLOW_ALPHA` / `LIT_LOGO_ALPHA`, `reduceMotion`, `LOGO_CROP`, `DetoxoLogo`), `overlay/QuoteBook.kt` (`Quote`, `QuoteBook`), `res/drawable/ic_wall_home.xml`, `assets/content/motivational_quotes.json`, `assets/images/Detoxo_logo.png`
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/FrozenGlass.kt` (the pure helpers, `DxTheme`, `DxDrawable`, `DxArt`), `overlay/AccentResolver.kt` (`resolve`, `modeOf`, `usedFraction`, `forWall`), `overlay/DxTokens.kt` (generated)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/WallPolicy.kt` (`forced`, `reelWall`, `bypassesSwitch`, `MODE_BLOCK_SCREEN`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/OverlayWindows.kt` (`overlayType` — shared with the bubble and the nudge — and `launchDetoxo`, used only by the wall)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/accessibility/DetoxoAccessibilityService.kt` (`openAppHome`, `tapInApp`, `appRoot`, `raiseWall`, `reelPayload`, `appLabel`, `platformName`, `appBlockStaysOver`, `backStaysOver`, `prevForegroundPkg`, `a11yPkgs`, `screenOffReceiver`, `tearDownOverlays`)
@@ -548,7 +588,7 @@ Pinned by `UsageQueryTest`.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/engine/ContentCounter.kt` (`todayCount()`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenPalette.kt` (`Palette` / `wallPalette`), `widget/ColorMath.kt` (`blend` / `withAlpha`), `widget/WidgetBitmapRenderer.kt` (`isSystemDark`)
 - `android/app/src/main/res/values/strings.xml` (`wall_*`)
-- `android/app/src/test/kotlin/com/errorxperts/detoxo/overlay/BlockScreenGeometryTest.kt`, `WallPolicyTest.kt`, `QuoteWallTest.kt`, `QuoteBookTest.kt`, `engine/UsageQueryTest.kt`, `engine/DetectionConfigTest.kt`, `widget/Fixtures.kt` (`repoFile`)
+- `android/app/src/test/kotlin/com/errorxperts/detoxo/overlay/BlockScreenGeometryTest.kt`, `FrozenGlassTest.kt`, `AccentResolverTest.kt`, `WallPolicyTest.kt`, `QuoteWallTest.kt`, `QuoteBookTest.kt`, `engine/UsageQueryTest.kt`, `engine/DetectionConfigTest.kt`, `widget/Fixtures.kt` (`repoFile`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/channels/CommandHandler.kt` (`BLOCK_MODES` / `THEME_MODES` whitelists on `pushSettings`)
 - `lib/features/blocking/block_screen/**`
 - `lib/features/blocking/blocking.dart`
