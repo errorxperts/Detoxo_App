@@ -93,7 +93,6 @@ class _BlockerSectionState extends State<BlockerSection> {
               caption: _caption(_sites, 'site'),
               active: _sites > 0,
               accent: Theme.of(context).colorScheme.secondary,
-              levitateDelay: const Duration(milliseconds: 900),
               onTap: () => _open(Routes.webBlock),
             ),
           ),

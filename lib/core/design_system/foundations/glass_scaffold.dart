@@ -1,7 +1,5 @@
-import 'dart:ui';
-
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
-import 'package:detoxo/core/design_system/tokens/app_blur.dart';
+import 'package:detoxo/core/design_system/components/buttons.dart';
+import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
@@ -88,7 +86,10 @@ class GlassScaffold extends StatelessWidget {
   }
 }
 
-/// A frosted top app bar that blurs the ground behind it.
+/// The plain Frozen Glass header: no bar surface, the title in the `title`
+/// style, and on a pushed screen a [GlassIconButton] back action. Its static
+/// [globalActionsBuilder] appends app-wide actions (the feedback button) after
+/// the screen's own [actions].
 class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   const GlassAppBar({
     this.title,
@@ -98,8 +99,13 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
   });
 
+  /// Toolbar height: a 44 px glass button with 10 px above and below.
+  static const double height = 64;
+
   final Widget? title;
   final List<Widget>? actions;
+
+  /// Replaces the automatic back button.
   final Widget? leading;
 
   /// Whether to append the app-wide [globalActionsBuilder] actions (the global
@@ -115,61 +121,45 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   static List<Widget> Function(BuildContext context)? globalActionsBuilder;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(height);
 
   @override
   Widget build(BuildContext context) {
     final globals = globalActions
         ? (globalActionsBuilder?.call(context) ?? const <Widget>[])
         : const <Widget>[];
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: AppBlur.bar, sigmaY: AppBlur.bar),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: context.glass.border)),
-          ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: title,
-            actions: [...?actions, ...globals],
-            leading: leading,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A frosted bottom bar wrapping its [child] (e.g. an adaptive tab bar). One
-/// backdrop for the whole bar — never one per item. Pass `enableBlur: false`
-/// when the child is itself a native blurred surface (iOS CNTabBar).
-class GlassBottomBar extends StatelessWidget {
-  const GlassBottomBar({
-    required this.child,
-    this.enableBlur = true,
-    super.key,
-  });
-
-  final Widget child;
-  final bool enableBlur;
-
-  @override
-  Widget build(BuildContext context) {
-    final bar = DecoratedBox(
-      decoration: BoxDecoration(
-        color: enableBlur ? context.glass.fillTop : Colors.transparent,
-        border: Border(top: BorderSide(color: context.glass.border)),
-      ),
-      child: SafeArea(top: false, child: child),
-    );
-    if (!enableBlur) return bar;
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: AppBlur.bar, sigmaY: AppBlur.bar),
-        child: bar,
-      ),
+    // The 48 dp hit box holds the 44 px circle 2 px in: a gutter of 18 puts
+    // the visible edge on the 20 px screen gutter.
+    const edge = AppSpacing.gutter - 2;
+    final back = ModalRoute.of(context)?.impliesAppBarDismissal ?? false
+        ? GlassIconButton(
+            icon: const Icon(Icons.arrow_back_rounded),
+            semanticLabel: MaterialLocalizations.of(context).backButtonTooltip,
+            onPressed: () => Navigator.maybePop(context),
+          )
+        : null;
+    final lead = leading ?? back;
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      toolbarHeight: height,
+      automaticallyImplyLeading: false,
+      leadingWidth: lead == null ? null : edge + AppSizes.minTapTarget,
+      leading: lead == null
+          ? null
+          : Padding(
+              padding: const EdgeInsets.only(left: edge),
+              child: Center(child: lead),
+            ),
+      titleSpacing: lead == null ? AppSpacing.gutter : AppSpacing.sm,
+      title: title,
+      actions: [
+        ...?actions,
+        ...globals,
+        const SizedBox(width: edge),
+      ],
     );
   }
 }

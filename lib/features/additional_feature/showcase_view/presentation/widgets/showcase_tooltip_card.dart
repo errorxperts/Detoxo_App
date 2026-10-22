@@ -46,11 +46,8 @@ class ShowcaseTooltipCard extends StatelessWidget {
     final card = SizedBox(
       width: 280,
       child: GlassContainer(
+        surface: DxSurface.sheet,
         borderRadius: AppRadius.xl,
-        blurSigma: AppBlur.sheet,
-        tintTop: accent.withValues(alpha: 0.20),
-        tintBottom: accent.withValues(alpha: 0.06),
-        borderColor: accent.withValues(alpha: 0.40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,12 +137,7 @@ class _StepBadge extends StatelessWidget {
       fillAlpha: 0.16,
       bordered: true,
       child: image == null
-          ? AppAnimatedIcon(
-              icon: step.icon!,
-              size: size * 0.46,
-              color: color,
-              playOnAppear: true,
-            )
+          ? AppAnimatedIcon(icon: step.icon!, size: size * 0.46, color: color)
           : ClipOval(
               child: Image.asset(
                 image,

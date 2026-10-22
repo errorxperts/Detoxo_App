@@ -90,9 +90,6 @@ class CaughtHero extends StatelessWidget {
 
   Widget _reelCard() {
     return GlassContainer(
-      enableBlur: false,
-      tintTop: accent.withValues(alpha: 0.18),
-      tintBottom: accent.withValues(alpha: 0.05),
       child: SizedBox(
         width: 96,
         height: 120,

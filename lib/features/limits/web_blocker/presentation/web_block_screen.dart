@@ -288,15 +288,12 @@ class _ProtectionChip extends StatelessWidget {
         pressedScale: 0.94,
         minTapTarget: const Size(0, AppSizes.minTapTarget),
         child: GlassContainer(
-          enableBlur: false,
+          surface: DxSurface.option,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.xs,
           ),
           borderRadius: AppRadius.pill,
-          tintTop: seed.withValues(alpha: 0.30),
-          tintBottom: seed.withValues(alpha: 0.14),
-          borderColor: seed.withValues(alpha: 0.6),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

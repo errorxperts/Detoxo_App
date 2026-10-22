@@ -79,7 +79,7 @@ class _GlassFeedbackFormState extends State<GlassFeedbackForm> {
     final text = Theme.of(context).textTheme;
     final draggable = widget.scrollController != null;
     return GlassContainer(
-      blurSigma: AppBlur.sheet,
+      surface: DxSurface.sheet,
       borderRadius: AppRadius.xl,
       padding: EdgeInsets.zero,
       child: Column(

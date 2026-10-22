@@ -1,23 +1,10 @@
 import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
-import 'package:detoxo/core/design_system/tokens/app_blur.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
-/// Overlays sit over arbitrary (often dimmed) content, so they use a *thicker*
-/// frosted material than chrome glass — a mostly-opaque surface tint keeps text
-/// crisply readable while the backdrop blur still shows through at the edges.
-({Color top, Color bottom}) _overlayMaterial(BuildContext context) {
-  final scheme = Theme.of(context).colorScheme;
-  final dark = Theme.of(context).brightness == Brightness.dark;
-  return (
-    top: scheme.surfaceContainerHigh.withValues(alpha: dark ? 0.82 : 0.90),
-    bottom: scheme.surfaceContainer.withValues(alpha: dark ? 0.76 : 0.84),
-  );
-}
 
 /// Frosted modal bottom sheet. Use instead of raw `showModalBottomSheet` so
 /// every sheet shares the glass chrome, drag handle and radius.
@@ -38,10 +25,7 @@ abstract final class GlassBottomSheet {
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: GlassContainer(
-          blurSigma: AppBlur.sheet,
-          borderRadius: AppRadius.xl,
-          tintTop: _overlayMaterial(context).top,
-          tintBottom: _overlayMaterial(context).bottom,
+          surface: DxSurface.sheet,
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.lg,
             AppSpacing.sm,
@@ -100,10 +84,7 @@ abstract final class GlassDialog {
       elevation: 0,
       insetPadding: const EdgeInsets.all(AppSpacing.xl),
       child: GlassContainer(
-        blurSigma: AppBlur.sheet,
-        borderRadius: AppRadius.xl,
-        tintTop: _overlayMaterial(context).top,
-        tintBottom: _overlayMaterial(context).bottom,
+        surface: DxSurface.sheet,
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: child,
       ),
@@ -141,14 +122,11 @@ abstract final class GlassToast {
           elevation: 0,
           content:
               GlassContainer(
-                    blurSigma: AppBlur.bar,
-                    tintTop: _overlayMaterial(context).top,
-                    tintBottom: _overlayMaterial(context).bottom,
+                    surface: DxSurface.glass,
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.md,
                       vertical: AppSpacing.sm,
                     ),
-                    borderColor: color.withValues(alpha: 0.4),
                     child: Row(
                       children: [
                         Icon(icon, color: color, size: 20),

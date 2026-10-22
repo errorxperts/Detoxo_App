@@ -97,8 +97,7 @@ class _HomeShellState extends State<HomeShell> {
             child: SafeArea(bottom: false, child: _tab(controller)),
           ),
           child: GlassContainer(
-            borderRadius: AppRadius.pill,
-            blurSigma: AppBlur.bar,
+            surface: DxSurface.glass,
             padding: EdgeInsets.zero,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

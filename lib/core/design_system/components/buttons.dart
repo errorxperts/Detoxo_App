@@ -1,11 +1,12 @@
 import 'package:detoxo/core/design_system/adaptive/adaptive_controls.dart';
 import 'package:detoxo/core/design_system/adaptive/platform_adaptive.dart';
 import 'package:detoxo/core/design_system/foundations/animated_icons.dart';
-import 'package:detoxo/core/design_system/foundations/liquid_glass_border.dart';
+import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// Primary call-to-action. Native CNButton on iOS; on Android a [LiquidPill] —
@@ -64,8 +65,8 @@ Color onLiquid(Color fill) =>
     ? Colors.white
     : const Color(0xFF0A0E17);
 
-/// The hero-CTA skin: a single-hue brand sweep (lit from the top-left), a
-/// specular [LiquidGlassBorder] rim and a coloured drop-glow, squishing on
+/// The hero-CTA skin: a single-hue brand sweep (lit from the top-left) and a
+/// coloured drop-glow, squishing on
 /// press. Shared by [PrimaryButton] and [AnimatedIconButton]; pass any [child].
 ///
 /// Deliberately the *only* filled-brand control — [SecondaryButton] is a
@@ -134,11 +135,7 @@ class LiquidPill extends StatelessWidget {
       child: child,
     );
 
-    Widget content = LiquidGlassBorder(
-      shape: const StadiumBorder(),
-      tint: Colors.white.withValues(alpha: 0.5),
-      child: pill,
-    );
+    Widget content = pill;
     if (expand) content = SizedBox(width: double.infinity, child: content);
     // An explicit label is the whole announcement. Without this the child's
     // own Text merges into the same node and TalkBack reads both ("Continue
@@ -392,6 +389,56 @@ class InfoButton extends StatelessWidget {
       child: const Padding(
         padding: EdgeInsets.all(AppSpacing.md),
         child: Icon(Icons.info_outline, size: 20),
+      ),
+    );
+  }
+}
+
+/// The spec's round glass action: a 44 px [DxSurface.glass] circle holding a
+/// 22 px [icon] in `ink`, inside a 48 dp target. It grows to 1.06 on press.
+/// Header back, menu, info and feedback actions all use it.
+///
+/// A [Tooltip] carries [semanticLabel], so long-press shows it and tests can
+/// find a back button by its standard tooltip.
+class GlassIconButton extends StatelessWidget {
+  const GlassIconButton({
+    required this.icon,
+    required this.semanticLabel,
+    required this.onPressed,
+    super.key,
+  });
+
+  final Widget icon;
+  final String semanticLabel;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Tooltip(
+      message: semanticLabel,
+      excludeFromSemantics: true,
+      child: AppPressable(
+        onTap: onPressed ?? () {},
+        enabled: onPressed != null,
+        pressedScale: 1.06,
+        radius: AppRadius.brPill,
+        semanticLabel: semanticLabel,
+        minTapTarget: AppSizes.minTapTargetSquare,
+        child: SizedBox.square(
+          dimension: AppSizes.controlHeight,
+          child: GlassContainer(
+            surface: DxSurface.glass,
+            backdrop: false,
+            padding: EdgeInsets.zero,
+            child: Center(
+              child: IconTheme.merge(
+                data: IconThemeData(color: t.ink, size: 22),
+                child: ExcludeSemantics(child: icon),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -1,102 +1,138 @@
-import 'package:detoxo/core/design_system/foundations/glass_container.dart';
-import 'package:detoxo/core/design_system/foundations/liquid_glass_border.dart';
-import 'package:detoxo/core/design_system/theme/app_theme.dart';
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// AppTheme pulls google_fonts, which stalls under flutter_test. GlassContainer
-// only needs GlassTokens plus a ColorScheme.
-ThemeData _theme(Brightness brightness) => ThemeData(
-  brightness: brightness,
-  extensions: [
-    if (brightness == Brightness.dark) GlassTokens.dark else GlassTokens.light,
-  ],
-);
-
 Future<void> _pump(
-  WidgetTester tester, {
-  bool liquidEdge = true,
-  bool enableBlur = true,
-  bool selected = false,
-  bool circle = false,
+  WidgetTester tester,
+  Widget child, {
   Brightness brightness = Brightness.dark,
 }) => tester.pumpWidget(
   MaterialApp(
-    theme: _theme(brightness),
+    theme: brightness == Brightness.dark ? AppTheme.dark() : AppTheme.light(),
     home: Scaffold(
-      body: Center(
-        child: SizedBox(
-          width: 200,
-          height: 120,
-          child: GlassContainer(
-            liquidEdge: liquidEdge,
-            enableBlur: enableBlur,
-            selected: selected,
-            circle: circle,
-            child: const Text('glass'),
-          ),
-        ),
-      ),
+      body: Center(child: SizedBox(width: 200, height: 120, child: child)),
     ),
   ),
 );
 
-/// Every shadow list anywhere under the container, flattened.
-List<BoxShadow> _shadowsIn(WidgetTester tester) => [
-  for (final box in tester.widgetList<DecoratedBox>(
-    find.descendant(
-      of: find.byType(GlassContainer),
-      matching: find.byType(DecoratedBox),
-    ),
-  ))
-    ...switch (box.decoration) {
-      final ShapeDecoration d => d.shadows ?? const <BoxShadow>[],
-      final BoxDecoration d => d.boxShadow ?? const <BoxShadow>[],
-      _ => const <BoxShadow>[],
-    },
-];
+Finder _backdrop() => find.descendant(
+  of: find.byType(GlassContainer),
+  matching: find.byType(BackdropFilter),
+);
 
 void main() {
-  // Depth is supposed to come from the glass itself. A stray BoxShadow puts a
-  // grey smudge back under every surface in the app — and one with its colour
-  // omitted defaults to opaque black, which is worse.
-  group('casts no shadow', () {
-    for (final liquidEdge in [true, false]) {
-      for (final selected in [true, false]) {
-        for (final enableBlur in [true, false]) {
-          testWidgets(
-            'liquidEdge=$liquidEdge selected=$selected blur=$enableBlur',
-            (tester) async {
-              await _pump(
-                tester,
-                liquidEdge: liquidEdge,
-                selected: selected,
-                enableBlur: enableBlur,
-              );
-              expect(_shadowsIn(tester), isEmpty);
-            },
+  group('roles', () {
+    for (final brightness in Brightness.values) {
+      for (final surface in DxSurface.values) {
+        testWidgets('${surface.name} paints in ${brightness.name}', (
+          tester,
+        ) async {
+          await _pump(
+            tester,
+            GlassContainer(surface: surface, child: const Text('glass')),
+            brightness: brightness,
           );
-        }
+          expect(find.text('glass'), findsOneWidget);
+          expect(tester.takeException(), isNull);
+          // Only the floating roles blur what is behind them.
+          final blurs =
+              surface == DxSurface.glass || surface == DxSurface.sheet;
+          expect(_backdrop(), blurs ? findsOneWidget : findsNothing);
+        });
       }
     }
+
+    testWidgets('backdrop: false keeps a glass role blur-free', (tester) async {
+      await _pump(
+        tester,
+        const GlassContainer(
+          surface: DxSurface.glass,
+          backdrop: false,
+          child: SizedBox(),
+        ),
+      );
+      expect(_backdrop(), findsNothing);
+    });
   });
 
-  testWidgets('lights the edge by default', (tester) async {
-    await _pump(tester);
-    expect(find.byType(LiquidGlassBorder), findsOneWidget);
+  testWidgets('surfaceOf reports the nearest enclosing role', (tester) async {
+    DxSurface? inside;
+    DxSurface? outside;
+    await _pump(
+      tester,
+      Builder(
+        builder: (context) {
+          outside = GlassContainer.surfaceOf(context);
+          return GlassContainer(
+            surface: DxSurface.sheet,
+            child: Builder(
+              builder: (context) {
+                inside = GlassContainer.surfaceOf(context);
+                return const SizedBox();
+              },
+            ),
+          );
+        },
+      ),
+    );
+    expect(outside, isNull);
+    expect(inside, DxSurface.sheet);
   });
 
-  testWidgets('liquidEdge: false falls back to the flat hairline', (
-    tester,
-  ) async {
-    await _pump(tester, liquidEdge: false);
-    expect(find.byType(LiquidGlassBorder), findsNothing);
-    expect(find.text('glass'), findsOneWidget);
+  test('DxSurfacePainter repaints only when a field changes', () {
+    const shadows = [DxShadow(color: Colors.black, blur: 8)];
+    const a = DxSurfacePainter(color: Colors.white, shadows: shadows);
+    expect(
+      a.shouldRepaint(
+        const DxSurfacePainter(
+          color: Colors.white,
+          shadows: [DxShadow(color: Colors.black, blur: 8)],
+        ),
+      ),
+      isFalse,
+    );
+    expect(
+      a.shouldRepaint(
+        const DxSurfacePainter(color: Colors.black, shadows: shadows),
+      ),
+      isTrue,
+    );
+    expect(
+      a.shouldRepaint(
+        const DxSurfacePainter(
+          color: Colors.white,
+          shadows: shadows,
+          angle: 145,
+        ),
+      ),
+      isTrue,
+    );
   });
 
-  testWidgets('circle and squircle both render', (tester) async {
-    await _pump(tester, circle: true);
-    expect(tester.takeException(), isNull);
-    expect(find.byType(LiquidGlassBorder), findsOneWidget);
+  group('cssLine follows the CSS gradient line', () {
+    const rect = Rect.fromLTWH(0, 0, 200, 100);
+
+    test('180° runs top to bottom', () {
+      final (from, to) = cssLine(rect, 180);
+      expect(from.dx, closeTo(100, 1e-9));
+      expect(from.dy, closeTo(0, 1e-9));
+      expect(to.dy, closeTo(100, 1e-9));
+    });
+
+    test('90° runs left to right', () {
+      final (from, to) = cssLine(rect, 90);
+      expect(from.dx, closeTo(0, 1e-9));
+      expect(from.dy, closeTo(50, 1e-9));
+      expect(to.dx, closeTo(200, 1e-9));
+    });
+
+    test('145° reaches past the corners, as CSS does', () {
+      final (from, to) = cssLine(rect, 145);
+      // half = (200·sin145° + 100·|cos145°|) / 2 = 98.32
+      expect(from.dx, closeTo(43.61, 0.01));
+      expect(from.dy, closeTo(-30.54, 0.01));
+      expect(to.dx, closeTo(156.39, 0.01));
+      expect(to.dy, closeTo(130.54, 0.01));
+    });
   });
 }

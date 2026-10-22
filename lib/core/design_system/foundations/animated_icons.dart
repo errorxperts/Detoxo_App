@@ -78,10 +78,7 @@ final Map<AppIcon, _IconCtor> _iconBuilders = {
 /// Interactive animated icon with app-standard styling, a single entry point
 /// for every screen, and built-in reduce-motion safety.
 ///
-/// Triggers (combinable):
-/// - [playOnAppear] — plays the morph once on mount, optionally after
-///   [appearDelay] (for staggered lists).
-/// - [loop] — runs the morph continuously (ambient surfaces, e.g. empty states).
+/// It never plays on its own: motion answers the person, and nothing loops.
 /// - [interactive] — the icon replays on its own tap. Keep `false` inside
 ///   tiles / buttons / the navbar, where a parent owns the gesture and drives
 ///   the shared [controller]; only standalone icons should set it `true`.
@@ -93,9 +90,6 @@ class AppAnimatedIcon extends StatefulWidget {
     required this.icon,
     this.size = 22,
     this.color,
-    this.playOnAppear = false,
-    this.appearDelay = Duration.zero,
-    this.loop = false,
     this.interactive = false,
     this.controller,
     this.onTap,
@@ -105,9 +99,6 @@ class AppAnimatedIcon extends StatefulWidget {
   final AppIcon icon;
   final double size;
   final Color? color;
-  final bool playOnAppear;
-  final Duration appearDelay;
-  final bool loop;
   final bool interactive;
   final AnimatedIconController? controller;
   final VoidCallback? onTap;
@@ -126,21 +117,6 @@ class _AppAnimatedIconState extends State<AppAnimatedIcon> {
   void initState() {
     super.initState();
     _controller = widget.controller ?? (_owned = AnimatedIconController());
-    if (widget.playOnAppear || widget.loop) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _kickoff());
-    }
-  }
-
-  void _kickoff() {
-    if (!mounted) return;
-    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return;
-    if (widget.appearDelay == Duration.zero) {
-      _controller.animate();
-    } else {
-      Future<void>.delayed(widget.appearDelay, () {
-        if (mounted) _controller.animate();
-      });
-    }
   }
 
   @override
@@ -161,7 +137,6 @@ class _AppAnimatedIconState extends State<AppAnimatedIcon> {
       hoverColor: widget.color,
       strokeWidth: 2.0,
       animationDuration: AppDurations.normal,
-      infiniteLoop: widget.loop && !reduceMotion,
       interactive: widget.interactive && !reduceMotion,
       controller: _controller,
       onTap: widget.onTap,

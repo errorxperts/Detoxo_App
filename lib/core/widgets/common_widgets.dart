@@ -113,7 +113,6 @@ class _FeatureTileState extends State<FeatureTile> {
             size: 20,
             color: accent,
             controller: _iconController,
-            playOnAppear: true,
           )
         : Icon(widget.icon, size: 20, color: accent);
     return Padding(

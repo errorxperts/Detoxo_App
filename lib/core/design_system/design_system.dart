@@ -28,7 +28,6 @@ export 'components/variant_carousel.dart';
 export 'foundations/animated_icons.dart';
 export 'foundations/glass_container.dart';
 export 'foundations/glass_scaffold.dart';
-export 'foundations/liquid_glass_border.dart';
 export 'foundations/motion.dart';
 // Theme
 export 'theme/app_theme.dart';

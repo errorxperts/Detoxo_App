@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 /// A tall spatial-glass tile for the dashboard's blocker pair (App Blocker /
 /// Web Blocker).
 ///
-/// Three layers over a [LiquidGlassBorder]-edged surface: an oversized
+/// Three layers over a tile surface: an oversized
 /// illustration bleeding off the left edge as a translucent watermark, a
 /// levitating glass capsule holding the same artwork top-right, and the
 /// title + live status caption anchored bottom-left.
@@ -16,7 +16,6 @@ class BlockerTile extends StatelessWidget {
     required this.active,
     required this.onTap,
     this.accent,
-    this.levitateDelay = Duration.zero,
     super.key,
   });
 
@@ -27,14 +26,11 @@ class BlockerTile extends StatelessWidget {
   /// Live status line, rendered uppercase (e.g. `3 apps blocked`).
   final String caption;
 
-  /// Whether the blocker actually has entries — pulses the status dot and
-  /// lifts the caption to the accent colour.
+  /// Whether the blocker actually has entries — lifts the status dot and the
+  /// caption to the accent colour.
   final bool active;
   final VoidCallback onTap;
   final Color? accent;
-
-  /// Offsets the capsule's levitation so a row of tiles doesn't bob in unison.
-  final Duration levitateDelay;
 
   /// Decoded width for the watermark. Without a cache hint every tile would pin
   /// the full-resolution bitmap for a decorative layer.
@@ -56,6 +52,7 @@ class BlockerTile extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: 4 / 4,
         child: GlassContainer(
+          surface: DxSurface.tile,
           padding: const EdgeInsets.all(AppSpacing.sm),
           child: Stack(
             children: [
@@ -73,11 +70,7 @@ class BlockerTile extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: _Capsule(image: image, delay: levitateDelay),
-              ),
+              Positioned(top: 0, right: 0, child: _Capsule(image: image)),
               Align(
                 alignment: Alignment.bottomLeft,
                 child: Column(
@@ -95,11 +88,7 @@ class BlockerTile extends StatelessWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        StatusDot(
-                          color: active ? c : scheme.onSurfaceVariant,
-                          size: 8,
-                          pulsing: active,
-                        ),
+                        StatusDot(color: active ? c : scheme.onSurfaceVariant),
                         const SizedBox(width: AppSpacing.xs),
                         Flexible(
                           child: Text(
@@ -126,27 +115,15 @@ class BlockerTile extends StatelessWidget {
   }
 }
 
-/// The floating glass disc in the tile's top-right corner. Levitates unless the
-/// user has asked for reduced motion.
+/// The glass disc in the tile's top-right corner. Still: nothing loops.
 class _Capsule extends StatelessWidget {
-  const _Capsule({required this.image, required this.delay});
+  const _Capsule({required this.image});
 
   final String image;
-  final Duration delay;
 
   @override
-  Widget build(BuildContext context) {
-    final disc = Transform.scale(
-      scale: 1,
-      child: SizedBox(
-        height: 80,
-        child: Image.asset(image, cacheWidth: BlockerTile._capsuleCacheWidth),
-      ),
-    );
-
-    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return disc;
-    return disc
-        .animate(delay: delay, onPlay: (c) => c.repeat(reverse: true))
-        .moveY(begin: 0, end: -6, duration: 3.seconds, curve: AppCurves.gentle);
-  }
+  Widget build(BuildContext context) => SizedBox(
+    height: 80,
+    child: Image.asset(image, cacheWidth: BlockerTile._capsuleCacheWidth),
+  );
 }

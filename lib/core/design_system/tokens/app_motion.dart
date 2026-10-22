@@ -1,4 +1,4 @@
-import 'package:flutter/animation.dart';
+import 'package:flutter/widgets.dart';
 
 /// Motion durations. Pairs with flutter_animate's `.ms` ergonomics.
 abstract final class AppDurations {
@@ -7,8 +7,23 @@ abstract final class AppDurations {
   static const Duration normal = Duration(milliseconds: 300); // entrance fades
   static const Duration medium = Duration(milliseconds: 400); // page / sheet
   static const Duration slow = Duration(milliseconds: 700); // shimmer / reveal
-  static const Duration pulse = Duration(milliseconds: 900); // status pulse
   static const Duration stagger = Duration(milliseconds: 80); // list interval
+
+  // ── Frozen Glass (bundle.css transitions) ──────────────────────────────────
+  /// Press: every pressable's scale (`.dx-press`).
+  static const Duration press = Duration(milliseconds: 400);
+
+  /// A selection chip sliding to its pick (mode card, segments, quick picks).
+  static const Duration chip = Duration(milliseconds: 500);
+
+  /// The tab-bar lens sliding to the current tab.
+  static const Duration lens = Duration(milliseconds: 550);
+
+  /// A detail row opening or closing (`.dx-detail`).
+  static const Duration detail = Duration(milliseconds: 500);
+
+  /// Any accent change cross-fading.
+  static const Duration glide = Duration(milliseconds: 1000);
 }
 
 /// Curves tuned for a calm focus app — eased, never bouncy.
@@ -22,4 +37,29 @@ abstract final class AppCurves {
   /// selection pills, hero reveals, the illuminated selected-card glow. Longer,
   /// smoother settle than [standard] without ever overshooting.
   static const Curve fluid = Cubic(0.16, 1.0, 0.30, 1.0);
+
+  // ── Frozen Glass (bundle.css cubic-beziers) ────────────────────────────────
+  /// Press: a short overshoot back to rest.
+  static const Curve press = Cubic(0.34, 1.56, 0.64, 1);
+
+  /// A chip slide.
+  static const Curve chip = Cubic(0.34, 1.25, 0.64, 1);
+
+  /// The tab-lens slide.
+  static const Curve lens = Cubic(0.34, 1.3, 0.64, 1);
+
+  /// Each keyframe segment of a squish.
+  static const Curve squish = Cubic(0.3, 0.7, 0.3, 1);
+
+  /// A detail row opening, and the ring arc moving.
+  static const Curve detail = Cubic(0.2, 0.8, 0.2, 1);
+
+  /// An accent cross-fade (CSS `ease`).
+  static const Curve glide = Curves.ease;
+}
+
+extension AppMotionX on BuildContext {
+  /// [d], or zero when the person asked to remove animations.
+  Duration motion(Duration d) =>
+      (MediaQuery.maybeDisableAnimationsOf(this) ?? false) ? Duration.zero : d;
 }

@@ -495,10 +495,8 @@ class _DigitKey extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final key = GlassContainer(
-      // No BackdropFilter: ten simultaneous blurs over the drifting ambient
-      // background would re-blur every frame (see GlassContainer's own doc);
-      // the sibling _IconKey already opts out.
-      enableBlur: false,
+      surface: DxSurface.option,
+      color: context.tokens.fillQuiet,
       borderRadius: AppRadius.pill,
       padding: EdgeInsets.zero,
       child: Center(
@@ -538,11 +536,9 @@ class _IconKey extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final key = GlassContainer(
-      enableBlur: false,
+      surface: DxSurface.option,
+      color: Colors.transparent,
       borderRadius: AppRadius.pill,
-      borderColor: Colors.transparent,
-      tintTop: Colors.transparent,
-      tintBottom: Colors.transparent,
       padding: EdgeInsets.zero,
       child: Center(child: child),
     );

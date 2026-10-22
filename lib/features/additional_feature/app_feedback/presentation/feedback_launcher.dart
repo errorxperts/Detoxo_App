@@ -30,18 +30,17 @@ abstract final class FeedbackLauncher {
   /// Glass-styled failure toast, shown when no email app is available. Built
   /// standalone (rather than via `GlassToast`) so it can run off a captured
   /// messenger after the async submit.
-  static SnackBar _errorSnackBar() => SnackBar(
+  static SnackBar _errorSnackBar() => const SnackBar(
     behavior: SnackBarBehavior.floating,
     backgroundColor: Colors.transparent,
     elevation: 0,
     content: GlassContainer(
-      blurSigma: AppBlur.bar,
-      padding: const EdgeInsets.symmetric(
+      surface: DxSurface.glass,
+      padding: EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
       ),
-      borderColor: AppColors.danger.withValues(alpha: 0.4),
-      child: const Row(
+      child: Row(
         children: [
           Icon(Icons.error_outline, color: AppColors.danger, size: 20),
           SizedBox(width: AppSpacing.sm),

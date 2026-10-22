@@ -2,21 +2,18 @@ import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
-import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/widgets/common_widgets.dart' show SectionCard;
 import 'package:flutter/material.dart';
 
-/// A frosted, optionally tappable surface. Use for hero/status cards and any
-/// standalone glass panel. For titled sections use [SectionCard] (common_widgets).
+/// A frosted panel, optionally tappable. For titled sections use
+/// [SectionCard] (common_widgets).
 class GlassCard extends StatelessWidget {
   const GlassCard({
     required this.child,
     this.onTap,
     this.padding = AppInsets.card,
-    this.accent,
-    this.blurSigma,
     super.key,
   });
 
@@ -24,20 +21,9 @@ class GlassCard extends StatelessWidget {
   final VoidCallback? onTap;
   final EdgeInsetsGeometry padding;
 
-  /// Tints the glass fill/border (e.g. status card uses [AppColors.accent]).
-  final Color? accent;
-  final double? blurSigma;
-
   @override
   Widget build(BuildContext context) {
-    final card = GlassContainer(
-      padding: padding,
-      blurSigma: blurSigma ?? 16,
-      tintTop: accent?.withValues(alpha: 0.20),
-      tintBottom: accent?.withValues(alpha: 0.06),
-      borderColor: accent?.withValues(alpha: 0.40),
-      child: child,
-    );
+    final card = GlassContainer(padding: padding, child: child);
     if (onTap == null) return card;
     return AppPressable(onTap: onTap!, child: card);
   }
@@ -184,13 +170,7 @@ class StatCard extends StatelessWidget {
       label: _semanticLabel(),
       excludeSemantics: true,
       child: contained
-          ? GlassContainer(
-              enableBlur: false,
-              padding: padding,
-              tintTop: AppColors.seed.withValues(alpha: 0.18),
-              tintBottom: AppColors.seed.withValues(alpha: 0.05),
-              child: body,
-            )
+          ? GlassContainer(padding: padding, child: body)
           : Padding(padding: padding, child: body),
     );
   }
@@ -310,7 +290,6 @@ class AppCard extends StatelessWidget {
     this.child,
     this.actions,
     this.onTap,
-    this.accent,
     this.padding = AppInsets.card,
     super.key,
   });
@@ -322,9 +301,6 @@ class AppCard extends StatelessWidget {
   final Widget? child;
   final List<Widget>? actions;
   final VoidCallback? onTap;
-
-  /// Tints the glass fill/border (e.g. [AppColors.danger] for a warning card).
-  final Color? accent;
   final EdgeInsetsGeometry padding;
 
   @override
@@ -334,7 +310,6 @@ class AppCard extends StatelessWidget {
     final hasActions = actions != null && actions!.isNotEmpty;
     return GlassCard(
       onTap: onTap,
-      accent: accent,
       padding: padding,
       child: Column(
         mainAxisSize: MainAxisSize.min,

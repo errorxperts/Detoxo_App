@@ -3,6 +3,7 @@ import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// One option in a [GlassSegmented] — a label with an optional leading icon.
@@ -109,6 +110,8 @@ class _GlassSegmentedState extends State<GlassSegmented> {
         ],
       ),
       child: GlassContainer(
+        surface: DxSurface.option,
+        color: context.tokens.fillQuiet,
         borderRadius: AppRadius.pill,
         padding: const EdgeInsets.all(GlassSegmented._inset),
         child: SizedBox(
@@ -133,16 +136,11 @@ class _GlassSegmentedState extends State<GlassSegmented> {
                     child: FractionallySizedBox(
                       widthFactor: 1 / segments.length,
                       heightFactor: 1,
-                      child: GlassContainer(
-                        enableBlur: false,
+                      child: const GlassContainer(
+                        surface: DxSurface.option,
                         borderRadius: AppRadius.pill,
                         padding: EdgeInsets.zero,
-                        tintTop: accent.withValues(
-                          alpha: _pressed ? 0.42 : 0.30,
-                        ),
-                        tintBottom: accent.withValues(alpha: 0.12),
-                        borderColor: accent.withValues(alpha: 0.55),
-                        child: const SizedBox.expand(),
+                        child: SizedBox.expand(),
                       ),
                     ),
                   ),
@@ -306,8 +304,6 @@ class AppChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final glass = context.glass;
-    final accent = Theme.of(context).colorScheme.secondary;
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     return AppPressable(
       onTap: onSelected,
@@ -340,19 +336,18 @@ class AppChip extends StatelessWidget {
           ],
         ),
         builder: (context, t, child) => GlassContainer(
-          enableBlur: false,
+          surface: DxSurface.option,
+          // fill-quiet at rest, the solid option base once picked.
+          color: Color.lerp(
+            context.tokens.fillQuiet,
+            context.tokens.optionBase,
+            t,
+          ),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.xs,
           ),
           borderRadius: AppRadius.pill,
-          tintTop: t == 0
-              ? null
-              : Color.lerp(glass.fillTop, accent.withValues(alpha: 0.28), t),
-          tintBottom: t == 0
-              ? null
-              : Color.lerp(glass.fillBottom, accent.withValues(alpha: 0.14), t),
-          borderColor: selected ? accent.withValues(alpha: 0.6) : null,
           child: child!,
         ),
       ),

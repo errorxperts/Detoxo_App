@@ -1,4 +1,6 @@
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
+import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -28,29 +30,42 @@ abstract final class AppHaptics {
 }
 
 /// Scale-on-press micro-interaction with optional haptic feedback. Wrap any
-/// tappable surface (GlassCard, CTAs, tiles).
+/// custom tappable surface.
+///
+/// Press follows the spec's CSS transition: scale to [pressedScale] over
+/// [AppDurations.press] with a short overshoot back ([AppCurves.press]), and no
+/// scale at all under Reduce Motion. Keyboard / switch-access focus draws a
+/// [FocusRing] that follows [radius].
 ///
 /// Exposes a proper `button` semantics node (role + [semanticLabel] + [enabled]
-/// state) and is keyboard/switch-access activatable — so every custom tappable
-/// routed through it announces correctly to TalkBack/VoiceOver, not just the
-/// Material buttons. Set [minTapTarget] on small controls so the hit area meets
-/// the 48dp minimum without changing the visual size.
+/// state) and is keyboard/switch-access activatable, so every custom tappable
+/// routed through it announces correctly to TalkBack. Set [minTapTarget] on
+/// small controls so the hit area meets the 48dp minimum without changing the
+/// visual size.
 class AppPressable extends StatefulWidget {
   const AppPressable({
     required this.child,
     required this.onTap,
-    this.pressedScale = 0.96,
+    this.pressedScale = 0.975,
+    this.radius = const BorderRadius.all(Radius.circular(AppRadius.row)),
     this.haptic = true,
     this.enabled = true,
     this.semanticLabel,
     this.selected,
+    this.inMutuallyExclusiveGroup,
     this.minTapTarget,
     super.key,
   });
 
   final Widget child;
   final VoidCallback onTap;
+
+  /// Cards .975 (the default), buttons .95, steppers .9; glass circles grow
+  /// to 1.06.
   final double pressedScale;
+
+  /// The shape the focus ring follows.
+  final BorderRadius radius;
   final bool haptic;
 
   /// When false, the control is inert (no tap, no press animation) and is
@@ -64,6 +79,10 @@ class AppPressable extends StatefulWidget {
   /// Exposes a selected state to screen readers (for toggle-like chips/cells).
   final bool? selected;
 
+  /// Marks one option of a single-choice group, so TalkBack reads it as a
+  /// radio and each option stays one node.
+  final bool? inMutuallyExclusiveGroup;
+
   /// When set, expands the hit area to at least this size (the visual stays
   /// centered at its natural size) so small controls clear the 48dp floor.
   final Size? minTapTarget;
@@ -72,24 +91,13 @@ class AppPressable extends StatefulWidget {
   State<AppPressable> createState() => _AppPressableState();
 }
 
-class _AppPressableState extends State<AppPressable>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _c = AnimationController(
-    vsync: this,
-    duration: AppDurations.instant,
-  );
-
-  // Keyboard / switch-access focus, painted as an accent ring (see build).
+class _AppPressableState extends State<AppPressable> {
+  bool _pressed = false;
   bool _focused = false;
 
-  @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
+  void _press(bool down) {
+    if (mounted && _pressed != down) setState(() => _pressed = down);
   }
-
-  void _down(_) => _c.forward();
-  void _up([_]) => _c.reverse();
 
   void _handleTap() {
     if (!widget.enabled) return;
@@ -99,29 +107,16 @@ class _AppPressableState extends State<AppPressable>
 
   @override
   Widget build(BuildContext context) {
-    Widget visual = AnimatedBuilder(
-      animation: _c,
-      builder: (_, child) => Transform.scale(
-        scale: 1 - (_c.value * (1 - widget.pressedScale)),
-        child: child,
+    final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    Widget visual = FocusRing(
+      visible: _focused,
+      radius: widget.radius,
+      child: AnimatedScale(
+        scale: _pressed && !still ? widget.pressedScale : 1,
+        duration: AppDurations.press,
+        curve: AppCurves.press,
+        child: widget.child,
       ),
-      child: widget.child,
-    );
-
-    // Focus-visible ring for keyboard / switch access — an accent hairline drawn
-    // as a foreground border (no layout shift; transparent until focused).
-    visual = DecoratedBox(
-      position: DecorationPosition.foreground,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: _focused
-              ? Theme.of(context).colorScheme.secondary
-              : Colors.transparent,
-          width: 2,
-        ),
-      ),
-      child: visual,
     );
 
     if (widget.minTapTarget != null) {
@@ -137,15 +132,14 @@ class _AppPressableState extends State<AppPressable>
     final enabled = widget.enabled;
     Widget result = GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: enabled ? _down : null,
-      onTapUp: enabled ? _up : null,
-      onTapCancel: enabled ? _up : null,
+      onTapDown: enabled ? (_) => _press(true) : null,
+      onTapUp: enabled ? (_) => _press(false) : null,
+      onTapCancel: enabled ? () => _press(false) : null,
       onTap: enabled ? _handleTap : null,
       child: visual,
     );
 
-    // Keyboard / switch-access focus + Enter/Space activation. Focus highlight
-    // drives the accent ring painted above; TalkBack also reads the node.
+    // Keyboard / switch-access focus + Enter/Space activation.
     result = FocusableActionDetector(
       enabled: enabled,
       mouseCursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
@@ -167,19 +161,64 @@ class _AppPressableState extends State<AppPressable>
       button: true,
       enabled: enabled,
       selected: widget.selected,
+      inMutuallyExclusiveGroup: widget.inMutuallyExclusiveGroup,
       label: widget.semanticLabel,
       child: result,
     );
   }
 }
 
+/// The spec focus ring: a 2 px [AppTokens.focus] stroke 3 px outside the
+/// control, following [radius]. Painted over the child, so it never shifts
+/// layout.
+class FocusRing extends StatelessWidget {
+  const FocusRing({
+    required this.visible,
+    required this.radius,
+    required this.child,
+    super.key,
+  });
+
+  final bool visible;
+  final BorderRadius radius;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => CustomPaint(
+    foregroundPainter: visible
+        ? _FocusRingPainter(radius, context.tokens.focus)
+        : null,
+    child: child,
+  );
+}
+
+class _FocusRingPainter extends CustomPainter {
+  const _FocusRingPainter(this.radius, this.color);
+
+  final BorderRadius radius;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) => canvas.drawRRect(
+    // 3 px gap + half the 2 px stroke.
+    radius.toRRect(Offset.zero & size).inflate(4),
+    Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = color,
+  );
+
+  @override
+  bool shouldRepaint(_FocusRingPainter old) =>
+      old.radius != radius || old.color != color;
+}
+
 /// Scale-on-press feedback driven by raw pointer events. Unlike [AppPressable]
 /// this adds NO tap recognizer, so it can wrap a widget that owns its own tap
-/// (Material buttons, `InkWell`) without fighting it in the gesture arena — the
-/// child's `onPressed`/ripple still fires. Used to give every adaptive button a
-/// subtle squish on Android.
+/// (Material buttons, `InkWell`) without fighting it in the gesture arena.
+/// Same press transition, and no scale under Reduce Motion.
 class PressScale extends StatefulWidget {
-  const PressScale({required this.child, this.pressedScale = 0.97, super.key});
+  const PressScale({required this.child, this.pressedScale = 0.95, super.key});
 
   final Widget child;
   final double pressedScale;
@@ -188,12 +227,87 @@ class PressScale extends StatefulWidget {
   State<PressScale> createState() => _PressScaleState();
 }
 
-class _PressScaleState extends State<PressScale>
-    with SingleTickerProviderStateMixin {
+class _PressScaleState extends State<PressScale> {
+  bool _pressed = false;
+
+  void _press(bool down) {
+    if (mounted && _pressed != down) setState(() => _pressed = down);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    return Listener(
+      onPointerDown: (_) => _press(true),
+      onPointerUp: (_) => _press(false),
+      onPointerCancel: (_) => _press(false),
+      child: AnimatedScale(
+        scale: _pressed && !still ? widget.pressedScale : 1,
+        duration: AppDurations.press,
+        curve: AppCurves.press,
+        child: widget.child,
+      ),
+    );
+  }
+}
+
+/// The spec squish: when [trigger] changes, [child] stretches wide and short,
+/// then tall, then settles (scale 1 → 1.08/.93 → .98/1.03 → 1 at 30/35/35 %,
+/// each segment on [AppCurves.squish]). Used by the mode chip, the tab lens
+/// (550 ms) and the quick-pick chip. Nothing under Reduce Motion.
+class Squish extends StatefulWidget {
+  const Squish({
+    required this.trigger,
+    required this.child,
+    this.duration = AppDurations.chip,
+    super.key,
+  });
+
+  final Object? trigger;
+  final Widget child;
+  final Duration duration;
+
+  @override
+  State<Squish> createState() => _SquishState();
+}
+
+class _SquishState extends State<Squish> with SingleTickerProviderStateMixin {
   late final AnimationController _c = AnimationController(
     vsync: this,
-    duration: AppDurations.instant,
+    duration: widget.duration,
   );
+
+  static Animatable<double> _keys(double a, double b) => TweenSequence([
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 1.0,
+        end: a,
+      ).chain(CurveTween(curve: AppCurves.squish)),
+      weight: 30,
+    ),
+    TweenSequenceItem(
+      tween: Tween(begin: a, end: b).chain(CurveTween(curve: AppCurves.squish)),
+      weight: 35,
+    ),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: b,
+        end: 1.0,
+      ).chain(CurveTween(curve: AppCurves.squish)),
+      weight: 35,
+    ),
+  ]);
+
+  static final _x = _keys(1.08, 0.98);
+  static final _y = _keys(0.93, 1.03);
+
+  @override
+  void didUpdateWidget(Squish old) {
+    super.didUpdateWidget(old);
+    _c.duration = widget.duration;
+    final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (old.trigger != widget.trigger && !still) _c.forward(from: 0);
+  }
 
   @override
   void dispose() {
@@ -202,21 +316,15 @@ class _PressScaleState extends State<PressScale>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Listener(
-      onPointerDown: (_) => _c.forward(),
-      onPointerUp: (_) => _c.reverse(),
-      onPointerCancel: (_) => _c.reverse(),
-      child: AnimatedBuilder(
-        animation: _c,
-        builder: (_, child) => Transform.scale(
-          scale: 1 - (_c.value * (1 - widget.pressedScale)),
-          child: child,
-        ),
-        child: widget.child,
-      ),
-    );
-  }
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _c,
+    builder: (_, child) => Transform(
+      alignment: Alignment.center,
+      transform: Matrix4.diagonal3Values(_x.evaluate(_c), _y.evaluate(_c), 1),
+      child: child,
+    ),
+    child: widget.child,
+  );
 }
 
 /// Entrance animation helpers (flutter_animate) for a consistent fade + slide-up.
@@ -271,42 +379,22 @@ class EntranceList extends StatelessWidget {
   }
 }
 
-/// Pulsing / glowing status dot — "blocking active" on dashboard, "resumes in"
-/// on pause. Colour encodes state (accent / danger / warning).
+/// A status dot: a static circle of [color]. Status is never colour alone, so
+/// the word beside it carries the meaning and the dot is hidden from screen
+/// readers.
 class StatusDot extends StatelessWidget {
-  const StatusDot({
-    required this.color,
-    this.size = 12,
-    this.pulsing = true,
-    super.key,
-  });
+  const StatusDot({required this.color, this.size = 8, super.key});
 
   final Color color;
   final double size;
-  final bool pulsing;
 
   @override
-  Widget build(BuildContext context) {
-    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final dot = Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(color: color.withValues(alpha: 0.6), blurRadius: 8),
-        ],
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: SizedBox.square(
+      dimension: size,
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
-    );
-    if (!pulsing || reduceMotion) return dot;
-    return dot
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .scaleXY(
-          begin: 1,
-          end: 1.25,
-          duration: AppDurations.pulse,
-          curve: AppCurves.gentle,
-        );
-  }
+    ),
+  );
 }

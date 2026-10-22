@@ -179,7 +179,6 @@ class InfoBanner extends StatelessWidget {
             icon: AppIcon.info,
             size: 20,
             interactive: true,
-            playOnAppear: true,
           ),
           const SizedBox(width: 10),
           Expanded(

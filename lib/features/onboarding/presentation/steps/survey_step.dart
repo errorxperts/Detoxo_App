@@ -185,7 +185,8 @@ class _TextAnswerState extends State<_TextAnswer> {
       textField: true,
       label: widget.label,
       child: GlassContainer(
-        enableBlur: false,
+        surface: DxSurface.option,
+        color: context.tokens.fillQuiet,
         borderRadius: AppRadius.md,
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,

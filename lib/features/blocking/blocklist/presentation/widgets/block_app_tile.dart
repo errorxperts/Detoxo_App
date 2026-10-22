@@ -86,8 +86,6 @@ class _BlockAppTileState extends State<BlockAppTile> {
 
     return _padded(
       GlassContainer(
-        enableBlur: false,
-        selected: installed && _enabledCount > 0,
         padding: EdgeInsets.zero,
         child: Column(
           mainAxisSize: MainAxisSize.min,

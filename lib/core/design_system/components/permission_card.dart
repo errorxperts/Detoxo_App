@@ -51,8 +51,6 @@ class PermissionCard extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final accent = Theme.of(context).colorScheme.secondary;
     return GlassContainer(
-      enableBlur: false,
-      borderColor: granted ? AppColors.success.withValues(alpha: 0.4) : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

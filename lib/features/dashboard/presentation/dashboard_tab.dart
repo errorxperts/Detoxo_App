@@ -482,7 +482,6 @@ class _AnimatedActionTileState extends State<_AnimatedActionTile> {
         size: 24,
         color: widget.iconColor ?? Theme.of(context).colorScheme.secondary,
         controller: _controller,
-        playOnAppear: true,
       ),
       title: widget.title,
       subtitle: widget.subtitle,

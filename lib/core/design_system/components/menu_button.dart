@@ -1,8 +1,10 @@
+import 'package:detoxo/core/design_system/components/buttons.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-/// identical: a primary-tinted circle with a [Icons.menu_rounded] glyph.
+/// The drawer ("sidebar") button of a tab header: a [GlassIconButton] holding
+/// the spec sidebar glyph in `ink`.
 ///
 /// Lives in the design system rather than under the dashboard because three
 /// features draw it; reaching into `dashboard/presentation/` for it was a
@@ -13,23 +15,18 @@ class DrawerMenuButton extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Semantics(
-      button: true,
-      label: 'Menu',
-      child: GestureDetector(
-        onTap: onTap == null
-            ? null
-            : () {
-                onTap!();
-              },
-        child: SvgPicture.asset(
-          Assets.svg.sidebar.path,
-          colorFilter: ColorFilter.mode(scheme.primary, BlendMode.srcIn),
-          width: 22,
+  Widget build(BuildContext context) => GlassIconButton(
+    semanticLabel: 'Menu',
+    onPressed: onTap,
+    icon: Builder(
+      builder: (context) => SvgPicture.asset(
+        Assets.svg.sidebar.path,
+        colorFilter: ColorFilter.mode(
+          IconTheme.of(context).color!,
+          BlendMode.srcIn,
         ),
+        width: 22,
       ),
-    );
-  }
+    ),
+  );
 }

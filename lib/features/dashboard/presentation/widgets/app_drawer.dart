@@ -32,12 +32,8 @@ class AppDrawer extends StatelessWidget {
           border: Border(left: BorderSide(color: context.glass.border)),
         ),
         child: GlassContainer(
+          surface: DxSurface.sheet,
           borderRadius: 0,
-          blurSigma: AppBlur.sheet,
-          borderColor: Colors.transparent,
-          // Standard translucent glass fill (glass.fillTop/fillBottom) so the
-          // drawer matches the app's glassmorphism; the frosted blur here plus
-          // the background blur behind it keep nav text readable.
           padding: EdgeInsets.zero,
           child: SafeArea(
             child: Column(

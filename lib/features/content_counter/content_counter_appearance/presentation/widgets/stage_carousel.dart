@@ -11,8 +11,8 @@ import 'package:flutter/material.dart';
 bool _still(BuildContext context) =>
     MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
-/// A stage page's surface: the design system's glass, lit with the theme's
-/// primary ([GlassContainer.selected]), inset [AppSpacing.xxs] each side so
+/// A stage page's surface: the design system's panel,
+/// inset [AppSpacing.xxs] each side so
 /// neighbouring pages keep a gap. [child] sits inside [padding], clipped to
 /// the glass.
 class StageSurface extends StatelessWidget {
@@ -28,13 +28,7 @@ class StageSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxs),
-    child: GlassContainer(
-      selected: true,
-      // The preview animates on it: no backdrop blur to redo every frame.
-      enableBlur: false,
-      padding: padding,
-      child: child,
-    ),
+    child: GlassContainer(padding: padding, child: child),
   );
 }
 

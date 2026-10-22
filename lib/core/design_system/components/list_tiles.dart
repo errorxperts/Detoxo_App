@@ -3,6 +3,7 @@ import 'package:detoxo/core/design_system/components/toggle.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// A glass row used in lists (feature entries, quick actions). Flat translucent
@@ -24,15 +25,16 @@ class GlassListTile extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
 
-  /// Elevates the row to the premium active state (see [GlassContainer.selected]).
+  /// Marks the row as picked: a calm brand-tinted option fill.
   final bool selected;
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    final t = context.tokens;
     final row = GlassContainer(
-      enableBlur: false,
-      selected: selected,
+      surface: selected ? DxSurface.option : DxSurface.panel,
+      color: selected ? Color.lerp(t.optionBase, t.brand.main, t.kChip) : null,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
@@ -104,7 +106,7 @@ class AppToggleTile extends StatelessWidget {
   final bool locked;
   final VoidCallback? onLockedTap;
 
-  /// Elevates the row to the premium active state (see [GlassContainer.selected]).
+  /// Marks the row as picked (see [GlassListTile.selected]).
   final bool selected;
 
   @override

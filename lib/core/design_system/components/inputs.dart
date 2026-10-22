@@ -2,6 +2,7 @@ import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
+import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// A compact, pill-shaped search field — a slim translucent row with a leading
@@ -48,7 +49,8 @@ class _AppSearchFieldState extends State<AppSearchField> {
   Widget build(BuildContext context) {
     final muted = context.glass.onGlassMuted;
     return GlassContainer(
-      enableBlur: false,
+      surface: DxSurface.option,
+      color: context.tokens.fillQuiet,
       borderRadius: AppRadius.pill,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(

@@ -1,3 +1,4 @@
+import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/features/additional_feature/app_feedback/presentation/feedback_launcher.dart';
 import 'package:detoxo/features/blocking/blocking.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +16,8 @@ class FeedbackActionButton extends StatelessWidget {
       selector: (settings) => settings.showFeedbackButton,
       builder: (context, show) {
         if (!show) return const SizedBox.shrink();
-        return IconButton(
-          tooltip: 'Send feedback',
+        return GlassIconButton(
+          semanticLabel: 'Send feedback',
           icon: const Icon(Icons.feedback_outlined),
           onPressed: () => FeedbackLauncher.show(context),
         );

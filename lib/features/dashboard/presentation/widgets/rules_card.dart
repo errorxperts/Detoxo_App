@@ -39,7 +39,6 @@ class RulesCard extends StatelessWidget {
         final iconColor = accent ?? scheme.onSurfaceVariant;
 
         return GlassCard(
-          accent: accent,
           onTap: () => context.push(Routes.rules),
           child: Row(
             children: [
@@ -100,18 +99,9 @@ class _PulsingIcon extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          AppAnimatedIcon(
-            icon: AppIcon.rules,
-            size: 32,
-            color: color,
-            playOnAppear: true,
-          ),
+          AppAnimatedIcon(icon: AppIcon.rules, size: 32, color: color),
           if (pulsing)
-            Positioned(
-              top: -2,
-              right: -2,
-              child: StatusDot(color: color, size: 8),
-            ),
+            Positioned(top: -2, right: -2, child: StatusDot(color: color)),
         ],
       ),
     );

@@ -20,7 +20,6 @@ class FaqExpansionTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: GlassContainer(
-        enableBlur: false,
         borderRadius: AppRadius.md,
         padding: EdgeInsets.zero,
         child: ExpansionTile(

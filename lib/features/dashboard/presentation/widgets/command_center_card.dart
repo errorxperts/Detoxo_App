@@ -198,7 +198,6 @@ class CommandCenterCard extends StatelessWidget {
               icon: icon,
               size: 30,
               color: Theme.of(context).colorScheme.secondary,
-              playOnAppear: true,
             ),
             const SizedBox(height: AppSpacing.xs),
           ],

@@ -4,7 +4,6 @@ import 'package:detoxo/core/design_system/foundations/animated_icons.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/theme/app_theme.dart';
-import 'package:detoxo/core/design_system/tokens/app_blur.dart';
 import 'package:detoxo/core/design_system/tokens/app_colors.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
@@ -105,16 +104,13 @@ class ProgressRing extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Raised glass disc nested inside the arc. Sized to ~72% so a clear
-          // gap sits between the arc and the disc (the depth cue). A true circle
-          // (not the squircle) so it follows the ring; GlassContainer supplies
-          // the soft elevation shadow so it reads as floating above the card.
+          // Interim disc inside the arc (the ring materials arrive in F7c).
           SizedBox(
             width: size * 0.72,
             height: size * 0.72,
             child: const GlassContainer(
-              blurSigma: AppBlur.hero,
-              circle: true,
+              surface: DxSurface.tile,
+              borderRadius: AppRadius.pill,
               padding: EdgeInsets.zero,
               child: SizedBox.expand(),
             ),
@@ -312,9 +308,8 @@ class ProgressBar extends StatelessWidget {
   }
 }
 
-/// A friendly empty / placeholder state. Pass [animatedIcon] for a morphing
-/// glyph — [loopAnimation] runs it continuously (ambient), otherwise it plays
-/// once on appear.
+/// A calm empty / placeholder state. [animatedIcon] draws a still glyph that
+/// never plays on its own.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     required this.icon,
@@ -322,7 +317,6 @@ class EmptyState extends StatelessWidget {
     this.subtitle,
     this.action,
     this.animatedIcon,
-    this.loopAnimation = false,
     super.key,
   });
 
@@ -331,7 +325,6 @@ class EmptyState extends StatelessWidget {
   final String? subtitle;
   final Widget? action;
   final AppIcon? animatedIcon;
-  final bool loopAnimation;
 
   @override
   Widget build(BuildContext context) {
@@ -343,13 +336,7 @@ class EmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (animatedIcon != null)
-              AppAnimatedIcon(
-                icon: animatedIcon!,
-                size: 44,
-                color: outline,
-                loop: loopAnimation,
-                playOnAppear: !loopAnimation,
-              )
+              AppAnimatedIcon(icon: animatedIcon!, size: 44, color: outline)
             else
               Icon(icon, size: 44, color: outline),
             const SizedBox(height: AppSpacing.sm),
