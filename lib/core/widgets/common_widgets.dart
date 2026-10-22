@@ -11,33 +11,6 @@ export 'package:detoxo/core/design_system/components/section_header.dart'
 /// New screens should prefer the design-system components directly
 /// (`PanelGroup`, `GlassListTile`, `SectionHeader`, `PrimaryButton`, …).
 
-/// A panel body: one padded panel with an optional title over [child].
-class SectionCard extends StatelessWidget {
-  const SectionCard({required this.child, this.title, super.key});
-
-  final Widget child;
-  final String? title;
-
-  @override
-  Widget build(BuildContext context) {
-    return GlassContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (title != null) ...[
-            Text(
-              title!,
-              style: AppTypography.label.copyWith(color: context.tokens.ink),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-          child,
-        ],
-      ),
-    );
-  }
-}
-
 // EmptyState and SectionHeader now live in the design system
 // (components/feedback.dart, components/section_header.dart) and are re-exported
 // above so existing `common_widgets.dart` importers keep compiling.

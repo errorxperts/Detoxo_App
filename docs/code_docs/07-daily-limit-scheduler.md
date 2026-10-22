@@ -306,8 +306,8 @@ one `NoticeLine`, whose tap is the fix: counter off (`loaded && !enabled`) →
 “Display over other apps”. Feeds still close at the limit; the block screen needs
 this permission."* (`ContentCounterCubit.requestOverlay()`). The forced wall
 skips the Appearance switch, never the grant, so the screen must not promise it
-without one. (`InfoBanner` still lives in this file, unused here: the Settings
-version row is its last caller.)
+without one. (The old `InfoBanner` class that lived in this file went in the
+Frozen Glass sweep, M12, once the Settings version row stopped using it.)
 
 ### The daily limit and a per-target unblock (M8)
 

@@ -304,8 +304,7 @@ void main() {
       );
       await tester.tap(find.text('go'));
       await tester.pump(); // begin pushing the lock-screen route
-      // GlassScaffold runs an infinite ambient animation, so settle by a fixed
-      // duration rather than pumpAndSettle (which would never converge).
+      // A fixed duration covers the route push.
       await tester.pump(const Duration(milliseconds: 400));
       expect(find.text('Confirm to manage locked apps'), findsOneWidget);
     });

@@ -59,8 +59,8 @@ Widget _host(PinCubit cubit) => MaterialApp(
   ),
 );
 
-// GlassScaffold runs an infinite ambient animation, so pumpAndSettle never
-// converges — settle by pumping a few fixed frames instead.
+// Settles by pumping a few fixed frames: route pushes and entrances finish
+// inside them.
 Future<void> settle(WidgetTester tester) async {
   for (var i = 0; i < 6; i++) {
     await tester.pump(const Duration(milliseconds: 120));

@@ -251,7 +251,7 @@ class Rule extends Equatable {
       }
     }
     // `resolveSnapshot` emits no entry at all for a budget of zero, so such a
-    // rule lists as "0 min a day" and blocks nothing. Unreachable from the
+    // rule lists as "0m a day" and blocks nothing. Unreachable from the
     // sliders; reachable from a restored document whose budget map is gone.
     if (kind == RuleKind.timeLimit && thresholdMs <= 0) {
       return 'Pick a daily budget.';

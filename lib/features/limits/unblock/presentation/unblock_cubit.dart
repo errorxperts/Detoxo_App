@@ -150,7 +150,7 @@ class UnblockState extends Equatable {
 /// The app-wide owner of per-target unblocks and the override quota (M8).
 ///
 /// Provided in `main.dart` and exported from the `limits` barrel (the
-/// `RulesCubit` precedent) so the App Blocker screen, the Website blocker
+/// `RulesCubit` precedent) so the App Blocker screen, the Web Blocker
 /// screen, the rules screen and the resume sync all reach it without a
 /// boundary violation.
 class UnblockCubit extends Cubit<UnblockState> {

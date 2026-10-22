@@ -1,4 +1,3 @@
-import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/foundations/motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
@@ -6,8 +5,8 @@ import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
-/// A frosted panel, optionally tappable. For titled sections use
-/// `SectionCard` (core/widgets).
+/// A frosted panel, optionally tappable. For a titled section put a
+/// `SectionHeader` above it.
 class GlassCard extends StatelessWidget {
   const GlassCard({
     required this.child,
@@ -28,13 +27,6 @@ class GlassCard extends StatelessWidget {
   }
 }
 
-/// Optional trend marker for a [StatCard].
-class TrendDelta {
-  const TrendDelta(this.percent, {this.up = true});
-  final int percent;
-  final bool up;
-}
-
 /// A metric tile that animates its value when it changes — making a live
 /// refresh visible. The first paint counts up from zero; a later change tweens
 /// from the value on screen, never back through zero (a tile fed by a live
@@ -49,7 +41,6 @@ class StatCard extends StatelessWidget {
     this.value,
     this.text,
     this.unit,
-    this.trend,
     this.caption,
     this.compact = false,
     this.contained = true,
@@ -65,7 +56,6 @@ class StatCard extends StatelessWidget {
   final String? text;
   final IconData icon;
   final String? unit;
-  final TrendDelta? trend;
 
   /// A muted line under the label — a neutral reference for the number
   /// ("Yesterday: 52"), never a verdict on it.
@@ -86,13 +76,10 @@ class StatCard extends StatelessWidget {
   /// What a screen reader hears: one sentence, not the three loose nodes the
   /// visual layout happens to produce.
   String _semanticLabel() {
-    final trailing = trend == null
-        ? ''
-        : ', ${trend!.up ? 'up' : 'down'} ${trend!.percent} percent';
     // A visual "·" separator is silence to TalkBack, so the clauses would run
     // together; spoken, it is a comma.
     final tail = caption == null ? '' : ', ${caption!.replaceAll(' · ', ', ')}';
-    return '$label: $_figure$trailing$tail';
+    return '$label: $_figure$tail';
   }
 
   @override
@@ -119,9 +106,6 @@ class StatCard extends StatelessWidget {
             builder: (context, v, _) =>
                 Text(unit == null ? '$v' : '$v $unit', style: figureStyle),
           );
-    final badge = trend == null
-        ? null
-        : AppBadge.label('${trend!.up ? '▲' : '▼'} ${trend!.percent}%');
     final captionText = caption == null
         ? null
         : Text(
@@ -141,7 +125,6 @@ class StatCard extends StatelessWidget {
                   // an icon overflows a half-width tile from ~1.3× text
                   // scale, and [StatCardPair] stretches the neighbour.
                   Expanded(child: Text(label, style: text.bodySmall)),
-                  ?badge,
                 ],
               ),
               const SizedBox(height: AppSpacing.xxs),
@@ -149,13 +132,7 @@ class StatCard extends StatelessWidget {
               ?captionText,
             ]
           : [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Icon(icon, color: context.tokens.ink2),
-                  ?badge,
-                ],
-              ),
+              Icon(icon, color: context.tokens.ink2),
               const SizedBox(height: AppSpacing.xs),
               figure,
               Text(label, style: text.bodySmall),
@@ -198,8 +175,8 @@ class StatCardPair extends StatelessWidget {
 
 /// A small tinted icon container — the circular/rounded badge repeated across the
 /// app (drawer rows, feature tiles, blocker capsules, list avatars). Pass [icon]
-/// for a default Material glyph, or [child] for anything (an animated icon,
-/// initials, …). Use [gradient] for a filled brand badge.
+/// for a default Material glyph, or [child] for anything (initials, …). Use
+/// [gradient] for a filled brand badge.
 class IconBadge extends StatelessWidget {
   const IconBadge({
     this.icon,
@@ -269,108 +246,6 @@ class IconBadge extends StatelessWidget {
             color: gradient != null ? Colors.white : tint,
             semanticLabel: semanticLabel,
           ),
-    );
-  }
-}
-
-/// A structured content card: an optional header ([leading] + [title]/[subtitle]
-/// + [trailing]), a [child] body, and a right-aligned [actions] row — all over a
-/// [GlassCard]. Use [GlassCard] for a bare frosted surface, or `SectionCard` for
-/// a simple titled section.
-class AppCard extends StatelessWidget {
-  const AppCard({
-    this.title,
-    this.subtitle,
-    this.leading,
-    this.trailing,
-    this.child,
-    this.actions,
-    this.onTap,
-    this.padding = AppInsets.card,
-    super.key,
-  });
-
-  final String? title;
-  final String? subtitle;
-  final Widget? leading;
-  final Widget? trailing;
-  final Widget? child;
-  final List<Widget>? actions;
-  final VoidCallback? onTap;
-  final EdgeInsetsGeometry padding;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final hasHeader = title != null || leading != null || trailing != null;
-    final hasActions = actions != null && actions!.isNotEmpty;
-    return GlassCard(
-      onTap: onTap,
-      padding: padding,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (hasHeader)
-            Row(
-              children: [
-                if (leading != null) ...[
-                  leading!,
-                  const SizedBox(width: AppSpacing.sm),
-                ],
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (title != null)
-                        // A heading, so a screen reader can jump card to
-                        // card on a scroll of several.
-                        Semantics(
-                          header: true,
-                          child: Text(
-                            title!,
-                            style: text.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          subtitle!,
-                          style: text.bodySmall?.copyWith(
-                            color: context.tokens.ink2,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                if (trailing != null) ...[
-                  const SizedBox(width: AppSpacing.sm),
-                  trailing!,
-                ],
-              ],
-            ),
-          if (child != null) ...[
-            if (hasHeader) const SizedBox(height: AppSpacing.sm),
-            child!,
-          ],
-          if (hasActions) ...[
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                for (var i = 0; i < actions!.length; i++) ...[
-                  if (i > 0) const SizedBox(width: AppSpacing.sm),
-                  actions![i],
-                ],
-              ],
-            ),
-          ],
-        ],
-      ),
     );
   }
 }

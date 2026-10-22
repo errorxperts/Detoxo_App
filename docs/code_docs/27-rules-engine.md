@@ -569,7 +569,6 @@ document and the wire.
 - `lib/features/limits/limits.dart`
 - `lib/features/limits/daily_limit/presentation/daily_limit_screen.dart` (meter-backed "used" + banner)
 - `lib/features/dashboard/presentation/widgets/blocker_section.dart`, `lib/core/design_system/components/blockers.dart` (`BlockerRulesRow`)
-- `lib/core/design_system/foundations/animated_icons.dart` (`AppIcon.rules`)
 - `lib/core/navigation/{routes,app_router}.dart`, `lib/core/di/injector.dart`, `lib/main.dart`, `lib/app/app_resume_sync.dart`
 - `lib/core/storage/local_store.dart` (`StoreKeys.rules`), `lib/core/utils/clock_format.dart`
 - `lib/app/splash_screen.dart` (post-wipe reload of the three `..load()`-once cubits)

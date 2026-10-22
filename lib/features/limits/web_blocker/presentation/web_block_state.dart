@@ -3,7 +3,7 @@ import 'package:detoxo/features/limits/web_blocker/domain/entities/web_block_ent
 import 'package:detoxo/features/limits/web_blocker/domain/entities/web_block_stats.dart';
 import 'package:equatable/equatable.dart';
 
-/// Immutable UI state for the website blocker screen.
+/// Immutable UI state for the Web Blocker screen.
 class WebBlockState extends Equatable {
   const WebBlockState({
     this.isLoading = true,

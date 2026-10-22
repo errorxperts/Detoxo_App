@@ -34,8 +34,7 @@ class GlassSegmented extends StatelessWidget {
 
   final List<GlassSegment> segments;
 
-  /// The picked segment, or -1 for none (the chip fades out) — e.g. a
-  /// quick-pick row whose value was set by another control.
+  /// The picked segment.
   final int selectedIndex;
   final ValueChanged<int> onChanged;
 
@@ -69,14 +68,13 @@ class GlassSegmented extends StatelessWidget {
     final t = context.tokens;
     final n = segments.length;
     final picked = selectedIndex.clamp(0, n - 1);
-    final none = selectedIndex < 0;
     final style = height < 48 ? AppTypography.caption : AppTypography.label;
     // A card-header control is 44 tall by design, but its touch target still
     // has to reach the 48 dp floor (`AppSizes.minTapTarget`): the visual track
     // keeps [height] and the hit layer spans the box padded up to the floor.
     final reach = (AppSizes.minTapTarget - height).clamp(0.0, height) / 2;
     final slide = context.motion(AppDurations.chip);
-    // Labels and the chip's fade follow the spec's `.dx-opt` (.3 s ease).
+    // Labels follow the spec's `.dx-opt` (.3 s ease).
     final fade = context.motion(AppDurations.normal);
 
     final track = GlassContainer(
@@ -95,21 +93,16 @@ class GlassSegmented extends StatelessWidget {
               alignment: n > 1
                   ? Alignment(-1 + 2 * picked / (n - 1), 0)
                   : Alignment.center,
-              child: AnimatedOpacity(
-                opacity: none ? 0 : 1,
-                duration: fade,
-                curve: AppCurves.glide,
-                child: Squish(
-                  trigger: selectedIndex,
-                  child: FractionallySizedBox(
-                    widthFactor: 1 / n,
-                    heightFactor: 1,
-                    child: const GlassContainer(
-                      surface: DxSurface.option,
-                      borderRadius: AppRadius.pill,
-                      padding: EdgeInsets.zero,
-                      child: SizedBox.expand(),
-                    ),
+              child: Squish(
+                trigger: selectedIndex,
+                child: FractionallySizedBox(
+                  widthFactor: 1 / n,
+                  heightFactor: 1,
+                  child: const GlassContainer(
+                    surface: DxSurface.option,
+                    borderRadius: AppRadius.pill,
+                    padding: EdgeInsets.zero,
+                    child: SizedBox.expand(),
                   ),
                 ),
               ),
@@ -122,7 +115,7 @@ class GlassSegmented extends StatelessWidget {
                   Expanded(
                     child: _SegmentLabel(
                       segment: segments[i],
-                      on: !none && i == picked,
+                      on: i == picked,
                       style: style,
                       duration: fade,
                     ),
@@ -166,7 +159,7 @@ class GlassSegmented extends StatelessWidget {
                       pressedScale: 1,
                       radius: AppRadius.brPill,
                       semanticLabel: segments[i].label,
-                      selected: !none && i == picked,
+                      selected: i == picked,
                       // One choice among several, not independent toggles.
                       inMutuallyExclusiveGroup: true,
                       child: const SizedBox.expand(),

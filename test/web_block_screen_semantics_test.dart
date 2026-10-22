@@ -113,8 +113,7 @@ void main() {
       ),
     );
     await tester.pump(); // load() future completes
-    // Entrance animations (fadeIn/slideY). Never pumpAndSettle: the
-    // GlassScaffold ambient background repeats forever.
+    // Entrance animations (fadeIn/slideY), over fixed frames.
     await tester.pump(const Duration(milliseconds: 700));
   }
 

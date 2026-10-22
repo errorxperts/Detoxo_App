@@ -57,10 +57,8 @@ abstract final class AppSizes {
 /// radius; `pill` for chips and CTAs. The spec's named radii ([icon] …
 /// [sheet], [pill]) are generated from tool/design.
 abstract final class AppRadius {
-  static const double sm = 10;
   static const double md = 14;
   static const double lg = 20;
-  static const double xl = 28;
 
   /// App icon squircles in a tile's icon stack (site icons are round).
   static const double icon = AppTokens.radiusIcon;
@@ -86,8 +84,6 @@ abstract final class AppRadius {
   /// Pills, buttons, the tab lens, status dots.
   static const double pill = AppTokens.radiusPill;
 
-  static final BorderRadius brSm = BorderRadius.circular(sm);
-  static final BorderRadius brMd = BorderRadius.circular(md);
   static final BorderRadius brLg = BorderRadius.circular(lg);
   static final BorderRadius brPill = BorderRadius.circular(pill);
 
@@ -111,9 +107,6 @@ abstract final class AppInsets {
   /// The spec's screen side margins.
   static const EdgeInsets screen = EdgeInsets.symmetric(
     horizontal: AppSpacing.gutter,
-  );
-  static const EdgeInsets screenH = EdgeInsets.symmetric(
-    horizontal: AppSpacing.md,
   );
   static const EdgeInsets card = EdgeInsets.all(AppSpacing.md);
   static const EdgeInsets listTile = EdgeInsets.symmetric(

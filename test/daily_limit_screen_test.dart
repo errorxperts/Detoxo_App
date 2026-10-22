@@ -73,7 +73,6 @@ void main() {
     expect(find.text('45m of 3h used'), findsOneWidget);
     expect(find.text('3h a day'), findsOneWidget);
     expect(find.byType(NoticeLine), findsNothing);
-    expect(find.byType(InfoBanner), findsNothing);
   });
 
   testWidgets('Save writes the slider value through setLimit', (tester) async {

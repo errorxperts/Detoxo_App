@@ -1,4 +1,3 @@
-import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/components/dx_icons.dart';
 import 'package:detoxo/core/design_system/components/toggle.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
@@ -129,9 +128,7 @@ class PanelGroup extends StatelessWidget {
   }
 }
 
-/// A labelled row with a trailing [AppToggle]. When [locked], shows a
-/// "Premium" label in the same trailing slot instead of the switch — keeping
-/// every row in a list visually consistent (fixes the blocklist inconsistency).
+/// A labelled row with a trailing [AppToggle].
 class AppToggleTile extends StatelessWidget {
   const AppToggleTile({
     required this.title,
@@ -140,8 +137,6 @@ class AppToggleTile extends StatelessWidget {
     this.subtitle,
     this.leading,
     this.enabled = true,
-    this.locked = false,
-    this.onLockedTap,
     this.selected,
     super.key,
   });
@@ -152,33 +147,23 @@ class AppToggleTile extends StatelessWidget {
   final bool value;
   final ValueChanged<bool>? onChanged;
   final bool enabled;
-  final bool locked;
-  final VoidCallback? onLockedTap;
 
   /// Marks the row as picked (see [GlassListTile.selected]).
   final bool? selected;
 
   @override
   Widget build(BuildContext context) {
-    final trailing = locked
-        ? const Pill(
-            label: 'Premium',
-            tone: AppTone.warning,
-            icon: Icons.lock_outline,
-          )
-        : AppToggle(
-            value: value,
-            onChanged: onChanged,
-            enabled: enabled,
-            semanticLabel: title,
-          );
     return GlassListTile(
       leading: leading,
       title: title,
       subtitle: subtitle,
-      trailing: trailing,
+      trailing: AppToggle(
+        value: value,
+        onChanged: onChanged,
+        enabled: enabled,
+        semanticLabel: title,
+      ),
       selected: selected,
-      onTap: locked ? onLockedTap : null,
     );
   }
 }

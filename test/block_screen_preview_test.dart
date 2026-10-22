@@ -256,9 +256,6 @@ void main() {
   });
 
   group('the editor', () {
-    setUp(() => PlatformAdaptive.debugUseCupertino = false);
-    tearDown(() => PlatformAdaptive.debugUseCupertino = null);
-
     late _MockStyle cubit;
     late _MockCounter counter;
 

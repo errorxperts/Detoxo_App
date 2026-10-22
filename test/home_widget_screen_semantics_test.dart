@@ -59,11 +59,9 @@ ThemeData _theme() => AppTheme.dark();
 void main() {
   setUp(() async {
     await sl.reset();
-    PlatformAdaptive.debugUseCupertino = false;
   });
 
   tearDown(() async {
-    PlatformAdaptive.debugUseCupertino = null;
     await sl.reset();
   });
 
@@ -79,8 +77,8 @@ void main() {
           child: MaterialApp(theme: _theme(), home: const HomeWidgetScreen()),
         ),
       );
-      // No pumpAndSettle: the ambient background loops. The stage's fade-in
-      // starts on the second pump, and at opacity 0 it has no semantics.
+      // Fixed frames. The stage's fade-in starts on the second pump, and at
+      // opacity 0 it has no semantics.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
       await tester.pump(const Duration(milliseconds: 600));

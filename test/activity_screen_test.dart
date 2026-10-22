@@ -138,8 +138,7 @@ void main() {
       ),
     );
     await tester.pump();
-    // Entrance animations and count-ups. Never pumpAndSettle: the
-    // GlassScaffold ambient background repeats forever.
+    // Entrance animations and count-ups, over fixed frames.
     await tester.pump(const Duration(milliseconds: 800));
   }
 
@@ -233,7 +232,7 @@ void main() {
     expect(today, lessThan(distraction));
     expect(distraction, lessThan(byApp));
     // Three uppercase section headers, each a heading a screen reader can
-    // jump to — the AppCard titles they replaced were headings too.
+    // jump to — the card titles they replaced were headings too.
     expect(find.text('TODAY'), findsOneWidget);
     expect(find.text('DISTRACTION'), findsOneWidget);
     expect(find.text('BY APP'), findsOneWidget);

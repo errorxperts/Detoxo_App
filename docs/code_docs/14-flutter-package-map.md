@@ -10,7 +10,7 @@ runtime behaviour yet). Every "wired" claim below is grounded in a real import i
   `publish_to: 'none'` (private app, never published to pub.dev). The launcher-icon
   package writes the app icon from `tool/branding/detoxo_app_icon.png` — **outside**
   `assets/`, because `pubspec.yaml` declares whole asset directories and a
-  build-time input placed under `assets/images/` ships inside the APK. See
+  build-time input placed in one of them (`assets/images/icons/`, …) ships inside the APK. See
   [22-play-release.md](22-play-release.md#artifact-size).
 - **Architecture recap:** Cubit-only state (`flutter_bloc`), a single `get_it`
   service locator (`sl`), declarative routing (`go_router`), feature-first Clean
@@ -109,8 +109,6 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 | Package | Version | Status | Role in Detoxo |
 | --- | --- | --- | --- |
 | `flutter_animate` | `^4.5.2` | **Wired** (re-exported by `design_system.dart`) | Declarative entrance/motion effects across the design system (`foundations/motion.dart`'s `.entrance()` helpers). |
-| `cupertino_native` | `^0.1.1` | **Wired** | The one adaptive control left, `AdaptiveSlider` (`lib/core/design_system/adaptive/adaptive_controls.dart`): a native `CNSlider` on iOS/macOS, Material `Slider` on Android. |
-| `not_static_icons` | `^0.46.0` | **Wired** | Animated (Lucide-style) icons, wrapped in `lib/core/design_system/foundations/animated_icons.dart` (re-exports `AnimatedIconController`). |
 | `showcaseview` | `^5.1.0` | **Wired** | Onboarding coach-marks / feature tour (`lib/features/additional_feature/showcase_view/`). |
 | `flutter_svg` | `^2.3.0` | **Wired** (through FlutterGen's `SvgGenImage`) | Renders the spec glyphs in `assets/svg/` through `Glyph` (`components/dx_icons.dart`), §9. |
 | `cached_network_image` | `^3.4.1` | **Wired** | Remote-icon fallback in `AppIconAvatar` (`app_icon_avatar.dart`, used by blocklist tiles + the reel-counter card). App icons ship **locally** in `assets/images/social_icon_pack/` as 160² quantised PNGs; this only handles `http…` `iconUrl`s from remote config. Note it drags `flutter_cache_manager` → `sqflite` → the `sqflite_android` native plugin. |
@@ -180,6 +178,8 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 | `sleek_circular_slider` | Its one user, the old dashboard hero's countdown ring, went with the Today rebuild: a live Pause now counts down in the `TimeLeftRing` (the design system's `ProgressRing`). | dex / AOT |
 | `flutter_floating_bottom_bar` | Its one user, the old hide-on-scroll home bar, went with the Frozen Glass shell: `HomeShell` floats the static glass `AppTabBar` (`components/navigation.dart`) in the `GlassScaffold`'s bottom-bar slot, with no scroll listener. | dex / AOT |
 | `google_fonts` | Manrope 600/700/800 is bundled (§9), so the generated `AppTypography` names the family directly: no runtime font fetch, and widget tests no longer stall on one. | dex / AOT |
+| `cupertino_native` | Its one user, `AdaptiveSlider` (a native `CNSlider` on iOS/macOS), went when the sliders moved to the themed Material `Slider`; iOS only shows the `UnsupportedScreen` ([15](15-ios-cross-platform.md)). `lib/core/design_system/adaptive/` (`AdaptiveSlider`, `PlatformAdaptive`) was deleted with it (Frozen Glass M12). | iOS plugin + dex / AOT |
+| `not_static_icons` | The animated Lucide icons (`foundations/animated_icons.dart`: `AppAnimatedIcon`, the `AppIcon` catalogue, `AnimatedIconButton`, `EmptyState.animatedIcon`) lost their last users to the Frozen Glass `Icon3d` / `Glyph` set and Material icons, and were deleted with the package (Frozen Glass M12). | dex / AOT |
 
 Re-add any of these only when something actually imports them.
 
@@ -215,8 +215,10 @@ Re-add any of these only when something actually imports them.
   (`motivational_quotes.json`, read natively by `overlay/QuoteBook.kt`). The five emoji-band
   JSONs and `mindful_timer_quotes.json` went with the unmounted emoji/quote engine
   (Frozen Glass M13; [05](05-plans-pause-conscious.md) §8).
-- `assets/images/` — `detox_logo_no_bg.webp` (splash + onboarding hero) and `Detoxo_logo.png`
-  (the app logo on the block screen's Quotes design — also read natively, cropped to its mark).
+- `assets/images/` — no longer an asset root, only the parent of `icons/` and
+  `social_icon_pack/` below. Its two logo files went in Frozen Glass M12 once the splash, the
+  onboarding hero and the block screen (Dart and native) all drew `icons/detoxo-logo.webp`:
+  `Detoxo_logo.png` (1,463,289 B) and `detox_logo_no_bg.webp` (12,658 B).
 - `assets/fonts/OFL.txt` — Manrope's licence, registered on the licence page by
   `LicenseRegistry.addLicense` in `main()`. The three font files (all upstream
   Version 4.504) are declared under `flutter.fonts` as family **`Manrope`**
@@ -297,8 +299,6 @@ belongs in `tool/branding/` for the same reason.
 - `lib/gen/assets.gen.dart`
 - `tool/design/gen_design_tokens.dart`, `tool/design/{tokens,recipes}.json`, `tool/tokens_common.dart`, `build.yaml`
 - `lib/core/design_system/tokens/app_tokens.dart` (+ generated `app_tokens.g.dart`), `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/DxTokens.kt` (generated)
-- `lib/core/design_system/adaptive/adaptive_controls.dart`
-- `lib/core/design_system/foundations/animated_icons.dart`
 - `lib/core/design_system/components/dx_icons.dart` (`Icon3d`, `Glyph`, `DetoxoLogo` — the only widgets that draw `assets/images/icons/` and `assets/svg/`)
 - `lib/core/design_system/components/navigation.dart` (`AppTabBar`, which replaced `flutter_floating_bottom_bar`)
 - `lib/features/onboarding/presentation/onboarding_screen.dart`

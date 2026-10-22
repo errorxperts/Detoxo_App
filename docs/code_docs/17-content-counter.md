@@ -1061,6 +1061,6 @@ Cross-feature (the migrated counter hub; the app theme lives here too):
   Each segment is one focusable radio (`AppPressable`: focus ring, Enter/Space, 48 dp
   floor); a horizontal drag anywhere on the track scrubs the selection live under the
   finger (`onChanged` fires as each segment is crossed — a theme picker previews
-  live); reduce-motion collapses all of it to `Duration.zero`. `selectedIndex: -1`
-  lights nothing (the chip fades out), for a custom value; no screen passes it since
-  the Session sheet took over Pause (its quick picks hide their own chip the same way).
+  live); reduce-motion collapses all of it to `Duration.zero`. One segment is always
+  picked: the `selectedIndex: -1` "nothing lit" path went in M12 once no screen passed
+  it (the Session sheet's quick picks hide their own chip on a custom value).
