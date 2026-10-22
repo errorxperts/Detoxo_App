@@ -19,7 +19,7 @@ enum ByAppSegment {
 
   final String label;
 
-  /// `?segment=` on the Activity route (a home-widget tap, EVO-072): the
+  /// `?segment=` on the Insights route (a home-widget tap, EVO-072): the
   /// enum's name. Anything else (absent, unknown, another case) is Reels,
   /// the default tally.
   static ByAppSegment fromQuery(String? v) =>
@@ -38,7 +38,7 @@ typedef ByAppRow = ({
 });
 
 /// The three per-app tallies — reels seen, blocks, screen time — under one
-/// **By app** header: a segmented control over one glass panel of
+/// **By app** header: a segmented control over one panel of
 /// [AppLimitRow]s (EVO-033: the number is the way to a limit). Replaced three
 /// lists in three styles on the old screen.
 ///
@@ -144,7 +144,7 @@ class _ByAppSectionState extends State<ByAppSection>
   /// The tally the user is on, [ByAppSection.initial] until they pick one.
   late ByAppSegment _chosen = widget.initial;
 
-  /// The Activity list is lazy: a section scrolled past the cache extent is
+  /// The Insights list is lazy: a section scrolled past the cache extent is
   /// disposed, which would reset the chosen segment to Reels on the way back.
   @override
   bool get wantKeepAlive => true;
@@ -186,11 +186,9 @@ class _ByAppSectionState extends State<ByAppSection>
           onChanged: (i) => setState(() => _chosen = segments[i]),
           height: AppSizes.controlHeight,
         ),
-        // `lg`, not `sm`: the control is the one glass surface that casts a
-        // shadow, and the card around it used to clip that. Bare, the shadow
-        // reaches ~20 dp down, and the panel's backdrop blur would smear it
-        // across its top rim at a narrower gap.
-        const SizedBox(height: AppSpacing.lg),
+        // The control is a flat option track with no shadow to clear, so
+        // the spec's card gap.
+        const SizedBox(height: AppSpacing.gap),
         GlassCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

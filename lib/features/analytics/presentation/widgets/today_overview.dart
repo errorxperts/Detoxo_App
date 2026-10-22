@@ -1,4 +1,5 @@
 import 'package:detoxo/core/design_system/design_system.dart';
+import 'package:detoxo/core/utils/clock_format.dart';
 import 'package:detoxo/core/utils/duration_format.dart';
 import 'package:detoxo/features/analytics/insights/presentation/insights_cubit.dart';
 import 'package:detoxo/features/blocking/blocking.dart';
@@ -6,14 +7,15 @@ import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// The day in four flat tiles under one **Today** header, in one glass panel:
+/// The day in four flat tiles under one **Today** header, in one panel:
 /// Detoxo's own two counts (reels, blocks) which never need a permission, then
 /// the OS's two (screen time, pickups) once Usage Access is granted. Each tile
 /// carries at most one neutral reference under its number — all-time or
 /// yesterday, the first pickup — never a verdict.
 ///
 /// The tiles are `contained: false`: the panel is the surface, a hairline
-/// separates the two rows, and nothing is glass-on-glass.
+/// separates the two rows, and nothing is glass-on-glass. The glyphs are
+/// ink-2: the live accent belongs to the Today tab, never to a statistic.
 class TodayOverview extends StatelessWidget {
   const TodayOverview({super.key});
 
@@ -73,12 +75,11 @@ class TodayOverview extends StatelessWidget {
                 ),
               ),
               if (stats != null) ...[
-                Divider(
+                // The theme's divider is the hairline.
+                const Divider(
                   height: 1,
-                  thickness: 1,
                   indent: AppSpacing.sm,
                   endIndent: AppSpacing.sm,
-                  color: context.tokens.hairline,
                 ),
                 StatCardPair(
                   StatCard(
@@ -101,9 +102,12 @@ class TodayOverview extends StatelessWidget {
                     label: 'Pickups',
                     value: stats.pickupCount,
                     icon: Icons.wb_twilight_rounded,
-                    caption: stats.firstPickup == null
-                        ? null
-                        : 'First ${TimeOfDay.fromDateTime(stats.firstPickup!).format(context)}',
+                    // The device's clock form: "First 7 AM", "First 07:30".
+                    caption: switch (stats.firstPickup) {
+                      null => null,
+                      final at =>
+                        'First ${formatLocalTime(context, at.hour * 60 + at.minute)}',
+                    },
                   ),
                 ),
               ],
