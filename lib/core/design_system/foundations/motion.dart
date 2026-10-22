@@ -99,6 +99,14 @@ class _AppPressableState extends State<AppPressable> {
     if (mounted && _pressed != down) setState(() => _pressed = down);
   }
 
+  @override
+  void didUpdateWidget(AppPressable old) {
+    super.didUpdateWidget(old);
+    // Disabled mid-press (a held stepper reaching its bound), the tap
+    // recognizer goes away before the pointer lifts: never stay pressed.
+    if (!widget.enabled) _pressed = false;
+  }
+
   void _handleTap() {
     if (!widget.enabled) return;
     if (widget.haptic) AppHaptics.light();
