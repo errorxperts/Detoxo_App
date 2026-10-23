@@ -156,12 +156,19 @@ void main() {
   AppBlockCubit appCubit(WidgetTester tester) =>
       tester.element(find.text('Foo')).read<AppBlockCubit>();
 
+  /// Unblock/Block and Remove live in the row's swipe pane.
+  Future<void> openPane(WidgetTester tester) async {
+    await tester.drag(find.text('Foo'), const Offset(-300, 0));
+    await settle(tester);
+  }
+
   group('custom lock', () {
     testWidgets('off toasts "<app> unblocked"; Undo turns it back on', (
       tester,
     ) async {
       await pumpScreen(tester);
-      await tester.tap(find.bySemanticsLabel('Block Foo'));
+      await openPane(tester);
+      await tester.tap(find.bySemanticsLabel('Unblock Foo'));
       await settle(tester);
       expect(appBlocks.entries.single.enabled, isFalse);
       expect(find.text('Foo unblocked'), findsOneWidget);
@@ -173,7 +180,8 @@ void main() {
 
     testWidgets('Undo does nothing once the lock is gone', (tester) async {
       await pumpScreen(tester);
-      await tester.tap(find.bySemanticsLabel('Block Foo'));
+      await openPane(tester);
+      await tester.tap(find.bySemanticsLabel('Unblock Foo'));
       await settle(tester);
       // Removed from elsewhere, so the toast and its Undo stay up.
       unawaited(appCubit(tester).removeAt(0));
@@ -188,6 +196,7 @@ void main() {
     testWidgets('turning a lock on shows no toast', (tester) async {
       appBlocks.entries = [_foo.copyWith(enabled: false)];
       await pumpScreen(tester);
+      await openPane(tester);
       await tester.tap(find.bySemanticsLabel('Block Foo'));
       await settle(tester);
       expect(appBlocks.entries.single.enabled, isTrue);
@@ -197,7 +206,8 @@ void main() {
     testWidgets('a failed save shows no toast', (tester) async {
       await pumpScreen(tester);
       appBlocks.failSave = true;
-      await tester.tap(find.bySemanticsLabel('Block Foo'));
+      await openPane(tester);
+      await tester.tap(find.bySemanticsLabel('Unblock Foo'));
       await settle(tester);
       expect(find.text('Foo unblocked'), findsNothing);
       expect(find.text('Undo'), findsNothing);
@@ -211,7 +221,8 @@ void main() {
         _foo.copyWith(enabled: false),
       ];
       await pumpScreen(tester);
-      await tester.tap(find.byTooltip('Remove Foo'));
+      await openPane(tester);
+      await tester.tap(find.bySemanticsLabel('Remove Foo'));
       await settle(tester);
       expect(appBlocks.entries.map((e) => e.appName), ['Bar']);
       expect(find.text('Foo removed'), findsOneWidget);
@@ -221,6 +232,52 @@ void main() {
       expect(appBlocks.entries.map((e) => e.appName), ['Bar', 'Foo']);
       expect(appBlocks.entries.last.enabled, isFalse, reason: 'fields intact');
     });
+
+    testWidgets('an off lock reads "Not blocked"; a tap offers Block', (
+      tester,
+    ) async {
+      appBlocks.entries = [_foo.copyWith(enabled: false)];
+      await pumpScreen(tester);
+      expect(find.text('Not blocked'), findsOneWidget);
+      expect(find.byTooltip('Allow Foo for a while'), findsNothing);
+      expect(find.text('Block'), findsNothing, reason: 'pane starts closed');
+
+      // A tap opens the pane too (the screen-reader path).
+      await tester.tap(find.text('Foo'));
+      await settle(tester);
+      expect(find.text('Block'), findsOneWidget);
+      expect(find.text('Unblock'), findsNothing);
+      expect(find.text('Remove'), findsOneWidget);
+
+      await tester.tap(find.text('Block'));
+      await settle(tester);
+      expect(appBlocks.entries.single.enabled, isTrue);
+      expect(find.text('Not blocked'), findsNothing);
+      expect(find.byTooltip('Allow Foo for a while'), findsOneWidget);
+    });
+  });
+
+  testWidgets('the row is one button that says it opens the pane', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    final row = tester.getSemantics(find.text('Foo'));
+    expect(
+      row,
+      isSemantics(
+        label: 'Foo',
+        hint: 'Opens block and remove actions',
+        isButton: true,
+        hasTapAction: true,
+      ),
+    );
+    // Not merged into the row: a screen reader still reaches the timer.
+    final timer = tester.getSemantics(find.byTooltip('Allow Foo for a while'));
+    expect(timer.id, isNot(row.id));
+
+    tester.semantics.tap(find.semantics.byLabel('Foo'));
+    await settle(tester);
+    expect(find.text('Unblock'), findsOneWidget);
   });
 
   testWidgets('a live grant reads "Allowed until"; Block now ends it', (

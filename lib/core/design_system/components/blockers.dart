@@ -6,6 +6,7 @@ import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 /// A blocker's state, said by the tile's status word.
 enum BlockerStatus { on, paused, notSetUp }
@@ -360,6 +361,70 @@ class BlockerRulesRow extends StatelessWidget {
                 ],
                 const SizedBox(width: AppSpacing.sm),
                 Glyph(Assets.svg.chevronRight, size: 18, color: t.ink3),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// One swipe action of a blocklist row's `ActionPane` (App and Web Blocker):
+/// its own [tone]-tinted rounded surface, the row card's radius, separated by
+/// a small gap so the pane reads as sibling cards. Read as one button named
+/// [semanticLabel].
+class RowAction extends StatelessWidget {
+  const RowAction({
+    required this.icon,
+    required this.label,
+    required this.tone,
+    required this.semanticLabel,
+    required this.onPressed,
+    super.key,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color tone;
+  final String semanticLabel;
+  final void Function(BuildContext) onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomSlidableAction(
+      onPressed: onPressed,
+      backgroundColor: Colors.transparent,
+      foregroundColor: tone,
+      // The gap between the row card / previous action and this surface.
+      padding: const EdgeInsets.only(left: AppSpacing.xs),
+      // Press overlay tracks the rounded shape.
+      borderRadius: AppRadius.brLg,
+      child: Semantics(
+        label: semanticLabel,
+        button: true,
+        excludeSemantics: true,
+        // Fill the pane height so the surface matches the row card height.
+        child: SizedBox.expand(
+          child: DecoratedBox(
+            decoration: ShapeDecoration(
+              color: tone.withValues(alpha: 0.18),
+              shape: AppRadius.continuous(
+                AppRadius.lg,
+                side: BorderSide(color: tone.withValues(alpha: 0.35)),
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: tone),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.caption.copyWith(color: tone),
+                ),
               ],
             ),
           ),

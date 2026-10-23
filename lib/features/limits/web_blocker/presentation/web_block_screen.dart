@@ -449,7 +449,7 @@ class _BlocklistRow extends StatelessWidget {
         extentRatio: const [0.30, 0.52, 0.70][actionCount - 1],
         children: [
           if (entry.enabled)
-            _RowAction(
+            RowAction(
               icon: paused ? Icons.play_arrow : Icons.timer_outlined,
               label: paused ? 'Resume' : 'Allow',
               tone: t.statusText(t.statusSetup),
@@ -468,14 +468,14 @@ class _BlocklistRow extends StatelessWidget {
                   : _showAllowSheet(context, entry),
             ),
           if (isCustom)
-            _RowAction(
+            RowAction(
               icon: Icons.edit_outlined,
               label: 'Edit',
               tone: t.brand.main,
               semanticLabel: 'Edit ${entry.label}',
               onPressed: (context) => _showSiteSheet(context, entry: entry),
             ),
-          _RowAction(
+          RowAction(
             icon: Icons.delete_outline,
             label: 'Delete',
             tone: t.over.main,
@@ -551,67 +551,6 @@ class _BlocklistRow extends StatelessWidget {
   /// Where the row's title starts: the row inset, the 34 site letter and its
   /// gap. The allow line indents to it.
   static const double _textInset = AppSpacing.md + 34 + AppSpacing.sm;
-}
-
-/// One swipe action as its own rounded surface — same radius as the row card,
-/// separated by a small gap so the pane reads as sibling cards.
-class _RowAction extends StatelessWidget {
-  const _RowAction({
-    required this.icon,
-    required this.label,
-    required this.tone,
-    required this.semanticLabel,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color tone;
-  final String semanticLabel;
-  final void Function(BuildContext) onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomSlidableAction(
-      onPressed: onPressed,
-      backgroundColor: Colors.transparent,
-      foregroundColor: tone,
-      // The gap between the row card / previous action and this surface.
-      padding: const EdgeInsets.only(left: AppSpacing.xs),
-      // Press overlay tracks the rounded shape.
-      borderRadius: AppRadius.brLg,
-      child: Semantics(
-        label: semanticLabel,
-        button: true,
-        excludeSemantics: true,
-        // Fill the pane height so the surface matches the row card height.
-        child: SizedBox.expand(
-          child: DecoratedBox(
-            decoration: ShapeDecoration(
-              color: tone.withValues(alpha: 0.18),
-              shape: AppRadius.continuous(
-                AppRadius.lg,
-                side: BorderSide(color: tone.withValues(alpha: 0.35)),
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: tone),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.caption.copyWith(color: tone),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // C10: switching one site off (or deleting it) stays one tap. The toast waits
