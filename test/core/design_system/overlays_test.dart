@@ -78,8 +78,46 @@ void main() {
       final rect = tester.getRect(find.byWidget(surface));
       expect(rect.left, 10);
       expect(rect.bottom, 780 - 10);
-      // The scrim blurs behind it, as the sheet does.
+      // The scrim blurs behind it, as the sheet does, once it has settled.
       expect(find.byType(BackdropFilter), findsNWidgets(2));
+      expect(
+        tester
+            .widgetList<BackdropFilter>(find.byType(BackdropFilter))
+            .every((b) => b.enabled),
+        isTrue,
+      );
+    });
+
+    testWidgets('mid-slide the sheet holds its blur and keeps its state', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _app(
+          (context) => GlassBottomSheet.show<void>(
+            context: context,
+            child: const SizedBox(height: 120, child: Text('body')),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      BackdropFilter sheetBlur() => tester.widget<BackdropFilter>(
+        find.descendant(
+          of: find.byType(GlassContainer),
+          matching: find.byType(BackdropFilter),
+        ),
+      );
+      final body = tester.element(find.text('body'));
+      expect(sheetBlur().enabled, isFalse);
+
+      await tester.pumpAndSettle();
+      expect(sheetBlur().enabled, isTrue);
+      expect(
+        tester.element(find.text('body')),
+        same(body),
+        reason: 'the content was not rebuilt from scratch',
+      );
     });
 
     testWidgets('a 120 px drag closes it', (tester) async {
@@ -152,14 +190,15 @@ void main() {
       expect(find.text('body'), findsNothing);
     });
 
-    testWidgets('it slides 600 ms, and not at all under Reduce Motion', (
-      tester,
-    ) async {
-      Duration duration() =>
-          ModalRoute.of(tester.element(find.text('body')))!.transitionDuration;
+    testWidgets('it slides 450 ms in, 300 out; not at all under Reduce '
+        'Motion', (tester) async {
+      ModalRoute<dynamic> route() =>
+          ModalRoute.of(tester.element(find.text('body')))!;
+      Duration duration() => route().transitionDuration;
 
       await _openSheet(tester);
       expect(duration(), AppDurations.sheet);
+      expect(route().reverseTransitionDuration, AppDurations.sheetOut);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
 

@@ -42,6 +42,30 @@ void main() {
     expect(taps, 1);
   });
 
+  testWidgets('PrimaryButton sits flat on a surface, or when asked', (
+    tester,
+  ) async {
+    List<DxShadow> shadows() =>
+        _skins(tester, find.byType(PrimaryButton)).single.shadows;
+
+    for (final surface in [DxSurface.panel, DxSurface.sheet]) {
+      await tester.pumpWidget(
+        _host(
+          GlassContainer(
+            surface: surface,
+            child: PrimaryButton(label: 'Save', onPressed: () {}),
+          ),
+        ),
+      );
+      expect(shadows(), isEmpty, reason: surface.name);
+    }
+
+    await tester.pumpWidget(
+      _host(PrimaryButton(label: 'Retry', flat: true, onPressed: () {})),
+    );
+    expect(shadows(), isEmpty, reason: 'flat on the ground');
+  });
+
   testWidgets('a disabled PrimaryButton is inert and says so', (tester) async {
     final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
@@ -155,6 +179,29 @@ void main() {
     await tester.tap(find.byType(GlassFab));
     expect(taps, 1);
     semantics.dispose();
+  });
+
+  testWidgets('a bare GlassIconButton: no glass, same target and tooltip', (
+    tester,
+  ) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      _host(
+        GlassIconButton(
+          bare: true,
+          icon: const Icon(Icons.menu),
+          semanticLabel: 'Menu',
+          onPressed: () => taps++,
+        ),
+      ),
+    );
+    expect(find.byType(GlassContainer), findsNothing);
+    expect(find.byTooltip('Menu'), findsOneWidget);
+    final size = tester.getSize(find.byType(AppPressable));
+    expect(size.width, greaterThanOrEqualTo(48));
+    expect(size.height, greaterThanOrEqualTo(48));
+    await tester.tap(find.byType(GlassIconButton));
+    expect(taps, 1);
   });
 
   testWidgets('InfoButton opens its message in a sheet; Got it closes it', (

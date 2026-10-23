@@ -353,7 +353,11 @@ class _Blocklist extends StatelessWidget {
         subtitle:
             'Your saved sites are still blocked. Try again, or reopen this '
             'screen.',
-        action: PrimaryButton(label: 'Try again', onPressed: cubit.load),
+        action: PrimaryButton(
+          label: 'Try again',
+          flat: true,
+          onPressed: cubit.load,
+        ),
       );
     }
     if (!state.hasEntries) {
@@ -364,6 +368,7 @@ class _Blocklist extends StatelessWidget {
         subtitle: 'Tap a popular site above or add your own.',
         action: PrimaryButton(
           label: 'Add website',
+          flat: true,
           onPressed: () => _showSiteSheet(context),
         ),
       );

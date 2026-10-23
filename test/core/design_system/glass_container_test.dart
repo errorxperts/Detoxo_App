@@ -42,16 +42,25 @@ void main() {
       }
     }
 
-    testWidgets('backdrop: false keeps a glass role blur-free', (tester) async {
-      await _pump(
-        tester,
-        const GlassContainer(
-          surface: DxSurface.glass,
-          backdrop: false,
-          child: SizedBox(),
-        ),
+    testWidgets('backdrop: false switches the blur off, not the subtree', (
+      tester,
+    ) async {
+      Widget glass({required bool backdrop}) => GlassContainer(
+        surface: DxSurface.glass,
+        backdrop: backdrop,
+        child: const _Counter(),
       );
-      expect(_backdrop(), findsNothing);
+      await _pump(tester, glass(backdrop: false));
+      expect(tester.widget<BackdropFilter>(_backdrop()).enabled, isFalse);
+
+      tester.state<_CounterState>(find.byType(_Counter)).count = 7;
+      await _pump(tester, glass(backdrop: true));
+      expect(tester.widget<BackdropFilter>(_backdrop()).enabled, isTrue);
+      expect(
+        tester.state<_CounterState>(find.byType(_Counter)).count,
+        7,
+        reason: 'the content kept its state',
+      );
     });
   });
 
@@ -135,4 +144,18 @@ void main() {
       expect(to.dy, closeTo(130.54, 0.01));
     });
   });
+}
+
+class _Counter extends StatefulWidget {
+  const _Counter();
+
+  @override
+  State<_Counter> createState() => _CounterState();
+}
+
+class _CounterState extends State<_Counter> {
+  int count = 0;
+
+  @override
+  Widget build(BuildContext context) => const SizedBox();
 }

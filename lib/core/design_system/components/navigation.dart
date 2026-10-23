@@ -225,7 +225,8 @@ class TabHeader extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
         ],
         GlassIconButton(
-          icon: Glyph(Assets.svg.sidebar, size: 22, color: t.ink),
+          bare: true,
+          icon: Glyph(Assets.svg.sidebar, color: t.ink),
           semanticLabel: 'Menu',
           onPressed: onMenu,
         ),

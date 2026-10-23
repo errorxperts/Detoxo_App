@@ -18,8 +18,10 @@ import 'package:flutter/material.dart';
 /// inset 10 from the screen edges, a 40×5 grabber, an optional `titleSheet`
 /// title, over a blurred radial scrim.
 ///
-/// - The sheet slides in over [AppDurations.sheet] and the scrim fades over
-///   [AppDurations.scrim]; neither moves under Reduce Motion.
+/// - The sheet slides in over [AppDurations.sheet] (out over
+///   [AppDurations.sheetOut]) and the scrim fades over [AppDurations.scrim];
+///   neither moves under Reduce Motion. Both blurs stay cheap while it moves:
+///   the scrim's grows with its fade, the sheet's waits until it settles.
 /// - Dragging the grabber or title down past [dismissDrag] closes it; a
 ///   shorter drag springs back.
 /// - `dismissible: false` locks it: no barrier tap, no drag, no back. The
@@ -69,7 +71,7 @@ abstract final class GlassBottomSheet {
             ? AnimationStyle.noAnimation
             : const AnimationStyle(
                 duration: AppDurations.sheet,
-                reverseDuration: AppDurations.sheet,
+                reverseDuration: AppDurations.sheetOut,
                 curve: AppCurves.sheet,
                 reverseCurve: FlippedCurve(AppCurves.sheet),
               ),
@@ -95,17 +97,18 @@ class _SheetRoute<T> extends ModalBottomSheetRoute<T> {
     super.sheetAnimationStyle,
   });
 
-  // The scrim's 450 ms inside the sheet's 600 ms, on CSS `ease`: it leads
-  // both ways, as the canvas's two transitions start together.
-  static const double _lead = 450 / 600;
+  // The scrim's share of the sheet's slide, on CSS `ease`: it leads both
+  // ways, as the canvas's two transitions start together.
+  static final double _lead =
+      AppDurations.scrim.inMicroseconds / AppDurations.sheet.inMicroseconds;
 
   late final CurvedAnimation _scrim = CurvedAnimation(
     parent: animation!,
-    curve: const Interval(0, _lead, curve: AppCurves.glide),
-    reverseCurve: const Interval(
+    curve: Interval(0, _lead, curve: AppCurves.glide),
+    reverseCurve: Interval(
       1 - _lead,
       1,
-      curve: FlippedCurve(AppCurves.glide),
+      curve: const FlippedCurve(AppCurves.glide),
     ),
   );
 
@@ -113,9 +116,7 @@ class _SheetRoute<T> extends ModalBottomSheetRoute<T> {
   Widget buildModalBarrier() => Stack(
     fit: StackFit.expand,
     children: [
-      IgnorePointer(
-        child: FadeTransition(opacity: _scrim, child: const _Scrim()),
-      ),
+      IgnorePointer(child: _Scrim(_scrim)),
       // Transparent, so Material's plain barrier: taps, semantics, dismiss.
       super.buildModalBarrier(),
     ],
@@ -130,19 +131,25 @@ class _SheetRoute<T> extends ModalBottomSheetRoute<T> {
 
 /// The scrim: the backdrop blurred and lifted, under a radial dim that is
 /// deepest at the bottom (`120% 70% at 50% 100%`, stops 0 / 60 / 100 %).
-class _Scrim extends StatelessWidget {
-  const _Scrim();
+///
+/// It fades by scaling the blur, the lift and the dim with its animation,
+/// never through an opacity layer: an opacity over a backdrop filter renders
+/// the whole screen offscreen every frame of the slide.
+class _Scrim extends AnimatedWidget {
+  const _Scrim(Animation<double> fade) : super(listenable: fade);
 
   @override
   Widget build(BuildContext context) {
+    final v = (listenable as Animation<double>).value;
+    if (v <= 0) return const SizedBox.expand();
     final t = context.tokens;
+    final blur = AppTokens.scrimBlur * v;
     return BackdropFilter(
       filter: ui.ImageFilter.compose(
-        outer: ui.ColorFilter.matrix(cssSaturate(AppTokens.scrimSaturate)),
-        inner: ui.ImageFilter.blur(
-          sigmaX: AppTokens.scrimBlur,
-          sigmaY: AppTokens.scrimBlur,
+        outer: ui.ColorFilter.matrix(
+          cssSaturate(1 + (AppTokens.scrimSaturate - 1) * v),
         ),
+        inner: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
       ),
       child: CustomPaint(
         size: Size.infinite,
@@ -150,9 +157,9 @@ class _Scrim extends StatelessWidget {
           centre: (size) => Offset(size.width / 2, size.height),
           radii: (size) => Size(size.width * 1.2, size.height * 0.7),
           colors: [
-            t.scrim.withValues(alpha: t.kScrim0),
-            t.scrim.withValues(alpha: t.kScrim60),
-            t.scrim.withValues(alpha: t.kScrim100),
+            t.scrim.withValues(alpha: t.kScrim0 * v),
+            t.scrim.withValues(alpha: t.kScrim60 * v),
+            t.scrim.withValues(alpha: t.kScrim100 * v),
           ],
           stops: const [0, 0.6, 1],
         ),
@@ -223,6 +230,33 @@ class _SheetState extends State<_Sheet> {
   /// The sheet's distance from rest while dragged down.
   double _dy = 0;
   bool _dragging = false;
+
+  /// The route's slide, and whether it has finished. The sheet's own blur
+  /// waits for it: a moving backdrop blur re-samples every frame.
+  Animation<double>? _slide;
+  bool _settled = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final slide = ModalRoute.of(context)?.animation;
+    if (slide == _slide) return;
+    _slide?.removeStatusListener(_onSlide);
+    _slide = slide?..addStatusListener(_onSlide);
+    _settled = slide?.isCompleted ?? true;
+  }
+
+  void _onSlide(AnimationStatus status) {
+    if (status.isCompleted != _settled) {
+      setState(() => _settled = status.isCompleted);
+    }
+  }
+
+  @override
+  void dispose() {
+    _slide?.removeStatusListener(_onSlide);
+    super.dispose();
+  }
 
   void _drag(DragUpdateDetails d) => setState(() {
     _dragging = true;
@@ -341,6 +375,7 @@ class _SheetState extends State<_Sheet> {
             removeBottom: true,
             child: GlassContainer(
               surface: DxSurface.sheet,
+              backdrop: _settled,
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.sheetSide,
                 0,

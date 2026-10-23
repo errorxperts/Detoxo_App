@@ -317,6 +317,8 @@ class EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? subtitle;
+
+  /// A flat button: `PrimaryButton(flat: true)` or a `SecondaryButton`.
   final Widget? action;
 
   @override

@@ -76,6 +76,10 @@ Widget showcaseTarget({
 /// tour), a named one an independent tour (`getNamed`). The controller is
 /// looked up on tap: the card renders in the root overlay, with no
 /// `ShowCaseWidget` ancestor for an `.of` lookup.
+///
+/// The dim is the sheet scrim's colour at its deepest stop, per theme: a
+/// light navy veil in Light, a deep one in Dark (the package default is
+/// black at 78 % in both, which muddied the Light card's glass).
 Widget _target({
   required ShowcaseStep step,
   required int index,
@@ -86,21 +90,27 @@ Widget _target({
 }) {
   ShowcaseView view() =>
       scope == null ? ShowcaseView.get() : ShowcaseView.getNamed(scope);
-  return Showcase.withWidget(
-    key: step.key,
-    scope: scope,
-    container: ShowcaseTooltipCard(
-      step: step,
-      index: index,
-      total: total,
-      onNext: () => view().next(),
-      onSkip: () => view().dismiss(),
-    ),
-    targetBorderRadius: BorderRadius.circular(radius),
-    targetPadding: const EdgeInsets.all(6),
-    overlayOpacity: 0.78,
-    disableDefaultTargetGestures: true,
-    child: child,
+  return Builder(
+    builder: (context) {
+      final t = context.tokens;
+      return Showcase.withWidget(
+        key: step.key,
+        scope: scope,
+        container: ShowcaseTooltipCard(
+          step: step,
+          index: index,
+          total: total,
+          onNext: () => view().next(),
+          onSkip: () => view().dismiss(),
+        ),
+        targetBorderRadius: BorderRadius.circular(radius),
+        targetPadding: const EdgeInsets.all(6),
+        overlayColor: t.scrim,
+        overlayOpacity: t.kScrim0,
+        disableDefaultTargetGestures: true,
+        child: child,
+      );
+    },
   );
 }
 

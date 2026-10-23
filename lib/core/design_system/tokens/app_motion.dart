@@ -24,11 +24,14 @@ abstract final class AppDurations {
   /// Any accent change cross-fading.
   static const Duration glide = Duration(milliseconds: 1000);
 
-  /// A bottom sheet sliding in or out (Compact Guide sheet).
-  static const Duration sheet = Duration(milliseconds: 600);
+  /// A bottom sheet sliding in.
+  static const Duration sheet = Duration(milliseconds: 450);
 
-  /// The scrim behind a sheet fading in or out.
-  static const Duration scrim = Duration(milliseconds: 450);
+  /// A bottom sheet sliding out: exits run shorter than entries.
+  static const Duration sheetOut = Duration(milliseconds: 300);
+
+  /// The scrim behind a sheet fading in, leading the sheet's slide.
+  static const Duration scrim = Duration(milliseconds: 300);
 }
 
 /// Motion curves: calm eases, plus the spec's short overshoots for presses
@@ -57,8 +60,9 @@ abstract final class AppCurves {
   /// An accent cross-fade, and the sheet scrim's fade (CSS `ease`).
   static const Curve glide = Curves.ease;
 
-  /// A bottom sheet's slide: fast out, long settle.
-  static const Curve sheet = Cubic(0.32, 0.72, 0, 1);
+  /// A bottom sheet's slide: an even ease-out, so the travel spreads over
+  /// the whole slide instead of landing in its first frames.
+  static const Curve sheet = Curves.easeOutCubic;
 }
 
 extension AppMotionX on BuildContext {

@@ -288,7 +288,7 @@ class _ConfirmBodyState extends State<_ConfirmBody>
               const SizedBox(height: AppSpacing.xl),
               _slider(t),
               const SizedBox(height: AppSpacing.sm),
-              PrimaryButton(
+              SecondaryButton(
                 label: widget.cancel,
                 expand: true,
                 // maybePop, so the confirmed second's PopScope holds it.

@@ -60,7 +60,8 @@ Future<Future<bool>> _open(
   );
   await tester.tap(find.text('open'));
   await tester.pump();
-  await tester.pump(AppDurations.sheet);
+  // Past the slide-in; the timings below count from here.
+  await tester.pump(const Duration(milliseconds: 600));
   return result.future;
 }
 
@@ -362,6 +363,11 @@ void main() {
     expect(tester.takeException(), isNull);
 
     final cancel = find.text('Keep it blocked');
+    expect(
+      find.ancestor(of: cancel, matching: find.byType(SecondaryButton)),
+      findsOneWidget,
+      reason: 'a flat text cancel',
+    );
     final before = tester.getTopLeft(cancel).dy;
     await tester.drag(find.text('15 min'), const Offset(0, -300));
     await tester.pump();

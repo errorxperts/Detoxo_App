@@ -119,6 +119,33 @@ void main() {
     expect(ShowcaseView.getNamed('test').disableMovingAnimation, isTrue);
   });
 
+  testWidgets("the spotlight dim is the theme's scrim, not black", (
+    tester,
+  ) async {
+    for (final (theme, t) in [
+      (AppTheme.light(), AppTokens.light),
+      (AppTheme.dark(), AppTokens.dark),
+    ]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: buildFeatureShowcaseScope(
+            onSeen: () {},
+            child: showcaseTarget(
+              step: featureShowcaseSteps.first,
+              index: 0,
+              child: const SizedBox(width: 40, height: 40),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle(); // MaterialApp animates a theme swap
+      final spot = tester.widget<Showcase>(find.byType(Showcase));
+      expect(spot.overlayColor, t.scrim, reason: '${t.brightness}');
+      expect(spot.overlayOpacity, t.kScrim0, reason: '${t.brightness}');
+    }
+  });
+
   testWidgets('2x text in both themes: the card grows, nothing overflows', (
     tester,
   ) async {

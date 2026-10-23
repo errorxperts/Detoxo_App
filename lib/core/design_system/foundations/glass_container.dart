@@ -206,7 +206,9 @@ class GlassContainer extends StatelessWidget {
 
   /// Whether a [DxSurface.glass] / [DxSurface.sheet] blurs what is behind it.
   /// Header buttons pass `false`: they sit on the static ground gradient,
-  /// where a blur is invisible and only costs a layer.
+  /// where a blur is invisible and only costs a layer. A sheet passes `false`
+  /// while it slides. Flipping it keeps the subtree (and its state): the
+  /// blur only switches off.
   final bool backdrop;
 
   /// The role of the nearest enclosing [GlassContainer], or null.
@@ -264,7 +266,7 @@ class GlassContainer extends StatelessWidget {
       child: Padding(padding: padding, child: child),
     );
 
-    if (blur == null || !backdrop) {
+    if (blur == null) {
       return RepaintBoundary(
         child: CustomPaint(
           painter: DxSurfacePainter(
@@ -288,6 +290,7 @@ class GlassContainer extends StatelessWidget {
         child: ClipRRect(
           borderRadius: radius,
           child: BackdropFilter(
+            enabled: backdrop,
             filter: ui.ImageFilter.compose(
               outer: ui.ColorFilter.matrix(cssSaturate(saturate)),
               inner: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),

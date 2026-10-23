@@ -106,6 +106,7 @@ class LegalPageStatus extends StatelessWidget {
       action: PrimaryButton(
         label: 'Retry',
         icon: Icons.refresh,
+        flat: true,
         onPressed: onRetry,
       ),
     );

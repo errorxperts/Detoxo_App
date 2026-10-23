@@ -6,15 +6,20 @@ import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// The call to action: the spec soft button (`.dx-cancel`), a 54 px pill on
-/// the 145° button gradient with its soft shadow and an ink label. No accent:
-/// the live accent stays on the ring, the pill and the tab lens.
-/// `expand: true` makes it full-width.
+/// the 145° button gradient with an ink label. No accent: the live accent
+/// stays on the ring, the pill and the tab lens. `expand: true` makes it
+/// full-width.
+///
+/// Its soft shadow shows only on the bare ground: on a card, sheet or dialog
+/// the surface already lifts it, so it sits flat (no elevation inside
+/// elevation).
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     required this.label,
     required this.onPressed,
     this.expand = false,
     this.icon,
+    this.flat = false,
     super.key,
   });
 
@@ -22,6 +27,9 @@ class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool expand;
   final IconData? icon;
+
+  /// Flat on the bare ground too, as an empty state's action.
+  final bool flat;
 
   static const double _height = 54;
 
@@ -33,7 +41,9 @@ class PrimaryButton extends StatelessWidget {
         radius: AppRadius.brPill,
         gradient: [t.buttonFrom, t.buttonTo],
         angle: 145,
-        shadows: t.shadowButton,
+        shadows: flat || GlassContainer.surfaceOf(context) != null
+            ? const []
+            : t.shadowButton,
       ),
       child: SizedBox(
         height: _height,
@@ -314,7 +324,8 @@ class InfoButton extends StatelessWidget {
 
 /// The spec's round glass action: a 44 px [DxSurface.glass] circle holding a
 /// 22 px [icon] in `ink`, inside a 48 dp target. It grows to 1.06 on press.
-/// Header back, menu, info and feedback actions all use it.
+/// Header back, info and feedback actions use it; the Today and Insights
+/// menu is [bare].
 ///
 /// A [Tooltip] carries [semanticLabel], so long-press shows it and tests can
 /// find a back button by its standard tooltip.
@@ -323,6 +334,7 @@ class GlassIconButton extends StatelessWidget {
     required this.icon,
     required this.semanticLabel,
     required this.onPressed,
+    this.bare = false,
     super.key,
   });
 
@@ -330,9 +342,18 @@ class GlassIconButton extends StatelessWidget {
   final String semanticLabel;
   final VoidCallback? onPressed;
 
+  /// Just the icon, with no glass circle; the press, tooltip and 48 dp
+  /// target stay.
+  final bool bare;
+
   @override
   Widget build(BuildContext context) {
-    final t = context.tokens;
+    final glyph = Center(
+      child: IconTheme.merge(
+        data: IconThemeData(color: context.tokens.ink, size: 22),
+        child: ExcludeSemantics(child: icon),
+      ),
+    );
     return Tooltip(
       message: semanticLabel,
       excludeFromSemantics: true,
@@ -345,17 +366,14 @@ class GlassIconButton extends StatelessWidget {
         minTapTarget: AppSizes.minTapTargetSquare,
         child: SizedBox.square(
           dimension: AppSizes.controlHeight,
-          child: GlassContainer(
-            surface: DxSurface.glass,
-            backdrop: false,
-            padding: EdgeInsets.zero,
-            child: Center(
-              child: IconTheme.merge(
-                data: IconThemeData(color: t.ink, size: 22),
-                child: ExcludeSemantics(child: icon),
-              ),
-            ),
-          ),
+          child: bare
+              ? glyph
+              : GlassContainer(
+                  surface: DxSurface.glass,
+                  backdrop: false,
+                  padding: EdgeInsets.zero,
+                  child: glyph,
+                ),
         ),
       ),
     );

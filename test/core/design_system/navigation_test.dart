@@ -155,6 +155,14 @@ void main() {
       expect(find.text('action'), findsOneWidget);
 
       final button = find.bySemanticsLabel('Menu');
+      expect(
+        find.descendant(
+          of: find.byType(GlassIconButton),
+          matching: find.byType(GlassContainer),
+        ),
+        findsNothing,
+        reason: 'a plain icon, no glass circle',
+      );
       final size = tester.getSize(button);
       expect(size.width, greaterThanOrEqualTo(48));
       expect(size.height, greaterThanOrEqualTo(48));
