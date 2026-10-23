@@ -53,7 +53,7 @@ void main() {
     test('normal: time left of the limit', () {
       final f = _ring();
       expect(f.eyebrow, 'Time left');
-      expect(f.accentEyebrow, isFalse);
+      expect(f.live, isFalse);
       expect(_value(f), '2h 15m');
       expect(f.sub, '45m of 3h used');
       expect(f.progress, 0.75);
@@ -91,7 +91,7 @@ void main() {
     test('a live Pause: reels allowed in accent, mm:ss left', () {
       final f = _ring(pause: _pause);
       expect(f.eyebrow, 'Reels allowed');
-      expect(f.accentEyebrow, isTrue);
+      expect(f.live, isTrue);
       expect(_value(f), '09:42');
       expect(f.sub, 'of a 10 min break');
       expect(f.progress, closeTo(582 / 600, 1e-9));
@@ -100,7 +100,7 @@ void main() {
     test('an N-reel unblock: reels left of N', () {
       final f = _ring(reels: (left: 3, total: 5));
       expect(f.eyebrow, 'Reels allowed');
-      expect(f.accentEyebrow, isTrue);
+      expect(f.live, isTrue);
       expect(_value(f), '3');
       expect(f.sub, 'of 5 reels');
       expect(f.progress, 0.6);

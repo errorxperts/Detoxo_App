@@ -301,7 +301,7 @@ class _TodayLiveState extends State<_TodayLive> {
           // one-time count-up plays on the real numbers.
           key: ValueKey(loaded && limitLoaded),
           eyebrow: face.eyebrow,
-          accentEyebrow: face.accentEyebrow,
+          live: face.live,
           value: face.value,
           format: face.format,
           sub: face.sub,

@@ -2,6 +2,7 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 // One theme object each: a fresh ThemeData per pump would start
 // MaterialApp's theme lerp, a ticker of its own.
@@ -13,10 +14,10 @@ String _hm(int m) => m >= 60 ? '${m ~/ 60}h ${m % 60}m' : '${m}m';
 TimeLeftRing _ring({
   int? value = 135,
   double? progress = .75,
-  bool accentEyebrow = false,
+  bool live = false,
 }) => TimeLeftRing(
   eyebrow: 'Time left',
-  accentEyebrow: accentEyebrow,
+  live: live,
   value: value,
   format: _hm,
   sub: '45m of 3h used',
@@ -152,7 +153,7 @@ void main() {
         AccentScope(
           light: AppTokens.light.pause,
           dark: AppTokens.dark.pause,
-          child: _ring(accentEyebrow: true),
+          child: _ring(live: true),
         ),
         brightness: brightness,
         width: 360,
@@ -160,7 +161,14 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      expect(_ringOf(tester).palette, t.pause);
+      final gauge = tester.widget<SleekCircularSlider>(
+        find.byType(SleekCircularSlider),
+      );
+      expect(gauge.appearance.customColors!.progressBarColors, [
+        t.pause.main,
+        t.pause.deep,
+        t.pause.main,
+      ]);
       expect(
         tester.widget<Text>(find.text('TIME LEFT')).style?.color,
         t.accentText(t.pause),
@@ -171,7 +179,33 @@ void main() {
     });
   }
 
-  testWidgets('the eyebrow is ink-2 unless accentEyebrow', (tester) async {
+  testWidgets('a live session is the read-only countdown gauge', (
+    tester,
+  ) async {
+    await _pump(tester, _ring(live: true, progress: .4), reduceMotion: true);
+    expect(find.byType(ProgressRing), findsNothing);
+    final gauge = tester.widget<SleekCircularSlider>(
+      find.byType(SleekCircularSlider),
+    );
+    expect(gauge.initialValue, .4);
+    expect(gauge.appearance.size, 210);
+    expect(gauge.appearance.customWidths!.handlerSize, 0);
+    expect(gauge.appearance.animationEnabled, isFalse, reason: 'Reduce Motion');
+    expect(
+      find.ancestor(
+        of: find.byType(SleekCircularSlider),
+        matching: find.byType(IgnorePointer),
+      ),
+      findsWidgets,
+    );
+    expect(find.text('TIME LEFT'), findsOneWidget, reason: 'the same face');
+
+    await _pump(tester, _ring(), reduceMotion: true);
+    expect(find.byType(SleekCircularSlider), findsNothing);
+    expect(find.byType(ProgressRing), findsOneWidget);
+  });
+
+  testWidgets('the eyebrow is ink-2 unless live', (tester) async {
     await _pump(tester, _ring(), reduceMotion: true);
     expect(
       tester.widget<Text>(find.text('TIME LEFT')).style?.color,

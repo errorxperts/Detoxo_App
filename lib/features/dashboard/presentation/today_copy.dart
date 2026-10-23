@@ -21,7 +21,7 @@ int modeIndex(AppSettings s, {required bool pauseLive}) {
 /// What the Today ring shows: [TimeLeftRing]'s face and its arc.
 typedef RingFace = ({
   String eyebrow,
-  bool accentEyebrow,
+  bool live,
   int? value,
   String Function(int) format,
   String sub,
@@ -51,7 +51,7 @@ RingFace ringFace({
     final left = pause.remainingIn(now);
     return (
       eyebrow: 'Reels allowed',
-      accentEyebrow: true,
+      live: true,
       value: left.inSeconds,
       format: _clock,
       sub: 'of a ${total.inMinutes} min break',
@@ -63,7 +63,7 @@ RingFace ringFace({
   if (reels != null) {
     return (
       eyebrow: 'Reels allowed',
-      accentEyebrow: true,
+      live: true,
       value: reels.left,
       format: _plain,
       sub: 'of ${_reels(reels.total)}',
@@ -74,7 +74,7 @@ RingFace ringFace({
   }
   RingFace time(String eyebrow, int? value, String sub, double? progress) => (
     eyebrow: eyebrow,
-    accentEyebrow: false,
+    live: false,
     value: value,
     format: _hm,
     sub: sub,
