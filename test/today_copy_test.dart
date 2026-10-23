@@ -50,14 +50,13 @@ ModeCopy _copy(
 
 void main() {
   group('ringFace', () {
-    test('normal: time left of the limit, Unblock', () {
+    test('normal: time left of the limit', () {
       final f = _ring();
       expect(f.eyebrow, 'Time left');
       expect(f.accentEyebrow, isFalse);
       expect(_value(f), '2h 15m');
       expect(f.sub, '45m of 3h used');
       expect(f.progress, 0.75);
-      expect(f.blockNow, isFalse);
     });
 
     test('over: 0m and how far over, an empty arc', () {
@@ -80,7 +79,6 @@ void main() {
       expect(f.value, isNull);
       expect(f.sub, 'Counting is off');
       expect(f.progress, isNull);
-      expect(f.blockNow, isFalse);
     });
 
     test('not yet loaded: the placeholder reads normally', () {
@@ -90,33 +88,31 @@ void main() {
       expect(f.progress, 0.75);
     });
 
-    test('a live Pause: reels allowed in accent, mm:ss left, Block now', () {
+    test('a live Pause: reels allowed in accent, mm:ss left', () {
       final f = _ring(pause: _pause);
       expect(f.eyebrow, 'Reels allowed');
       expect(f.accentEyebrow, isTrue);
       expect(_value(f), '09:42');
       expect(f.sub, 'of a 10 min break');
       expect(f.progress, closeTo(582 / 600, 1e-9));
-      expect(f.blockNow, isTrue);
     });
 
-    test('an N-reel unblock: reels left of N, Block now', () {
+    test('an N-reel unblock: reels left of N', () {
       final f = _ring(reels: (left: 3, total: 5));
       expect(f.eyebrow, 'Reels allowed');
       expect(f.accentEyebrow, isTrue);
       expect(_value(f), '3');
       expect(f.sub, 'of 5 reels');
       expect(f.progress, 0.6);
-      expect(f.blockNow, isTrue);
     });
 
     test('a session wins over counting off', () {
-      expect(_ring(measured: false, pause: _pause).blockNow, isTrue);
+      expect(_ring(measured: false, pause: _pause).sub, 'of a 10 min break');
     });
   });
 
   test('modeIndex: blockAll 0, curious 1, live pause 2, oneReel(1) 3, '
-      'oneReel(5) 2', () {
+      'oneReel(5) 4', () {
     int index(AppSettings s, {bool pauseLive = false}) =>
         modeIndex(s, pauseLive: pauseLive);
     expect(index(const AppSettings()), 0);
@@ -127,7 +123,7 @@ void main() {
       index(
         const AppSettings(activePlan: BlockingPlan.oneReel, reelAllowance: 5),
       ),
-      2,
+      4,
     );
   });
 
@@ -156,11 +152,11 @@ void main() {
         detail: 'Blocking resumes in 09:42',
       ));
       expect(
-        _copy(2, reels: (left: 3, total: 5)).detail,
+        _copy(4, reels: (left: 3, total: 5)).detail,
         '3 reels left, then blocked again',
       );
       expect(
-        _copy(2, reels: (left: 1, total: 5)).detail,
+        _copy(4, reels: (left: 1, total: 5)).detail,
         '1 reel left, then blocked again',
       );
     });

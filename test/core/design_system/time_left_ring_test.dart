@@ -13,9 +13,7 @@ String _hm(int m) => m >= 60 ? '${m ~/ 60}h ${m % 60}m' : '${m}m';
 TimeLeftRing _ring({
   int? value = 135,
   double? progress = .75,
-  bool blockNow = false,
   bool accentEyebrow = false,
-  VoidCallback? onPill,
 }) => TimeLeftRing(
   eyebrow: 'Time left',
   accentEyebrow: accentEyebrow,
@@ -23,8 +21,6 @@ TimeLeftRing _ring({
   format: _hm,
   sub: '45m of 3h used',
   progress: progress,
-  blockNow: blockNow,
-  onPill: onPill ?? () {},
   reels: 20,
   streak: 1,
 );
@@ -74,8 +70,8 @@ void main() {
     await _pump(tester, _ring());
     expect(find.text('TIME LEFT'), findsOneWidget);
     expect(find.text('45m of 3h used'), findsOneWidget);
-    expect(find.text('Unblock'), findsOneWidget);
-    expect(_glyph(Assets.svg.lockOpen), findsOneWidget);
+    // Unblock is a mode option now: the ring holds no pill.
+    expect(find.byType(LiquidPill), findsNothing);
     // First frame: everything at zero.
     expect(find.text('0m'), findsOneWidget);
     expect(find.text('0'), findsNWidgets(2));
@@ -109,39 +105,13 @@ void main() {
     expect(tester.binding.transientCallbackCount, 0);
   });
 
-  testWidgets('the pill: Unblock or Block now, each firing onPill', (
-    tester,
-  ) async {
-    var taps = 0;
-    await _pump(tester, _ring(onPill: () => taps++), reduceMotion: true);
-    await tester.tap(find.text('Unblock'));
-    expect(taps, 1);
-
-    await _pump(
-      tester,
-      _ring(blockNow: true, onPill: () => taps++),
-      reduceMotion: true,
-    );
-    expect(find.text('Unblock'), findsNothing);
-    expect(_glyph(Assets.svg.lock), findsOneWidget);
-    expect(_glyph(Assets.svg.lockOpen), findsNothing);
-    await tester.tap(find.text('Block now'));
-    expect(taps, 2);
-  });
-
-  testWidgets('semantics: the face, the pill button and the stats', (
-    tester,
-  ) async {
+  testWidgets('semantics: the face and the stats', (tester) async {
     final handle = tester.ensureSemantics();
     await _pump(tester, _ring());
     // The final value from the first frame, not the count.
     expect(
       find.bySemanticsLabel('Time left, 2h 15m, 45m of 3h used'),
       findsOneWidget,
-    );
-    expect(
-      tester.getSemantics(find.text('Unblock')),
-      isSemantics(label: 'Unblock', isButton: true),
     );
     expect(
       find.bySemanticsLabel('20 reels today, 1 day streak'),
@@ -159,15 +129,15 @@ void main() {
     expect(_ringOf(tester).progress, isNull);
   });
 
-  testWidgets('300 px down to a 340 dp screen, smaller below it', (
+  testWidgets('210 px on any phone, smaller only in a narrower box', (
     tester,
   ) async {
-    for (final (width, ring) in const [(390.0, 300.0), (340.0, 300.0)]) {
+    for (final width in const [390.0, 340.0, 320.0]) {
       await _pump(tester, _ring(), width: width, reduceMotion: true);
-      expect(tester.getSize(find.byType(ProgressRing)).width, ring);
+      expect(tester.getSize(find.byType(ProgressRing)), const Size(210, 210));
     }
-    await _pump(tester, _ring(), width: 320, reduceMotion: true);
-    expect(tester.getSize(find.byType(ProgressRing)), const Size(280, 280));
+    await _pump(tester, _ring(), width: 240, reduceMotion: true);
+    expect(tester.getSize(find.byType(ProgressRing)), const Size(200, 200));
     expect(tester.takeException(), isNull);
   });
 
@@ -191,10 +161,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       expect(_ringOf(tester).palette, t.pause);
-      expect(
-        tester.widget<LiquidPill>(find.byType(LiquidPill)).tint,
-        t.pause.main,
-      );
       expect(
         tester.widget<Text>(find.text('TIME LEFT')).style?.color,
         t.accentText(t.pause),
@@ -260,7 +226,7 @@ void main() {
         await show((t) => t.pause);
         expect(lights(tester), [
           (
-            const Rect.fromLTWH(5, 90, 380, 380),
+            const Rect.fromLTWH(5, 45, 380, 380),
             t.pause.main.withValues(alpha: t.kAmb),
             t.pause.main.withValues(alpha: 0),
           ),

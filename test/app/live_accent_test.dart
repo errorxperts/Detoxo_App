@@ -65,7 +65,7 @@ void main() {
     );
   });
 
-  test('an N-reel unblock lights Pause, as the Today screen does', () {
+  test('an N-reel unblock (Today option 4) takes the Pause accent', () {
     expect(
       accentModeOf(
         const AppSettings(activePlan: BlockingPlan.oneReel, reelAllowance: 5),

@@ -192,7 +192,7 @@ Future<Finder> reachHome(
   );
   await step('home');
 
-  // The 6-step tour auto-starts on the first /home when hasSeenFeatureShowcase
+  // The 7-step tour auto-starts on the first /home when hasSeenFeatureShowcase
   // is false, with disableBarrierInteraction + disableDefaultTargetGestures —
   // it swallows every dashboard tap until Skip. Absent on an already-toured
   // device, hence conditional.

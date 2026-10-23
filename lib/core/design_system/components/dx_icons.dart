@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 /// A spec 3D glass icon (a 192² WebP), shown at 34 (ModeCard), 40 (rules
 /// row), 56 (tiles) or 58 (confirm sheet); never cropped or redrawn.
 ///
-/// Only the four mode icons pass [accentTint]: [accentIconFilter] turns them
+/// Only the mode icons pass [accentTint]: [accentIconFilter] turns them
 /// to the live accent, vivid when [selected] and soft (saturate
 /// [AppTokens.iconSaturateOff] at [AppTokens.iconOpacityOff]) when not. Every
 /// other icon keeps its own colour. Decorative unless [semanticLabel] is set.

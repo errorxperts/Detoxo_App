@@ -184,7 +184,8 @@ class SecondaryButton extends StatelessWidget {
 
 /// The spec accent pill (`.dx-pill`): 44 px, [tint] at `kPill` under the
 /// pill sheen and edge, with a [tint] glow at `kPillGlow`. The child is set
-/// in `label` ink. The ring's "Unblock" passes `context.accent.main`.
+/// in `label` ink. The block screen's primary action passes
+/// `context.accent.main`.
 class LiquidPill extends StatelessWidget {
   const LiquidPill({
     required this.child,

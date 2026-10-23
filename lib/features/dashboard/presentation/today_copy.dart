@@ -5,21 +5,20 @@ import 'package:detoxo/features/blocking/blocking.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
 
-/// Which of the Today screen's four modes is lit: 0 Block All, 1 Conscious,
-/// 2 Pause, 3 One Reel. The app's live accent reads the same index, so the
-/// lit option and the accent can never disagree.
+/// Which of the Today screen's five modes is lit: 0 Block All, 1 Conscious,
+/// 2 Pause, 3 One Reel, 4 Unblock (an N-reel unblock). The app's live accent
+/// reads the same index, so the lit option and the accent can never disagree.
 int modeIndex(AppSettings s, {required bool pauseLive}) {
   if (pauseLive) return 2;
   return switch (s.activePlan) {
     BlockingPlan.blockAll => 0,
     BlockingPlan.curious => 1,
-    // An N-reel unblock (the ring's Unblock) is a break too: it lights Pause.
-    BlockingPlan.oneReel => s.reelAllowance <= 1 ? 3 : 2,
+    BlockingPlan.oneReel => s.reelAllowance <= 1 ? 3 : 4,
     BlockingPlan.paused => 2,
   };
 }
 
-/// What the Today ring shows: [TimeLeftRing]'s face, its arc and its pill.
+/// What the Today ring shows: [TimeLeftRing]'s face and its arc.
 typedef RingFace = ({
   String eyebrow,
   bool accentEyebrow,
@@ -27,7 +26,6 @@ typedef RingFace = ({
   String Function(int) format,
   String sub,
   double? progress,
-  bool blockNow,
 });
 
 String _hm(int minutes) => formatHm(Duration(minutes: minutes));
@@ -60,7 +58,6 @@ RingFace ringFace({
       progress: total > Duration.zero
           ? (left.inMilliseconds / total.inMilliseconds).clamp(0.0, 1.0)
           : 0.0,
-      blockNow: true,
     );
   }
   if (reels != null) {
@@ -73,7 +70,6 @@ RingFace ringFace({
       progress: reels.total > 0
           ? (reels.left / reels.total).clamp(0.0, 1.0)
           : 0.0,
-      blockNow: true,
     );
   }
   RingFace time(String eyebrow, int? value, String sub, double? progress) => (
@@ -83,7 +79,6 @@ RingFace ringFace({
     format: _hm,
     sub: sub,
     progress: progress,
-    blockNow: false,
   );
   // "Count short videos" off also stops usage-time accrual: show it as
   // unmeasured, never as a reassuring "0m".
@@ -132,11 +127,11 @@ ModeCopy modeCopy({
       title: 'Reels allowed',
       detail: 'Blocking resumes in ${formatCountdown(pause.remainingIn(now))}',
     ),
-    2 when reels != null => (
+    3 => (title: 'One reel left', detail: 'Blocked again once it ends'),
+    4 when reels != null => (
       title: 'Reels allowed',
       detail: '${_reels(reels.left)} left, then blocked again',
     ),
-    3 => (title: 'One reel left', detail: 'Blocked again once it ends'),
     _ => (title: 'All reels blocked', detail: 'Across every app on your list'),
   };
 }

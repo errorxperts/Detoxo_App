@@ -52,7 +52,7 @@ class _MockSettingsRepo extends Mock implements SettingsRepository {}
 
 class _MockEngine extends Mock implements EngineRepository {}
 
-const _labels = ['Block All', 'Conscious', 'Pause', 'One Reel'];
+const _labels = ['Block All', 'Conscious', 'Pause', 'One Reel', 'Unblock'];
 
 /// 45 min of a 3 h limit, 20 reels, a 1 day streak.
 const _counted = ContentCount(today: 20, timeToday: Duration(minutes: 45));
@@ -229,11 +229,13 @@ void main() {
     expect(find.text('Across every app on your list'), findsOneWidget);
   });
 
-  testWidgets('the Unblock pill opens the Session sheet By reel count', (
-    tester,
-  ) async {
+  testWidgets('Unblock, the fifth option, opens the Session sheet By reel '
+      'count', (tester) async {
     await _pump(tester);
-    await _tap(tester, find.text('Unblock'));
+    // The ring holds no pill: Unblock is only the mode option.
+    expect(find.byType(LiquidPill), findsNothing);
+    expect(find.text('Unblock'), findsOneWidget);
+    await _tap(tester, _option('Unblock'));
     expect(find.text('Session blocker'), findsOneWidget);
     expect(find.text('By reel count'), findsOneWidget);
   });
@@ -321,24 +323,21 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('a live Pause: Block now and the lit Pause both resume', (
-    tester,
-  ) async {
+  testWidgets('a live Pause: re-tapping the lit Pause resumes', (tester) async {
     await _pump(tester, settings: _pausing());
+    expect(tester.widget<ModeCard>(find.byType(ModeCard)).selectedIndex, 2);
     expect(find.text('REELS ALLOWED'), findsOneWidget);
     expect(find.text('of a 10 min break'), findsOneWidget);
     expect(find.textContaining('Blocking resumes in 09:'), findsOneWidget);
 
-    await _tap(tester, find.text('Block now'));
     await _tap(tester, _option('Pause'));
-    verify(_settings.resumeNow).called(2);
+    verify(_settings.resumeNow).called(1);
     expect(find.text('By time'), findsNothing);
     verifyNever(() => _settings.setPlan(any()));
   });
 
-  testWidgets('an N-reel unblock: Block now returns to the base mode', (
-    tester,
-  ) async {
+  testWidgets('an N-reel unblock lights Unblock; re-tapping it returns to '
+      'the base mode', (tester) async {
     await _pump(
       tester,
       settings: const AppSettings(
@@ -352,12 +351,12 @@ void main() {
     expect(find.text('3'), findsOneWidget);
     expect(find.text('of 5 reels'), findsOneWidget);
     expect(find.text('3 reels left, then blocked again'), findsOneWidget);
+    expect(tester.widget<ModeCard>(find.byType(ModeCard)).selectedIndex, 4);
 
-    await _tap(tester, find.text('Block now'));
-    await _tap(tester, _option('Pause'));
-    verify(() => _settings.setPlan(BlockingPlan.curious)).called(2);
+    await _tap(tester, _option('Unblock'));
+    verify(() => _settings.setPlan(BlockingPlan.curious)).called(1);
     verifyNever(_settings.resumeNow);
-    expect(find.text('By time'), findsNothing);
+    expect(find.text('By reel count'), findsNothing);
   });
 
   testWidgets('the lit One Reel blocks now, with no confirm', (tester) async {
@@ -391,9 +390,9 @@ void main() {
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
-  testWidgets('the mode options are tour steps 0-3', (tester) async {
+  testWidgets('the mode options are tour steps 0-4', (tester) async {
     await _pump(tester);
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < _labels.length; i++) {
       final step = find.descendant(
         of: find.byType(ModeCard),
         matching: find.byWidgetPredicate(

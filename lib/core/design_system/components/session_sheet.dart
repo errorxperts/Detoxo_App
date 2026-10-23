@@ -10,16 +10,16 @@ import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:detoxo/gen/assets.gen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
-/// What a [SessionSheet] sets: a reel count (a − / + stepper) or minutes (a
-/// 270° dial).
+/// What a [SessionSheet] sets: a reel count or minutes, each on the same
+/// 240° ring slider.
 enum SessionKind { reels, time }
 
 /// The Session blocker sheet (canvas `SessionBlocker-{Reels,Time}`): pick a
-/// value between `min` and `max`, by stepper or dial, or by one of the four
+/// value between `min` and `max` on the ring slider, or by one of the four
 /// quick `picks`, read the `note` line, then Start.
 ///
 /// - Both kinds stand 434 tall at 1.0x text, under the static brand glow.
@@ -66,22 +66,11 @@ abstract final class SessionSheet {
 
 // Canvas measures with no token of their own.
 const double _valueHeight = 160;
-const double _numberColumn = 112;
 const double _startHeight = 52;
 const double _closeCircle = 32;
 
 /// The quick-pick card's padding; the chip's radius is the card's minus it.
 const double _pickInset = AppSpacing.xxs;
-
-/// 32 between the stepper circles and the number, kept with 48 dp targets.
-const double _stepGap =
-    AppSpacing.xxl - (AppSizes.minTapTarget - AppSizes.controlHeight) / 2;
-
-/// Hold-to-repeat: the first repeat after 420 ms, each next one ×.78 sooner,
-/// never under 60 ms.
-const double _holdFirstMs = 420;
-const double _holdRate = .78;
-const double _holdFloorMs = 60;
 
 /// How long "Session started" shows before the sheet closes.
 const Duration _startedHold = Duration(milliseconds: 1100);
@@ -91,13 +80,6 @@ const Duration _checkDraw = Duration(milliseconds: 550);
 const Curve _checkCurve = Interval(50 / 550, 1, curve: Cubic(.22, 1, .36, 1));
 
 // Glyphs on the canvas's 24-unit grid.
-const List<List<Offset>> _minus = [
-  [Offset(6, 12), Offset(18, 12)],
-];
-const List<List<Offset>> _plus = [
-  ..._minus,
-  [Offset(12, 6), Offset(12, 18)],
-];
 const List<List<Offset>> _cross = [
   [Offset(6.5, 6.5), Offset(17.5, 17.5)],
   [Offset(17.5, 6.5), Offset(6.5, 17.5)],
@@ -138,16 +120,15 @@ class _SessionSheetState extends State<_SessionSheet> {
   int _bumps = 0;
   int _squishes = 0;
 
-  bool _dragging = false;
   bool _dialFocused = false;
   bool _busy = false;
   bool _started = false;
 
-  Timer? _hold;
   Timer? _close;
 
-  /// A pointer already stepped on down; the tap that follows it must not.
-  bool _viaPointer = false;
+  /// The slider's last own position, so a dragged handle follows the finger
+  /// between whole values; any other change nulls it, snapping to [_value].
+  double? _handle;
 
   bool get _reels => widget.kind == SessionKind.reels;
 
@@ -158,12 +139,12 @@ class _SessionSheetState extends State<_SessionSheet> {
 
   @override
   void dispose() {
-    _hold?.cancel();
     _close?.cancel();
     super.dispose();
   }
 
   void _set(int v, {bool bump = true, bool squish = false}) {
+    _handle = null;
     final next = v.clamp(widget.min, widget.max);
     if (next == _value) return;
     AppHaptics.selection();
@@ -174,52 +155,7 @@ class _SessionSheetState extends State<_SessionSheet> {
     });
   }
 
-  /// Steps by [d]; false at a bound, which also ends a hold.
-  bool _step(int d) {
-    final before = _value;
-    _set(before + d);
-    return _value != before;
-  }
-
-  void _holdStart(int d) {
-    _viaPointer = true;
-    _holdStop();
-    if (!_step(d)) return;
-    void next(double ms) {
-      _hold = Timer(Duration(milliseconds: ms.round()), () {
-        if (_step(d)) next(math.max(_holdFloorMs, ms * _holdRate));
-      });
-    }
-
-    next(_holdFirstMs);
-  }
-
-  void _holdStop() {
-    _hold?.cancel();
-    _hold = null;
-  }
-
-  void _release() {
-    _holdStop();
-    // After the tap this pointer-up produces, so keys and TalkBack still step.
-    scheduleMicrotask(() => _viaPointer = false);
-  }
-
-  /// Pointer → value on the dial; the open gap at the bottom is ignored.
-  void _dialAt(Offset p) {
-    final d = p - _DialPainter.centre;
-    final deg = math.atan2(d.dx, -d.dy) * 180 / math.pi;
-    if (deg.abs() > _DialPainter.span) return;
-    final at = (deg + _DialPainter.span) / (2 * _DialPainter.span);
-    _set((widget.min + at * (widget.max - widget.min)).round(), bump: false);
-  }
-
-  void _drag(bool on) {
-    if (_dragging != on) setState(() => _dragging = on);
-  }
-
   Future<void> _start() async {
-    _holdStop();
     setState(() => _busy = true);
     var ok = false;
     try {
@@ -254,10 +190,7 @@ class _SessionSheetState extends State<_SessionSheet> {
             // to the 48 dp close target: same centre, same value area top.
             _header(t),
             const SizedBox(height: AppSpacing.sm),
-            SizedBox(
-              height: _valueHeight,
-              child: _reels ? _stepper(t) : _dial(t),
-            ),
+            SizedBox(height: _valueHeight, child: _dial(t)),
             const SizedBox(height: AppSpacing.gap),
             _quickPicks(t),
             const SizedBox(height: AppSpacing.sm),
@@ -310,12 +243,19 @@ class _SessionSheetState extends State<_SessionSheet> {
           radius: AppRadius.brPill,
           semanticLabel: 'Close',
           minTapTarget: AppSizes.minTapTargetSquare,
-          child: _Circle(
-            size: _closeCircle,
-            color: t.control,
-            child: CustomPaint(
-              size: const Size.square(12),
-              painter: _GlyphPainter(_cross, t.ink2),
+          child: SizedBox.square(
+            dimension: _closeCircle,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: t.control,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: CustomPaint(
+                  size: const Size.square(12),
+                  painter: _GlyphPainter(_cross, t.ink2),
+                ),
+              ),
             ),
           ),
         ),
@@ -323,94 +263,10 @@ class _SessionSheetState extends State<_SessionSheet> {
     ),
   );
 
-  Widget _stepper(AppTokens t) => Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      _stepButton(t, -1, 'One fewer reel', _minus),
-      const SizedBox(width: _stepGap),
-      SizedBox(
-        width: _numberColumn,
-        child: Semantics(
-          container: true,
-          liveRegion: true,
-          label: '$_value ${_unit(_value)}',
-          child: ExcludeSemantics(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _Bump(
-                    trigger: _bumps,
-                    child: Text(
-                      '$_value',
-                      style: AppTypography.number.copyWith(color: t.ink),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    _unit(_value).toUpperCase(),
-                    style: AppTypography.eyebrow.copyWith(color: t.ink2),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-      const SizedBox(width: _stepGap),
-      _stepButton(t, 1, 'One more reel', _plus),
-    ],
-  );
-
-  /// A − / + circle: a pointer steps on down and repeats while held; keys
-  /// and TalkBack step once through the tap.
-  Widget _stepButton(
-    AppTokens t,
-    int d,
-    String label,
-    List<List<Offset>> glyph,
-  ) {
-    final enabled = d < 0 ? _value > widget.min : _value < widget.max;
-    return Listener(
-      onPointerDown: (_) => _holdStart(d),
-      onPointerMove: (e) {
-        // Sliding off the button ends a hold, as the canvas's pointerleave.
-        if (!(Offset.zero & AppSizes.minTapTargetSquare).contains(
-          e.localPosition,
-        )) {
-          _holdStop();
-        }
-      },
-      onPointerUp: (_) => _release(),
-      onPointerCancel: (_) => _release(),
-      child: AppPressable(
-        onTap: () {
-          if (!_viaPointer) _step(d);
-        },
-        enabled: enabled,
-        haptic: false,
-        pressedScale: .9,
-        radius: AppRadius.brPill,
-        semanticLabel: label,
-        minTapTarget: AppSizes.minTapTargetSquare,
-        child: AnimatedOpacity(
-          opacity: enabled ? 1 : .35,
-          duration: context.motion(AppDurations.fast),
-          curve: AppCurves.glide,
-          child: _Circle(
-            size: AppSizes.controlHeight,
-            color: t.control,
-            child: CustomPaint(
-              size: const Size.square(18),
-              painter: _GlyphPainter(glyph, t.accentText(t.brand), stroke: 2.8),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
+  /// The ring slider, for both kinds: a 240° `control` track open at the
+  /// bottom, the brand arc up to the value and a white handle, around the
+  /// number and its unit. The package has no semantics or keys of its own,
+  /// so the slider node and the key map here speak for it.
   Widget _dial(AppTokens t) {
     final p = t.brand;
     final dark = t.brightness == Brightness.dark;
@@ -419,7 +275,7 @@ class _SessionSheetState extends State<_SessionSheet> {
     return Center(
       child: Semantics(
         slider: true,
-        label: 'Session length',
+        label: _reels ? 'Reel count' : 'Session length',
         value: say(_value),
         increasedValue: say(math.min(_value + 1, widget.max)),
         decreasedValue: say(math.max(_value - 1, widget.min)),
@@ -456,81 +312,75 @@ class _SessionSheetState extends State<_SessionSheet> {
           child: FocusRing(
             visible: _dialFocused,
             radius: const BorderRadius.all(Radius.circular(24)),
-            child: GestureDetector(
-              // Screen readers adjust through the slider node above.
-              excludeFromSemantics: true,
-              onPanDown: (d) {
-                _drag(true);
-                _dialAt(d.localPosition);
-              },
-              onPanUpdate: (d) => _dialAt(d.localPosition),
-              onPanEnd: (_) => _drag(false),
-              onPanCancel: () => _drag(false),
-              child: SizedBox(
-                width: _DialPainter.size.width,
-                height: _DialPainter.size.height,
-                child: Stack(
-                  children: [
-                    TweenAnimationBuilder<double>(
-                      tween: Tween(end: _dragging ? 1 : 0),
-                      duration: context.motion(AppDurations.normal),
-                      curve: AppCurves.press,
-                      builder: (_, grow, _) => CustomPaint(
-                        key: SessionSheet.dialKey,
-                        size: _DialPainter.size,
-                        painter: _DialPainter(
-                          at: (_value - widget.min) / range,
-                          grow: grow,
-                          track: t.control,
-                          arc: dark
-                              ? [p.light, p.main, p.deep]
-                              : [
-                                  p.main,
-                                  Color.lerp(
+            child: ExcludeSemantics(
+              child: SleekCircularSlider(
+                key: SessionSheet.dialKey,
+                min: widget.min.toDouble(),
+                max: widget.max.toDouble(),
+                initialValue: _handle ?? _value.toDouble(),
+                appearance: CircularSliderAppearance(
+                  size: _valueHeight,
+                  // Tracks the finger without easing.
+                  animationEnabled: false,
+                  customWidths: CustomSliderWidths(
+                    trackWidth: 8,
+                    progressBarWidth: 12,
+                    handlerSize: 8,
+                  ),
+                  customColors: CustomSliderColors(
+                    trackColor: t.control,
+                    // The dial's stops, reversed: the package's sweep meets
+                    // them end first, so the arc still starts on the first.
+                    progressBarColors:
+                        (dark
+                                ? [p.light, p.main, p.deep]
+                                : [
                                     p.main,
+                                    Color.lerp(
+                                      p.main,
+                                      p.deep,
+                                      AppTokens.arcMidMix,
+                                    )!,
                                     p.deep,
-                                    AppTokens.arcMidMix,
-                                  )!,
-                                  p.deep,
-                                ],
-                          halo: (dark ? p.light : p.main).withValues(
-                            alpha: t.kHalo,
-                          ),
-                          shadows: t.dialKnobShadow,
-                        ),
-                      ),
-                    ),
-                    Positioned.fill(
-                      top: 50,
-                      child: ExcludeSemantics(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.topCenter,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _Bump(
-                                trigger: _bumps,
-                                child: Text(
-                                  '$_value',
-                                  style: AppTypography.numberLg.copyWith(
-                                    color: t.ink,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _unit(_value).toUpperCase(),
-                                style: AppTypography.eyebrowLg.copyWith(
-                                  color: t.ink2,
-                                ),
-                              ),
-                            ],
+                                  ])
+                            .reversed
+                            .toList(),
+                    dotColor: Colors.white,
+                    hideShadow: true,
+                  ),
+                ),
+                // Also fires when initialValue moves (a pick, a key); _set
+                // ignores the same whole value.
+                onChange: (v) {
+                  _set(v.round(), bump: false);
+                  _handle = v;
+                },
+                innerWidget: (_) => Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _Bump(
+                          trigger: _bumps,
+                          child: Text(
+                            '$_value',
+                            style: AppTypography.numberLg.copyWith(
+                              color: t.ink,
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 2),
+                        Text(
+                          _unit(_value).toUpperCase(),
+                          style: AppTypography.eyebrowLg.copyWith(
+                            color: t.ink2,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -695,29 +545,11 @@ class _SessionSheetState extends State<_SessionSheet> {
   }
 }
 
-/// A dial key's step: arrows ±1, Page Up / Down ±5, Home / End the range.
+/// A slider key's step: arrows ±1, Page Up / Down ±5, Home / End the range.
 class _Nudge extends Intent {
   const _Nudge(this.by);
 
   final int by;
-}
-
-/// A flat circle of [color] holding [child].
-class _Circle extends StatelessWidget {
-  const _Circle({required this.size, required this.color, required this.child});
-
-  final double size;
-  final Color color;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => SizedBox.square(
-    dimension: size,
-    child: DecoratedBox(
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      child: Center(child: child),
-    ),
-  );
 }
 
 /// The canvas's number bump: on [trigger], scale .92 → 1.05 (at 60 %) → 1
@@ -774,19 +606,14 @@ class _BumpState extends State<_Bump> with SingleTickerProviderStateMixin {
       ScaleTransition(scale: _scale, child: widget.child);
 }
 
-/// Round-capped polylines on the canvas's 24-unit glyph grid, scaled to the
-/// paint size; [progress] < 1 draws only the start of the (single) stroke.
+/// Round-capped 3-unit polylines on the canvas's 24-unit glyph grid, scaled
+/// to the paint size; [progress] < 1 draws only the start of the (single)
+/// stroke.
 class _GlyphPainter extends CustomPainter {
-  const _GlyphPainter(
-    this.lines,
-    this.color, {
-    this.stroke = 3,
-    this.progress = 1,
-  });
+  const _GlyphPainter(this.lines, this.color, {this.progress = 1});
 
   final List<List<Offset>> lines;
   final Color color;
-  final double stroke;
   final double progress;
 
   @override
@@ -805,7 +632,7 @@ class _GlyphPainter extends CustomPainter {
         path,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = stroke
+          ..strokeWidth = 3
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
           ..color = color,
@@ -814,93 +641,5 @@ class _GlyphPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GlyphPainter old) =>
-      old.lines != lines ||
-      old.color != color ||
-      old.stroke != stroke ||
-      old.progress != progress;
-}
-
-/// The time dial: a 270° `control` track open at the bottom, the arc of the
-/// palette up to [at], and the white knob in its halo.
-class _DialPainter extends CustomPainter {
-  const _DialPainter({
-    required this.at,
-    required this.grow,
-    required this.track,
-    required this.arc,
-    required this.halo,
-    required this.shadows,
-  });
-
-  static const Size size = Size(178, 160);
-  static const Offset centre = Offset(89, 89);
-  static const double radius = 66;
-
-  /// Degrees either side of 12 o'clock.
-  static const double span = 135;
-
-  /// 0..1 along the span.
-  final double at;
-
-  /// 0 at rest, 1 while dragged: the knob grows 13 → 17, its halo 19 → 23.
-  final double grow;
-  final Color track;
-  final List<Color> arc;
-  final Color halo;
-  final List<DxShadow> shadows;
-
-  static double _rad(double deg) => deg * math.pi / 180;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromCircle(center: centre, radius: radius);
-    final stroke = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 14
-      ..strokeCap = StrokeCap.round;
-    // The canvas counts from 3 o'clock, the dial from 12.
-    final from = _rad(-span - 90);
-    final sweep = _rad(2 * span);
-    canvas.drawArc(rect, from, sweep, false, Paint.from(stroke)..color = track);
-    if (at > 0) {
-      canvas.drawArc(
-        rect,
-        from,
-        sweep * at,
-        false,
-        Paint.from(stroke)
-          // The canvas's userSpaceOnUse line, bottom-left to top-right.
-          ..shader = ui.Gradient.linear(
-            const Offset(36, 142),
-            const Offset(142, 36),
-            arc,
-            const [0, .5, 1],
-          ),
-      );
-    }
-
-    final a = _rad(-span + 2 * span * at);
-    final knob = centre + Offset(radius * math.sin(a), -radius * math.cos(a));
-    final r = 13 + 4 * grow;
-    canvas.drawCircle(knob, r + 6, Paint()..color = halo);
-    for (final s in shadows.reversed) {
-      canvas.drawCircle(
-        knob + s.offset,
-        r + s.spread,
-        Paint()
-          ..color = s.color
-          ..maskFilter = MaskFilter.blur(BlurStyle.normal, s.blur / 2),
-      );
-    }
-    canvas.drawCircle(knob, r, Paint()..color = Colors.white);
-  }
-
-  @override
-  bool shouldRepaint(_DialPainter old) =>
-      old.at != at ||
-      old.grow != grow ||
-      old.track != track ||
-      !listEquals(old.arc, arc) ||
-      old.halo != halo ||
-      !listEquals(old.shadows, shadows);
+      old.lines != lines || old.color != color || old.progress != progress;
 }

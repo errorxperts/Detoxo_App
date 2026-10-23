@@ -39,7 +39,7 @@
       { "name": "grabber", "value": { "light": "rgba(20,26,42,0.18)", "dark": "rgba(255,255,255,0.26)" }, "usage": "Sheet grabber bar." },
       { "name": "button-from", "value": { "light": "#ffffff", "dark": "#262b44" }, "usage": "Soft button, start of its 145° gradient." },
       { "name": "button-to", "value": { "light": "#e9edf4", "dark": "#181b2a" }, "usage": "Soft button, end of its 145° gradient." },
-      { "name": "control", "value": { "light": "#DFE7F8", "dark": "#2A3756" }, "usage": "Session sheet controls: stepper circles, quick-pick card, time-dial track, sheet close (Compact Guide)." },
+      { "name": "control", "value": { "light": "#DFE7F8", "dark": "#2A3756" }, "usage": "Session sheet controls: the value ring's track, quick-pick card, sheet close (Compact Guide)." },
       { "name": "control-on", "value": { "light": "#C7D8FF", "dark": "#3E5989" }, "usage": "Selected quick pick chip on control (Compact Guide)." },
       { "name": "start-from", "value": { "light": "#3574FA", "dark": "#8FD3FF" }, "usage": "Session sheet Start button, top of its vertical gradient." },
       { "name": "start-to", "value": { "light": "#2457E0", "dark": "#6AA8FF" }, "usage": "Session sheet Start button, bottom of its gradient." },
@@ -58,7 +58,6 @@
       { "name": "track-shadow", "value": { "light": "inset 5px 5px 10px rgba(166,180,204,0.6), inset -5px -5px 10px rgba(255,255,255,0.95)", "dark": "inset 6px 6px 12px rgba(0,0,0,0.6), inset -4px -4px 10px rgba(255,255,255,0.045)" }, "usage": "Slide track, pressed in." },
       { "name": "start-shadow", "value": { "light": "inset 0 1px 0 rgba(255,255,255,0.3), 0 10px 24px rgba(53,116,250,0.32)", "dark": "inset 0 1px 0 rgba(255,255,255,0.45), 0 10px 26px rgba(106,168,255,0.3)" }, "usage": "Session sheet Start button." },
       { "name": "started-shadow", "value": { "light": "inset 0 1px 0 rgba(255,255,255,0.25), 0 10px 24px rgba(16,137,63,0.3)", "dark": "inset 0 1px 0 rgba(255,255,255,0.4), 0 10px 24px rgba(75,227,154,0.25)" }, "usage": "Session started button." },
-      { "name": "dial-knob-shadow", "value": { "light": "0 2px 12px rgba(20,30,70,0.3)", "dark": "0 2px 12px rgba(0,0,0,0.45)" }, "usage": "Session sheet time-dial knob: the canvas's drop-shadow(0 2px 6px) is sigma 6, kept at blur 2 x sigma like logo-glow." },
       { "name": "logo-glow", "value": { "light": "0 0 2px rgba(30,50,110,0.6), 0 4px 20px rgba(61,123,255,0.45)", "dark": "0 0 0 rgba(106,168,255,0), 0 0 16px rgba(106,168,255,0.55)" }, "usage": "DetoxoLogo glow: the Logos README drop-shadow chain (sigma 1 + 10 Light, 8 Dark) at blur 2 x sigma, so sigma = blur / 2 like every shadow. Dark has no contour; its clear first layer keeps the shapes equal." }
     ]
   },
@@ -95,8 +94,8 @@
     "note": "Named styles derived from a spec style: each overrides only the fields it names (fontSize, lineHeight, fontWeight, letterSpacing). text-transform stays at the call site.",
     "tokens": [
       { "name": "eyebrow", "base": "caption", "letterSpacing": "1.6px", "usage": "Eyebrows and section headers: caption, uppercase, 1.6px tracking (.dx-eyebrow)." },
-      { "name": "number-lg", "base": "number", "fontSize": "58px", "lineHeight": "58px", "letterSpacing": "-2.4px", "usage": "Value inside the time dial (Compact Guide number-lg)." },
-      { "name": "eyebrow-lg", "base": "caption", "fontSize": "14px", "lineHeight": "18px", "letterSpacing": "1.8px", "usage": "Unit inside the time dial, uppercase (Compact Guide eyebrow-lg)." },
+      { "name": "number-lg", "base": "number", "fontSize": "58px", "lineHeight": "58px", "letterSpacing": "-2.4px", "usage": "Value inside the Session sheet's value ring (Compact Guide number-lg)." },
+      { "name": "eyebrow-lg", "base": "caption", "fontSize": "14px", "lineHeight": "18px", "letterSpacing": "1.8px", "usage": "Unit inside the Session sheet's value ring, uppercase (Compact Guide eyebrow-lg)." },
       { "name": "count", "base": "subhead", "fontWeight": 700, "usage": "Counts such as \"2 on\" and \"Tap to set up\" (Compact Guide count)." },
       { "name": "label-strong", "base": "label", "fontWeight": 800, "usage": "Stats numbers, \"Blocker rules\", quick-pick numbers (Compact Guide label-strong)." }
     ]

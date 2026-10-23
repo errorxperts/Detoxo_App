@@ -56,11 +56,11 @@ void main() {
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
   });
 
-  testWidgets("screen readers hear 'Step 2 of 6'", (tester) async {
+  testWidgets("screen readers hear 'Step 2 of 7'", (tester) async {
     final semantics = tester.ensureSemantics();
     await _pump(tester);
     await tester.pumpAndSettle();
-    expect(find.bySemanticsLabel('Step 2 of 6'), findsOneWidget);
+    expect(find.bySemanticsLabel('Step 2 of 7'), findsOneWidget);
     semantics.dispose();
   });
 

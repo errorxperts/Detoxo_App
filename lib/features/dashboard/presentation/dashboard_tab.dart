@@ -135,6 +135,7 @@ final _modes = <ModeOption>[
   (icon: Assets.images.icons.iconConscious, label: 'Conscious'),
   (icon: Assets.images.icons.iconPause, label: 'Pause'),
   (icon: Assets.images.icons.iconOneReel, label: 'One Reel'),
+  (icon: Assets.images.icons.iconReelCount, label: 'Unblock'),
 ];
 
 /// Today's live half: the [TimeLeftRing] with the reels and streak line, then
@@ -190,8 +191,9 @@ class _TodayLiveState extends State<_TodayLive> {
   }
 
   /// Block All is direct; Conscious opens its sheet, intro or live; Pause
-  /// opens the Session sheet By time; One Reel confirms first. A repeat tap
-  /// on the lit Pause or One Reel blocks now; on Block All it does nothing.
+  /// opens the Session sheet By time; One Reel confirms first; Unblock opens
+  /// the Session sheet By reel count. A repeat tap on the lit Pause, One Reel
+  /// or Unblock blocks now; on Block All it does nothing.
   Future<void> _select(int i, {required int lit}) async {
     if (i == lit && i != 1) {
       if (i != 0) await _blockNow();
@@ -201,7 +203,8 @@ class _TodayLiveState extends State<_TodayLive> {
       0 => context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll),
       1 => SessionDialogs.showConscious(context),
       2 => SessionDialogs.showPause(context),
-      _ => _oneReel(),
+      3 => _oneReel(),
+      _ => SessionDialogs.showReels(context),
     };
   }
 
@@ -261,7 +264,7 @@ class _TodayLiveState extends State<_TodayLive> {
     final lit = modeIndex(settings, pauseLive: pauseLive);
     final pause = pauseLive ? settings.pauseSession : null;
     // The native session owns the count; until its first push, the target.
-    final reels = lit == 2 && settings.activePlan == BlockingPlan.oneReel
+    final reels = lit == 4
         ? reel.active
               ? (left: reel.remaining, total: reel.allowance)
               : (left: settings.reelAllowance, total: settings.reelAllowance)
@@ -303,10 +306,6 @@ class _TodayLiveState extends State<_TodayLive> {
           format: face.format,
           sub: face.sub,
           progress: face.progress,
-          blockNow: face.blockNow,
-          onPill: () => unawaited(
-            face.blockNow ? _blockNow() : SessionDialogs.showReels(context),
-          ),
           reels: off ? null : counter.today,
           streak: off ? null : streak.count,
         ),
