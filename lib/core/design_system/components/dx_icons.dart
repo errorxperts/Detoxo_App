@@ -1,6 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:detoxo/core/design_system/foundations/accent.dart';
+import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +10,9 @@ import 'package:flutter/material.dart';
 /// row), 56 (tiles) or 58 (confirm sheet); never cropped or redrawn.
 ///
 /// Only the mode icons pass [accentTint]: [accentIconFilter] turns them
-/// to the live accent, vivid when [selected] and soft (saturate
-/// [AppTokens.iconSaturateOff] at [AppTokens.iconOpacityOff]) when not. Every
-/// other icon keeps its own colour. Decorative unless [semanticLabel] is set.
+/// to the live accent, vivid, when [selected]; when not they are neutral
+/// grey (CSS `grayscale(1)`) at [AppTokens.iconOpacityOff]. Every other icon
+/// keeps its own colour. Decorative unless [semanticLabel] is set.
 class Icon3d extends StatelessWidget {
   const Icon3d(
     this.asset, {
@@ -38,16 +39,17 @@ class Icon3d extends StatelessWidget {
     );
     if (!accentTint) return image;
     return ColorFiltered(
-      colorFilter: selected
-          ? accentIconFilter(context.accent)
-          : accentIconFilter(
-              context.accent,
-              saturate: AppTokens.iconSaturateOff,
-              opacity: AppTokens.iconOpacityOff,
-            ),
+      colorFilter: selected ? accentIconFilter(context.accent) : idleFilter,
       child: image,
     );
   }
+
+  /// An idle mode icon: `saturate(0)` with alpha at [AppTokens.iconOpacityOff].
+  static final ColorFilter idleFilter = ColorFilter.matrix([
+    ...cssSaturate(0).take(18),
+    AppTokens.iconOpacityOff,
+    0,
+  ]);
 }
 
 /// A spec single-ink glyph (a 24 × 24 SVG) in [color], `ink` by default.

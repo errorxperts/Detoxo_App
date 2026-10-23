@@ -52,7 +52,7 @@ class _MockSettingsRepo extends Mock implements SettingsRepository {}
 
 class _MockEngine extends Mock implements EngineRepository {}
 
-const _labels = ['Block All', 'Conscious', 'Pause', 'One Reel', 'Unblock'];
+const _labels = ['Block All', 'Conscious', 'One Reel', 'Pause', 'Unblock'];
 
 /// 45 min of a 3 h limit, 20 reels, a 1 day streak.
 const _counted = ContentCount(today: 20, timeToday: Duration(minutes: 45));
@@ -202,14 +202,14 @@ void main() {
     expect(rect(ModeCard).left, AppSpacing.gutter);
     expect(rect(TabHeader).top, AppSpacing.inset);
     expect(
-      tester.getSize(find.byType(SingleChildScrollView)).width -
+      tester.getSize(find.byType(SingleChildScrollView).first).width -
           rect(ModeCard).right,
       AppSpacing.gutter,
     );
     final scrollEnd = tester.getBottomLeft(
       find
           .descendant(
-            of: find.byType(SingleChildScrollView),
+            of: find.byType(SingleChildScrollView).first,
             matching: find.byType(Stack),
           )
           .first,
@@ -225,8 +225,34 @@ void main() {
     expect(find.text('2h 15m'), findsOneWidget);
     expect(find.text('45m of 3h used'), findsOneWidget);
     expect(find.text('20'), findsOneWidget);
-    expect(find.text('All reels blocked'), findsOneWidget);
-    expect(find.text('Across every app on your list'), findsOneWidget);
+  });
+
+  testWidgets('the mode card reads Block All, Conscious, One Reel, Pause, '
+      'Unblock; a lit Block All has no description', (tester) async {
+    await _pump(tester);
+    final card = tester.widget<ModeCard>(find.byType(ModeCard));
+    expect(card.options.map((o) => o.label), _labels);
+    expect(card.selectedIndex, 0);
+    expect(card.title, isNull);
+    expect(find.text('All reels blocked'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(ModeCard),
+        matching: find.byType(StatusDot),
+      ),
+      findsNothing,
+    );
+
+    // Blocking off still says so.
+    await _pump(
+      tester,
+      settings: const AppSettings(
+        hasSeenFeatureShowcase: true,
+        masterEnabled: false,
+      ),
+    );
+    expect(find.text('Blocking is off'), findsOneWidget);
+    expect(find.text('Turn it on in Settings'), findsOneWidget);
   });
 
   testWidgets('Unblock, the fifth option, opens the Session sheet By reel '
@@ -325,7 +351,7 @@ void main() {
 
   testWidgets('a live Pause: re-tapping the lit Pause resumes', (tester) async {
     await _pump(tester, settings: _pausing());
-    expect(tester.widget<ModeCard>(find.byType(ModeCard)).selectedIndex, 2);
+    expect(tester.widget<ModeCard>(find.byType(ModeCard)).selectedIndex, 3);
     expect(find.text('REELS ALLOWED'), findsOneWidget);
     expect(find.text('of a 10 min break'), findsOneWidget);
     expect(find.textContaining('Blocking resumes in 09:'), findsOneWidget);
@@ -393,6 +419,7 @@ void main() {
   testWidgets('the mode options are tour steps 0-4', (tester) async {
     await _pump(tester);
     for (var i = 0; i < _labels.length; i++) {
+      expect(featureShowcaseSteps[i].title, _labels[i]);
       final step = find.descendant(
         of: find.byType(ModeCard),
         matching: find.byWidgetPredicate(

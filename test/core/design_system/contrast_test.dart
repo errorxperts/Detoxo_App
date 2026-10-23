@@ -122,7 +122,8 @@ void main() {
             'optionBg($name)': option,
             ...disc(name, p),
           }, 4.5);
-          _expectContrast('ink-2', t.ink2, {'optionBg($name)': option}, 4.5);
+          // Idle labels sit on the plain option-base card.
+          _expectContrast('ink-2', t.ink2, {'optionBase': t.optionBase}, 4.5);
           // The selected option's label (--opt-selected).
           final selected = t.brightness == Brightness.light
               ? t.accentText(p)

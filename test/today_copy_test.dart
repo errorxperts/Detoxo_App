@@ -33,7 +33,7 @@ RingFace _ring({
 
 String? _value(RingFace f) => f.value == null ? null : f.format(f.value!);
 
-ModeCopy _copy(
+ModeCopy? _copy(
   int index, {
   bool masterOn = true,
   PauseSession? pause,
@@ -111,14 +111,15 @@ void main() {
     });
   });
 
-  test('modeIndex: blockAll 0, curious 1, live pause 2, oneReel(1) 3, '
+  test('modeIndex: blockAll 0, curious 1, oneReel(1) 2, live pause 3, '
       'oneReel(5) 4', () {
     int index(AppSettings s, {bool pauseLive = false}) =>
         modeIndex(s, pauseLive: pauseLive);
     expect(index(const AppSettings()), 0);
     expect(index(const AppSettings(activePlan: BlockingPlan.curious)), 1);
-    expect(index(const AppSettings(), pauseLive: true), 2);
-    expect(index(const AppSettings(activePlan: BlockingPlan.oneReel)), 3);
+    expect(index(const AppSettings(activePlan: BlockingPlan.oneReel)), 2);
+    expect(index(const AppSettings(), pauseLive: true), 3);
+    expect(index(const AppSettings(activePlan: BlockingPlan.paused)), 3);
     expect(
       index(
         const AppSettings(activePlan: BlockingPlan.oneReel, reelAllowance: 5),
@@ -129,34 +130,31 @@ void main() {
 
   group('modeCopy', () {
     test('master off overrides every mode', () {
-      expect(_copy(3, masterOn: false), (
+      expect(_copy(0, masterOn: false), (
         title: 'Blocking is off',
         detail: 'Turn it on in Settings',
       ));
     });
 
-    test('Block All and One Reel', () {
-      expect(_copy(0), (
-        title: 'All reels blocked',
-        detail: 'Across every app on your list',
-      ));
-      expect(_copy(3), (
+    test('Block All needs no words; One Reel', () {
+      expect(_copy(0), isNull);
+      expect(_copy(2), (
         title: 'One reel left',
         detail: 'Blocked again once it ends',
       ));
     });
 
     test('Pause: when blocking resumes; N reels: how many are left', () {
-      expect(_copy(2, pause: _pause), (
+      expect(_copy(3, pause: _pause), (
         title: 'Reels allowed',
         detail: 'Blocking resumes in 09:42',
       ));
       expect(
-        _copy(4, reels: (left: 3, total: 5)).detail,
+        _copy(4, reels: (left: 3, total: 5))!.detail,
         '3 reels left, then blocked again',
       );
       expect(
-        _copy(4, reels: (left: 1, total: 5)).detail,
+        _copy(4, reels: (left: 1, total: 5))!.detail,
         '1 reel left, then blocked again',
       );
     });
@@ -167,18 +165,18 @@ void main() {
         _copy(
           1,
           conscious: const ConsciousState(bankMs: bank, watching: true),
-        ).detail,
+        )!.detail,
         'Spending banked time, 04:12 left',
       );
       expect(
-        _copy(1, conscious: const ConsciousState(bankMs: bank)).detail,
+        _copy(1, conscious: const ConsciousState(bankMs: bank))!.detail,
         '04:12 banked to spend',
       );
       expect(
-        _copy(1, conscious: const ConsciousState()).detail,
+        _copy(1, conscious: const ConsciousState())!.detail,
         'Earning 1 min for every 10 min away',
       );
-      expect(_copy(1).title, 'Conscious mode');
+      expect(_copy(1)!.title, 'Conscious mode');
     });
   });
 

@@ -120,7 +120,7 @@ void main() {
       expect(find.text('Start 10-reel session'), findsOneWidget);
       expect(find.text('Blocking resumes after 10 reels'), findsOneWidget);
 
-      tester.semantics.increase(find.semantics.byLabel('Reel count'));
+      await tester.tap(find.bySemanticsLabel('One more reel'));
       await tester.pumpAndSettle();
       expect(find.text('Start 11-reel session'), findsOneWidget);
 
@@ -136,7 +136,7 @@ void main() {
       await tester.tap(find.bySemanticsLabel('5 reels'));
       await tester.pumpAndSettle();
       for (var i = 0; i < 4; i++) {
-        tester.semantics.decrease(find.semantics.byLabel('Reel count'));
+        await tester.tap(find.bySemanticsLabel('One fewer reel'));
         await tester.pumpAndSettle();
       }
       expect(find.text('Blocking resumes after 1 reel'), findsOneWidget);
@@ -179,7 +179,7 @@ void main() {
         expect(tester.takeException(), isNull);
         if (reels) {
           // A custom value (no quick pick lit) must lay out too.
-          tester.semantics.increase(find.semantics.byLabel('Reel count'));
+          await tester.tap(find.bySemanticsLabel('One more reel'));
           await tester.pumpAndSettle();
           expect(find.text('Start 11-reel session'), findsOneWidget);
           expect(tester.takeException(), isNull);

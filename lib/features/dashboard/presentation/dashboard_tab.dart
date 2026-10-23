@@ -133,8 +133,8 @@ class _DashboardTabState extends State<DashboardTab> {
 final _modes = <ModeOption>[
   (icon: Assets.images.icons.iconBlockAll, label: 'Block All'),
   (icon: Assets.images.icons.iconConscious, label: 'Conscious'),
-  (icon: Assets.images.icons.iconPause, label: 'Pause'),
   (icon: Assets.images.icons.iconOneReel, label: 'One Reel'),
+  (icon: Assets.images.icons.iconPause, label: 'Pause'),
   (icon: Assets.images.icons.iconReelCount, label: 'Unblock'),
 ];
 
@@ -190,9 +190,9 @@ class _TodayLiveState extends State<_TodayLive> {
         : settings.setPlan(settings.state.baseMode);
   }
 
-  /// Block All is direct; Conscious opens its sheet, intro or live; Pause
-  /// opens the Session sheet By time; One Reel confirms first; Unblock opens
-  /// the Session sheet By reel count. A repeat tap on the lit Pause, One Reel
+  /// Block All is direct; Conscious opens its sheet, intro or live; One Reel
+  /// confirms first; Pause opens the Session sheet By time; Unblock opens
+  /// the Session sheet By reel count. A repeat tap on the lit One Reel, Pause
   /// or Unblock blocks now; on Block All it does nothing.
   Future<void> _select(int i, {required int lit}) async {
     if (i == lit && i != 1) {
@@ -202,8 +202,8 @@ class _TodayLiveState extends State<_TodayLive> {
     await switch (i) {
       0 => context.read<SettingsCubit>().setPlan(BlockingPlan.blockAll),
       1 => SessionDialogs.showConscious(context),
-      2 => SessionDialogs.showPause(context),
-      3 => _oneReel(),
+      2 => _oneReel(),
+      3 => SessionDialogs.showPause(context),
       _ => SessionDialogs.showReels(context),
     };
   }
@@ -314,8 +314,8 @@ class _TodayLiveState extends State<_TodayLive> {
           options: _modes,
           selectedIndex: lit,
           onSelected: (i) => unawaited(_select(i, lit: lit)),
-          title: copy.title,
-          detail: copy.detail,
+          title: copy?.title,
+          detail: copy?.detail,
           // Spotlights each mode during the feature tour; identity otherwise.
           decorateOption: (i, option) => showcaseTarget(
             step: featureShowcaseSteps[i],

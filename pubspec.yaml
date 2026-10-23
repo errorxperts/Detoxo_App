@@ -89,8 +89,8 @@ dependencies:
   # custom-app rows (shared `RowAction`, components/blockers.dart).
   flutter_slidable: ^4.0.0
   showcaseview: ^5.1.0
-  # The Session sheet's value ring, both kinds (the old Pause / Unblock
-  # pickers' ring); the sheet adds the slider semantics and keys it lacks.
+  # The Session sheet's By time value ring (the old Pause picker's ring); the
+  # sheet adds the slider semantics and keys it lacks.
   sleek_circular_slider: ^2.1.0
 
   # No home_widget: the reel-counter widget is pinned, rendered and refreshed

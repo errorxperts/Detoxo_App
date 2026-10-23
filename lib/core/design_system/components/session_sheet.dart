@@ -14,13 +14,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
-/// What a [SessionSheet] sets: a reel count or minutes, each on the same
-/// 240° ring slider.
+/// What a [SessionSheet] sets: a reel count (a − / + stepper) or minutes (a
+/// 240° ring slider).
 enum SessionKind { reels, time }
 
 /// The Session blocker sheet (canvas `SessionBlocker-{Reels,Time}`): pick a
-/// value between `min` and `max` on the ring slider, or by one of the four
-/// quick `picks`, read the `note` line, then Start.
+/// value between `min` and `max`, by stepper or ring slider, or by one of the
+/// four quick `picks`, read the `note` line, then Start.
 ///
 /// - Both kinds stand 434 tall at 1.0x text, under the static brand glow.
 /// - Start awaits `onStart(value)`. True shows "Session started" with a drawn
@@ -66,11 +66,22 @@ abstract final class SessionSheet {
 
 // Canvas measures with no token of their own.
 const double _valueHeight = 160;
+const double _numberColumn = 112;
 const double _startHeight = 52;
 const double _closeCircle = 32;
 
 /// The quick-pick card's padding; the chip's radius is the card's minus it.
 const double _pickInset = AppSpacing.xxs;
+
+/// 32 between the stepper circles and the number, kept with 48 dp targets.
+const double _stepGap =
+    AppSpacing.xxl - (AppSizes.minTapTarget - AppSizes.controlHeight) / 2;
+
+/// Hold-to-repeat: the first repeat after 420 ms, each next one ×.78 sooner,
+/// never under 60 ms.
+const double _holdFirstMs = 420;
+const double _holdRate = .78;
+const double _holdFloorMs = 60;
 
 /// How long "Session started" shows before the sheet closes.
 const Duration _startedHold = Duration(milliseconds: 1100);
@@ -80,6 +91,13 @@ const Duration _checkDraw = Duration(milliseconds: 550);
 const Curve _checkCurve = Interval(50 / 550, 1, curve: Cubic(.22, 1, .36, 1));
 
 // Glyphs on the canvas's 24-unit grid.
+const List<List<Offset>> _minus = [
+  [Offset(6, 12), Offset(18, 12)],
+];
+const List<List<Offset>> _plus = [
+  ..._minus,
+  [Offset(12, 6), Offset(12, 18)],
+];
 const List<List<Offset>> _cross = [
   [Offset(6.5, 6.5), Offset(17.5, 17.5)],
   [Offset(17.5, 6.5), Offset(6.5, 17.5)],
@@ -124,7 +142,11 @@ class _SessionSheetState extends State<_SessionSheet> {
   bool _busy = false;
   bool _started = false;
 
+  Timer? _hold;
   Timer? _close;
+
+  /// A pointer already stepped on down; the tap that follows it must not.
+  bool _viaPointer = false;
 
   /// The slider's last own position, so a dragged handle follows the finger
   /// between whole values; any other change nulls it, snapping to [_value].
@@ -139,6 +161,7 @@ class _SessionSheetState extends State<_SessionSheet> {
 
   @override
   void dispose() {
+    _hold?.cancel();
     _close?.cancel();
     super.dispose();
   }
@@ -155,7 +178,39 @@ class _SessionSheetState extends State<_SessionSheet> {
     });
   }
 
+  /// Steps by [d]; false at a bound, which also ends a hold.
+  bool _step(int d) {
+    final before = _value;
+    _set(before + d);
+    return _value != before;
+  }
+
+  void _holdStart(int d) {
+    _viaPointer = true;
+    _holdStop();
+    if (!_step(d)) return;
+    void next(double ms) {
+      _hold = Timer(Duration(milliseconds: ms.round()), () {
+        if (_step(d)) next(math.max(_holdFloorMs, ms * _holdRate));
+      });
+    }
+
+    next(_holdFirstMs);
+  }
+
+  void _holdStop() {
+    _hold?.cancel();
+    _hold = null;
+  }
+
+  void _release() {
+    _holdStop();
+    // After the tap this pointer-up produces, so keys and TalkBack still step.
+    scheduleMicrotask(() => _viaPointer = false);
+  }
+
   Future<void> _start() async {
+    _holdStop();
     setState(() => _busy = true);
     var ok = false;
     try {
@@ -190,7 +245,10 @@ class _SessionSheetState extends State<_SessionSheet> {
             // to the 48 dp close target: same centre, same value area top.
             _header(t),
             const SizedBox(height: AppSpacing.sm),
-            SizedBox(height: _valueHeight, child: _dial(t)),
+            SizedBox(
+              height: _valueHeight,
+              child: _reels ? _stepper(t) : _dial(t),
+            ),
             const SizedBox(height: AppSpacing.gap),
             _quickPicks(t),
             const SizedBox(height: AppSpacing.sm),
@@ -243,19 +301,12 @@ class _SessionSheetState extends State<_SessionSheet> {
           radius: AppRadius.brPill,
           semanticLabel: 'Close',
           minTapTarget: AppSizes.minTapTargetSquare,
-          child: SizedBox.square(
-            dimension: _closeCircle,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: t.control,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: CustomPaint(
-                  size: const Size.square(12),
-                  painter: _GlyphPainter(_cross, t.ink2),
-                ),
-              ),
+          child: _Circle(
+            size: _closeCircle,
+            color: t.control,
+            child: CustomPaint(
+              size: const Size.square(12),
+              painter: _GlyphPainter(_cross, t.ink2),
             ),
           ),
         ),
@@ -263,10 +314,98 @@ class _SessionSheetState extends State<_SessionSheet> {
     ),
   );
 
-  /// The ring slider, for both kinds: a 240° `control` track open at the
-  /// bottom, the brand arc up to the value and a white handle, around the
-  /// number and its unit. The package has no semantics or keys of its own,
-  /// so the slider node and the key map here speak for it.
+  Widget _stepper(AppTokens t) => Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      _stepButton(t, -1, 'One fewer reel', _minus),
+      const SizedBox(width: _stepGap),
+      SizedBox(
+        width: _numberColumn,
+        child: Semantics(
+          container: true,
+          liveRegion: true,
+          label: '$_value ${_unit(_value)}',
+          child: ExcludeSemantics(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _Bump(
+                    trigger: _bumps,
+                    child: Text(
+                      '$_value',
+                      style: AppTypography.number.copyWith(color: t.ink),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    _unit(_value).toUpperCase(),
+                    style: AppTypography.eyebrow.copyWith(color: t.ink2),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(width: _stepGap),
+      _stepButton(t, 1, 'One more reel', _plus),
+    ],
+  );
+
+  /// A − / + circle: a pointer steps on down and repeats while held; keys
+  /// and TalkBack step once through the tap.
+  Widget _stepButton(
+    AppTokens t,
+    int d,
+    String label,
+    List<List<Offset>> glyph,
+  ) {
+    final enabled = d < 0 ? _value > widget.min : _value < widget.max;
+    return Listener(
+      onPointerDown: (_) => _holdStart(d),
+      onPointerMove: (e) {
+        // Sliding off the button ends a hold, as the canvas's pointerleave.
+        if (!(Offset.zero & AppSizes.minTapTargetSquare).contains(
+          e.localPosition,
+        )) {
+          _holdStop();
+        }
+      },
+      onPointerUp: (_) => _release(),
+      onPointerCancel: (_) => _release(),
+      child: AppPressable(
+        onTap: () {
+          if (!_viaPointer) _step(d);
+        },
+        enabled: enabled,
+        haptic: false,
+        pressedScale: .9,
+        radius: AppRadius.brPill,
+        semanticLabel: label,
+        minTapTarget: AppSizes.minTapTargetSquare,
+        child: AnimatedOpacity(
+          opacity: enabled ? 1 : .35,
+          duration: context.motion(AppDurations.fast),
+          curve: AppCurves.glide,
+          child: _Circle(
+            size: AppSizes.controlHeight,
+            color: t.control,
+            child: CustomPaint(
+              size: const Size.square(18),
+              painter: _GlyphPainter(glyph, t.accentText(t.brand), stroke: 2.8),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The time ring slider: a 240° `control` track open at the bottom, the
+  /// brand arc up to the value and a white handle, around the number and its
+  /// unit. The package has no semantics or keys of its own, so the slider
+  /// node and the key map here speak for it.
   Widget _dial(AppTokens t) {
     final p = t.brand;
     final dark = t.brightness == Brightness.dark;
@@ -275,7 +414,7 @@ class _SessionSheetState extends State<_SessionSheet> {
     return Center(
       child: Semantics(
         slider: true,
-        label: _reels ? 'Reel count' : 'Session length',
+        label: 'Session length',
         value: say(_value),
         increasedValue: say(math.min(_value + 1, widget.max)),
         decreasedValue: say(math.max(_value - 1, widget.min)),
@@ -552,6 +691,24 @@ class _Nudge extends Intent {
   final int by;
 }
 
+/// A flat circle of [color] holding [child].
+class _Circle extends StatelessWidget {
+  const _Circle({required this.size, required this.color, required this.child});
+
+  final double size;
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => SizedBox.square(
+    dimension: size,
+    child: DecoratedBox(
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      child: Center(child: child),
+    ),
+  );
+}
+
 /// The canvas's number bump: on [trigger], scale .92 → 1.05 (at 60 %) → 1
 /// over 380 ms, each leg on the press curve. Still under Reduce Motion.
 class _Bump extends StatefulWidget {
@@ -606,14 +763,19 @@ class _BumpState extends State<_Bump> with SingleTickerProviderStateMixin {
       ScaleTransition(scale: _scale, child: widget.child);
 }
 
-/// Round-capped 3-unit polylines on the canvas's 24-unit glyph grid, scaled
-/// to the paint size; [progress] < 1 draws only the start of the (single)
-/// stroke.
+/// Round-capped polylines on the canvas's 24-unit glyph grid, scaled to the
+/// paint size; [progress] < 1 draws only the start of the (single) stroke.
 class _GlyphPainter extends CustomPainter {
-  const _GlyphPainter(this.lines, this.color, {this.progress = 1});
+  const _GlyphPainter(
+    this.lines,
+    this.color, {
+    this.stroke = 3,
+    this.progress = 1,
+  });
 
   final List<List<Offset>> lines;
   final Color color;
+  final double stroke;
   final double progress;
 
   @override
@@ -632,7 +794,7 @@ class _GlyphPainter extends CustomPainter {
         path,
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 3
+          ..strokeWidth = stroke
           ..strokeCap = StrokeCap.round
           ..strokeJoin = StrokeJoin.round
           ..color = color,
@@ -641,5 +803,8 @@ class _GlyphPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GlyphPainter old) =>
-      old.lines != lines || old.color != color || old.progress != progress;
+      old.lines != lines ||
+      old.color != color ||
+      old.stroke != stroke ||
+      old.progress != progress;
 }

@@ -74,6 +74,8 @@ final _sheet = find.byWidgetPredicate(
   (w) => w is GlassContainer && w.surface == DxSurface.sheet,
 );
 final _dial = find.byKey(SessionSheet.dialKey);
+final _minus = find.bySemanticsLabel('One fewer reel');
+final _plus = find.bySemanticsLabel('One more reel');
 
 /// The point on the ring slider's arc at [deg] canvas degrees (clockwise
 /// from 3 o'clock): the 160 px slider's 12 px bar runs at radius 74, from
@@ -117,30 +119,38 @@ void main() {
 
         expect(tester.getSize(_sheet).height, 434);
         expect(_pill([t.startFrom, t.startTo]), findsOneWidget);
-        // The old pickers' ring: 8 track, 12 bar, an 8 white handle, no
-        // shadow or easing, the dial's brand stops (reversed for the sweep).
-        final ring = tester.widget<SleekCircularSlider>(_dial).appearance;
-        final p = t.brand;
-        expect(ring.size, 160);
-        expect((ring.startAngle, ring.angleRange), (150, 240));
-        expect(
-          (ring.trackWidth, ring.progressBarWidth, ring.handlerSize),
-          (8, 12, 8),
-        );
-        expect(ring.animationEnabled, isFalse);
-        expect(ring.hideShadow, isTrue);
-        expect(ring.dotColor, Colors.white);
-        expect(ring.trackColor, t.control);
-        expect(
-          ring.progressBarColors,
-          dark
-              ? [p.deep, p.main, p.light]
-              : [
-                  p.deep,
-                  Color.lerp(p.main, p.deep, AppTokens.arcMidMix),
-                  p.main,
-                ],
-        );
+        if (kind == SessionKind.reels) {
+          // Reels step with − / +; only time has the ring.
+          expect(_dial, findsNothing);
+          expect(_minus, findsOneWidget);
+          expect(_plus, findsOneWidget);
+        } else {
+          // The old pickers' ring: 8 track, 12 bar, an 8 white handle, no
+          // shadow or easing, the dial's brand stops (reversed for the
+          // sweep).
+          final ring = tester.widget<SleekCircularSlider>(_dial).appearance;
+          final p = t.brand;
+          expect(ring.size, 160);
+          expect((ring.startAngle, ring.angleRange), (150, 240));
+          expect(
+            (ring.trackWidth, ring.progressBarWidth, ring.handlerSize),
+            (8, 12, 8),
+          );
+          expect(ring.animationEnabled, isFalse);
+          expect(ring.hideShadow, isTrue);
+          expect(ring.dotColor, Colors.white);
+          expect(ring.trackColor, t.control);
+          expect(
+            ring.progressBarColors,
+            dark
+                ? [p.deep, p.main, p.light]
+                : [
+                    p.deep,
+                    Color.lerp(p.main, p.deep, AppTokens.arcMidMix),
+                    p.main,
+                  ],
+          );
+        }
         // The default is a pick: its label is accent text in Light, ink in
         // Dark; the others stay ink-2.
         final picked = find.text(kind == SessionKind.reels ? '10' : '5').last;
@@ -153,12 +163,104 @@ void main() {
     }
   }
 
+  group('reels stepper', () {
+    testWidgets('stops at the bounds, where the button disables', (
+      tester,
+    ) async {
+      await _open(tester, initial: 2);
+      await tester.tap(_minus);
+      await tester.pumpAndSettle();
+      expect(_reelsNote(1), findsOneWidget);
+      expect(
+        tester.getSemantics(_minus),
+        isSemantics(isButton: true, hasEnabledState: true, isEnabled: false),
+      );
+      AnimatedOpacity fade(Finder f) => tester.widget(
+        find.descendant(of: f, matching: find.byType(AnimatedOpacity)),
+      );
+      expect(fade(_minus).opacity, .35);
+      expect(fade(_plus).opacity, 1);
+
+      await tester.tap(_minus, warnIfMissed: false);
+      await tester.pumpAndSettle();
+      expect(_reelsNote(1), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox());
+      await _open(tester, initial: 19);
+      await tester.tap(_plus);
+      await tester.pumpAndSettle();
+      expect(_reelsNote(20), findsOneWidget);
+      expect(
+        tester.getSemantics(_plus),
+        isSemantics(hasEnabledState: true, isEnabled: false),
+      );
+    });
+
+    testWidgets('a tap steps once; so does a screen-reader tap', (
+      tester,
+    ) async {
+      await _open(tester);
+      await tester.tap(_plus);
+      await tester.pumpAndSettle();
+      expect(_reelsNote(11), findsOneWidget);
+
+      tester.semantics.tap(find.semantics.byLabel('One more reel'));
+      await tester.pumpAndSettle();
+      expect(_reelsNote(12), findsOneWidget);
+    });
+
+    testWidgets('holding repeats at 420 ms, ×.78 each time, down to 60 ms', (
+      tester,
+    ) async {
+      await _open(tester, initial: 1);
+      final hold = await tester.startGesture(tester.getCenter(_plus));
+      await tester.pump();
+      expect(_reelsNote(2), findsOneWidget, reason: 'steps on down');
+
+      await tester.pump(const Duration(milliseconds: 419));
+      expect(_reelsNote(2), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 1));
+      expect(_reelsNote(3), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 327));
+      expect(_reelsNote(3), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 1)); // 327.6
+      expect(_reelsNote(4), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 256)); // 255.5
+      expect(_reelsNote(5), findsOneWidget);
+
+      // 199, 155, 121, 95, 74, then 60 ms a step: 20 by 2.25 s.
+      await tester.pump(const Duration(milliseconds: 1244));
+      expect(_reelsNote(20), findsOneWidget);
+      // Disabled mid-press at the bound, it does not stay pressed.
+      final scale = tester.widget<AnimatedScale>(
+        find.descendant(of: _plus, matching: find.byType(AnimatedScale)),
+      );
+      expect(scale.scale, 1);
+
+      await hold.up();
+      await tester.pumpAndSettle();
+      expect(_reelsNote(20), findsOneWidget);
+    });
+
+    testWidgets('releasing ends the hold without an extra step', (
+      tester,
+    ) async {
+      await _open(tester);
+      final hold = await tester.startGesture(tester.getCenter(_plus));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(_reelsNote(12), findsOneWidget);
+      await hold.up();
+      await tester.pump(const Duration(seconds: 2));
+      expect(_reelsNote(12), findsOneWidget);
+    });
+  });
+
   testWidgets('the quick-pick chip hides on a custom value', (tester) async {
     await _open(tester);
     AnimatedOpacity chip() => tester.widget(find.byKey(SessionSheet.chipKey));
     expect(chip().opacity, 1);
 
-    tester.semantics.decrease(find.semantics.byLabel('Reel count'));
+    await tester.tap(_minus);
     await tester.pumpAndSettle();
     expect(_reelsNote(9), findsOneWidget);
     expect(chip().opacity, 0);
@@ -180,50 +282,36 @@ void main() {
     expect((slot.alignment as Alignment).x, closeTo(1 / 3, 1e-9));
   });
 
-  group('ring slider', () {
-    for (final (kind, steps) in [
-      (
-        SessionKind.time,
-        [
-          (LogicalKeyboardKey.arrowRight, 'Start 6-min session'),
-          (LogicalKeyboardKey.arrowUp, 'Start 7-min session'),
-          (LogicalKeyboardKey.arrowLeft, 'Start 6-min session'),
-          (LogicalKeyboardKey.arrowDown, 'Start 5-min session'),
-          (LogicalKeyboardKey.pageUp, 'Start 10-min session'),
-          (LogicalKeyboardKey.pageUp, 'Start 10-min session'),
-          (LogicalKeyboardKey.pageDown, 'Start 5-min session'),
-          (LogicalKeyboardKey.home, 'Start 1-min session'),
-          (LogicalKeyboardKey.end, 'Start 10-min session'),
-        ],
-      ),
-      (
-        SessionKind.reels,
-        [
-          (LogicalKeyboardKey.arrowRight, 'Start 11-reel session'),
-          (LogicalKeyboardKey.arrowDown, 'Start 10-reel session'),
-          (LogicalKeyboardKey.pageDown, 'Start 5-reel session'),
-          (LogicalKeyboardKey.home, 'Start 1-reel session'),
-          (LogicalKeyboardKey.arrowLeft, 'Start 1-reel session'),
-          (LogicalKeyboardKey.end, 'Start 20-reel session'),
-          (LogicalKeyboardKey.pageUp, 'Start 20-reel session'),
-        ],
-      ),
-    ]) {
-      testWidgets('${kind.name} keys: arrows ±1, Page Up / Down ±5, '
-          'Home / End', (tester) async {
-        await _open(tester, kind: kind);
-        Focus.of(tester.element(_dial)).requestFocus();
+  group('time ring slider', () {
+    testWidgets('keys: arrows ±1, Page Up / Down ±5, Home / End', (
+      tester,
+    ) async {
+      await _open(tester, kind: SessionKind.time);
+      Focus.of(tester.element(_dial)).requestFocus();
+      await tester.pump();
+
+      for (final (key, minutes) in [
+        (LogicalKeyboardKey.arrowRight, 6),
+        (LogicalKeyboardKey.arrowUp, 7),
+        (LogicalKeyboardKey.arrowLeft, 6),
+        (LogicalKeyboardKey.arrowDown, 5),
+        (LogicalKeyboardKey.pageUp, 10),
+        (LogicalKeyboardKey.pageUp, 10),
+        (LogicalKeyboardKey.pageDown, 5),
+        (LogicalKeyboardKey.home, 1),
+        (LogicalKeyboardKey.end, 10),
+      ]) {
+        await tester.sendKeyEvent(key);
         await tester.pump();
+        expect(
+          find.text('Start $minutes-min session'),
+          findsOneWidget,
+          reason: '$key',
+        );
+      }
+    });
 
-        for (final (key, label) in steps) {
-          await tester.sendKeyEvent(key);
-          await tester.pump();
-          expect(find.text(label), findsOneWidget, reason: '$key');
-        }
-      });
-    }
-
-    testWidgets('time: drag sets the value; the bottom gap is ignored', (
+    testWidgets('drag sets the value; the bottom gap is ignored', (
       tester,
     ) async {
       await _open(tester, kind: SessionKind.time);
@@ -242,22 +330,22 @@ void main() {
       expect(find.text('Start 9-min session'), findsOneWidget);
     });
 
-    testWidgets('reels: drag to either end, then a pick moves the handle', (
+    testWidgets('drag to either end, then a pick moves the handle', (
       tester,
     ) async {
-      await _open(tester);
+      await _open(tester, kind: SessionKind.time);
       await _drag(tester, [270, 320, 10, 30]);
-      expect(_reelsNote(20), findsOneWidget);
+      expect(find.text('Start 10-min session'), findsOneWidget);
 
       await tester.tapAt(_onRing(tester, 155));
       await tester.pumpAndSettle();
-      expect(_reelsNote(1), findsOneWidget);
+      expect(find.text('Start 1-min session'), findsOneWidget);
 
       // The pick re-fires the slider's onChange; the value holds.
-      await tester.tap(find.bySemanticsLabel('15 reels'));
+      await tester.tap(find.bySemanticsLabel('3 minutes'));
       await tester.pumpAndSettle();
-      expect(_reelsNote(15), findsOneWidget);
-      expect(tester.widget<SleekCircularSlider>(_dial).initialValue, 15);
+      expect(find.text('Start 3-min session'), findsOneWidget);
+      expect(tester.widget<SleekCircularSlider>(_dial).initialValue, 3);
       expect(tester.takeException(), isNull);
     });
   });
@@ -308,26 +396,24 @@ void main() {
   });
 
   group('semantics', () {
-    testWidgets('reels: a slider with its value, radios', (tester) async {
+    testWidgets('reels: steppers, the live value, radios', (tester) async {
       await _open(tester, initial: 12);
       expect(
         tester.getSemantics(find.bySemanticsLabel('Session blocker')),
         isSemantics(isHeader: true),
       );
       expect(
-        tester.getSemantics(find.bySemanticsLabel('Reel count')),
-        isSemantics(
-          isSlider: true,
-          value: '12 reels',
-          increasedValue: '13 reels',
-          decreasedValue: '11 reels',
-          hasIncreaseAction: true,
-          hasDecreaseAction: true,
-        ),
+        tester.getSemantics(_minus),
+        isSemantics(isButton: true, isEnabled: true, hasTapAction: true),
       );
-      tester.semantics.increase(find.semantics.byLabel('Reel count'));
-      await tester.pumpAndSettle();
-      expect(find.text('Start 13-reel session'), findsOneWidget);
+      expect(
+        tester.getSemantics(_plus),
+        isSemantics(isButton: true, isEnabled: true, hasTapAction: true),
+      );
+      expect(
+        tester.getSemantics(find.bySemanticsLabel('12 reels')),
+        isSemantics(isLiveRegion: true),
+      );
       expect(
         tester.getSemantics(find.bySemanticsLabel('5 reels')),
         isSemantics(
