@@ -130,10 +130,10 @@ You can skip the optional ones now and turn them on later from
 
 Your **Blocking Mode** decides what happens when Detoxo spots a reel. You pick it
 on the **Today** tab, from the **mode card** under the ring: **Block All**,
-**Conscious**, **Pause** and **One Reel**, side by side. The mode you're on is lit, and
-a line under the four says what it is doing right now, for example *All reels
-blocked* or *Blocking resumes in 09:42*. An **Unblock** session lights **Pause**. If
-blocking is switched off in Settings, the line says *Blocking is off* instead.
+**Conscious**, **One Reel**, **Pause** and **Unblock**, in a row you can swipe sideways.
+The mode you're on is lit, and a line under the row says what it is doing right now, for
+example *Blocking resumes in 09:42* (Block All needs no line). If blocking is switched
+off in Settings, the line says *Blocking is off* instead.
 
 The modes fall into two groups:
 
@@ -215,8 +215,8 @@ many to let through before your base mode snaps back.
 
 1. Tap **Unblock** in the mode card. The **Session blocker** sheet opens
    **By reel count**.
-2. Pick a count — **1 to 20 reels**, 10 to start — by dragging around the ring or
-   with a quick pick (5, 10, 15, 20). The line underneath says
+2. Pick a count — **1 to 20 reels**, 10 to start — with **−** / **+** (hold either
+   to change faster) or a quick pick (5, 10, 15, 20). The line underneath says
    when blocking resumes.
 3. Tap **Start 10-reel session** (the button follows your count). It turns green
    and reads **Session started**, then the sheet closes.

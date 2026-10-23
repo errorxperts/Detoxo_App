@@ -112,7 +112,7 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 | `showcaseview` | `^5.1.0` | **Wired** | Onboarding coach-marks / feature tour (`lib/features/additional_feature/showcase_view/`). |
 | `sleek_circular_slider` | `^2.1.0` | **Wired** | The Session sheet's value ring, both kinds (`core/design_system/components/session_sheet.dart`; the sheet wraps it in the slider semantics, keys and focus ring it lacks), and Today's live-session countdown gauge (`TimeLeftRing(live:)`, read-only). Re-added after the Today rebuild had dropped it with the old countdown ring. |
 | `flutter_svg` | `^2.3.0` | **Wired** (through FlutterGen's `SvgGenImage`) | Renders the spec glyphs in `assets/svg/` through `Glyph` (`components/dx_icons.dart`), §9. |
-| `cached_network_image` | `^3.4.1` | **Wired** | Remote-icon fallback in `AppIconAvatar` (`app_icon_avatar.dart`, used by blocklist tiles + the reel-counter card). App icons ship **locally** in `assets/images/social_icon_pack/` as 160² quantised PNGs; this only handles `http…` `iconUrl`s from remote config. Note it drags `flutter_cache_manager` → `sqflite` → the `sqflite_android` native plugin. |
+| `cached_network_image` | — | **Removed** | Its one job, the remote-icon branch of `AppIconAvatar`, went when app icons became the device's own (the engine's installed-app scan); it took `flutter_cache_manager`, `sqflite` and `rxdart` with it. |
 | `intl` | `^0.20.2` | **Wired** (2 files) | Number/date formatting and localisation-safe strings. |
 
 ---
@@ -215,8 +215,7 @@ Re-add any of these only when something actually imports them.
   (`motivational_quotes.json`, read natively by `overlay/QuoteBook.kt`). The five emoji-band
   JSONs and `mindful_timer_quotes.json` went with the unmounted emoji/quote engine
   (Frozen Glass M13; [05](05-plans-pause-conscious.md) §8).
-- `assets/images/` — no longer an asset root, only the parent of `icons/` and
-  `social_icon_pack/` below. Its two logo files went in Frozen Glass M12 once the splash, the
+- `assets/images/` — no longer an asset root, only the parent of `icons/` below. Its two logo files went in Frozen Glass M12 once the splash, the
   onboarding hero and the block screen (Dart and native) all drew one logo in `icons/`:
   `Detoxo_logo.png` (1,463,289 B) and `detox_logo_no_bg.webp` (12,658 B).
 - `assets/fonts/OFL.txt` — Manrope's licence, registered on the licence page by
@@ -246,10 +245,11 @@ Re-add any of these only when something actually imports them.
 - `assets/images/illustration/` — **removed** (Frozen Glass C12). The 23 512² hero illustrations
   (≈ 700 KB) lost their last users when the mode selector, the old blocker tiles and the feature
   tour moved to the 3D icons above.
-- `assets/images/social_icon_pack/` — bundled app icons: one icon per app
-  (`<base>.png`, a white glyph on the app's brand-colored tile) plus `a.png`–`z.png`
-  letter-tile fallbacks, all **160² quantised PNG**. Rendered by `AppIconAvatar`
-  (`app_icon_avatar.dart`).
+- `assets/images/social_icon_pack/` — **removed** (83 PNGs, 672 KB). App icons are not
+  bundled: `AppIconAvatar` draws the device icon from `deviceAppIcons`
+  (`lib/core/utils/device_app_icons.dart`), refilled by `EngineRepositoryImpl.installedApps()`
+  on every scan and first started by the bootstrap's `appIcons` step; without one it draws a
+  letter tile (`t.control`, the initial in `ink2`) or the neutral badge.
 - `assets/lottie/` — **removed** (Frozen Glass M13). Nothing rendered its 25 Lottie files
   (4.86 MB install).
 
@@ -259,10 +259,8 @@ sources) **outside** `assets/` — see §9's note on `tool/branding/`.
 
 > **Format rule.** Artwork reached only through a FlutterGen accessor → **WebP**
 > (`cwebp -q 80 -m 6 -alpha_q 100 -resize <2×max-dp> 0`), because the accessor name
-> is extension-free and no call site changes. Artwork reached by a *string* — the
-> `social_icon_pack`, whose paths appear in `platforms_config.json` `iconUrl`s and in
-> `'$_iconPackDir$letter.png'` — stays **PNG**, downscaled and quantised with
-> `pngquant`, so the wire format stays compatible with remote config.
+> is extension-free and no call site changes (the logo, `detoxo_logo.png`, is the one
+> PNG by choice).
 
 `uses-material-design: true` bundles the Material Icons font — tree-shaken to
 ~16 KB in the release bundle. See [22-play-release.md](22-play-release.md#artifact-size).

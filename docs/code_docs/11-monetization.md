@@ -201,8 +201,8 @@ fields. Because nothing consumes these fields today it is harmless at runtime, b
   `premiumPurchaseCTA` is now inert (`active: false`) with empty copy.
 
 Treat both as **infra / config follow-ups**, analogous to the leftover legacy
-config strings noted elsewhere (the app-icon URLs are already fixed — icons now
-ship locally in `assets/images/social_icon_pack/`). Do not go live on this bundled data.
+config strings noted elsewhere (the app-icon URLs are unused — the UI shows the
+device's own app icons). Do not go live on this bundled data.
 
 ---
 

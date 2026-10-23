@@ -283,8 +283,8 @@ Everything above is offline-first by design. To add a live backend:
 ## 7. Infra follow-ups (bundled data)
 
 The bundled JSON assets were carried over from an earlier product iteration.
-`iconUrl` values in `platforms_config.json` were repointed to bundled local assets
-(`assets/images/social_icon_pack/<base>.png`, one brand-colored icon per app), and
+`iconUrl` values in `platforms_config.json` name the removed `social_icon_pack`
+assets and are unused (the UI shows the device's own app icons), and
 `initial_config.json` was rewritten in Aug 2026 to remove every pre-rebrand string,
 the third-party ad units and the dead package references — see
 [02-detection-config-schema.md](02-detection-config-schema.md) §3. Only the far-future

@@ -93,8 +93,8 @@ says the tour points it out and turns it on):
   (`dashboard_tab.dart`) coordinator restarts the tour on the flag's true→false edge once front-most. The tour is
   **seven steps** (`featureShowcaseStepCount = 7`, defined in
   [`feature_showcase_steps.dart`](../../lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart)):
-  it spotlights all **five mode options** — Block All, Conscious, Pause (a timed break), One
-  Reel, **Unblock** (position 5, the N-reel count) — in the Today `ModeCard`'s option order at
+  it spotlights all **five mode options** — Block All, Conscious, One Reel, Pause (a timed
+  break), **Unblock** (position 5, the N-reel count) — in the Today `ModeCard`'s option order at
   indices 0–4 (wrapped by `ModeCard.decorateOption`, which `dashboard_tab.dart` points at
   `showcaseTarget(step: featureShowcaseSteps[i])`) — then the **App Blocker** and **Web Blocker**
   tiles at `featureShowcaseSteps[5]` / `[6]`. `showcaseTarget(radius:)` rounds the spotlight to its target
@@ -110,17 +110,20 @@ says the tour points it out and turns it on):
   step asserts that at least one is set; `image` wins when both are. Steps carry no tone.
 - **The tooltip card**
   ([`ShowcaseTooltipCard`](../../lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart))
-  is presentational: `step`, `index`, `total`, `onNext`, `onSkip`. It is 280 wide in the sheet
-  material (`GlassContainer(surface: DxSurface.sheet, borderRadius: AppRadius.card)`): badge +
-  `headline` ink title, `subhead` ink-2 body, progress dots (the active one a wide ink pill, the
-  rest hairline) inside `Semantics(label: 'Step N of M')`, then a `SecondaryButton` **Skip** (48
-  dp) and an expanded `PrimaryButton` **Next** / **Done** (54). It fades in once through
+  is presentational: `step`, `index`, `total`, `onNext`, `onSkip`. It follows the
+  pre-migration tour's layout in Frozen Glass materials: 280 wide in the sheet material
+  (`GlassContainer(surface: DxSurface.sheet, borderRadius: AppRadius.card)`) washed with the
+  live accent (20 → 6 %, top to bottom) under a 40 % accent edge; a 52 accent-lit badge
+  circle + `headline` ink title, `subhead` ink-2 body, then one row: progress dots (the
+  active one a wide accent pill, the rest hairline) inside `Semantics(label: 'Step N of M')`,
+  and at the end a `SecondaryButton` **Skip** and a compact accent `LiquidPill` **Next →** /
+  **Done ✓** (an `OverflowBar`, so at large text they stack, and a `Wrap` drops them under the
+  dots). It fades in once through
   `.entrance()` (skipped under Reduce Motion) and never moves after that: both tour hosts set
   `disableMovingAnimation: true`, which stops the package's endless 7 px bob (it ignored Reduce
   Motion), and a custom container gets no package scale animation. The spotlight dims the page
   with the theme's `scrim` at `kScrim0` (navy .38 in Light, .62 in Dark; `_target` in
-  `feature_showcase.dart`), not the package's black 78 %, which muddied the Light card's glass;
-  **Next** sits flat on the card (a `PrimaryButton` inside a surface has no shadow).
+  `feature_showcase.dart`), not the package's black 78 %, which muddied the Light card's glass.
 - **Feedback button** — an independent, single-step coach-mark spotlighting the **real
   top-bar feedback button** (`FeedbackActionButton`), reusing the same sheet-material
   `ShowcaseTooltipCard` as the Today tour. Because that button is hidden while

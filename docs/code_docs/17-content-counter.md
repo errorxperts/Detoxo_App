@@ -494,9 +494,10 @@ pull reply additionally carries `timeTotalMs`; no new method/event name was adde
   shell (state + animators); a `BubbleFace` strategy per style
   (`BubbleFace.of(variant)` is an exhaustive `when`, so a new style does not
   compile without a face) draws the background, dial and overlay. The wire
-  tokens are `MASCOT` (default), `RING`, `LIQUID`, `HOURGLASS`, `BEZEL` and
+  tokens are `MASCOT`, `RING` (default), `LIQUID`, `HOURGLASS`, `BEZEL` and
   `DROP`; each has one ability. The board's `NEON`, `STEPS`, `WEATHER` and
-  `OUTLINE` were retired; a stored one reads back as `MASCOT` on both sides:
+  `OUTLINE` were retired; a stored one (or any unknown token) reads back as
+  `RING` on both sides:
 
   | Style | Ability |
   |---|---|
@@ -703,8 +704,7 @@ on/off toggles and the links into those editors now live on the shared
   ([28](28-insights.md) §6). The former `ReelCounterCard` hero (count-up, today /
   all-time toggle, its own per-app rows) is gone; its all-time per-app breakdown
   has no surface. Per-app icons still render via the shared `AppIconAvatar`
-  (bundled `social_icon_pack` asset via `AppContentCount.iconUrl`, with a
-  letter-tile fallback) — the same widget the blocklist uses. The old `ContentCounterScreen` hub was
+  (the device's own app icon by package, with a drawn letter-tile fallback) — the same widget the blocklist uses. The old `ContentCounterScreen` hub was
   removed: its counting controls and the Bubble-style / Home-widget entries
   migrated to the shared **Appearance** screen
   (`features/additional_feature/appearance/presentation/appearance_screen.dart`).
@@ -758,7 +758,7 @@ on/off toggles and the links into those editors now live on the shared
 
 ### 6.2 `content_counter_bubble` — bubble control + style
 
-- `BubbleStyle` entity (`variant`, `size` 48–80dp default 68, `opacity` 0.5–1
+- `BubbleStyle` entity (`variant`, `size` 48–80dp default 48 — a new install starts on the smallest Ring, `opacity` 0.5–1
   default 1 — fill only), with `toWire` / `fromWire` re-clamping (the native
   `BubbleStyleSpec` re-clamps again, and an unknown or legacy variant token
   becomes `MASCOT`, so a malformed payload can never produce an unusable

@@ -61,7 +61,7 @@ These are the ways Detoxo can behave. You pick whichever fits your goal from the
 | --- | --- |
 | **Block All** | The strict default, and a **base** mode. Every reel/short you open is closed straight away, and it stays on until you change it. |
 | **One Reel** | *Temporary.* Lets a single reel play, then returns to your base mode. Scrolling to the next reel is what ends the peek. Each time you tap **One Reel**, a short confirm asks you to wait a few seconds and slide; each slide re-arms one reel. |
-| **Unblock** | *Temporary.* You decide how many reels to release: tap **Unblock** in the mode card, pick a count (1–20) on the ring or with a quick pick, and tap **Start**. You can watch that many, then it returns to your base mode — tap **Unblock** and start a new count to watch more. |
+| **Unblock** | *Temporary.* You decide how many reels to release: tap **Unblock** in the mode card, pick a count (1–20) with − / + or a quick pick, and tap **Start**. You can watch that many, then it returns to your base mode — tap **Unblock** and start a new count to watch more. |
 | **Conscious** | An "earn-as-you-abstain" **base** mode. You build up a small allowance of watch-time by *staying off* reels (about 1 minute banked for every 10 minutes away, up to 10 minutes saved). While you have allowance, reels play; when it runs out, blocking kicks back in until you've earned more. It keeps you honest without a hard wall. |
 | **Pause** | *Temporary.* A short, deliberate break. Tap **Pause**, choose a window (1–10 minutes) on its dial or a quick pick, and tap **Start**; during it, reels and blocked websites are allowed. When the timer runs out, it returns to your base mode. (Apps you've fully locked on the App Blocker screen stay locked through a Pause.) |
 
@@ -74,7 +74,7 @@ Tip: with **Conscious**, pausing a video doesn't secretly bank you extra time �
 **Unblock** lets you release a set number of reels and then automatically returns to your base mode — think of it as **One Reel** with a count.
 
 1. Tap **Unblock** in the Today mode card. The **Session blocker** sheet opens **By reel count**.
-2. Drag around the ring (or tap a quick pick) to choose how many reels to unblock — anywhere from **1 to 20**, 10 to start.
+2. Use **−** / **+** (or a quick pick) to choose how many reels to unblock — anywhere from **1 to 20**, 10 to start.
 3. Tap **Start 10-reel session** (the button follows your count). It reads **Session started**, and the sheet closes.
 
 You can now watch that many reels. A reel only counts toward your allowance **after you've actually watched it for about 2 seconds** — so quickly scrolling past reels doesn't burn them, and a single reel that loops uses up just one. The Today ring counts down the reels you have left (for example **3 of 5 reels**); tap the lit **Unblock** again to stop early. When the count runs out, Detoxo **returns to your base mode** (Block All or Conscious) — it won't quietly hand you more. To watch another batch, tap **Unblock** and start a new count; every start gives you a **fresh allowance**. Like all blocking, Unblock needs Detoxo's Accessibility permission on.

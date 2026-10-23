@@ -517,10 +517,11 @@ gutters; the chip rail alone bleeds off the right edge):
   native re-arms the block at expiry; allowed/disabled rows dim their site
   letter), edit (custom
   only — also enforced in `editEntry`) and delete live in a **flutter_slidable
-  end action pane** (`DrawerMotion`; each `RowAction` (shared, `core/design_system/components/blockers.dart`) is its own rounded
-  surface — `AppRadius.continuous(AppRadius.lg)`, tone fill at 0.18 alpha,
-  tone border at 0.35 — with an `AppSpacing.xs` gap so the pane reads as
-  sibling cards of the row; site-named `Semantics` labels for TalkBack).
+  end action pane** (`DrawerMotion`; each `RowAction` (shared, `core/design_system/components/blockers.dart`) is a solid
+  `option` tile at the row radius, `optionBase` washed with its tone at `kChip`, inset
+  `xs` before it and `xxs` above and below so the pane reads as calm sibling pills; the
+  icon sits in a tone disc in `startInk`, the label is ink, and a large text scale shrinks
+  the pair rather than spilling; site-named `Semantics` labels for TalkBack).
   Swiping left or tapping the row opens the pane; `SlidableAutoCloseBehavior`
   keeps one pane open at a time. The App Blocker's custom-app rows reuse the same shell and `RowAction`. The primary empty state is
   an `EmptyState` with a flat "Add website" CTA (`PrimaryButton(flat: true)`). Add/edit use a `GlassBottomSheet` with inline feedback from the
