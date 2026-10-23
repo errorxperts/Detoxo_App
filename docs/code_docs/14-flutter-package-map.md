@@ -217,7 +217,7 @@ Re-add any of these only when something actually imports them.
   (Frozen Glass M13; [05](05-plans-pause-conscious.md) §8).
 - `assets/images/` — no longer an asset root, only the parent of `icons/` and
   `social_icon_pack/` below. Its two logo files went in Frozen Glass M12 once the splash, the
-  onboarding hero and the block screen (Dart and native) all drew `icons/detoxo-logo.webp`:
+  onboarding hero and the block screen (Dart and native) all drew one logo in `icons/`:
   `Detoxo_logo.png` (1,463,289 B) and `detox_logo_no_bg.webp` (12,658 B).
 - `assets/fonts/OFL.txt` — Manrope's licence, registered on the licence page by
   `LicenseRegistry.addLicense` in `main()`. The three font files (all upstream
@@ -233,7 +233,10 @@ Re-add any of these only when something actually imports them.
   artifact's 192² WebPs (≈ 9–16 KB each): `icon-block-all`, `icon-conscious`, `icon-pause`,
   `icon-one-reel` (the four modes, hue-shifted to the live accent), `icon-app-blocker`,
   `icon-web-blocker`, `icon-blocker-rules`, plus `icon-reel-count` (256², the Session sheet's
-  By reel count header) and `detoxo-logo.webp` (100×192, never recoloured). Drawn only through
+  By reel count header) and `detoxo_logo.png` — the logo, a near-white glyph on transparent,
+  cropped from the 1024² master to the glyph and scaled to 125×240 (2× the 120 dp splash; 35 KB),
+  a PNG by choice where the other art is WebP. `DetoxoLogo` blends it into brand-main in Light
+  and leaves it white in Dark; the native wall (`DxArt.logo` / `logoTint`) does the same. Drawn only through
   `Icon3d` / `DetoxoLogo` (`components/dx_icons.dart`), never cropped: the mode card, the blocker
   tiles, the rules row, the ConfirmSheet and Session sheet headers and the feature tour's badges.
 - `assets/svg/` — the spec's single-ink **glyphs** (24 × 24 SVGs, drawn `srcIn` by `Glyph`):

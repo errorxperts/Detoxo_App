@@ -331,9 +331,10 @@ list)? Use **"Can't find it? Add manually"** to enter its name and package id
 (for example `com.example.app`) — Detoxo checks the id's shape and tells you if
 it can't be right, and just installed the app? Tap the **refresh** button next
 to the search box. Your added apps appear at the top under **Custom apps** (the
-section only appears once you've added something), with their real icons and names,
-and can be switched off or removed any time. Tap the timer on a row to allow that app
-for a while; the row then reads "Allowed until …" with a **Block now** button to end
+section only appears once you've added something), with their real icons and names.
+Swipe a row left (or tap it) for **Unblock** and **Remove**; an unblocked row reads
+"Not blocked" and offers **Block** there instead. Tap the timer on a row to allow that
+app for a while; the row then reads "Allowed until …" with a **Block now** button to end
 it early.
 
 > **Good to know:** apps you add here are **really blocked**. Open one and
@@ -341,7 +342,7 @@ it early.
 > "*App* is blocked by Detoxo" message (and a little vibration, if you have
 > block vibration on). It works even if you were already inside the app when
 > you added it, and each bounce counts toward your "Blocked today" number.
-> Flip the row's switch off (or delete it) whenever you want the app back.
+> Swipe the row (or tap it) and choose **Unblock** or **Remove** whenever you want the app back.
 > Either way, a short message offers **Undo** for a few seconds in case you
 > change your mind.
 > Detoxo will never block your home screen, itself, or a protected app (§13).

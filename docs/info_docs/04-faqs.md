@@ -292,7 +292,7 @@ Detoxo targets the short-video feeds inside popular apps (think Reels, Shorts, a
 
 ## Can Detoxo block a whole app, not just its feed?
 
-Yes. On the **App Blocker** screen, tap **Add app** and pick any app from your phone. From then on, opening that app bounces you straight back to your home screen with a short "*App* is blocked by Detoxo" message — even if you were already inside it when the block landed. Each bounce counts toward your "Blocked today" number, and you can pause a block anytime by flipping the row's switch off (or delete it); a short message offers **Undo** either way. Detoxo never blocks your home screen, itself, or your protected private apps (banking, payments, and the like).
+Yes. On the **App Blocker** screen, tap **Add app** and pick any app from your phone. From then on, opening that app bounces you straight back to your home screen with a short "*App* is blocked by Detoxo" message — even if you were already inside it when the block landed. Each bounce counts toward your "Blocked today" number, and you can pause a block anytime: swipe the row left (or tap it) and choose **Unblock**, or **Remove** to drop it; a short message offers **Undo** either way. Detoxo never blocks your home screen, itself, or your protected private apps (banking, payments, and the like).
 
 ## Can I let a blocked website through for a few minutes?
 

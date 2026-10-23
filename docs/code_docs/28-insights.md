@@ -317,7 +317,7 @@ total is the tile's caption. No provider of its own: `InsightsCubit` comes from 
 recomputes insights **and** re-reads the block counters (error-guarded, the resume path's rule),
 because native rolls `today` over at read time and a session pulled across midnight may see no
 `blocked` event. The reel tile is stream-fed and already live. On the tab the list opens with a
-`TabHeader('Insights')` (title-xl, the feedback button, the glass Menu button that opens the
+`TabHeader('Insights')` (title-xl, the feedback button, the Menu button that opens the
 sidebar) and pads by `TabHeader.listPadding` — gutter 20, inset 8 on top, 132 plus the bottom inset
 below, clear of the tab bar; the pushed route keeps its `GlassAppBar`, titled 'Insights' too, with
 the same gutter 20 and 20 plus the bottom inset below.

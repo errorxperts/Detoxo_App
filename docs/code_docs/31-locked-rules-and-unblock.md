@@ -572,7 +572,7 @@ Event types stay at **9**; command methods go 50 → **52** (`pushTemporaryUnblo
 - `lib/features/limits/unblock/presentation/widgets/active_unblocks_card.dart` + its one call (with `nameOf`) in `lib/features/dashboard/presentation/widgets/blocker_section.dart`
 - `lib/features/limits/web_blocker/domain/entities/web_block_entry.dart` (`pausedUntil` removed)
 - `lib/features/limits/web_blocker/domain/web_block_sync.dart`, `presentation/{web_block_cubit,web_block_screen}.dart`
-- `lib/features/limits/app_blocker/presentation/app_block_screen.dart` (the per-row Allow action)
+- `lib/features/limits/app_blocker/presentation/app_block_screen.dart` (the per-row Allow timer, still inline; the lock's Unblock/Block and Remove are in the row's swipe pane, [06](06-app-and-web-blocker.md))
 - `lib/core/storage/local_store.dart` (`temporaryUnblocks`, `bypassLedger`)
 - `lib/core/constants/channel_constants.dart`, `lib/core/platform_channels/engine_channel.dart`
 - `lib/features/blocking/shared/domain/repositories/blocking_repositories.dart`, `.../data/repositories/engine_repository_impl.dart`

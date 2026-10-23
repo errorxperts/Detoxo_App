@@ -262,7 +262,7 @@ One Frozen Glass layout for both themes; only the token values change. Units dp 
 |---|---|---|
 | 0 | Ground | `bg-top → bg-bottom`, a vertical `LinearGradient` built on a size change |
 | 1 | Ambient light | the accent at `k-amb` (.16 / .30), radial, linear falloff to clear at **120 dp**, centred on the well, drawn only with the well; static |
-| 2 | Header | from `max(54, status bar + 8)`: `detoxo-logo.webp` at 23 × 44 with its `logo-glow` (Dark σ 8 in brand light-blue; Light σ 1 + σ 10 at y + 4 — `DxArt` masks, never a recolour of the logo), 10 dp, then "Detoxo" in `title-xl` 34/40 ExtraBold, ink |
+| 2 | Header | from `max(54, status bar + 8)`: `detoxo_logo.png` at 23 × 44 with its `logo-glow` (Dark σ 8 in brand light-blue; Light σ 1 + σ 10 at y + 4 — `DxArt` masks); the mark itself is multiplied into brand-main in Light (`DxArt.logoTint`, as Dart's `DetoxoLogo`) and stays white in Dark, 10 dp, then "Detoxo" in `title-xl` 34/40 ExtraBold, ink |
 | 3 | Icon well | 24 below the header: an 88 circle, `RadialGradient` at (35 %, 30 %) with radius .955 × 88 (CSS farthest corner), `well-from → well-to`, no accent ring; the reason's 3D icon at 58 (`heroIconFor`: a plan block its mode — Block All / Conscious / One Reel, or Pause for an N-reel unblock — App Blocker, Web Blocker for a website or an adult hit, Blocker rules for a schedule or the daily limit). A mode icon is hue-rotated to the accent (`accentIconMatrix`: CSS `hue-rotate(hue(main) − 214°) saturate(1.15)`); the others keep their colour |
 | 4 | Quote panel | 24 below the well: a frosted panel (`panel-top → panel-bottom` + `shadow-card`, radius 28, padding 16) as a `DxDrawable`; the quote in `title` 22/28 ExtraBold, ink, start-aligned; the writer 12 below as the `eyebrow` (12/16 Bold, uppercase, 1.6 tracking, ink-2) |
 | 5 | Line | 16 below the panel: "{name} can wait. Your peace can’t." (`wall_line`), `body` 14/20 SemiBold, ink-2, ≤ 2 lines |
@@ -415,7 +415,7 @@ The wall and the soft nudge draw from the generated `DxTokens` through one file:
   drawn once into a half-scale software bitmap (`BlurMaskFilter` is ignored on the hardware
   canvas below API 28). All built in `onBoundsChange`; the bitmaps go when the drawable is
   hidden. No backdrop blur at any API level.
-- **`DxArt`** — the 3D icons and `detoxo-logo.webp` from `flutter_assets/assets/images/icons/`,
+- **`DxArt`** — the 3D icons (`.webp`) and `detoxo_logo.png` from `flutter_assets/assets/images/icons/`,
   decoded once per process (null-safe), and the logo's `logo-glow` per theme as
   `extractAlpha` masks drawn in the layer colour (never a recolour of the logo).
 
@@ -574,7 +574,7 @@ Pinned by `UsageQueryTest`.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenOverlay.kt` (`show`, `close` / `fadeOutPreview`, `detach`, the countdown and relabel)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/BlockScreenRenderer.kt` (payload, style spec, `planLabel`, `wallIsDark`, `build`, the button column with `addUnblock` / `fitChips`, `WallCopy` with `clockAt`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/WallButtons.kt` (`WallButtons`: `primary` / `home` / `text` / `chip` + `select`, the press animators), `overlay/SlideToConfirmView.kt` (the wait + slide)
-- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/QuoteWall.kt` (`QuoteWallView`, `reduceMotion`), `overlay/QuoteBook.kt` (`Quote`, `QuoteBook`), `res/drawable/ic_wall_home.xml`, `ic_dx_check.xml`, `ic_dx_chevrons_right.xml`, `assets/content/motivational_quotes.json`, `assets/images/icons/*.webp` (the 3D icons and `detoxo-logo.webp`)
+- `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/QuoteWall.kt` (`QuoteWallView`, `reduceMotion`), `overlay/QuoteBook.kt` (`Quote`, `QuoteBook`), `res/drawable/ic_wall_home.xml`, `ic_dx_check.xml`, `ic_dx_chevrons_right.xml`, `assets/content/motivational_quotes.json`, `assets/images/icons/*.webp` (the 3D icons) and `detoxo_logo.png`
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/FrozenGlass.kt` (the pure helpers, `DxTheme`, `DxDrawable`, `DxArt`), `overlay/AccentResolver.kt` (`resolve`, `modeOf`, `usedFraction`, `forWall`), `overlay/DxTokens.kt` (generated)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/WallPolicy.kt` (`forced`, `reelWall`, `bypassesSwitch`, `MODE_BLOCK_SCREEN`)
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/overlay/OverlayWindows.kt` (`overlayType` — shared with the bubble and the nudge — and `launchDetoxo`, used only by the wall)

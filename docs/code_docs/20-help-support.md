@@ -117,7 +117,10 @@ says the tour points it out and turns it on):
   dp) and an expanded `PrimaryButton` **Next** / **Done** (54). It fades in once through
   `.entrance()` (skipped under Reduce Motion) and never moves after that: both tour hosts set
   `disableMovingAnimation: true`, which stops the package's endless 7 px bob (it ignored Reduce
-  Motion), and a custom container gets no package scale animation.
+  Motion), and a custom container gets no package scale animation. The spotlight dims the page
+  with the theme's `scrim` at `kScrim0` (navy .38 in Light, .62 in Dark; `_target` in
+  `feature_showcase.dart`), not the package's black 78 %, which muddied the Light card's glass;
+  **Next** sits flat on the card (a `PrimaryButton` inside a surface has no shadow).
 - **Feedback button** — an independent, single-step coach-mark spotlighting the **real
   top-bar feedback button** (`FeedbackActionButton`), reusing the same sheet-material
   `ShowcaseTooltipCard` as the Today tour. Because that button is hidden while

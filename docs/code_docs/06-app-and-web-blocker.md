@@ -207,9 +207,19 @@ rows split by hairlines (no card per row); the list keeps the 20 px gutters
    toast reads **"Added X"** and counts only landed adds, and an
    all-refused batch shows the refusal reason as a warning instead. Each saved
    row is a `GlassListTile`: the app's real device icon (from the cached scan;
-   letter-tile fallback) and its name — no package id — then an "Allow {app}
-   for a while" timer button (only while the lock is on), the enable toggle
-   ("Block {app}") and a "Remove {app}" button. A row with a live grant swaps
+   letter-tile fallback) and its name — no package id — then only an "Allow
+   {app} for a while" timer button (only while the lock is on). The row is a
+   `Slidable` with the Web Blocker row's shell (`SlidableAutoCloseBehavior`
+   around the `PanelGroup`, `groupTag: 'app-blocklist'`, `DrawerMotion`,
+   `extentRatio` 0.52). Its end pane holds two shared `RowAction`s
+   (`core/design_system/components/blockers.dart`): **Unblock** ("Unblock
+   {app}", while the lock is on) or **Block** ("Block {app}",
+   `toggle(i, enabled: true)`, while it is off), then **Remove** ("Remove
+   {app}", `over` tone). Swiping left or tapping the row opens the pane. The
+   row is one `Semantics(container: true)` button with the hint "Opens block
+   and remove actions" — a container, not a `MergeSemantics`, so the timer and
+   **Block now** stay their own TalkBack nodes. An off lock dims its icon
+   (0.45, like the web row) and reads **"Not blocked"**. A row with a live grant swaps
    the timer for a status line under the name: `AllowedUntil` (the paused dot
    and "Allowed until 11:37 PM", `limits/unblock/presentation/widgets/
    allowed_until.dart`, shared with the Web Blocker rows; not a `Pill`, whose
@@ -218,15 +228,15 @@ rows split by hairlines (no card per row); the list keeps the 20 px gutters
    Notification silence is off, the panel's last row is the EVO-037 hint
    "Locked apps can still notify you", which opens Settings. When the custom
    list is empty the section is hidden entirely (the FAB is the entry point).
-   **Undo toasts (C10):** switching a lock off and Remove both stay one tap.
+   **Undo toasts (C10):** the pane's Unblock and Remove act at once, with no confirm.
    Once the cubit's state shows the change landed (a failed save reverts, so
    no toast), a `GlassToast` reads **"{app} unblocked"** / **"{app} removed"**
    with an inline **Undo**. Undo re-resolves the entry by package at tap time
    (`toggle(indexOf(package), enabled: true)` / `restore(entry, index)`) and
    does nothing if it is gone or already back, or once the route-scoped cubit
    has closed (a toast outlives its route). The toast speaks from the screen's
-   own `State.context`, since a removed row unmounts with its entry. Turning a
-   lock on is direct, with no toast.
+   own `State.context`, since a removed row unmounts with its entry. The pane's
+   Block is direct, with no toast.
 2. **Apps & feeds** — the curated, install-aware catalog of built-in feed
    surfaces. This section is driven by the *blocking* feature's global
    `TargetsCubit` (install-aware target list) and `SettingsCubit`
@@ -507,13 +517,13 @@ gutters; the chip rail alone bleeds off the right edge):
   native re-arms the block at expiry; allowed/disabled rows dim their site
   letter), edit (custom
   only — also enforced in `editEntry`) and delete live in a **flutter_slidable
-  end action pane** (`DrawerMotion`; each `_RowAction` is its own rounded
+  end action pane** (`DrawerMotion`; each `RowAction` (shared, `core/design_system/components/blockers.dart`) is its own rounded
   surface — `AppRadius.continuous(AppRadius.lg)`, tone fill at 0.18 alpha,
   tone border at 0.35 — with an `AppSpacing.xs` gap so the pane reads as
   sibling cards of the row; site-named `Semantics` labels for TalkBack).
   Swiping left or tapping the row opens the pane; `SlidableAutoCloseBehavior`
-  keeps one pane open at a time. This is the repo's first/only swipe surface. The primary empty state is
-  an `EmptyState` with an "Add website" CTA. Add/edit use a `GlassBottomSheet` with inline feedback from the
+  keeps one pane open at a time. The App Blocker's custom-app rows reuse the same shell and `RowAction`. The primary empty state is
+  an `EmptyState` with a flat "Add website" CTA (`PrimaryButton(flat: true)`). Add/edit use a `GlassBottomSheet` with inline feedback from the
   shared `DomainValidator.check` rule; the sheet awaits the cubit commit and
   only announces success ("Blocked X") after persist + push landed — a failed
   save reverts the optimistic list and shows the error toast instead.
@@ -780,10 +790,11 @@ must not reach logcat); the `webBlocked` event is consumed by
 - `lib/features/limits/app_blocker/domain/app_block_sync.dart` (`syncAppBlocklist` — the single push path)
 - `lib/features/limits/app_blocker/data/repositories/app_block_repository_impl.dart`
 - `lib/features/limits/app_blocker/presentation/app_block_cubit.dart`
-- `lib/features/limits/app_blocker/presentation/app_block_screen.dart`
+- `lib/features/limits/app_blocker/presentation/app_block_screen.dart` (custom-app rows: `Slidable` + `RowAction` pane)
+- `lib/core/design_system/components/blockers.dart` (`RowAction` — the swipe-pane action shared by the app and web rows)
 - `lib/app/app_resume_sync.dart` (resume-time blocklist re-sync)
 - `test/app_block_sync_test.dart`
-- `test/app_block_screen_undo_test.dart` (C10 Undo toasts: lock off, feed off, Remove; a grant's "Allowed until" line + Block now)
+- `test/app_block_screen_undo_test.dart` (C10 Undo toasts: pane Unblock, feed off, pane Remove; an off row's "Not blocked" + pane Block; the row's one-button semantics with the timer as its own node; a grant's "Allowed until" line + Block now)
 - `test/web_block_screen_semantics_test.dart` (semantics regressions + C10 Undo toasts: site off, chip, Delete; the Protection row's one button node; "Allowed until")
 - `lib/features/blocking/blocklist/presentation/widgets/block_app_tile.dart` (`BlockAppTile` / `BlockAppGroup` — the Apps & feeds rows)
 - `test/blocklist_install_filter_test.dart` (install-aware catalog, `BlockAppGroup`, `BlockAppTile` rows and "Block {surface}" switches)
@@ -805,7 +816,7 @@ must not reach logcat); the `webBlocked` event is consumed by
 - `lib/features/limits/web_blocker/data/repositories/web_block_stats_repository_impl.dart`
 - `lib/features/limits/web_blocker/presentation/web_block_cubit.dart`
 - `lib/features/limits/web_blocker/presentation/web_block_state.dart`
-- `lib/features/limits/web_blocker/presentation/web_block_screen.dart`
+- `lib/features/limits/web_blocker/presentation/web_block_screen.dart` (rows: `Slidable` + the shared `RowAction`)
 - `lib/features/limits/web_blocker/presentation/web_protection_screen.dart`
 - `lib/features/blocking/shared/domain/entities/enums.dart` (`WebMatchType`, `AppLockAction`, `BlockingMode`)
 - `lib/core/constants/channel_constants.dart` (`pushWebBlocklist`, `pushAppBlocklist`, `webBlocked`)
