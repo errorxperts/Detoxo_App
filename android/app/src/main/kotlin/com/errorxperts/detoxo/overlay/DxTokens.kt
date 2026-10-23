@@ -261,9 +261,9 @@ internal object DxTokens {
     const val BUTTON_TO_LIGHT: Int = 0xFFE9EDF4.toInt()
     /** Soft button, end of its 145° gradient. (dark) */
     const val BUTTON_TO_DARK: Int = 0xFF181B2A.toInt()
-    /** Session sheet controls: stepper circles, quick-pick card, time-dial track, sheet close (Compact Guide). (light) */
+    /** Session sheet controls: the value ring's track, quick-pick card, sheet close (Compact Guide). (light) */
     const val CONTROL_LIGHT: Int = 0xFFDFE7F8.toInt()
-    /** Session sheet controls: stepper circles, quick-pick card, time-dial track, sheet close (Compact Guide). (dark) */
+    /** Session sheet controls: the value ring's track, quick-pick card, sheet close (Compact Guide). (dark) */
     const val CONTROL_DARK: Int = 0xFF2A3756.toInt()
     /** Selected quick pick chip on control (Compact Guide). (light) */
     const val CONTROL_ON_LIGHT: Int = 0xFFC7D8FF.toInt()
@@ -573,16 +573,6 @@ internal object DxTokens {
         DxShadowLayer(0x66FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0x404BE39A.toInt(), 0f, 10f, 24f, 0f, false),
     )
-    /** Session sheet time-dial knob: the canvas's drop-shadow(0 2px 6px) is sigma 6, kept at blur 2 x sigma like logo-glow. (light) */
-    @JvmField
-    val SHADOW_DIAL_KNOB_SHADOW_LIGHT: Array<DxShadowLayer> = arrayOf(
-        DxShadowLayer(0x4D141E46.toInt(), 0f, 2f, 12f, 0f, false),
-    )
-    /** Session sheet time-dial knob: the canvas's drop-shadow(0 2px 6px) is sigma 6, kept at blur 2 x sigma like logo-glow. (dark) */
-    @JvmField
-    val SHADOW_DIAL_KNOB_SHADOW_DARK: Array<DxShadowLayer> = arrayOf(
-        DxShadowLayer(0x73000000.toInt(), 0f, 2f, 12f, 0f, false),
-    )
     /** DetoxoLogo glow: the Logos README drop-shadow chain (sigma 1 + 10 Light, 8 Dark) at blur 2 x sigma, so sigma = blur / 2 like every shadow. Dark has no contour; its clear first layer keeps the shapes equal. (light) */
     @JvmField
     val SHADOW_LOGO_GLOW_LIGHT: Array<DxShadowLayer> = arrayOf(
@@ -606,7 +596,7 @@ internal object DxTokens {
     const val NUMBER_LINE: Float = 48f
     const val NUMBER_WEIGHT: Int = 700
     const val NUMBER_TRACKING_EM: Float = -2f / 48f
-    /** Value inside the time dial (Compact Guide number-lg). */
+    /** Value inside the Session sheet's value ring (Compact Guide number-lg). */
     const val NUMBER_LG_SIZE: Float = 58f
     const val NUMBER_LG_LINE: Float = 58f
     const val NUMBER_LG_WEIGHT: Int = 700
@@ -651,7 +641,7 @@ internal object DxTokens {
     const val CAPTION_LINE: Float = 16f
     const val CAPTION_WEIGHT: Int = 700
     const val CAPTION_TRACKING_EM: Float = 0f
-    /** Unit inside the time dial, uppercase (Compact Guide eyebrow-lg). */
+    /** Unit inside the Session sheet's value ring, uppercase (Compact Guide eyebrow-lg). */
     const val EYEBROW_LG_SIZE: Float = 14f
     const val EYEBROW_LG_LINE: Float = 18f
     const val EYEBROW_LG_WEIGHT: Int = 700

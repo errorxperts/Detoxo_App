@@ -60,8 +60,7 @@ class AppPressable extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  /// Cards .975 (the default), buttons .95, steppers .9; glass circles grow
-  /// to 1.06.
+  /// Cards .975 (the default), buttons .95; glass circles grow to 1.06.
   final double pressedScale;
 
   /// The shape the focus ring follows.
@@ -102,8 +101,8 @@ class _AppPressableState extends State<AppPressable> {
   @override
   void didUpdateWidget(AppPressable old) {
     super.didUpdateWidget(old);
-    // Disabled mid-press (a held stepper reaching its bound), the tap
-    // recognizer goes away before the pointer lifts: never stay pressed.
+    // Disabled mid-press, the tap recognizer goes away before the pointer
+    // lifts: never stay pressed.
     if (!widget.enabled) _pressed = false;
   }
 

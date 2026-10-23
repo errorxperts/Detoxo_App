@@ -2,7 +2,7 @@ import 'package:detoxo/features/additional_feature/showcase_view/domain/showcase
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/widgets.dart';
 
-/// Long-lived [GlobalKey]s for the six showcase targets.
+/// Long-lived [GlobalKey]s for the seven showcase targets.
 ///
 /// They are `static final` (one instance for the app's lifetime) because only a
 /// single `DashboardTab` is ever mounted at a time — recreating them per build,
@@ -13,6 +13,7 @@ abstract final class FeatureShowcaseKeys {
   static final conscious = GlobalKey(debugLabel: 'showcase.conscious');
   static final pause = GlobalKey(debugLabel: 'showcase.pause');
   static final oneReel = GlobalKey(debugLabel: 'showcase.oneReel');
+  static final unblock = GlobalKey(debugLabel: 'showcase.unblock');
   static final appBlocker = GlobalKey(debugLabel: 'showcase.appBlocker');
   static final webBlocker = GlobalKey(debugLabel: 'showcase.webBlocker');
 
@@ -22,20 +23,21 @@ abstract final class FeatureShowcaseKeys {
     conscious,
     pause,
     oneReel,
+    unblock,
     appBlocker,
     webBlocker,
   ];
 }
 
 /// Total number of steps (used for the tooltip's "N of M" progress dots).
-const int featureShowcaseStepCount = 6;
+const int featureShowcaseStepCount = 7;
 
-/// The ordered content for the six steps.
+/// The ordered content for the seven steps.
 ///
-/// Index 0–3 (the four modes) MUST stay aligned with the Today mode card's
-/// option order — Block All, Conscious, Pause, One Reel — since
+/// Index 0–4 (the five modes) MUST stay aligned with the Today mode card's
+/// option order — Block All, Conscious, Pause, One Reel, Unblock — since
 /// `ModeCard.decorateOption` wraps option `i` with `featureShowcaseSteps[i]`.
-/// Index 4–5 are the App Blocker / Web Blocker tiles. The four mode steps tint
+/// Index 5–6 are the App Blocker / Web Blocker tiles. The five mode steps tint
 /// their badge to the live accent, as the mode card tints its options.
 final List<ShowcaseStep> featureShowcaseSteps = [
   ShowcaseStep(
@@ -74,6 +76,15 @@ final List<ShowcaseStep> featureShowcaseSteps = [
         'Watch a single reel, then Detoxo locks straight back to your base '
         'mode. Quick scrolls don’t use it up: a reel counts after a couple of '
         'seconds.',
+  ),
+  ShowcaseStep(
+    key: FeatureShowcaseKeys.unblock,
+    image: Assets.images.icons.iconReelCount,
+    accentTint: true,
+    title: 'Unblock',
+    body:
+        'Pick how many reels to watch, from 1 to 20. Blocking comes back '
+        'after the last one.',
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.appBlocker,

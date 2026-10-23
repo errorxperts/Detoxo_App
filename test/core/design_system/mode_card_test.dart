@@ -9,9 +9,10 @@ final _options = <ModeOption>[
   (icon: Assets.images.icons.iconConscious, label: 'Conscious'),
   (icon: Assets.images.icons.iconPause, label: 'Pause'),
   (icon: Assets.images.icons.iconOneReel, label: 'One Reel'),
+  (icon: Assets.images.icons.iconReelCount, label: 'Unblock'),
 ];
 
-const _labels = ['Block All', 'Conscious', 'Pause', 'One Reel'];
+const _labels = ['Block All', 'Conscious', 'Pause', 'One Reel', 'Unblock'];
 
 Future<void> _pump(
   WidgetTester tester, {
@@ -64,7 +65,7 @@ List<GlassContainer> _surfaces(WidgetTester tester) =>
 Rect _chip(WidgetTester tester) => tester.getRect(_in(FractionallySizedBox));
 
 void main() {
-  testWidgets('four verbatim labels over four accent-tinted icons', (
+  testWidgets('five verbatim labels over five accent-tinted icons', (
     tester,
   ) async {
     await _pump(tester);
@@ -72,7 +73,7 @@ void main() {
       expect(find.text(label), findsOneWidget);
     }
     final icons = tester.widgetList<Icon3d>(find.byType(Icon3d));
-    expect(icons.length, 4);
+    expect(icons.length, 5);
     expect(icons.every((i) => i.accentTint && i.size == 34), isTrue);
     expect(tester.getSize(_in(Row).first).height, 72);
   });
@@ -85,7 +86,7 @@ void main() {
     await _pump(tester, selected: 2, onSelected: taps.add);
 
     expect(find.bySemanticsLabel('Blocking mode'), findsOneWidget);
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < _labels.length; i++) {
       expect(
         tester.getSemantics(find.text(_labels[i])),
         isSemantics(
@@ -102,7 +103,8 @@ void main() {
     // The picked option still reports a tap; the caller decides.
     await tester.tap(find.text('Pause'));
     await tester.tap(find.text('One Reel'));
-    expect(taps, [2, 3]);
+    await tester.tap(find.text('Unblock'));
+    expect(taps, [2, 3, 4]);
     handle.dispose();
   });
 
@@ -118,6 +120,7 @@ void main() {
       false,
       false,
       false,
+      false,
     ]);
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     expect(taps, [0]);
@@ -128,16 +131,14 @@ void main() {
   ) async {
     await _pump(tester);
     final card = tester.getRect(find.byType(ModeCard));
-    final quarter = (card.width - 2 * AppSpacing.inset) / 4;
-    for (var i = 0; i < 4; i++) {
+    final fifth = (card.width - 2 * AppSpacing.inset) / 5;
+    for (var i = 0; i < _labels.length; i++) {
       await _pump(tester, selected: i);
       await tester.pumpAndSettle();
       final chip = _chip(tester);
-      expect(
-        chip.left,
-        closeTo(card.left + AppSpacing.inset + i * quarter, .01),
-      );
-      expect(chip.size, Size(quarter, 72));
+      expect(chip.left, closeTo(card.left + AppSpacing.inset + i * fifth, .01));
+      expect(chip.width, closeTo(fifth, 1e-9));
+      expect(chip.height, 72);
       expect(
         chip.center.dx,
         closeTo(tester.getCenter(find.text(_labels[i])).dx, .01),
@@ -180,7 +181,7 @@ void main() {
   ) async {
     await _pump(tester, selected: 1);
     final icons = tester.widgetList<Icon3d>(find.byType(Icon3d));
-    expect(icons.map((i) => i.selected), [false, true, false, false]);
+    expect(icons.map((i) => i.selected), [false, true, false, false, false]);
 
     final filters = tester
         .widgetList<ColorFiltered>(_in(ColorFiltered))
@@ -206,7 +207,7 @@ void main() {
         )
         .map((s) => s.scale)
         .where((s) => s != 1); // AppPressable's own press scale stays 1
-    expect(scales, [.94, 1.08, .94, .94]);
+    expect(scales, [.94, 1.08, .94, .94, .94]);
   });
 
   testWidgets('title and detail open under a pick; none hides them and the '
@@ -244,8 +245,8 @@ void main() {
         return KeyedSubtree(key: ValueKey('tour-$i'), child: w);
       },
     );
-    expect(seen, [0, 1, 2, 3]);
-    for (var i = 0; i < 4; i++) {
+    expect(seen, [0, 1, 2, 3, 4]);
+    for (var i = 0; i < _labels.length; i++) {
       expect(
         find.descendant(
           of: find.byKey(ValueKey('tour-$i')),
@@ -259,7 +260,7 @@ void main() {
   testWidgets('Reduce Motion: a new pick lands in one frame', (tester) async {
     await _pump(tester, reduceMotion: true);
     await tester.pumpAndSettle();
-    await _pump(tester, selected: 3, reduceMotion: true);
+    await _pump(tester, selected: 4, reduceMotion: true);
     expect(tester.binding.hasScheduledFrame, isFalse);
     final card = tester.getRect(find.byType(ModeCard));
     expect(_chip(tester).right, closeTo(card.right - AppSpacing.inset, .01));

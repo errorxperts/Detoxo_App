@@ -204,7 +204,7 @@ class _BlockerSectionState extends State<BlockerSection> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               tile(
-                4,
+                5,
                 BlockerTile(
                   icon: Assets.images.icons.iconAppBlocker,
                   title: 'App Blocker',
@@ -218,7 +218,7 @@ class _BlockerSectionState extends State<BlockerSection> {
               ),
               const SizedBox(width: AppSpacing.gap),
               tile(
-                5,
+                6,
                 BlockerTile(
                   icon: Assets.images.icons.iconWebBlocker,
                   title: 'Web Blocker',

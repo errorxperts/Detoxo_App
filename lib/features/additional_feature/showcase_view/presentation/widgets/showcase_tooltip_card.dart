@@ -83,7 +83,7 @@ class ShowcaseTooltipCard extends StatelessWidget {
 }
 
 /// The tooltip's feature badge: the step's spec 3D icon at 56, uncropped
-/// (accent-tinted for the four modes), or a neutral badge holding its glyph.
+/// (accent-tinted for the five modes), or a neutral badge holding its glyph.
 class _StepBadge extends StatelessWidget {
   const _StepBadge({required this.step});
 

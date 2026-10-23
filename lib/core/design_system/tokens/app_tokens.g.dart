@@ -93,7 +93,6 @@ final class AppTokens {
     required this.trackShadow,
     required this.startShadow,
     required this.startedShadow,
-    required this.dialKnobShadow,
     required this.logoGlow,
   });
 
@@ -278,9 +277,6 @@ final class AppTokens {
     startedShadow: [
       DxShadow(color: Color(0x40FFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x4D10893F), offset: Offset(0, 10), blur: 24),
-    ],
-    dialKnobShadow: [
-      DxShadow(color: Color(0x4D141E46), offset: Offset(0, 2), blur: 12),
     ],
     logoGlow: [
       DxShadow(color: Color(0x991E326E), blur: 2),
@@ -470,9 +466,6 @@ final class AppTokens {
       DxShadow(color: Color(0x66FFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x404BE39A), offset: Offset(0, 10), blur: 24),
     ],
-    dialKnobShadow: [
-      DxShadow(color: Color(0x73000000), offset: Offset(0, 2), blur: 12),
-    ],
     logoGlow: [
       DxShadow(color: Color(0x006AA8FF)),
       DxShadow(color: Color(0x8C6AA8FF), blur: 16),
@@ -610,7 +603,7 @@ final class AppTokens {
   /// Soft button, end of its 145° gradient.
   final Color buttonTo;
 
-  /// Session sheet controls: stepper circles, quick-pick card, time-dial track, sheet close (Compact Guide).
+  /// Session sheet controls: the value ring's track, quick-pick card, sheet close (Compact Guide).
   final Color control;
 
   /// Selected quick pick chip on control (Compact Guide).
@@ -738,9 +731,6 @@ final class AppTokens {
 
   /// Session started button.
   final List<DxShadow> startedShadow;
-
-  /// Session sheet time-dial knob: the canvas's drop-shadow(0 2px 6px) is sigma 6, kept at blur 2 x sigma like logo-glow.
-  final List<DxShadow> dialKnobShadow;
 
   /// DetoxoLogo glow: the Logos README drop-shadow chain (sigma 1 + 10 Light, 8 Dark) at blur 2 x sigma, so sigma = blur / 2 like every shadow. Dark has no contour; its clear first layer keeps the shapes equal.
   final List<DxShadow> logoGlow;
@@ -922,7 +912,7 @@ abstract final class AppTypography {
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
-  /// Value inside the time dial (Compact Guide number-lg).
+  /// Value inside the Session sheet's value ring (Compact Guide number-lg).
   static const TextStyle numberLg = TextStyle(
     fontFamily: family,
     fontSize: 58,
@@ -1021,7 +1011,7 @@ abstract final class AppTypography {
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
-  /// Unit inside the time dial, uppercase (Compact Guide eyebrow-lg).
+  /// Unit inside the Session sheet's value ring, uppercase (Compact Guide eyebrow-lg).
   static const TextStyle eyebrowLg = TextStyle(
     fontFamily: family,
     fontSize: 14,
