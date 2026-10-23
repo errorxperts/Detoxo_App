@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 
 /// The call to action: the spec soft button (`.dx-cancel`), a 54 px pill on
 /// the 145° button gradient with an ink label. No accent: the live accent
-/// stays on the ring, the pill and the tab lens. `expand: true` makes it
+/// stays on the ring, the mode card and the tab lens. `expand: true` makes it
 /// full-width.
 ///
 /// Its soft shadow shows only on the bare ground: on a card, sheet or dialog

@@ -73,12 +73,6 @@ class $AssetsSvgGen {
   /// File path: assets/svg/flame.svg
   SvgGenImage get flame => const SvgGenImage('assets/svg/flame.svg');
 
-  /// File path: assets/svg/lock-open.svg
-  SvgGenImage get lockOpen => const SvgGenImage('assets/svg/lock-open.svg');
-
-  /// File path: assets/svg/lock.svg
-  SvgGenImage get lock => const SvgGenImage('assets/svg/lock.svg');
-
   /// File path: assets/svg/play-circle.svg
   SvgGenImage get playCircle => const SvgGenImage('assets/svg/play-circle.svg');
 
@@ -91,8 +85,6 @@ class $AssetsSvgGen {
     chevronRight,
     chevronsRight,
     flame,
-    lockOpen,
-    lock,
     playCircle,
     sidebar,
   ];

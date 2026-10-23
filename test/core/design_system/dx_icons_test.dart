@@ -105,8 +105,8 @@ void main() {
 
     testWidgets('a label makes it an image node', (tester) async {
       final handle = tester.ensureSemantics();
-      await _pump(tester, Glyph(Assets.svg.lock, semanticLabel: 'Locked'));
-      expect(find.bySemanticsLabel('Locked'), findsOneWidget);
+      await _pump(tester, Glyph(Assets.svg.flame, semanticLabel: 'Streak'));
+      expect(find.bySemanticsLabel('Streak'), findsOneWidget);
       handle.dispose();
     });
   });
