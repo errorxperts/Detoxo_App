@@ -125,6 +125,10 @@ Future<void> runBootstrap(BuildContext context) async {
       ('dailyLimit', dailyLimit.load),
       ('streak', streak.load),
       if (!firstRun) ('targets', targets.load),
+      // The device icon scan behind every app row's icon (`deviceAppIcons`),
+      // started before any of those rows is on screen. Async, so a throw
+      // inside stays in this step.
+      ('appIcons', () async => sl<EngineRepository>().installedApps()),
     ]) {
       unawaited(guardedSync(name, run()));
     }

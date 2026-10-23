@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/routes.dart';
@@ -56,22 +54,6 @@ class _AppBlockView extends StatefulWidget {
 
 class _AppBlockViewState extends State<_AppBlockView> {
   String _query = '';
-
-  /// Device icons by package, from the engine's cached scan — also pre-warms
-  /// the cache so the add-picker opens instantly. Null until loaded; rows fall
-  /// back to letter tiles.
-  Map<String, Uint8List>? _appIcons;
-
-  @override
-  void initState() {
-    super.initState();
-    sl<EngineRepository>().installedApps().then((apps) {
-      if (!mounted || apps == null) return;
-      setState(() {
-        _appIcons = {for (final a in apps) a.packageName: ?a.icon};
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -250,8 +232,7 @@ class _AppBlockViewState extends State<_AppBlockView> {
                         opacity: entry.enabled ? 1 : 0.45,
                         duration: context.motion(AppDurations.fast),
                         child: AppIconAvatar(
-                          iconUrl: '',
-                          iconBytes: _appIcons?[entry.packageName],
+                          packageName: entry.packageName,
                           appName: entry.appName,
                         ),
                       ),

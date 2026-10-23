@@ -13,7 +13,7 @@ class BlockAppGroup {
 
   BlockTarget get _head => surfaces.first;
   String get appName => _head.appName;
-  String get iconUrl => _head.iconUrl;
+  String get packageName => _head.packageName;
   bool get isInstalled => _head.isInstalled;
   bool get isSingle => surfaces.length == 1;
 
@@ -73,7 +73,7 @@ class _BlockAppTileState extends State<BlockAppTile> {
     final group = widget.group;
     final installed = group.isInstalled;
     final avatar = AppIconAvatar(
-      iconUrl: group.iconUrl,
+      packageName: group.packageName,
       appName: group.appName,
       dimmed: !installed,
     );

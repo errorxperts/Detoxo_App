@@ -195,7 +195,6 @@ class _AppPickerBodyState extends State<_AppPickerBody> {
     if (reason != null) {
       return GlassListTile(
         leading: AppIconAvatar(
-          iconUrl: '',
           iconBytes: app.icon,
           appName: app.appName,
           dimmed: true,
@@ -209,11 +208,7 @@ class _AppPickerBodyState extends State<_AppPickerBody> {
     final selected = _selected.contains(app.packageName);
     return GlassListTile(
       selected: selected,
-      leading: AppIconAvatar(
-        iconUrl: '',
-        iconBytes: app.icon,
-        appName: app.appName,
-      ),
+      leading: AppIconAvatar(iconBytes: app.icon, appName: app.appName),
       title: app.appName,
       subtitle: app.packageName,
       onTap: () => setState(() {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:detoxo/core/constants/channel_constants.dart';
 import 'package:detoxo/core/platform_channels/engine_channel.dart';
+import 'package:detoxo/core/utils/device_app_icons.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/reel_session_state.dart';
 import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
@@ -212,6 +213,8 @@ class EngineRepositoryImpl implements EngineRepository {
   // asked. Never caches a null (transient) failure — stale beats nothing.
   // Concurrent misses share one in-flight scan (the native walk is seconds,
   // not millis, on busy devices — a double-open must not run it twice).
+  // Every scan that lands also refills [deviceAppIcons], the icons every
+  // `AppIconAvatar` draws.
   List<InstalledApp>? _installedApps;
   Future<List<InstalledApp>?>? _installedAppsInFlight;
 
@@ -227,6 +230,7 @@ class EngineRepositoryImpl implements EngineRepository {
         apps.sort(
           (a, b) => a.appName.toLowerCase().compareTo(b.appName.toLowerCase()),
         );
+        deviceAppIcons.value = {for (final a in apps) a.packageName: ?a.icon};
         return _installedApps = apps;
       } finally {
         _installedAppsInFlight = null;
