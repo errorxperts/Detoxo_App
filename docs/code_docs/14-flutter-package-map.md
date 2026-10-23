@@ -110,6 +110,7 @@ launcher icons) — run it bare for a menu or pass an entry name/number.
 | --- | --- | --- | --- |
 | `flutter_animate` | `^4.5.2` | **Wired** (re-exported by `design_system.dart`) | Declarative entrance/motion effects across the design system (`foundations/motion.dart`'s `.entrance()` helpers). |
 | `showcaseview` | `^5.1.0` | **Wired** | Onboarding coach-marks / feature tour (`lib/features/additional_feature/showcase_view/`). |
+| `sleek_circular_slider` | `^2.1.0` | **Wired** | The Session sheet's value ring, both kinds (`core/design_system/components/session_sheet.dart`); the sheet wraps it in the slider semantics, keys and focus ring it lacks. Re-added after the Today rebuild had dropped it with the old countdown ring. |
 | `flutter_svg` | `^2.3.0` | **Wired** (through FlutterGen's `SvgGenImage`) | Renders the spec glyphs in `assets/svg/` through `Glyph` (`components/dx_icons.dart`), §9. |
 | `cached_network_image` | `^3.4.1` | **Wired** | Remote-icon fallback in `AppIconAvatar` (`app_icon_avatar.dart`, used by blocklist tiles + the reel-counter card). App icons ship **locally** in `assets/images/social_icon_pack/` as 160² quantised PNGs; this only handles `http…` `iconUrl`s from remote config. Note it drags `flutter_cache_manager` → `sqflite` → the `sqflite_android` native plugin. |
 | `intl` | `^0.20.2` | **Wired** (2 files) | Number/date formatting and localisation-safe strings. |
@@ -175,7 +176,6 @@ native side / by another package. Treat them as follow-ups, not live behaviour.
 | `ms_undraw` | No `UnDraw` usage — every illustration is a local asset. | dex / AOT |
 | `lottie_tgs` | Nothing rendered a Lottie file anywhere in `lib/`. The unreferenced `assets/lottie/` folder (25 JSON, 4.86 MB install / ~0.59 MB download) was deleted too (Frozen Glass M13). | dex / AOT |
 | `flutter_gen` | A build-time CLI mis-declared as a runtime dependency — see §2. | dex / AOT |
-| `sleek_circular_slider` | Its one user, the old dashboard hero's countdown ring, went with the Today rebuild: a live Pause now counts down in the `TimeLeftRing` (the design system's `ProgressRing`). | dex / AOT |
 | `flutter_floating_bottom_bar` | Its one user, the old hide-on-scroll home bar, went with the Frozen Glass shell: `HomeShell` floats the static glass `AppTabBar` (`components/navigation.dart`) in the `GlassScaffold`'s bottom-bar slot, with no scroll listener. | dex / AOT |
 | `google_fonts` | Manrope 600/700/800 is bundled (§9), so the generated `AppTypography` names the family directly: no runtime font fetch, and widget tests no longer stall on one. | dex / AOT |
 | `cupertino_native` | Its one user, `AdaptiveSlider` (a native `CNSlider` on iOS/macOS), went when the sliders moved to the themed Material `Slider`; iOS only shows the `UnsupportedScreen` ([15](15-ios-cross-platform.md)). `lib/core/design_system/adaptive/` (`AdaptiveSlider`, `PlatformAdaptive`) was deleted with it (Frozen Glass M12). | iOS plugin + dex / AOT |
@@ -233,7 +233,7 @@ Re-add any of these only when something actually imports them.
   artifact's 192² WebPs (≈ 9–16 KB each): `icon-block-all`, `icon-conscious`, `icon-pause`,
   `icon-one-reel` (the four modes, hue-shifted to the live accent), `icon-app-blocker`,
   `icon-web-blocker`, `icon-blocker-rules`, plus `icon-reel-count` (256², the Session sheet's
-  By reel count header) and `detoxo_logo.png` — the logo, a near-white glyph on transparent,
+  By reel count header and, accent-tinted, Today's Unblock option and its tour step) and `detoxo_logo.png` — the logo, a near-white glyph on transparent,
   cropped from the 1024² master to the glyph and scaled to 125×240 (2× the 120 dp splash; 35 KB),
   a PNG by choice where the other art is WebP. `DetoxoLogo` blends it into brand-main in Light
   and leaves it white in Dark; the native wall (`DxArt.logo` / `logoTint`) does the same. Drawn only through
@@ -241,8 +241,7 @@ Re-add any of these only when something actually imports them.
   tiles, the rules row, the ConfirmSheet and Session sheet headers and the feature tour's badges.
 - `assets/svg/` — the spec's single-ink **glyphs** (24 × 24 SVGs, drawn `srcIn` by `Glyph`):
   `check` (the success toast, the confirmed knob), `chevron-right` (list and drawer rows, the
-  rules row), `chevrons-right` (the ready slide knob), `flame` (the streak), `lock` / `lock-open`
-  (the ring's Block now / Unblock pill), `play-circle` (the reels line) and `sidebar` (the tab
+  rules row), `chevrons-right` (the ready slide knob), `flame` (the streak), `play-circle` (the reels line) and `sidebar` (the tab
   header's Menu button).
 - `assets/images/illustration/` — **removed** (Frozen Glass C12). The 23 512² hero illustrations
   (≈ 700 KB) lost their last users when the mode selector, the old blocker tiles and the feature

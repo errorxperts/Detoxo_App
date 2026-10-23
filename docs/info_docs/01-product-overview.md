@@ -73,8 +73,8 @@ change:
 - **One Reel** — feeling the itch? Tap it, wait a few seconds and slide to confirm, and
   you can watch a single clip before the feed closes, so one doesn't become fifty.
 - **Pause** — need the feed for a bit (finding a specific video, showing a
-  friend)? Tap **Pause** for 1–10 minutes, or **Unblock** on the Today ring for 1–20
-  reels, tap **Start**, and blocking steps aside. When the time or the reels run out,
+  friend)? Tap **Pause** for 1–10 minutes, or **Unblock** for 1–20 reels, tap
+  **Start**, and blocking steps aside. When the time or the reels run out,
   protection switches itself back on automatically — no way to "forget" to re-enable it.
 
 > A note on the name: in the app this earn-as-you-go mode is called **Conscious** —
@@ -176,7 +176,7 @@ takes over.
   instead of relying on willpower.
 - **One Reel** — allow a single clip, then close the feed so one doesn't become fifty.
 - **Pause** — need the feed for a bit? Pause for 1–10 minutes, or unblock a batch of 1–20
-  reels from the Today ring; blocking turns itself back on automatically.
+  reels; blocking turns itself back on automatically.
 
 **See your habit clearly.** Detoxo counts every reel you watch — today and all-time —
 right on your device. A draggable **floating bubble** shows the count climbing as you

@@ -364,11 +364,11 @@ surfaced by the permission gate / setup screen.)
 (tested by `test/today_copy_test.dart`):
 
 - `modeIndex(settings, pauseLive:)` is the lit mode. A live Pause is 2; `oneReel` is 3 at an
-  allowance of 1, else 2 (an N-reel unblock lights Pause); `curious` is 1; anything else is 0.
-  `LiveAccent` maps the same index to the accent.
+  allowance of 1, else 4 (Unblock, an N-reel unblock); `curious` is 1; anything else is 0.
+  `LiveAccent` maps the same index to the accent (4 takes the Pause accent).
 - `ringFace(...)` returns a `RingFace` record; the first match wins:
-  - a live Pause: "Reels allowed" in accent text, mm:ss left, "of a 10 min break", Block now;
-  - an N-reel unblock: the reels left, "of 5 reels", Block now;
+  - a live Pause: "Reels allowed" in accent text, mm:ss left, "of a 10 min break";
+  - an N-reel unblock: the reels left, "of 5 reels";
   - counting off: "—" and "Counting is off", no arc;
   - no limit: "Today", the time so far, "No daily limit", no arc;
   - over: "0m" and "45m over your 3h limit";
@@ -384,18 +384,18 @@ surfaced by the permission gate / setup screen.)
 
 **Taps.**
 
-- The ring's pill reads **Unblock** and opens `SessionDialogs.showReels` (By reel count).
-  During a session it reads **Block now**: `resumeNow()` during a Pause, `setPlan(baseMode)`
-  during an N-reel unblock. There is no confirm, since it only makes blocking stricter.
-- The ModeCard options:
+- The ring has no button; every mode change is a ModeCard option:
   - Block All calls `setPlan(blockAll)` directly; this also ends a Pause or a reel session.
   - Conscious opens `SessionDialogs.showConscious`: the intro, or the live sheet when it is on.
   - Pause opens `SessionDialogs.showPause` (By time).
   - One Reel opens the caution `ConfirmSheet` ("Watch one reel?", the tinted `iconOneReel` at
     `ConfirmSheet.iconSize`). A slide calls `setOneReel(count: 1)`, then the toast "One reel
     unblocked".
-- A repeat tap on the lit Block All does nothing; on the lit Pause or One Reel it blocks now.
-- The options are feature-tour steps 0–3, through `ModeCard.decorateOption` and `showcaseTarget`.
+  - Unblock (the tinted `iconReelCount`) opens `SessionDialogs.showReels` (By reel count).
+- A repeat tap on the lit Block All does nothing; on the lit Pause, One Reel or Unblock it blocks
+  now: `resumeNow()` during a Pause, else `setPlan(baseMode)`, with no confirm, since it only
+  makes blocking stricter.
+- The options are feature-tour steps 0–4, through `ModeCard.decorateOption` and `showcaseTarget`.
 
 Rebuild/state notes on Today:
 
@@ -586,7 +586,7 @@ limit), maps the settings to a mode with `accentModeOf` — master switch off �
 dashboard's own `modeIndex(s, pauseLive:)`, so the lit mode and the accent can never disagree —
 and keys the glide on `(mode, used)`. A 1 Hz timer runs only while a Pause is live. The spec
 lets the accent paint six things only — the ring arc and its glow, the mode card and its chip,
-the mode icons, the Unblock pill tint, the tab lens. On Today the `TimeLeftRing`, the
+the mode icons, the accent pill tint (the block screen's primary action), the tab lens. On Today the `TimeLeftRing`, the
 `ModeCard` and the `AmbientLights` read it; the shell's tab lens does too.
 
 #### Components — `components/`
@@ -600,9 +600,9 @@ the mode icons, the Unblock pill tint, the tab lens. On Today the `TimeLeftRing`
 | Lists & status (`list_tiles.dart`, `section_header.dart`, `badges.dart`) | `GlassListTile` — a flat row (56 min, `label` over a two-line `subhead`), the 18 px `ink3` chevron `Glyph` when tappable with no trailing (drawer rows and the Blocker rules row use it too), a check when `selected: true`; it is its own panel only when standalone. `PanelGroup` — the section idiom: rows in **one** panel split by inset hairlines. `AppToggleTile`. `SectionHeader(label, note:)` — the uppercase `eyebrow` (caption, 1.6 tracking, `ink2`), `section` 32 above and 12 below, a header to TalkBack. `Pill` — a **status label**: an 8 px dot in `toneColor` (or `dotColor:`) or an icon in `toneText`, then the word in `subhead` `ink2`; no fill or border. `toneColor` / `toneText` map an `AppTone` to its dot and its 4.5:1 text colour. `AppBadge` — the "+N" quiet pill |
 | Cards & feedback (`cards.dart`, `feedback.dart`, `permission_card.dart`) | `GlassCard` — a panel, optionally tappable; `StatCard` / `StatCardPair` (neutral figures, no trend arrows), a neutral `IconBadge`. `ProgressRing(progress:, size:, palette:, child:)` — the spec ring in its materials, every measure the 300 px ring scaled to `size` (stroke 24·size/300): the groove, the track, a three-stop arc of `palette` (default `brand`) with a blurred copy at `kArcGlow`, the knob with its `kHalo` halo and `knobShadow`, and the centre disc with its `discWash`; a null `progress` draws no arc and no knob. `ProgressBar`, `LoadingState`, `EmptyState` (no loop), `AppReveal`, `NoticeLine`. `PermissionCard` — a neutral badge, the title, the why and the status in words (On / Needs access / Checking…), its own panel only when not on a surface |
 | Confirm (`confirm_sheet.dart`) | `ConfirmSheet.show(context, icon:, title:, message:, content:, action:, cancel:, tone:, waitSeconds: 5) → Future<bool>` — the one confirm for actions that weaken protection, in the sheet: an 88 well with a 6 px tone halo and a 4 px wait ring, a `titleSheet` title (≤ 2 lines), a message (≤ 3 lines), optional content, then a 64 px track and a 56 knob. It waits `waitSeconds` (1–30; `AnimationBehavior.preserve`, so Reduce Motion never shortens it) showing "Take a breath…"; the ready knob shows tone chevrons and nudges once. A release at ≥ 88 % ("Release to confirm") shows a check and "Confirmed", then closes true after 1 s; an earlier release springs back; a tap hints "Slide all the way →". During the wait the knob reads "X, available in N seconds" and is disabled; afterwards TalkBack, Enter or Space confirm. The cancel is a full-width text `SecondaryButton`; cancel, barrier, back and drag return false. Callers commit, then toast. `ConfirmSheet.iconSize` (58) sizes the callers' icon; `ConfirmSheet.waitKnob(t)` is the waiting-knob recipe (Light `knob` @ 55 %, Dark `lerp(trackTo, knob, .18)`) |
-| Session (`session_sheet.dart`) | `SessionSheet.show(context, kind:, min:, max:, initial:, picks:, note:, startLabel:, onStart:)` — the **Session blocker** (Pause and N-reel unblocks) on `GlassBottomSheet` with the static brand glow, 434 tall for both kinds: a 40 px icon, "Session blocker" over "By reel count" / "By time", a 32 px `control` close. Reels: two 44 `control` steppers (`accentText(brand)` glyphs, .9 press, hold to repeat 420 ms × .78 down to 60 ms, .35 and disabled at a bound) around a number + eyebrow live region. Time: a 270° dial (`control` track, three-stop brand arc, the knob in a `kHalo` halo over `dialKnobShadow`), `numberLg` over `eyebrowLg`, drag / arrows / PgUp-PgDn / Home-End, a slider node. Four quick picks on a `control` card with a sliding `controlOn` chip (+ `Squish`), hidden on a custom value. A note line, then the 52 px start pill: `onStart` true → the started colours, "Session started" with a drawn check, held by `PopScope`, closes after 1.1 s; false → stays. Reduce Motion drops the slide, squish, number bump and check draw |
-| Today ring (`time_left_ring.dart`) | `TimeLeftRing(eyebrow:, value:, format:, sub:, progress:, blockNow:, onPill:, accentEyebrow:, reels:, streak:)` — the spec hero on `ProgressRing` in the live accent: the uppercase eyebrow (`ink2`, or accent text in a Pause), the value in `number`, the `body` line and a `LiquidPill` in `accent.main` (lock-open "Unblock" / lock "Block now", both `onPill`), the face scaled down inside the disc, the reels / streak line 22 below. Value, counts and arc count up once per mount over `glide`; later changes snap; nothing moves under Reduce Motion; 300 px unless its box is narrower. `AmbientLights` — Today's two accent lights (main at `kAmb`, 380 px at (5, 90); deep at `kAmbDeep`, 400 px at (120, 560)), mounted with `Positioned.fill` behind the scroll content |
-| Today (`mode_card.dart`) | `ModeCard(options:, selectedIndex:, onSelected:, title:, detail:, decorateOption:)` — the spec **MODE CARD**: one solid `option` surface, `optionBase` mixed with the live accent at `kOption` (radius 28, inset 8, no shadow or border); a 72 px row of equal options, each a 34 px `Icon3d(accentTint:)` (vivid at 1.08 when picked, soft at .94, .88 while pressed) over a verbatim `caption` label (`ink2`; picked `accentText` in Light, `ink` in Dark); behind the pick a radius-20 chip at `kChip` that slides on the chip curve plus `Squish` and fades out with no pick. With a pick and a `title`, a hairline and a row (accent dot, `title`, `detail`) open on the detail curve. Each option is one radio (`AppPressable` selected + `inMutuallyExclusiveGroup`, focus ring) in a "Blocking mode" group and reports every tap, the picked one too; `decorateOption` wraps each one for the tour |
+| Session (`session_sheet.dart`) | `SessionSheet.show(context, kind:, min:, max:, initial:, picks:, note:, startLabel:, onStart:)` — the **Session blocker** (Pause and N-reel unblocks) on `GlassBottomSheet` with the static brand glow, 434 tall for both kinds: a 40 px icon, "Session blocker" over "By reel count" / "By time", a 32 px `control` close. Both kinds: one 160 px `SleekCircularSlider` (the old Pause / Unblock pickers' ring: 240° open at the bottom from 150°, an 8 `control` track, a 12 bar on the dial's three brand stops, an 8 white handle, no shadow, no easing) around `numberLg` over `eyebrowLg`. Drag rounds to whole values while the handle follows the finger; arrows ±1, PgUp/PgDn ±5, Home/End; a slider node "Reel count" / "Session length", since the package has no semantics of its own. Four quick picks on a `control` card with a sliding `controlOn` chip (+ `Squish`), hidden on a custom value. A note line, then the 52 px start pill: `onStart` true → the started colours, "Session started" with a drawn check, held by `PopScope`, closes after 1.1 s; false → stays. Reduce Motion drops the slide, squish, number bump and check draw |
+| Today ring (`time_left_ring.dart`) | `TimeLeftRing(eyebrow:, value:, format:, sub:, progress:, accentEyebrow:, reels:, streak:)` — the spec hero on `ProgressRing` in the live accent: the uppercase eyebrow (`ink2`, or accent text in a Pause), the value in `number` and the `body` line, the face scaled down inside the disc, the reels / streak line 22 below. Value, counts and arc count up once per mount over `glide`; later changes snap; nothing moves under Reduce Motion; 210 px (30 % under the spec's 300; `ProgressRing`'s default stays 300) unless its box is narrower. `AmbientLights` — Today's two accent lights (main at `kAmb`, 380 px at (5, 45), raised with the ring's centre; deep at `kAmbDeep`, 400 px at (120, 560)), mounted with `Positioned.fill` behind the scroll content |
+| Today (`mode_card.dart`) | `ModeCard(options:, selectedIndex:, onSelected:, title:, detail:, decorateOption:)` — the spec **MODE CARD**: one solid `option` surface, `optionBase` mixed with the live accent at `kOption` (radius 28, inset 8, no shadow or border); a 72 px row of equal options (five on Today: Block All, Conscious, Pause, One Reel, Unblock), each a 34 px `Icon3d(accentTint:)` (vivid at 1.08 when picked, soft at .94, .88 while pressed) over a verbatim `caption` label (`ink2`; picked `accentText` in Light, `ink` in Dark); behind the pick a radius-20 chip at `kChip` that slides on the chip curve plus `Squish` and fades out with no pick. With a pick and a `title`, a hairline and a row (accent dot, `title`, `detail`) open on the detail curve. Each option is one radio (`AppPressable` selected + `inMutuallyExclusiveGroup`, focus ring) in a "Blocking mode" group and reports every tap, the picked one too; `decorateOption` wraps each one for the tour |
 | Blockers (`blockers.dart`) | `BlockerTile` — a `tile` surface for App / Web Blocker: a 3D icon, the name, the status as dot + word (On / Paused / Not set up), the first few apps (or `SiteLetter`s) with a "+N" badge, or a note; `BlockerRulesRow` — the 64 px "Blocker rules" panel row with the count on and what happens next (`RuleSummary.nextEvent`, 12-hour forms such as "Next: Bedtime at 11 PM") and the chevron `Glyph`. Today's `blocker_section.dart` lays out "Blockers" + "N of 2 on", `ActiveUnblocksCard`, the tile pair, then the rules row |
 | Navigation (`navigation.dart`) | `AppTabBar(items:, current:, onSelect:)` — the 208×64 glass bar (radius 32, padding 6) with a half-width accent **lens** (`lensHi → lensLo` over main @ `kTab`, `lensEdge`, a main @ `kTabGlow` glow) that slides on the lens curve with a `Squish`; the current tab's filled icon in accent text at 1.08, its label in accent text (Light) or `ink` (Dark, where accent text misses 4.5:1 on the lens), others `ink2`; text scale clamped at 1.3; still under Reduce Motion. `TabHeader(title, onMenu:, actions:)` — `titleXl` ink, actions and the Menu button (a bare `sidebar` glyph, no glass circle), at `max(54, safe top + 8)`; `TabHeader.listPadding` is gutter 20, 8 on top, 132 + inset below |
 
@@ -633,7 +633,7 @@ toasts its own error, and a cancel changes nothing.
 
 **Session sheet** — Pause and N-reel unblocks start here, with no wait and no slide
 ([05](05-plans-pause-conscious.md) §9). The `ModeCard`'s **Pause** opens `SessionDialogs.showPause`
-**By time**: 1–10 min, default 5, picks 1 · 3 · 5 · 10. The ring's **Unblock** pill opens
+**By time**: 1–10 min, default 5, picks 1 · 3 · 5 · 10. The `ModeCard`'s **Unblock** opens
 `SessionDialogs.showReels` **By reel count**: 1–20 reels, default 10, picks 5 · 10 · 15 · 20. The
 bounds live in `SessionDefaults`, and native clamps a reel allowance to 1..20 as well. Neither sheet
 has a switch inside.

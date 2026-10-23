@@ -19,8 +19,8 @@ see [`../code_docs/`](../code_docs/00-index.md).)
   Snapchat and more — it pulls you out (Back / close / lock).
 - **Blocking modes** — two that **stick** (**Block All**, the default, and **Conscious**,
   earn watch-time by staying off first) plus **temporary** overrides that auto-return
-  to your base mode when done: **One Reel** (watch one) and **Pause** — one sheet to unblock
-  for a few minutes (1–10) or a set number of reels (1–20, an **Unblock**).
+  to your base mode when done: **One Reel** (watch one), **Pause** (a few minutes, 1–10) and
+  **Unblock** (a set number of reels, 1–20).
 - **App Blocker**, **Web Blocker**, a **Daily limit** and **Blocker rules** for broader control.
 - **On-device reel counter** — a floating bubble + a home-screen widget that count the short
   videos you scroll, so the habit becomes visible.

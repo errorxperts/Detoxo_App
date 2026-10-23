@@ -91,19 +91,19 @@ says the tour points it out and turns it on):
   target keys only exist on the Today tab, so it replays via the established pattern:
   `SettingsCubit.setShowcaseSeen(value: false)` + `context.go(Routes.home)`; Today's
   (`dashboard_tab.dart`) coordinator restarts the tour on the flag's true→false edge once front-most. The tour is
-  **six steps** (`featureShowcaseStepCount = 6`, defined in
+  **seven steps** (`featureShowcaseStepCount = 7`, defined in
   [`feature_showcase_steps.dart`](../../lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart)):
-  it spotlights all **four mode options** — Block All, Conscious, Pause (a timed break; the
-  ring's Unblock pill owns the reel count), **One Reel** (position 4) — in the Today `ModeCard`'s
-  option order at indices 0–3 (wrapped by `ModeCard.decorateOption`, which `dashboard_tab.dart`
-  points at `showcaseTarget(step: featureShowcaseSteps[i])`) — then the **App Blocker** and **Web Blocker** tiles at
-  `featureShowcaseSteps[4]` / `[5]`. `showcaseTarget(radius:)` rounds the spotlight to its target
+  it spotlights all **five mode options** — Block All, Conscious, Pause (a timed break), One
+  Reel, **Unblock** (position 5, the N-reel count) — in the Today `ModeCard`'s option order at
+  indices 0–4 (wrapped by `ModeCard.decorateOption`, which `dashboard_tab.dart` points at
+  `showcaseTarget(step: featureShowcaseSteps[i])`) — then the **App Blocker** and **Web Blocker**
+  tiles at `featureShowcaseSteps[5]` / `[6]`. `showcaseTarget(radius:)` rounds the spotlight to its target
   (`AppRadius.chip` 20 for the mode options by default; the tiles pass `AppRadius.card` 28; the
   scoped header-button target is a pill). Each step's badge shows the same spec 3D icon as the
   widget it points at: `ShowcaseStep.image` is an `AssetGenImage`
   (`Assets.images.icons.iconBlockAll`, `iconConscious`, `iconPause` — the stopwatch —,
-  `iconOneReel`, `iconAppBlocker`, `iconWebBlocker` — the globe), drawn bare by `Icon3d` at 56,
-  **uncropped** (the spec never crops its icons). `ShowcaseStep.accentTint` (true for the four
+  `iconOneReel`, `iconReelCount`, `iconAppBlocker`, `iconWebBlocker` — the globe), drawn bare by `Icon3d` at 56,
+  **uncropped** (the spec never crops its icons). `ShowcaseStep.accentTint` (true for the five
   mode steps) tints it to the live accent, as the `ModeCard` tints its options; the blocker
   steps stay untinted like their tiles. `ShowcaseStep.icon` (`IconData`) is the alternative for
   a step with no 3D icon — a neutral 56 `IconBadge`, used by the feedback coach-mark below. A
@@ -223,7 +223,7 @@ Both tiles push the same reusable
 - `lib/features/additional_feature/app_feedback/presentation/widgets/glass_feedback_form.dart`, `feedback_rating_selector.dart`, `feedback_category_chips.dart`, `presentation/theme/feedback_theme.dart` (the report form)
 - `lib/core/constants/app_constants.dart` (`AppLegal` URLs)
 - `pubspec.yaml` (`webview_flutter` dependency)
-- `lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart` (6-step keys/order/content, the spec icons)
+- `lib/features/additional_feature/showcase_view/data/feature_showcase_steps.dart` (7-step keys/order/content, the spec icons)
 - `lib/features/additional_feature/showcase_view/domain/showcase_step.dart` (`image` 3D icon / `icon` glyph badge art, `accentTint`)
 - `lib/features/additional_feature/showcase_view/presentation/feature_showcase.dart` (both hosts with `disableMovingAnimation`, scoped-tour helpers, shared `_target`)
 - `lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart` (sheet-material card, `onNext` / `onSkip`; `_StepBadge` draws `Icon3d` at 56)
