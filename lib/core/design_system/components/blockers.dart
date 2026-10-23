@@ -370,9 +370,12 @@ class BlockerRulesRow extends StatelessWidget {
   }
 }
 
-/// One swipe action of a blocklist row's `ActionPane` (App and Web Blocker):
-/// its own [tone]-tinted rounded surface, the row card's radius, separated by
-/// a small gap so the pane reads as sibling cards. Read as one button named
+/// One swipe action of a blocklist row's `ActionPane` (App and Web Blocker),
+/// in the mode card's material: a solid `option` tile at the row radius,
+/// `optionBase` washed with [tone] at `kChip` (the chip's strength), inset
+/// inside the row so the pane reads as calm sibling pills. The [icon] sits in
+/// a [tone] disc in `startInk` (white in Light, deep navy in Dark, as on
+/// the Start pill); the [label] is ink. Read as one button named
 /// [semanticLabel].
 class RowAction extends StatelessWidget {
   const RowAction({
@@ -390,42 +393,59 @@ class RowAction extends StatelessWidget {
   final String semanticLabel;
   final void Function(BuildContext) onPressed;
 
+  static const double _disc = 30;
+
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     return CustomSlidableAction(
       onPressed: onPressed,
       backgroundColor: Colors.transparent,
       foregroundColor: tone,
-      // The gap between the row card / previous action and this surface.
-      padding: const EdgeInsets.only(left: AppSpacing.xs),
+      // Inset inside the row: a gap before it and a breath above and below.
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xs,
+        AppSpacing.xxs,
+        0,
+        AppSpacing.xxs,
+      ),
       // Press overlay tracks the rounded shape.
-      borderRadius: AppRadius.brLg,
+      borderRadius: BorderRadius.circular(AppRadius.row),
       child: Semantics(
         label: semanticLabel,
         button: true,
         excludeSemantics: true,
-        // Fill the pane height so the surface matches the row card height.
         child: SizedBox.expand(
-          child: DecoratedBox(
-            decoration: ShapeDecoration(
-              color: tone.withValues(alpha: 0.18),
-              shape: AppRadius.continuous(
-                AppRadius.lg,
-                side: BorderSide(color: tone.withValues(alpha: 0.35)),
+          child: GlassContainer(
+            surface: DxSurface.option,
+            color: Color.lerp(t.optionBase, tone, t.kChip),
+            borderRadius: AppRadius.row,
+            padding: const EdgeInsets.all(AppSpacing.xxs),
+            // Large text shrinks the pair rather than spilling out of the row.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: tone,
+                      shape: BoxShape.circle,
+                    ),
+                    child: SizedBox.square(
+                      dimension: _disc,
+                      child: Icon(icon, size: 18, color: t.startInk),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.caption.copyWith(color: t.ink),
+                  ),
+                ],
               ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: tone),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.caption.copyWith(color: tone),
-                ),
-              ],
             ),
           ),
         ),

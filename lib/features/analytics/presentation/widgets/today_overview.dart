@@ -40,6 +40,7 @@ class TodayOverview extends StatelessWidget {
       children: [
         const SectionHeader('Today'),
         GlassCard(
+          flat: true,
           // The tiles keep their own `sm` padding, so their text sits 16 dp in
           // from the rim (`AppInsets.card`) and the hairline runs level with it.
           padding: const EdgeInsets.all(AppSpacing.xxs),

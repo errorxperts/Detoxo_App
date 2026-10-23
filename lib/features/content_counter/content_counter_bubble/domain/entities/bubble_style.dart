@@ -11,7 +11,7 @@ import 'package:equatable/equatable.dart';
 /// produce an unusable bubble. Unknown (legacy) keys are ignored.
 class BubbleStyle extends Equatable {
   const BubbleStyle({
-    this.variant = BubbleVariant.mascot,
+    this.variant = BubbleVariant.ring,
     this.size = sizeDefault,
     this.opacity = opacityDefault,
   });
@@ -40,7 +40,9 @@ class BubbleStyle extends Equatable {
   // Field ranges (also drive the sliders).
   static const double sizeMin = 48;
   static const double sizeMax = 80;
-  static const double sizeDefault = 68;
+
+  /// New installs start at the smallest bubble, the least in the way.
+  static const double sizeDefault = sizeMin;
   static const double opacityMin = 0.5;
   static const double opacityMax = 1;
   static const double opacityDefault = 1;

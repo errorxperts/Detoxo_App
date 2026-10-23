@@ -7,8 +7,9 @@
 /// The visual style of the floating counter bubble: one of six board designs.
 /// Each is a shell (the circle's chrome) plus a face (what it shows), drawn
 /// natively and mirrored by a Flutter preview; the colour always follows
-/// today's DS-01 tier (`BubbleModel.tier`). A stored style that is no longer
-/// offered (NEON, STEPS, WEATHER, OUTLINE) reads back as [mascot].
+/// today's DS-01 tier (`BubbleModel.tier`). [ring] is the default; a stored
+/// style that is no longer offered (NEON, STEPS, WEATHER, OUTLINE) reads back
+/// as it.
 enum BubbleVariant {
   mascot('MASCOT', 'Mascot'),
   ring('RING', 'Ring'),
@@ -24,7 +25,7 @@ enum BubbleVariant {
   final String label;
 
   static BubbleVariant fromWire(String? v) =>
-      values.firstWhere((e) => e.wire == v, orElse: () => BubbleVariant.mascot);
+      values.firstWhere((e) => e.wire == v, orElse: () => BubbleVariant.ring);
 }
 
 /// The glass background treatment of the block screen (`BlockScreenStyle`).

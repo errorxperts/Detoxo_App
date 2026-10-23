@@ -901,6 +901,17 @@ abstract final class AppTypography {
     fontFeatures: [FontFeature.tabularFigures()],
   );
 
+  /// Tab header titles ("Detoxo", "Insights"): title-xl stepped down so the header sits lighter over the ring.
+  static const TextStyle titleLg = TextStyle(
+    fontFamily: family,
+    fontSize: 28,
+    height: 34 / 28,
+    fontWeight: FontWeight.w800,
+    letterSpacing: -0.6,
+    leadingDistribution: TextLeadingDistribution.even,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
   /// Time left in the ring; the Pause countdown.
   static const TextStyle number = TextStyle(
     fontFamily: family,

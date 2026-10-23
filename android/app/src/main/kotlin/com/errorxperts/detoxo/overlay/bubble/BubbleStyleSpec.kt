@@ -9,8 +9,8 @@ import org.json.JSONObject
  * ranges. [ALL] is the source of truth for variant validation.
  */
 internal data class BubbleStyleSpec(
-    val variant: String = MASCOT,
-    val sizeDp: Float = 68f,
+    val variant: String = RING,
+    val sizeDp: Float = 48f,
     val opacity: Float = 1f,
 ) {
     companion object {
@@ -25,8 +25,9 @@ internal data class BubbleStyleSpec(
 
         /**
          * Parses the persisted style. Null, empty, or malformed input yields
-         * the defaults; an unknown variant (including the retired NEON, STEPS,
-         * WEATHER and OUTLINE) becomes [MASCOT]; a wrong-typed
+         * the defaults (the Ring at the smallest 48 dp); an unknown variant
+         * (including the retired NEON, STEPS, WEATHER and OUTLINE) becomes
+         * [RING]; a wrong-typed
          * field falls back to its default; size and opacity are clamped.
          */
         fun fromJson(json: String?): BubbleStyleSpec = try {
@@ -35,9 +36,9 @@ internal data class BubbleStyleSpec(
             } else {
                 val obj = JSONObject(json)
                 BubbleStyleSpec(
-                    variant = obj.optString("variant", MASCOT).takeIf { it in ALL } ?: MASCOT,
-                    sizeDp = obj.optDouble("size", 68.0).takeUnless { it.isNaN() }
-                        ?.toFloat()?.coerceIn(48f, 80f) ?: 68f,
+                    variant = obj.optString("variant", RING).takeIf { it in ALL } ?: RING,
+                    sizeDp = obj.optDouble("size", 48.0).takeUnless { it.isNaN() }
+                        ?.toFloat()?.coerceIn(48f, 80f) ?: 48f,
                     opacity = obj.optDouble("opacity", 1.0).takeUnless { it.isNaN() }
                         ?.toFloat()?.coerceIn(0.5f, 1f) ?: 1f,
                 )

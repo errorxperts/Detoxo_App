@@ -48,7 +48,7 @@ void main() {
   testWidgets('Skip and Next are at least 48 x 48', (tester) async {
     await _pump(tester);
     await tester.pumpAndSettle();
-    for (final button in [SecondaryButton, PrimaryButton]) {
+    for (final button in [SecondaryButton, LiquidPill]) {
       final size = tester.getSize(find.byType(button));
       expect(size.width, greaterThanOrEqualTo(48), reason: '$button');
       expect(size.height, greaterThanOrEqualTo(48), reason: '$button');

@@ -190,6 +190,7 @@ class GlassContainer extends StatelessWidget {
     this.padding = AppInsets.card,
     this.color,
     this.backdrop = true,
+    this.flat = false,
     super.key,
   });
 
@@ -211,6 +212,10 @@ class GlassContainer extends StatelessWidget {
   /// blur only switches off.
   final bool backdrop;
 
+  /// Drops the role's outer drop shadows, keeping its inset edge light: a
+  /// surface that sits flush on the ground (the Insights cards).
+  final bool flat;
+
   /// The role of the nearest enclosing [GlassContainer], or null.
   static DxSurface? surfaceOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_SurfaceScope>()?.surface;
@@ -229,7 +234,7 @@ class GlassContainer extends StatelessWidget {
     // ponytail: panels never blur — only the smooth ground gradient sits
     // behind them, where a blur is invisible. Add one if a panel ever floats
     // over imagery.
-    final (gradient, angle, shadows, blur, saturate) = switch (surface) {
+    final (gradient, angle, roleShadows, blur, saturate) = switch (surface) {
       DxSurface.glass => (
         [t.glassTop, t.glassBottom],
         180.0,
@@ -260,6 +265,12 @@ class GlassContainer extends StatelessWidget {
         AppTokens.sheetSaturate,
       ),
     };
+    final shadows = flat
+        ? [
+            for (final s in roleShadows)
+              if (s.inset) s,
+          ]
+        : roleShadows;
     final fill = color ?? (surface == DxSurface.option ? t.optionBase : null);
     final content = _SurfaceScope(
       surface: surface,

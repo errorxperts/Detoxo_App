@@ -190,6 +190,7 @@ class _ByAppSectionState extends State<ByAppSection>
         // the spec's card gap.
         const SizedBox(height: AppSpacing.gap),
         GlassCard(
+          flat: true,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

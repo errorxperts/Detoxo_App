@@ -103,6 +103,7 @@ class _Loading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const GlassCard(
+      flat: true,
       child: LoadingState(message: 'Reading your screen time…'),
     );
   }
@@ -160,6 +161,7 @@ class _DistractionCard extends StatelessWidget {
         ? 'Nothing yet today'
         : '${formatHm(stats.distraction)} · $share% of screen time';
     return GlassCard(
+      flat: true,
       // The flat tiles keep their own `sm` padding; the bar block takes the
       // same, so text and hairline sit level at 16 dp from the rim.
       padding: const EdgeInsets.all(AppSpacing.xxs),

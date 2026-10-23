@@ -7,10 +7,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('BubbleStyle', () {
-    test('defaults', () {
+    test('defaults: the Ring at the smallest size, opaque', () {
       const s = BubbleStyle.defaults();
-      expect(s.variant, BubbleVariant.mascot);
-      expect(s.size, 68);
+      expect(s.variant, BubbleVariant.ring);
+      expect(s.size, BubbleStyle.sizeMin);
       expect(s.opacity, 1);
     });
 
@@ -62,11 +62,11 @@ void main() {
       );
     });
 
-    test('retired styles read back as Mascot', () {
+    test('retired styles read back as Ring', () {
       for (final w in ['NEON', 'STEPS', 'WEATHER', 'OUTLINE']) {
         expect(
           BubbleStyle.fromWire({'variant': w, 'size': 72.0}).variant,
-          BubbleVariant.mascot,
+          BubbleVariant.ring,
           reason: w,
         );
       }
@@ -80,15 +80,15 @@ void main() {
       expect(BubbleStyle.fromWire(const {'opacity': 0.1}).opacity, 0.5);
       expect(
         BubbleStyle.fromWire(const {'variant': 'NOPE'}).variant,
-        BubbleVariant.mascot,
+        BubbleVariant.ring,
       );
-      expect(BubbleStyle.fromWire(const {'size': 'big'}).size, 68);
+      expect(BubbleStyle.fromWire(const {'size': 'big'}).size, 48);
     });
 
-    test('a wrong-typed variant falls back to mascot without throwing', () {
+    test('a wrong-typed variant falls back to ring without throwing', () {
       expect(
         BubbleStyle.fromWire(const {'variant': 5}).variant,
-        BubbleVariant.mascot,
+        BubbleVariant.ring,
       );
     });
   });

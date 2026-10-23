@@ -9,9 +9,13 @@ import 'package:flutter_test/flutter_test.dart';
 class _FakeAppearance implements CounterAppearanceRepository {
   final bubbles = <BubbleStyle>[];
 
+  // These tests drive the carousel from its first page, Mascot (new installs
+  // start on Ring at the smallest size).
   @override
   Future<CounterAppearance> current() async =>
-      const CounterAppearance.defaults();
+      const CounterAppearance.defaults().copyWith(
+        bubble: const BubbleStyle(variant: BubbleVariant.mascot, size: 68),
+      );
 
   @override
   Future<void> setBubbleStyle(BubbleStyle style) async => bubbles.add(style);

@@ -147,6 +147,10 @@ void main() {
       AppTypography.titleXl.leadingDistribution,
       TextLeadingDistribution.even,
     );
+    // The tab header's title: title-xl stepped down to 28/34.
+    expect(AppTypography.titleLg.fontSize, 28);
+    expect(AppTypography.titleLg.height, 34 / 28);
+    expect(AppTypography.titleLg.fontWeight, AppTypography.titleXl.fontWeight);
     expect(AppTypography.label.letterSpacing, 0); // CSS `normal`, not M3's
     expect(AppTypography.number.fontFeatures, [
       const FontFeature.tabularFigures(),

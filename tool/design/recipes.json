@@ -97,7 +97,8 @@
       { "name": "number-lg", "base": "number", "fontSize": "58px", "lineHeight": "58px", "letterSpacing": "-2.4px", "usage": "Value inside the Session sheet's value ring (Compact Guide number-lg)." },
       { "name": "eyebrow-lg", "base": "caption", "fontSize": "14px", "lineHeight": "18px", "letterSpacing": "1.8px", "usage": "Unit inside the Session sheet's value ring, uppercase (Compact Guide eyebrow-lg)." },
       { "name": "count", "base": "subhead", "fontWeight": 700, "usage": "Counts such as \"2 on\" and \"Tap to set up\" (Compact Guide count)." },
-      { "name": "label-strong", "base": "label", "fontWeight": 800, "usage": "Stats numbers, \"Blocker rules\", quick-pick numbers (Compact Guide label-strong)." }
+      { "name": "label-strong", "base": "label", "fontWeight": 800, "usage": "Stats numbers, \"Blocker rules\", quick-pick numbers (Compact Guide label-strong)." },
+      { "name": "title-lg", "base": "title-xl", "fontSize": "28px", "lineHeight": "34px", "letterSpacing": "-0.6px", "usage": "Tab header titles (\"Detoxo\", \"Insights\"): title-xl stepped down so the header sits lighter over the ring." }
     ]
   },
   "override": {

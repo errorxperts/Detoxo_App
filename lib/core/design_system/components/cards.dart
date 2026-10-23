@@ -6,22 +6,24 @@ import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// A frosted panel, optionally tappable. For a titled section put a
-/// `SectionHeader` above it.
+/// `SectionHeader` above it. [flat] drops its drop shadow (the Insights tab).
 class GlassCard extends StatelessWidget {
   const GlassCard({
     required this.child,
     this.onTap,
     this.padding = AppInsets.card,
+    this.flat = false,
     super.key,
   });
 
   final Widget child;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry padding;
+  final bool flat;
 
   @override
   Widget build(BuildContext context) {
-    final card = GlassContainer(padding: padding, child: child);
+    final card = GlassContainer(padding: padding, flat: flat, child: child);
     if (onTap == null) return card;
     return AppPressable(onTap: onTap!, child: card);
   }

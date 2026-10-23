@@ -591,6 +591,11 @@ internal object DxTokens {
     const val TITLE_XL_LINE: Float = 40f
     const val TITLE_XL_WEIGHT: Int = 800
     const val TITLE_XL_TRACKING_EM: Float = -1f / 34f
+    /** Tab header titles ("Detoxo", "Insights"): title-xl stepped down so the header sits lighter over the ring. */
+    const val TITLE_LG_SIZE: Float = 28f
+    const val TITLE_LG_LINE: Float = 34f
+    const val TITLE_LG_WEIGHT: Int = 800
+    const val TITLE_LG_TRACKING_EM: Float = -0.6f / 28f
     /** Time left in the ring; the Pause countdown. */
     const val NUMBER_SIZE: Float = 48f
     const val NUMBER_LINE: Float = 48f

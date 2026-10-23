@@ -7,6 +7,7 @@ class BubbleStyleSpecTest {
 
     @Test
     fun defaultsOnNullAndEmpty() {
+        assertEquals(BubbleStyleSpec(BubbleStyleSpec.RING, 48f, 1f), BubbleStyleSpec())
         assertEquals(BubbleStyleSpec(), BubbleStyleSpec.fromJson(null))
         assertEquals(BubbleStyleSpec(), BubbleStyleSpec.fromJson(""))
     }
@@ -28,7 +29,7 @@ class BubbleStyleSpecTest {
     }
 
     @Test
-    fun legacyAndUnknownVariantsFallBackToMascot() {
+    fun legacyAndUnknownVariantsFallBackToRing() {
         assertEquals(
             BubbleStyleSpec(),
             BubbleStyleSpec.fromJson("""{"variant":"GLASS_ORB","textScale":1.2,"showTime":true}"""),
@@ -37,10 +38,10 @@ class BubbleStyleSpecTest {
     }
 
     @Test
-    fun retiredStylesReadBackAsMascot() {
+    fun retiredStylesReadBackAsRing() {
         for (v in listOf("NEON", "STEPS", "WEATHER", "OUTLINE")) {
             val spec = BubbleStyleSpec.fromJson("""{"variant":"$v","size":72}""")
-            assertEquals(v, BubbleStyleSpec.MASCOT, spec.variant)
+            assertEquals(v, BubbleStyleSpec.RING, spec.variant)
             assertEquals(v, 72f, spec.sizeDp, 0.0001f)
         }
     }

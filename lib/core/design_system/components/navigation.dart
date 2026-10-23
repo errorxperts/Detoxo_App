@@ -178,7 +178,7 @@ class _Tab extends StatelessWidget {
   }
 }
 
-/// A tab's header row: the [title] in title-xl ink (a heading for screen
+/// A tab's header row: the [title] in title-lg (28) ink (a heading for screen
 /// readers), then [actions], then the glass "Menu" button that opens the
 /// sidebar.
 ///
@@ -216,7 +216,7 @@ class TabHeader extends StatelessWidget {
             header: true,
             child: Text(
               title,
-              style: AppTypography.titleXl.copyWith(color: t.ink),
+              style: AppTypography.titleLg.copyWith(color: t.ink),
             ),
           ),
         ),

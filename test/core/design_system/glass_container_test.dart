@@ -64,6 +64,32 @@ void main() {
     });
   });
 
+  testWidgets('flat keeps only the inset edge light, no drop shadow', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const GlassContainer(flat: true, child: SizedBox()),
+      brightness: Brightness.light,
+    );
+    final painter = tester
+        .widgetList<CustomPaint>(
+          find.descendant(
+            of: find.byType(GlassContainer),
+            matching: find.byType(CustomPaint),
+          ),
+        )
+        .map((c) => c.painter)
+        .whereType<DxSurfacePainter>()
+        .single;
+    expect(painter.shadows, isNotEmpty);
+    expect(painter.shadows.every((s) => s.inset), isTrue);
+    expect(
+      painter.shadows.length,
+      AppTokens.light.shadowCard.where((s) => s.inset).length,
+    );
+  });
+
   testWidgets('surfaceOf reports the nearest enclosing role', (tester) async {
     DxSurface? inside;
     DxSurface? outside;
