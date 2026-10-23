@@ -119,6 +119,27 @@ void main() {
     expect(ShowcaseView.getNamed('test').disableMovingAnimation, isTrue);
   });
 
+  testWidgets('each step reads in its own mode colour', (tester) async {
+    const t = AppTokens.light;
+    final want = [
+      t.blockAll,
+      t.conscious,
+      t.oneReel,
+      t.pause,
+      t.pause,
+      t.brand,
+      t.brand,
+    ];
+    for (var i = 0; i < featureShowcaseSteps.length; i++) {
+      await _pump(tester, index: i, reduceMotion: true);
+      expect(
+        tester.widget<LiquidPill>(find.byType(LiquidPill)).tint,
+        want[i].main,
+        reason: featureShowcaseSteps[i].title,
+      );
+    }
+  });
+
   testWidgets("the spotlight dim is the theme's scrim, not black", (
     tester,
   ) async {

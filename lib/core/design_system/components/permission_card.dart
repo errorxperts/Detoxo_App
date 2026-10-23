@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 
 /// Generic shell for a permission row: a neutral icon badge, the title, a
 /// one-line "why", then the status in words — On, Needs access or Checking… —
-/// with the grant control beside it. Its own panel only when it is not on a
+/// with the grant control beside it: the brand accent pill, so the one thing
+/// to do on the row stands out. Its own panel only when it is not on a
 /// surface already. Feature code (PermissionRow) binds an `AppPermission` to
 /// this shell.
 class PermissionCard extends StatelessWidget {
@@ -56,10 +57,14 @@ class PermissionCard extends StatelessWidget {
     // recover by themselves, stay button-free.
     final action = granted || (unknown && actionLabel == null)
         ? null
-        : SecondaryButton(
-            label:
-                actionLabel ?? (permanentlyDenied ? 'Open settings' : 'Grant'),
+        : LiquidPill(
+            tint: t.brand.main,
             onPressed: onGrant,
+            child: Text(
+              actionLabel ?? (permanentlyDenied ? 'Open settings' : 'Grant'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           );
     final status = granted
         ? const Pill(label: 'On', tone: AppTone.success)
@@ -87,7 +92,8 @@ class PermissionCard extends StatelessWidget {
                       child: status,
                     ),
                   ),
-                  ?action,
+                  // Room for "Open settings" at large text, ellipsized last.
+                  if (action != null) Flexible(child: action),
                 ],
               ),
             ],

@@ -389,9 +389,8 @@ surfaced by the permission gate / setup screen.)
 - The ring has no button; every mode change is a ModeCard option:
   - Block All calls `setPlan(blockAll)` directly; this also ends a Pause or a reel session.
   - Conscious opens `SessionDialogs.showConscious`: the intro, or the live sheet when it is on.
-  - One Reel opens the caution `ConfirmSheet` ("Watch one reel?", the tinted `iconOneReel` at
-    `ConfirmSheet.iconSize`). A slide calls `setOneReel(count: 1)`, then the toast "One reel
-    unblocked".
+  - One Reel is direct (the user dropped its confirm, 2026-10-23): `setOneReel(count: 1)`,
+    then the toast "One reel unblocked" with **Undo** (blocks now).
   - Pause opens `SessionDialogs.showPause` (By time).
   - Unblock (the tinted `iconReelCount`) opens `SessionDialogs.showReels` (By reel count).
 - A repeat tap on the lit Block All does nothing; on the lit One Reel, Pause or Unblock it blocks
@@ -610,13 +609,13 @@ the mode icons, the accent pill tint (the block screen's primary action), the ta
 
 #### Where the ConfirmSheet, the Session sheet and Undo are used
 
-**ConfirmSheet** guards every action that weakens protection — 12 call sites. Each one awaits
+**ConfirmSheet** guards every action that weakens protection — 11 call sites (One Reel left
+the list on 2026-10-23: it unblocks a single reel at once, with Undo on its toast). Each one awaits
 `true`, then commits, then toasts only once the state shows the commit landed; a failed commit
 toasts its own error, and a cancel changes nothing.
 
 | Action | Where | Tone · icon | Title · slide | Toast |
 |---|---|---|---|---|
-| One Reel | Today's `ModeCard` (`dashboard_tab.dart`) | caution · `iconOneReel`, tinted | "Watch one reel?" · "Slide to unblock" | "One reel unblocked" |
 | Allow an app · a site · the wall fallback · an override | `showUnblockDurationSheet` (`limits/unblock`), called from `app_block_screen.dart`, `web_block_screen.dart`, `pending_unblock_listener.dart`, `override_tile.dart` | caution · `iconAppBlocker` / `iconWebBlocker` / `iconBlockerRules` | "Unblock {app}?", "Unblock {site}?", "Unblock this app?", "Lift {rule} for a while?", with 5 / 15 / 30 / 60-minute chips | "{app} unblocked for 15 min", "Unblocked for 15 min", "{rule} lifted for 15 min" ([31](31-locked-rules-and-unblock.md)) |
 | 18+ filter off · sites of blocked apps off | `web_protection_screen.dart` | critical · `iconWebBlocker` | "Turn off the 18+ filter?" · "Unblock sites of blocked apps?" · "Slide to turn off" | "18+ filter off" · "Sites of blocked apps unblocked" |
 | Blocking off (master switch) | `settings_screen.dart` | critical · `iconBlockAll`, tinted | "Turn off blocking?" · "Slide to turn off" | "Blocking is off" |

@@ -42,6 +42,7 @@ const int featureShowcaseStepCount = 7;
 final List<ShowcaseStep> featureShowcaseSteps = [
   ShowcaseStep(
     key: FeatureShowcaseKeys.blockAll,
+    palette: (t) => t.blockAll,
     image: Assets.images.icons.iconBlockAll,
     accentTint: true,
     title: 'Block All',
@@ -51,6 +52,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.conscious,
+    palette: (t) => t.conscious,
     image: Assets.images.icons.iconConscious,
     accentTint: true,
     title: 'Conscious',
@@ -60,6 +62,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.oneReel,
+    palette: (t) => t.oneReel,
     image: Assets.images.icons.iconOneReel,
     accentTint: true,
     title: 'One Reel',
@@ -70,6 +73,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.pause,
+    palette: (t) => t.pause,
     image: Assets.images.icons.iconPause,
     accentTint: true,
     title: 'Pause',
@@ -79,6 +83,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.unblock,
+    palette: (t) => t.pause,
     image: Assets.images.icons.iconReelCount,
     accentTint: true,
     title: 'Unblock',
@@ -88,6 +93,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.appBlocker,
+    palette: (t) => t.brand,
     image: Assets.images.icons.iconAppBlocker,
     title: 'App Blocker',
     body:
@@ -96,6 +102,7 @@ final List<ShowcaseStep> featureShowcaseSteps = [
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.webBlocker,
+    palette: (t) => t.brand,
     image: Assets.images.icons.iconWebBlocker,
     title: 'Web Blocker',
     body:

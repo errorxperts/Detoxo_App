@@ -70,8 +70,8 @@ change:
   10-minute cap). Dip into reels and the bank counts down; when it hits zero, Detoxo
   eases you back out until you've earned more. It turns "just say no" into a gentle
   give-and-take that rewards patience.
-- **One Reel** — feeling the itch? Tap it, wait a few seconds and slide to confirm, and
-  you can watch a single clip before the feed closes, so one doesn't become fifty.
+- **One Reel** — feeling the itch? Tap it and you can watch a single clip before the
+  feed closes, so one doesn't become fifty.
 - **Pause** — need the feed for a bit (finding a specific video, showing a
   friend)? Tap **Pause** for 1–10 minutes, or **Unblock** for 1–20 reels, tap
   **Start**, and blocking steps aside. When the time or the reels run out,

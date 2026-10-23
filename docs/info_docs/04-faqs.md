@@ -60,7 +60,7 @@ These are the ways Detoxo can behave. You pick whichever fits your goal from the
 | Mode | What it does |
 | --- | --- |
 | **Block All** | The strict default, and a **base** mode. Every reel/short you open is closed straight away, and it stays on until you change it. |
-| **One Reel** | *Temporary.* Lets a single reel play, then returns to your base mode. Scrolling to the next reel is what ends the peek. Each time you tap **One Reel**, a short confirm asks you to wait a few seconds and slide; each slide re-arms one reel. |
+| **One Reel** | *Temporary.* Lets a single reel play, then returns to your base mode. Scrolling to the next reel is what ends the peek. Each time you tap **One Reel**, it re-arms one reel right away (a short message offers **Undo**). |
 | **Unblock** | *Temporary.* You decide how many reels to release: tap **Unblock** in the mode card, pick a count (1–20) with − / + or a quick pick, and tap **Start**. You can watch that many, then it returns to your base mode — tap **Unblock** and start a new count to watch more. |
 | **Conscious** | An "earn-as-you-abstain" **base** mode. You build up a small allowance of watch-time by *staying off* reels (about 1 minute banked for every 10 minutes away, up to 10 minutes saved). While you have allowance, reels play; when it runs out, blocking kicks back in until you've earned more. It keeps you honest without a hard wall. |
 | **Pause** | *Temporary.* A short, deliberate break. Tap **Pause**, choose a window (1–10 minutes) on its dial or a quick pick, and tap **Start**; during it, reels and blocked websites are allowed. When the timer runs out, it returns to your base mode. (Apps you've fully locked on the App Blocker screen stay locked through a Pause.) |

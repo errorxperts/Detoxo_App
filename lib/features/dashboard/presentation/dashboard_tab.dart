@@ -190,8 +190,8 @@ class _TodayLiveState extends State<_TodayLive> {
         : settings.setPlan(settings.state.baseMode);
   }
 
-  /// Block All is direct; Conscious opens its sheet, intro or live; One Reel
-  /// confirms first; Pause opens the Session sheet By time; Unblock opens
+  /// Block All and One Reel are direct; Conscious opens its sheet, intro or
+  /// live; Pause opens the Session sheet By time; Unblock opens
   /// the Session sheet By reel count. A repeat tap on the lit One Reel, Pause
   /// or Unblock blocks now; on Block All it does nothing.
   Future<void> _select(int i, {required int lit}) async {
@@ -208,24 +208,21 @@ class _TodayLiveState extends State<_TodayLive> {
     };
   }
 
+  /// One Reel starts at once (the user dropped its confirm): a single reel,
+  /// then the base mode returns by itself. The toast offers Undo.
   Future<void> _oneReel() async {
-    final settings = context.read<SettingsCubit>();
-    final ok = await ConfirmSheet.show(
+    await context.read<SettingsCubit>().setOneReel(count: 1);
+    if (!mounted) return;
+    GlassToast.show(
       context,
-      icon: Icon3d(
-        Assets.images.icons.iconOneReel,
-        size: ConfirmSheet.iconSize,
-        accentTint: true,
+      'One reel unblocked',
+      action: (
+        label: 'Undo',
+        onPressed: () {
+          if (mounted) unawaited(_blockNow());
+        },
       ),
-      title: 'Watch one reel?',
-      message: 'Reels are blocked again as soon as it ends.',
-      action: 'Slide to unblock',
-      cancel: 'Keep it blocked',
-      tone: ConfirmTone.caution,
     );
-    if (!ok) return;
-    await settings.setOneReel(count: 1);
-    if (mounted) GlassToast.show(context, 'One reel unblocked');
   }
 
   @override

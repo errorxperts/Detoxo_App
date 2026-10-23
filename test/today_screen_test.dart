@@ -13,7 +13,6 @@ import 'package:detoxo/features/content_counter/content_counter.dart';
 import 'package:detoxo/features/dashboard/dashboard.dart';
 import 'package:detoxo/features/dashboard/presentation/widgets/blocker_section.dart';
 import 'package:detoxo/features/limits/limits.dart';
-import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -311,42 +310,19 @@ void main() {
     expect(find.text('Turn off Conscious'), findsOneWidget);
   });
 
-  testWidgets('One Reel: the ConfirmSheet, then one reel and a toast', (
+  testWidgets('One Reel starts at once: no confirm, a toast with Undo', (
     tester,
   ) async {
-    final semantics = tester.ensureSemantics();
     await _pump(tester);
     await _tap(tester, _option('One Reel'));
-    expect(find.text('Watch one reel?'), findsOneWidget);
-    expect(
-      find.text('Reels are blocked again as soon as it ends.'),
-      findsOneWidget,
-    );
-    expect(
-      find.byWidgetPredicate(
-        (w) =>
-            w is Icon3d &&
-            w.asset.path == Assets.images.icons.iconOneReel.path &&
-            w.size == ConfirmSheet.iconSize &&
-            w.accentTint,
-      ),
-      findsOneWidget,
-    );
-
-    // Keep it blocked commits nothing.
-    await tester.tap(find.text('Keep it blocked'));
-    await tester.pumpAndSettle();
-    verifyNever(() => _settings.setOneReel(count: any(named: 'count')));
-
-    await _tap(tester, _option('One Reel'));
-    await tester.pump(const Duration(seconds: 5));
-    await tester.pump(const Duration(milliseconds: 700));
-    tester.semantics.tap(find.semantics.byLabel('Slide to unblock'));
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pumpAndSettle();
+    expect(find.byType(ConfirmSheet), findsNothing);
+    expect(find.text('Watch one reel?'), findsNothing);
     verify(() => _settings.setOneReel(count: 1)).called(1);
     expect(find.text('One reel unblocked'), findsOneWidget);
-    semantics.dispose();
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    verify(() => _settings.setPlan(any())).called(1);
   });
 
   testWidgets('a live Pause: re-tapping the lit Pause resumes', (tester) async {

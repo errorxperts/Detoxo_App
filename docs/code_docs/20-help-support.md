@@ -111,15 +111,20 @@ says the tour points it out and turns it on):
 - **The tooltip card**
   ([`ShowcaseTooltipCard`](../../lib/features/additional_feature/showcase_view/presentation/widgets/showcase_tooltip_card.dart))
   is presentational: `step`, `index`, `total`, `onNext`, `onSkip`. It follows the
-  pre-migration tour's layout in Frozen Glass materials: 280 wide in the sheet material
-  (`GlassContainer(surface: DxSurface.sheet, borderRadius: AppRadius.card)`) washed with the
-  live accent (20 → 6 %, top to bottom) under a 40 % accent edge; a 52 accent-lit badge
+  pre-migration tour's layout in Frozen Glass materials, in the **step's own colour**:
+  `ShowcaseStep.palette` (Block All, Conscious, One Reel and Pause their mode palettes, Unblock
+  the Pause one, the two blockers `brand`) is scoped over the card with an `AccentScope`, so
+  the wash, edge, badge, dots and pill all follow it. 280 wide in the sheet material
+  (`GlassContainer(surface: DxSurface.sheet, borderRadius: AppRadius.card)`) washed with that
+  colour (20 → 6 %, top to bottom) under a 40 % edge; a 52 accent-lit badge
   circle + `headline` ink title, `subhead` ink-2 body, then one row: progress dots (the
   active one a wide accent pill, the rest hairline) inside `Semantics(label: 'Step N of M')`,
   and at the end a `SecondaryButton` **Skip** and a compact accent `LiquidPill` **Next →** /
   **Done ✓** (an `OverflowBar`, so at large text they stack, and a `Wrap` drops them under the
-  dots). It fades in once through
-  `.entrance()` (skipped under Reduce Motion) and never moves after that: both tour hosts set
+  dots). Each step arrives smoothly: the card fades in, rises 6 % and settles from 94 % scale
+  (`medium`, `standard`); the badge pops from 60 % on the press overshoot; title, body and the
+  controls row follow one `stagger` apart (fade + lift); the active dot grows to its pill on
+  the press curve. Reduce Motion shows it all still. Once in, it never moves: both tour hosts set
   `disableMovingAnimation: true`, which stops the package's endless 7 px bob (it ignored Reduce
   Motion), and a custom container gets no package scale animation. The spotlight dims the page
   with the theme's `scrim` at `kScrim0` (navy .38 in Light, .62 in Dark; `_target` in

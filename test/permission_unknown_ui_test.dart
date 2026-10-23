@@ -49,6 +49,14 @@ void main() {
       expect(find.text('Needs access'), findsOneWidget);
       expect(find.text('Grant'), findsOneWidget);
       expect(find.text('Checking…'), findsNothing);
+      // Highlighted: the brand accent pill, not a quiet text button.
+      final grant = tester.widget<LiquidPill>(
+        find.ancestor(
+          of: find.text('Grant'),
+          matching: find.byType(LiquidPill),
+        ),
+      );
+      expect(grant.tint, AppTokens.dark.brand.main);
     });
 
     testWidgets('its own panel standalone, none on a surface', (tester) async {

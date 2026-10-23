@@ -199,13 +199,11 @@ commitments you made in advance, so Detoxo always shows you the wall for them.
 the lightest touch: enough to satisfy a quick curiosity without opening the
 floodgates.
 
-Tap **One Reel** in the mode card. A sheet asks **Watch one reel?** Wait a few
-seconds ("Take a breath…"), then slide to unblock, or tap **Keep it blocked** to
-back out. Once you slide, Detoxo says **One reel unblocked** and you can watch that
-clip; the moment you **scroll on to the next reel**, Detoxo counts it and pulls
-you out — and **returns you to your base mode** (Block All or Conscious). To watch
-another, tap **One Reel** and slide again: each time re-arms a new single-reel
-allowance. Until you've watched it, the mode card reads *One reel left*; tap the
+Tap **One Reel** in the mode card. Detoxo says **One reel unblocked** (with **Undo**
+for a few seconds) and you can watch that clip; the moment you **scroll on to the
+next reel**, Detoxo counts it and pulls you out — and **returns you to your base
+mode** (Block All or Conscious). To watch another, tap **One Reel** again: each tap
+re-arms a new single-reel allowance. Until you've watched it, the mode card reads *One reel left*; tap the
 lit **One Reel** to block again straight away.
 
 ### Unblock — choose how many, then it returns to your base

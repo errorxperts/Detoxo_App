@@ -284,7 +284,7 @@ a platform) can never refill the session mid-watch; only an explicit mode tap do
 After the Nth reel the native gate blocks and the app **auto-reverts to the base
 mode** (§7.4) — it no longer sits blocked waiting for a re-tap.
 
-**How the UI arms.** **One Reel** arms at count 1 once its caution `ConfirmSheet` is slid (no picker). An N-reel
+**How the UI arms.** **One Reel** arms at count 1 straight from its `ModeCard` tap (no picker, no confirm; the toast offers Undo). An N-reel
 session opens `SessionDialogs.showReels` — the Session sheet **By reel count** (a −/+
 stepper over **1–20**, hold to repeat, plus quick picks) — whose **Start** calls `setOneReel(count:)`. A count of 1 is simply One
 Reel. Today's `ModeCard` **Unblock** option opens it. While a session runs, the `ModeCard`
@@ -409,7 +409,7 @@ quotes are a separate, live asset: `assets/content/motivational_quotes.json`, re
 | `ConsciousCubit` | `plans/presentation/conscious_cubit.dart` | Mirrors the native bank (§5.5). Provided app-wide in `main.dart`; watched by the dashboard. |
 | `ReelSessionCubit` | `plans/presentation/reel_session_cubit.dart` | Mirrors the native One Reel / Unblock session (§7.3). Provided app-wide in `main.dart`; watched by Today (`_TodayLive`), whose ring counts the reels left of an N-reel unblock. |
 
-The Today screen (`lib/features/dashboard/presentation/dashboard_tab.dart`, its copy in `today_copy.dart`) is the caller. The `ModeCard`'s **Unblock** opens `showReels`; the `ModeCard`'s **Pause** opens `showPause` and **Conscious** opens `showConscious`. **One Reel** goes through a caution `ConfirmSheet` and then `setOneReel(count: 1)`. **Block All** calls `setPlan(blockAll)` directly. While a session runs, the ring shows it: a live Pause counts down from `PauseSession.remainingIn` ("of a 10 min break"), and an N-reel unblock shows `ReelSessionCubit`'s reels left ("of 5 reels"). A repeat tap on the lit Pause, One Reel or Unblock blocks now: `resumeNow()` for a Pause, `setPlan(baseMode)` otherwise. The lit mode is `modeIndex`: an N-reel unblock lights **Unblock**, a single reel lights **One Reel**. The Conscious bank (`ConsciousState.watching` / `banked`) shows in the mode card's description, not on the ring.
+The Today screen (`lib/features/dashboard/presentation/dashboard_tab.dart`, its copy in `today_copy.dart`) is the caller. The `ModeCard`'s **Unblock** opens `showReels`; the `ModeCard`'s **Pause** opens `showPause` and **Conscious** opens `showConscious`. **One Reel** calls `setOneReel(count: 1)` directly, then toasts with Undo. **Block All** calls `setPlan(blockAll)` directly. While a session runs, the ring shows it: a live Pause counts down from `PauseSession.remainingIn` ("of a 10 min break"), and an N-reel unblock shows `ReelSessionCubit`'s reels left ("of 5 reels"). A repeat tap on the lit Pause, One Reel or Unblock blocks now: `resumeNow()` for a Pause, `setPlan(baseMode)` otherwise. The lit mode is `modeIndex`: an N-reel unblock lights **Unblock**, a single reel lights **One Reel**. The Conscious bank (`ConsciousState.watching` / `banked`) shows in the mode card's description, not on the ring.
 
 ---
 
@@ -437,7 +437,7 @@ The Today screen (`lib/features/dashboard/presentation/dashboard_tab.dart`, its 
 - `lib/features/blocking/shared/domain/entities/app_settings.dart` — plan state, `baseMode` (sticky base plan), `reelAllowance`, `effectiveNativePlan`, `nativePauseUntil`, pause derivation, legacy migration.
 - `lib/features/blocking/shared/presentation/settings_cubit.dart` — plan state machine, `baseMode` recording, Pause ticker + base-mode revert, One Reel / Unblock auto-revert (`reelSessionStream` sub, `_onReelSession`), `enterConscious` (+ `resetConsciousBank`) / `stopConscious`, `setOneReel`.
 - `lib/features/blocking/shared/data/repositories/engine_repository_impl.dart` — `pushSettings` derivation (+ `reelAllowance`), `resetConsciousBank`, `consciousStream`/`consciousCurrent`, `armReelSession`/`reelSessionStream`/`reelSessionCurrent`.
-- `lib/features/dashboard/presentation/dashboard_tab.dart` — the plan surfaces on Today: the `ModeCard` taps (`setPlan`, `showConscious`, `showPause`, the One Reel `ConfirmSheet` → `setOneReel(count: 1)`, Unblock → `showReels`, a lit option re-tapped → block now), the 1 Hz Pause ticker.
+- `lib/features/dashboard/presentation/dashboard_tab.dart` — the plan surfaces on Today: the `ModeCard` taps (`setPlan`, `showConscious`, `showPause`, One Reel → `setOneReel(count: 1)` with an Undo toast, Unblock → `showReels`, a lit option re-tapped → block now), the 1 Hz Pause ticker.
 - `lib/features/dashboard/presentation/today_copy.dart` — `modeIndex` (the lit mode), `ringFace` (the ring for a Pause, an N-reel unblock or the day's time), `modeCopy` (the mode card's description, including the Conscious bank).
 - `lib/core/constants/app_constants.dart` — `EngineTimings`.
 - `android/app/src/main/kotlin/com/errorxperts/detoxo/accessibility/DetoxoAccessibilityService.kt` — Conscious accountant (`syncConscious`, `accountConscious`, `consciousSnapshot`), One Reel / Unblock gate (`allowReelOrBlock`, `armReelSession`, `reelSessionSnapshot`), Pause `pauseUntil` gate, constants.
