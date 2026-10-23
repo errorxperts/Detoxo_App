@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:detoxo/core/design_system/components/dx_icons.dart';
 import 'package:detoxo/core/design_system/foundations/accent.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
@@ -11,23 +14,27 @@ import 'package:flutter/material.dart';
 /// One [ModeCard] option: a spec 3D mode icon and its Title Case label.
 typedef ModeOption = ({AssetGenImage icon, String label});
 
-/// The spec MODE CARD: one solid card holding every blocking mode, in the
-/// live accent.
+/// The spec MODE CARD: one solid card holding every blocking mode; only the
+/// pick wears the live accent.
 ///
-/// - Card: `optionBase` mixed with the accent at `kOption` (Dark's base is
-///   the ring's centre colour); no shadow, gradient or border.
+/// - Card: plain `optionBase` (Dark's base is the ring's centre colour); no
+///   shadow, gradient or border.
+/// - Options: 76 wide (wider when the card has room for all), 8 apart, in a
+///   horizontal scroll clipped to the card's inner radius. A new pick
+///   scrolls into view, as does one past the edge once mounted.
 /// - Chip: behind the pick, the accent at `kChip`; it slides on the chip
 ///   curve with a [Squish] and fades out when [selectedIndex] is null.
-/// - Options: a 34 px accent-tinted [Icon3d] (vivid and 1.08 when picked,
-///   soft and .94 otherwise, .88 while pressed) over a verbatim `caption`
-///   label, ink-2 idle and accent text (Light) or ink (Dark) when picked.
+/// - Each option: a 34 px [Icon3d] (accent and vivid at 1.08 when picked,
+///   neutral grey at .94 otherwise, .88 while pressed) over a verbatim
+///   `caption` label, ink-2 idle and accent text (Light) or ink (Dark) when
+///   picked.
 /// - Description: with a pick and a [title], a hairline and one row (accent
 ///   dot, [title], [detail]) open under the options.
 ///
 /// Every option reports its tap, the picked one too: the caller decides what
 /// a repeat tap means. Each is one focusable radio in a "Blocking mode"
 /// group. Every motion is zero under Reduce Motion.
-class ModeCard extends StatelessWidget {
+class ModeCard extends StatefulWidget {
   const ModeCard({
     required this.options,
     required this.selectedIndex,
@@ -49,22 +56,73 @@ class ModeCard extends StatelessWidget {
   /// Wraps each option, e.g. in a tour showcase target.
   final Widget Function(int index, Widget option)? decorateOption;
 
+  @override
+  State<ModeCard> createState() => _ModeCardState();
+}
+
+class _ModeCardState extends State<ModeCard> {
   static const double _row = 72;
+  static const double _option = 76;
+  static const double _gap = AppSpacing.inset;
+
+  final _scroll = ScrollController();
+
+  /// [_option], or wider to fill a card with room for all [n].
+  static double _width(double viewport, int n) =>
+      math.max(_option, (viewport - (n - 1) * _gap) / n);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(jump: true));
+  }
+
+  @override
+  void didUpdateWidget(ModeCard old) {
+    super.didUpdateWidget(old);
+    if (old.selectedIndex != widget.selectedIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _reveal());
+    }
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  /// Scrolls the least that shows the whole pick.
+  void _reveal({bool jump = false}) {
+    final i = widget.selectedIndex;
+    if (!mounted || i == null || !_scroll.hasClients) return;
+    final p = _scroll.position;
+    final view = p.viewportDimension;
+    final w = _width(view, widget.options.length);
+    final left = i * (w + _gap);
+    final to = math
+        .min(left, math.max(p.pixels, left + w - view))
+        .clamp(p.minScrollExtent, p.maxScrollExtent);
+    if (to == p.pixels) return;
+    final d = context.motion(AppDurations.chip);
+    if (jump || d == Duration.zero) {
+      _scroll.jumpTo(to);
+    } else {
+      unawaited(_scroll.animateTo(to, duration: d, curve: AppCurves.detail));
+    }
+  }
 
   Widget _decorate(int i, Widget option) =>
-      decorateOption?.call(i, option) ?? option;
+      widget.decorateOption?.call(i, option) ?? option;
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final accent = context.accent;
-    final n = options.length;
-    final picked = selectedIndex;
-    final title = this.title;
+    final n = widget.options.length;
+    final picked = widget.selectedIndex;
+    final title = widget.title;
 
     return GlassContainer(
       surface: DxSurface.option,
-      color: Color.lerp(t.optionBase, accent.main, t.kOption),
       padding: const EdgeInsets.all(AppSpacing.inset),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -73,59 +131,72 @@ class ModeCard extends StatelessWidget {
             container: true,
             explicitChildNodes: true,
             label: 'Blocking mode',
-            child: SizedBox(
-              height: _row,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  AnimatedAlign(
-                    duration: context.motion(AppDurations.chip),
-                    curve: AppCurves.chip,
-                    alignment: Alignment(
-                      n > 1 ? -1 + 2 * (picked ?? 0) / (n - 1) : 0,
-                      0,
-                    ),
-                    child: AnimatedOpacity(
-                      opacity: picked == null ? 0 : 1,
-                      // `.dx-chip` fades over .3 s ease.
-                      duration: context.motion(AppDurations.normal),
-                      curve: AppCurves.glide,
-                      child: Squish(
-                        trigger: picked,
-                        child: FractionallySizedBox(
-                          widthFactor: 1 / n,
-                          heightFactor: 1,
-                          child: GlassContainer(
-                            surface: DxSurface.option,
-                            color: Color.lerp(
-                              t.optionBase,
-                              accent.main,
-                              t.kChip,
+            child: ClipRRect(
+              clipper: const _InnerClip(),
+              child: LayoutBuilder(
+                builder: (context, box) {
+                  final w = _width(box.maxWidth, n);
+                  return SingleChildScrollView(
+                    controller: _scroll,
+                    scrollDirection: Axis.horizontal,
+                    // [_InnerClip] clips, a focus ring's reach wider.
+                    clipBehavior: Clip.none,
+                    child: SizedBox(
+                      width: n * w + (n - 1) * _gap,
+                      height: _row,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          AnimatedPositioned(
+                            duration: context.motion(AppDurations.chip),
+                            curve: AppCurves.chip,
+                            left: (picked ?? 0) * (w + _gap),
+                            top: 0,
+                            bottom: 0,
+                            width: w,
+                            child: AnimatedOpacity(
+                              opacity: picked == null ? 0 : 1,
+                              // `.dx-chip` fades over .3 s ease.
+                              duration: context.motion(AppDurations.normal),
+                              curve: AppCurves.glide,
+                              child: Squish(
+                                trigger: picked,
+                                child: GlassContainer(
+                                  surface: DxSurface.option,
+                                  color: Color.lerp(
+                                    t.optionBase,
+                                    context.accent.main,
+                                    t.kChip,
+                                  ),
+                                  borderRadius: AppRadius.chip,
+                                  padding: EdgeInsets.zero,
+                                  child: const SizedBox.expand(),
+                                ),
+                              ),
                             ),
-                            borderRadius: AppRadius.chip,
-                            padding: EdgeInsets.zero,
-                            child: const SizedBox.expand(),
                           ),
-                        ),
+                          Row(
+                            spacing: _gap,
+                            children: [
+                              for (var i = 0; i < n; i++)
+                                SizedBox(
+                                  width: w,
+                                  child: _decorate(
+                                    i,
+                                    _ModeOptionButton(
+                                      option: widget.options[i],
+                                      on: i == picked,
+                                      onTap: () => widget.onSelected(i),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Row(
-                    children: [
-                      for (var i = 0; i < n; i++)
-                        Expanded(
-                          child: _decorate(
-                            i,
-                            _ModeOptionButton(
-                              option: options[i],
-                              on: i == picked,
-                              onTap: () => onSelected(i),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ),
@@ -135,7 +206,7 @@ class ModeCard extends StatelessWidget {
             alignment: Alignment.topCenter,
             child: picked == null || title == null
                 ? const SizedBox(width: double.infinity)
-                : _Description(title: title, detail: detail),
+                : _Description(title: title, detail: widget.detail),
           ),
         ],
       ),
@@ -143,7 +214,25 @@ class ModeCard extends StatelessWidget {
   }
 }
 
-/// One option: the tinted icon over its label, as one radio.
+/// The options' clip: the card's inner radius (the chip's), grown by the
+/// reach of an option's focus ring so no ring is cut.
+class _InnerClip extends CustomClipper<RRect> {
+  const _InnerClip();
+
+  /// [FocusRing]'s 2 px stroke centred 4 px out.
+  static const double _ringReach = 5;
+
+  @override
+  RRect getClip(Size size) => RRect.fromRectAndRadius(
+    Offset.zero & size,
+    const Radius.circular(AppRadius.chip),
+  ).inflate(_ringReach);
+
+  @override
+  bool shouldReclip(_InnerClip old) => false;
+}
+
+/// One option: the icon over its label, as one radio.
 class _ModeOptionButton extends StatelessWidget {
   const _ModeOptionButton({
     required this.option,
@@ -182,7 +271,7 @@ class _ModeOptionButton extends StatelessWidget {
               scale: on ? 1.08 : 0.94,
               duration: context.motion(AppDurations.chip),
               curve: AppCurves.press,
-              // ponytail: the vivid/soft filter snaps while the scale pops;
+              // ponytail: the vivid/grey filter snaps while the scale pops;
               // tween it once Icon3d takes a fractional `selected`.
               child: Icon3d(
                 option.icon,

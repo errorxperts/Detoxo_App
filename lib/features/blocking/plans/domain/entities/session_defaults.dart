@@ -17,7 +17,7 @@ abstract final class SessionDefaults {
   static const List<int> pausePicks = [1, 3, 5, 10];
 
   // ── Unblock (allow N reels, then revert to the base mode) ──────────────────
-  // The Session sheet "By reel count": a ring slider over 1–20 reels (native
+  // The Session sheet "By reel count": a −/+ stepper over 1–20 reels (native
   // clamps the allowance to 1..20), plus [unblockPicks] as one-tap presets.
   // One Reel is the count-1 session armed from the ModeCard without a picker.
   static const int unblockMin = 1;

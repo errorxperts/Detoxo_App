@@ -51,22 +51,41 @@ void main() {
       );
     });
 
-    testWidgets('an idle mode icon is soft: saturate .7 at 80 %', (
+    testWidgets('an idle mode icon is neutral grey at 80 %, any accent', (
       tester,
     ) async {
-      await _pump(
-        tester,
-        Icon3d(_modeIcon, size: 34, accentTint: true, selected: false),
-      );
+      for (final accent in [AppTokens.light.brand, AppTokens.light.pause]) {
+        await _pump(
+          tester,
+          AccentScope(
+            light: accent,
+            dark: accent,
+            child: Icon3d(
+              _modeIcon,
+              size: 34,
+              accentTint: true,
+              selected: false,
+            ),
+          ),
+        );
+        expect(
+          tester.widget<ColorFiltered>(find.byType(ColorFiltered)).colorFilter,
+          Icon3d.idleFilter,
+        );
+      }
+      // CSS grayscale(1): every colour row is the luminance row, alpha .8.
       expect(
-        tester.widget<ColorFiltered>(find.byType(ColorFiltered)).colorFilter,
-        accentIconFilter(
-          AppTokens.light.brand,
-          saturate: AppTokens.iconSaturateOff,
-          opacity: AppTokens.iconOpacityOff,
-        ),
+        Icon3d.idleFilter,
+        ColorFilter.matrix([
+          for (var r = 0; r < 3; r++) ...[0.213, 0.715, 0.072, 0, 0],
+          0,
+          0,
+          0,
+          .8,
+          0,
+        ]),
       );
-      expect((AppTokens.iconSaturateOff, AppTokens.iconOpacityOff), (.7, .8));
+      expect(AppTokens.iconOpacityOff, .8);
     });
 
     testWidgets('a label makes it an image node', (tester) async {

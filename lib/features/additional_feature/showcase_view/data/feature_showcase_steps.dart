@@ -11,8 +11,8 @@ import 'package:flutter/widgets.dart';
 abstract final class FeatureShowcaseKeys {
   static final blockAll = GlobalKey(debugLabel: 'showcase.blockAll');
   static final conscious = GlobalKey(debugLabel: 'showcase.conscious');
-  static final pause = GlobalKey(debugLabel: 'showcase.pause');
   static final oneReel = GlobalKey(debugLabel: 'showcase.oneReel');
+  static final pause = GlobalKey(debugLabel: 'showcase.pause');
   static final unblock = GlobalKey(debugLabel: 'showcase.unblock');
   static final appBlocker = GlobalKey(debugLabel: 'showcase.appBlocker');
   static final webBlocker = GlobalKey(debugLabel: 'showcase.webBlocker');
@@ -21,8 +21,8 @@ abstract final class FeatureShowcaseKeys {
   static List<GlobalKey> get ordered => [
     blockAll,
     conscious,
-    pause,
     oneReel,
+    pause,
     unblock,
     appBlocker,
     webBlocker,
@@ -35,7 +35,7 @@ const int featureShowcaseStepCount = 7;
 /// The ordered content for the seven steps.
 ///
 /// Index 0–4 (the five modes) MUST stay aligned with the Today mode card's
-/// option order — Block All, Conscious, Pause, One Reel, Unblock — since
+/// option order — Block All, Conscious, One Reel, Pause, Unblock — since
 /// `ModeCard.decorateOption` wraps option `i` with `featureShowcaseSteps[i]`.
 /// Index 5–6 are the App Blocker / Web Blocker tiles. The five mode steps tint
 /// their badge to the live accent, as the mode card tints its options.
@@ -59,15 +59,6 @@ final List<ShowcaseStep> featureShowcaseSteps = [
         'whenever you choose.',
   ),
   ShowcaseStep(
-    key: FeatureShowcaseKeys.pause,
-    image: Assets.images.icons.iconPause,
-    accentTint: true,
-    title: 'Pause',
-    body:
-        'Need a breather? Unblock reels for a few minutes, then blocking '
-        'returns to your base mode on its own.',
-  ),
-  ShowcaseStep(
     key: FeatureShowcaseKeys.oneReel,
     image: Assets.images.icons.iconOneReel,
     accentTint: true,
@@ -76,6 +67,15 @@ final List<ShowcaseStep> featureShowcaseSteps = [
         'Watch a single reel, then Detoxo locks straight back to your base '
         'mode. Quick scrolls don’t use it up: a reel counts after a couple of '
         'seconds.',
+  ),
+  ShowcaseStep(
+    key: FeatureShowcaseKeys.pause,
+    image: Assets.images.icons.iconPause,
+    accentTint: true,
+    title: 'Pause',
+    body:
+        'Need a breather? Unblock reels for a few minutes, then blocking '
+        'returns to your base mode on its own.',
   ),
   ShowcaseStep(
     key: FeatureShowcaseKeys.unblock,

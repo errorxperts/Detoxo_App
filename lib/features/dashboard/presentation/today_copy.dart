@@ -6,15 +6,15 @@ import 'package:detoxo/features/blocking/plans/domain/entities/conscious_state.d
 import 'package:detoxo/features/blocking/plans/domain/entities/session_defaults.dart';
 
 /// Which of the Today screen's five modes is lit: 0 Block All, 1 Conscious,
-/// 2 Pause, 3 One Reel, 4 Unblock (an N-reel unblock). The app's live accent
+/// 2 One Reel, 3 Pause, 4 Unblock (an N-reel unblock). The app's live accent
 /// reads the same index, so the lit option and the accent can never disagree.
 int modeIndex(AppSettings s, {required bool pauseLive}) {
-  if (pauseLive) return 2;
+  if (pauseLive) return 3;
   return switch (s.activePlan) {
     BlockingPlan.blockAll => 0,
     BlockingPlan.curious => 1,
-    BlockingPlan.oneReel => s.reelAllowance <= 1 ? 3 : 4,
-    BlockingPlan.paused => 2,
+    BlockingPlan.oneReel => s.reelAllowance <= 1 ? 2 : 4,
+    BlockingPlan.paused => 3,
   };
 }
 
@@ -108,9 +108,10 @@ RingFace ringFace({
 /// The mode card's description row.
 typedef ModeCopy = ({String title, String detail});
 
-/// The description under lit mode [index] ([modeIndex]). With blocking off
-/// it says so, so it never claims reels are blocked.
-ModeCopy modeCopy({
+/// The description under lit mode [index] ([modeIndex]), or none for Block
+/// All, which needs no words. With blocking off it says so, so it never
+/// claims reels are blocked.
+ModeCopy? modeCopy({
   required int index,
   required bool masterOn,
   required DateTime now,
@@ -123,16 +124,16 @@ ModeCopy modeCopy({
   }
   return switch (index) {
     1 => (title: 'Conscious mode', detail: _consciousDetail(conscious)),
-    2 when pause != null => (
+    2 => (title: 'One reel left', detail: 'Blocked again once it ends'),
+    3 when pause != null => (
       title: 'Reels allowed',
       detail: 'Blocking resumes in ${formatCountdown(pause.remainingIn(now))}',
     ),
-    3 => (title: 'One reel left', detail: 'Blocked again once it ends'),
     4 when reels != null => (
       title: 'Reels allowed',
       detail: '${_reels(reels.left)} left, then blocked again',
     ),
-    _ => (title: 'All reels blocked', detail: 'Across every app on your list'),
+    _ => null,
   };
 }
 

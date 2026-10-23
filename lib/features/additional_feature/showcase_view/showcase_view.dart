@@ -1,6 +1,6 @@
 /// Feature showcase / walkthrough — a one-time guided tour of Detoxo's core
-/// features (Block All, Conscious, Pause, One Reel, App Blocker, Web Blocker),
-/// auto-shown once to new users and replayable from Help.
+/// features (Block All, Conscious, One Reel, Pause, Unblock, App Blocker, Web
+/// Blocker), auto-shown once to new users and replayable from Help.
 ///
 /// Public surface:
 /// - `buildFeatureShowcaseScope` — wrap the dashboard subtree (the tour host).

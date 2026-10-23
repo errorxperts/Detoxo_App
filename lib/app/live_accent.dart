@@ -15,9 +15,9 @@ AccentMode accentModeOf(AppSettings s, {required bool pauseLive}) {
   return switch (modeIndex(s, pauseLive: pauseLive)) {
     0 => AccentMode.blockAll,
     1 => AccentMode.conscious,
+    2 => AccentMode.oneReel,
     // An N-reel unblock is a break too: it lights Pause's accent.
-    2 || 4 => AccentMode.pause,
-    _ => AccentMode.oneReel,
+    _ => AccentMode.pause,
   };
 }
 
