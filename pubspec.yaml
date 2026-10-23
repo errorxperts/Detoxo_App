@@ -85,7 +85,8 @@ dependencies:
   # no native iOS control is drawn, and icons are the Frozen Glass Icon3d /
   # Glyph set (M12).
   flutter_animate: ^4.5.2
-  # Swipe-to-reveal row actions (web blocklist rows). First/only swipe surface.
+  # Swipe-to-reveal row actions: the web blocklist rows and the App Blocker
+  # custom-app rows (shared `RowAction`, components/blockers.dart).
   flutter_slidable: ^4.0.0
   showcaseview: ^5.1.0
 

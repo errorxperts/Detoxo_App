@@ -18,6 +18,7 @@ import 'package:detoxo/features/protected_apps/protected_apps.dart';
 import 'package:detoxo/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 
 /// One place to manage blocking: the curated catalog of built-in feeds/surfaces
@@ -145,71 +146,130 @@ class _AppBlockViewState extends State<_AppBlockView> {
   }) {
     return [
       const SectionHeader('Custom apps'),
-      PanelGroup(
-        children: [
-          for (var i = 0; i < custom.length; i++)
-            Builder(
-              builder: (context) {
-                final entry = custom[i];
-                // M8: a live grant on this package. Selected off the cubit's
-                // DERIVED `active` list, so the row actually rebuilds when the
-                // grant lapses instead of holding a dead countdown.
-                //
-                // The clock is read INSIDE the selector, not hoisted above the
-                // loop: provider re-runs this closure on every cubit emit, and
-                // a captured build-time `nowMs` sits before the `startMs` of
-                // any grant made afterwards — so `isActiveAt` stayed false
-                // forever and the line never appeared. The web-blocker row has
-                // the same shape.
-                final grant = context.select<UnblockCubit, TemporaryUnblock?>(
-                  (c) => c.state.activeFor(
-                    UnblockTargetType.app,
-                    entry.packageName,
-                    DateTime.now().millisecondsSinceEpoch,
-                  ),
-                );
-                return Column(
+      // Only one swipe pane open at a time across the list.
+      SlidableAutoCloseBehavior(
+        child: PanelGroup(
+          children: [
+            for (var i = 0; i < custom.length; i++) _customRow(i, custom[i]),
+            if (hint)
+              GlassListTile(
+                leading: Icon(
+                  Icons.notifications_off_outlined,
+                  color: context.tokens.ink2,
+                ),
+                title: 'Locked apps can still notify you',
+                subtitle: 'Turn on Notification silence in Settings → Privacy',
+                onTap: () => context.push(Routes.settings),
+              ),
+          ],
+        ),
+      ),
+    ];
+  }
+
+  /// A custom lock, the web row's shell: Unblock/Block and Remove sit in the
+  /// swipe pane, which a tap also opens; only the timer stays on the row.
+  Widget _customRow(int i, AppBlockEntry entry) {
+    return Builder(
+      builder: (context) {
+        final t = context.tokens;
+        // M8: a live grant on this package. Selected off the cubit's DERIVED
+        // `active` list, so the row actually rebuilds when the grant lapses
+        // instead of holding a dead countdown.
+        //
+        // The clock is read INSIDE the selector, not hoisted above the loop:
+        // provider re-runs this closure on every cubit emit, and a captured
+        // build-time `nowMs` sits before the `startMs` of any grant made
+        // afterwards — so `isActiveAt` stayed false forever and the line never
+        // appeared. The web-blocker row has the same shape.
+        final grant = context.select<UnblockCubit, TemporaryUnblock?>(
+          (c) => c.state.activeFor(
+            UnblockTargetType.app,
+            entry.packageName,
+            DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        return Slidable(
+          key: ValueKey(entry.packageName),
+          groupTag: 'app-blocklist',
+          endActionPane: ActionPane(
+            motion: const DrawerMotion(),
+            // Two actions, the web row's two-action ratio.
+            extentRatio: 0.52,
+            children: [
+              if (entry.enabled)
+                RowAction(
+                  icon: Icons.lock_open,
+                  label: 'Unblock',
+                  tone: t.statusText(t.statusSetup),
+                  semanticLabel: 'Unblock ${entry.appName}',
+                  onPressed: (_) => _lockOff(i, entry),
+                )
+              else
+                RowAction(
+                  icon: Icons.lock_outline,
+                  label: 'Block',
+                  tone: t.brand.main,
+                  semanticLabel: 'Block ${entry.appName}',
+                  onPressed: (_) =>
+                      context.read<AppBlockCubit>().toggle(i, enabled: true),
+                ),
+              RowAction(
+                icon: Icons.delete_outline,
+                label: 'Remove',
+                tone: t.over.main,
+                semanticLabel: 'Remove ${entry.appName}',
+                onPressed: (_) => _remove(i, entry),
+              ),
+            ],
+          ),
+          child: Builder(
+            // A screen reader cannot swipe: the tap opens the same pane, and
+            // the hint says so. A container, not the web row's MergeSemantics:
+            // merging would swallow the timer and "Block now" buttons.
+            builder: (rowContext) => Semantics(
+              container: true,
+              hint: 'Opens block and remove actions',
+              child: AppPressable(
+                onTap: () {
+                  final slidable = Slidable.of(rowContext);
+                  if (slidable == null) return;
+                  if (slidable.ratio == 0) {
+                    slidable.openEndActionPane();
+                  } else {
+                    slidable.close();
+                  }
+                },
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     GlassListTile(
-                      leading: AppIconAvatar(
-                        iconUrl: '',
-                        iconBytes: _appIcons?[entry.packageName],
-                        appName: entry.appName,
+                      // With the switch gone, an off lock reads at a
+                      // glance via a dimmed icon.
+                      leading: AnimatedOpacity(
+                        opacity: entry.enabled ? 1 : 0.45,
+                        duration: context.motion(AppDurations.fast),
+                        child: AppIconAvatar(
+                          iconUrl: '',
+                          iconBytes: _appIcons?[entry.packageName],
+                          appName: entry.appName,
+                        ),
                       ),
                       title: entry.appName,
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // "Let me in for 15 minutes" — the headline of M8,
-                          // and the reason a whole-app lock no longer has to
-                          // be all or nothing. Only offered while the lock is
-                          // actually on; a live grant offers "Block now".
-                          if (entry.enabled && grant == null)
-                            IconButton(
+                      subtitle: entry.enabled ? null : 'Not blocked',
+                      // "Let me in for 15 minutes" — the headline of M8,
+                      // and the reason a whole-app lock no longer has to be
+                      // all or nothing. Only offered while the lock is
+                      // actually on; a live grant offers "Block now".
+                      trailing: entry.enabled && grant == null
+                          ? IconButton(
                               icon: const Icon(Icons.timer_outlined),
                               // The same word the website rows use — one
                               // vocabulary for one mechanism.
                               tooltip: 'Allow ${entry.appName} for a while',
                               onPressed: () => _showAllowSheet(context, entry),
-                            ),
-                          AppToggle(
-                            value: entry.enabled,
-                            semanticLabel: 'Block ${entry.appName}',
-                            onChanged: (v) => v
-                                ? context.read<AppBlockCubit>().toggle(
-                                    i,
-                                    enabled: true,
-                                  )
-                                : _lockOff(i, entry),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            tooltip: 'Remove ${entry.appName}',
-                            onPressed: () => _remove(i, entry),
-                          ),
-                        ],
-                      ),
+                            )
+                          : null,
                     ),
                     if (grant != null)
                       Padding(
@@ -232,22 +292,13 @@ class _AppBlockViewState extends State<_AppBlockView> {
                         ),
                       ),
                   ],
-                );
-              },
-            ),
-          if (hint)
-            GlassListTile(
-              leading: Icon(
-                Icons.notifications_off_outlined,
-                color: context.tokens.ink2,
+                ),
               ),
-              title: 'Locked apps can still notify you',
-              subtitle: 'Turn on Notification silence in Settings → Privacy',
-              onTap: () => context.push(Routes.settings),
             ),
-        ],
-      ),
-    ];
+          ),
+        );
+      },
+    );
   }
 
   // C10: switching one thing off (or removing it) stays one tap. The toast

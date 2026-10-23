@@ -17,6 +17,7 @@ import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/features/limits/limits.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -97,10 +98,10 @@ void main() {
       isTrue,
       reason: 'custom section did not appear after adding YouTube',
     );
-    // The row shows no package id; its Remove button is the unique handle
-    // (the curated section also renders "YouTube").
-    final ytRemove = find.byTooltip('Remove YouTube');
-    expect(ytRemove, findsOneWidget, reason: 'YouTube row missing');
+    // The row shows no package id; scoped to the swipe row, its name is the
+    // unique handle (the curated section also renders "YouTube").
+    final ytRow = find.widgetWithText(Slidable, 'YouTube');
+    expect(ytRow, findsOneWidget, reason: 'YouTube row missing');
     final savedApps = await sl<AppBlockRepository>().load();
     expect(
       savedApps.where((e) => e.packageName == kYouTube && e.enabled),
@@ -117,10 +118,13 @@ void main() {
       reason: 'did not come back to the App Blocker screen after the probe',
     );
 
-    // Cleanup: remove the lock (pushes an explicit [] to native).
-    await tester.tap(ytRemove);
+    // Cleanup: remove the lock via the swipe pane (pushes an explicit [] to
+    // native).
+    await tester.tap(ytRow);
+    await settle(tester, frames: 8);
+    await tester.tap(find.text('Remove'));
     expect(
-      await waitForGone(tester, ytRemove),
+      await waitForGone(tester, ytRow),
       isTrue,
       reason: 'YouTube row did not go away',
     );
