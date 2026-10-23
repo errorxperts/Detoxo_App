@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/navigation/routes.dart';
@@ -36,9 +34,6 @@ class _BlockerSectionState extends State<BlockerSection> {
   /// How many of the two web protections (18+, sites of blocked apps) are on.
   int _protections = 0;
 
-  /// Device icons of the custom locks, by package. Letter tiles until loaded.
-  Map<String, Uint8List> _icons = const {};
-
   @override
   void initState() {
     super.initState();
@@ -64,11 +59,6 @@ class _BlockerSectionState extends State<BlockerSection> {
           settings.blockWebsitesForBlockedApps,
         ].where((on) => on).length;
       });
-      // The icon scan is native and slow the first time; only locks need it.
-      if (locks.isEmpty) return;
-      final apps = await sl<EngineRepository>().installedApps();
-      if (!mounted || apps == null) return;
-      setState(() => _icons = {for (final a in apps) a.packageName: ?a.icon});
     } catch (e, s) {
       AppLogger.e('Blockers section: load failed', e, s);
     }
@@ -100,8 +90,7 @@ class _BlockerSectionState extends State<BlockerSection> {
         (
           e.packageName,
           AppIconAvatar(
-            iconUrl: '',
-            iconBytes: _icons[e.packageName],
+            packageName: e.packageName,
             appName: e.appName,
             size: 28,
             borderRadius: _iconRadius,
@@ -111,7 +100,7 @@ class _BlockerSectionState extends State<BlockerSection> {
         (
           f.packageName,
           AppIconAvatar(
-            iconUrl: f.iconUrl,
+            packageName: f.packageName,
             appName: f.appName,
             size: 28,
             borderRadius: _iconRadius,

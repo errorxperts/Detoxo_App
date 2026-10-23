@@ -8,7 +8,7 @@ AppContentCount _reel(String package, int count) => AppContentCount(
   packageName: package,
   appName: package,
   displayName: '$package reels',
-  iconUrl: 'assets/$package.png',
+  iconUrl: '',
   count: count,
 );
 
@@ -16,7 +16,7 @@ AppContentCount _reel(String package, int count) => AppContentCount(
 /// normalisation and the spoken forms, reachable without a widget tree.
 void main() {
   group('rowsFor', () {
-    test('reels keep the counter order, carry names and icons, and speak', () {
+    test('reels keep the counter order, carry names, and speak', () {
       final rows = ByAppSection.rowsFor(
         ByAppSegment.reels,
         count: ContentCount(perAppToday: [_reel('a', 4), _reel('b', 1)]),
@@ -25,7 +25,6 @@ void main() {
 
       expect(rows.map((r) => r.package), ['a', 'b']);
       expect(rows.first.name, 'a reels');
-      expect(rows.first.iconUrl, 'assets/a.png');
       expect(rows.map((r) => r.fraction), [1.0, 0.25]);
       expect(rows.map((r) => r.spoken), ['4 reels', '1 reel']);
     });

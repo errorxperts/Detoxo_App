@@ -66,7 +66,8 @@ dependencies:
   # FOREGROUND_SERVICE / WAKE_LOCK / RECEIVE_BOOT_COMPLETED into the merged
   # manifest. Background work is the native accessibility service. Re-add when
   # a Dart-side periodic task actually exists.
-  cached_network_image: ^3.4.1
+  # No cached_network_image: app icons are the phone's own (AppIconAvatar
+  # reads the engine's installed-app scan), never fetched.
   # No liquid_swipe / ms_undraw: neither is imported anywhere. Onboarding uses
   # our own PageView, and every illustration is a local asset.
   flutter_svg: ^2.3.0
@@ -183,7 +184,6 @@ flutter:
     - assets/content/
     # Frozen Glass 3D icons + logo (design-system artifact 8CurH1ViCsKXpFeYNtmMRZ).
     - assets/images/icons/
-    - assets/images/social_icon_pack/
     - assets/svg/
     # Manrope's OFL licence ships with the font (registered in the licence page).
     - assets/fonts/OFL.txt

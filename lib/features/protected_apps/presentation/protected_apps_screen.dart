@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:detoxo/core/design_system/design_system.dart';
 import 'package:detoxo/core/di/injector.dart';
 import 'package:detoxo/core/widgets/app_picker_sheet.dart';
@@ -41,22 +39,6 @@ class _ProtectedAppsView extends StatefulWidget {
 
 class _ProtectedAppsViewState extends State<_ProtectedAppsView> {
   String _query = '';
-
-  /// Device icons by package, from the engine's cached scan — also pre-warms
-  /// the cache so the add-picker opens instantly. Null until loaded; rows fall
-  /// back to letter tiles.
-  Map<String, Uint8List>? _appIcons;
-
-  @override
-  void initState() {
-    super.initState();
-    sl<EngineRepository>().installedApps().then((apps) {
-      if (!mounted || apps == null) return;
-      setState(() {
-        _appIcons = {for (final a in apps) a.packageName: ?a.icon};
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,11 +141,8 @@ class _ProtectedAppsViewState extends State<_ProtectedAppsView> {
     ];
   }
 
-  Widget _avatar(ProtectedApp app) => AppIconAvatar(
-    iconUrl: '',
-    iconBytes: _appIcons?[app.packageName],
-    appName: app.appName,
-  );
+  Widget _avatar(ProtectedApp app) =>
+      AppIconAvatar(packageName: app.packageName, appName: app.appName);
 
   /// A user-added entry: removable, nothing else.
   Widget _manualRow(BuildContext context, ProtectedApp app) {

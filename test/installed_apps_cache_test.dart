@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:detoxo/core/platform_channels/engine_channel.dart';
 import 'package:detoxo/core/platform_channels/installed_app.dart';
+import 'package:detoxo/core/utils/device_app_icons.dart';
 import 'package:detoxo/features/blocking/shared/data/repositories/engine_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -62,6 +64,25 @@ void main() {
     expect(await first, [alpha]);
     expect(await second, [alpha]);
     verify(() => channel.installedApps()).called(1);
+  });
+
+  test('each scan that lands refills the device icons by package', () async {
+    final icon = Uint8List.fromList([1, 2, 3]);
+    addTearDown(() => deviceAppIcons.value = const {});
+    when(() => channel.installedApps()).thenAnswer(
+      (_) async => [
+        InstalledApp(packageName: 'com.a', appName: 'A', icon: icon),
+        bravo,
+      ],
+    );
+    await repo.installedApps();
+    // Icon-less apps are left out: their rows draw the letter tile.
+    expect(deviceAppIcons.value, {'com.a': icon});
+
+    // A rescan replaces the map: an uninstalled app's icon goes.
+    when(() => channel.installedApps()).thenAnswer((_) async => [bravo]);
+    await repo.installedApps(refresh: true);
+    expect(deviceAppIcons.value, isEmpty);
   });
 
   test('a failed refresh serves the stale cache instead of nothing', () async {

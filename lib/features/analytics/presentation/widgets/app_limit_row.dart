@@ -27,7 +27,6 @@ class AppLimitRow extends StatelessWidget {
     required this.fraction,
     this.installed,
     this.name,
-    this.iconUrl = '',
     this.spokenTrailing,
     super.key,
   });
@@ -42,9 +41,6 @@ class AppLimitRow extends StatelessWidget {
   /// A label to fall back on before the package name (the reel counter
   /// carries its own display names).
   final String? name;
-
-  /// Icon asset for [AppIconAvatar] when there are no installed-app bytes.
-  final String iconUrl;
 
   /// The figure on the right: "1h 10m", "31".
   final String trailing;
@@ -109,7 +105,7 @@ class AppLimitRow extends StatelessWidget {
     return Row(
       children: [
         AppIconAvatar(
-          iconUrl: iconUrl,
+          packageName: package,
           iconBytes: installed?.icon,
           appName: label,
         ),

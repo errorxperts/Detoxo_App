@@ -31,7 +31,6 @@ enum ByAppSegment {
 typedef ByAppRow = ({
   String package,
   String? name,
-  String iconUrl,
   String trailing,
   String? spoken,
   double fraction,
@@ -75,7 +74,6 @@ class ByAppSection extends StatefulWidget {
           (
             package: a.packageName,
             name: a.displayName,
-            iconUrl: a.iconUrl,
             weight: a.count,
             trailing: '${a.count}',
             spoken: a.count == 1 ? '1 reel' : '${a.count} reels',
@@ -88,7 +86,6 @@ class ByAppSection extends StatefulWidget {
           (
             package: e.key,
             name: null,
-            iconUrl: '',
             weight: e.value,
             trailing: '${e.value}',
             spoken: e.value == 1 ? '1 block' : '${e.value} blocks',
@@ -102,7 +99,6 @@ class ByAppSection extends StatefulWidget {
           (
             package: a.package,
             name: null,
-            iconUrl: '',
             weight: a.foregroundMillis,
             trailing: formatHm(a.foreground),
             spoken: null,
@@ -115,7 +111,6 @@ class ByAppSection extends StatefulWidget {
         (
           package: r.package,
           name: r.name,
-          iconUrl: r.iconUrl,
           trailing: r.trailing,
           spoken: r.spoken,
           fraction: busiest == 0 ? 0.0 : r.weight / busiest,
@@ -210,7 +205,6 @@ class _ByAppSectionState extends State<ByAppSection>
                     package: rows[i].package,
                     installed: insights.apps[rows[i].package],
                     name: rows[i].name,
-                    iconUrl: rows[i].iconUrl,
                     trailing: rows[i].trailing,
                     spokenTrailing: rows[i].spoken,
                     fraction: rows[i].fraction,
