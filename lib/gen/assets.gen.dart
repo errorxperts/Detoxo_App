@@ -101,9 +101,9 @@ class $AssetsSvgGen {
 class $AssetsImagesIconsGen {
   const $AssetsImagesIconsGen();
 
-  /// File path: assets/images/icons/detoxo-logo.webp
+  /// File path: assets/images/icons/detoxo_logo.png
   AssetGenImage get detoxoLogo =>
-      const AssetGenImage('assets/images/icons/detoxo-logo.webp');
+      const AssetGenImage('assets/images/icons/detoxo_logo.png');
 
   /// File path: assets/images/icons/icon-app-blocker.webp
   AssetGenImage get iconAppBlocker =>

@@ -123,15 +123,23 @@ void main() {
         .widgetList<ImageFiltered>(find.byType(ImageFiltered))
         .map((f) => f.imageFilter);
 
-    testWidgets('keeps 100:192 and is never recoloured', (tester) async {
+    testWidgets('keeps 100:192; brand-blended in Light, white in Dark', (
+      tester,
+    ) async {
       await _pump(tester, const DetoxoLogo());
       expect(tester.getSize(find.byType(DetoxoLogo)), const Size(31.25, 60));
       final mark = find.byType(Image).last;
-      expect(tester.widget<Image>(mark).color, isNull);
+      final light = tester.widget<Image>(mark);
+      expect(light.color, AppTokens.light.brand.main);
+      expect(light.colorBlendMode, BlendMode.modulate);
       expect(
         find.ancestor(of: mark, matching: find.byType(ColorFiltered)),
         findsNothing,
       );
+
+      await _pump(tester, const DetoxoLogo(), dark: true);
+      await tester.pumpAndSettle(); // MaterialApp animates a theme swap
+      expect(tester.widget<Image>(find.byType(Image).last).color, isNull);
     });
 
     testWidgets('Light: a sigma 10 glow at +4 under a sigma 1 contour', (

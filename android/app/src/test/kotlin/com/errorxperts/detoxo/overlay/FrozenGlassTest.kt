@@ -81,11 +81,13 @@ class FrozenGlassTest {
         // Only the plan's mode icons take the accent.
         assertTrue(heroIconFor("PLAN", "CURIOUS", 1) in MODE_ICONS)
         assertFalse(heroIconFor("APP_BLOCK", "", 1) in MODE_ICONS)
-        for (name in table.values.toSet() + "detoxo-logo") {
+        for (name in table.values.toSet()) {
             val bytes = repoFile("assets/images/icons/$name.webp").readBytes()
             assertEquals(name, "RIFF", String(bytes, 0, 4, Charsets.US_ASCII))
             assertEquals(name, "WEBP", String(bytes, 8, 4, Charsets.US_ASCII))
         }
+        val logo = repoFile("assets/images/icons/detoxo_logo.png").readBytes()
+        assertEquals("PNG", String(logo, 1, 3, Charsets.US_ASCII))
     }
 
     @Test

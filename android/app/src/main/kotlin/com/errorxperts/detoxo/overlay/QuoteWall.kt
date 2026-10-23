@@ -33,8 +33,9 @@ internal fun reduceMotion(context: Context): Boolean =
  * [theme]'s token values change. Top down, at the 20 dp gutter:
  * - the ground, bg-top → bg-bottom, with a static ambient light of the
  *   [accent] (radius 120, centred on the well, drawn only with the well);
- * - the header, from max(54, status bar + 8): `detoxo-logo.webp` 23 × 44 with
- *   its glow (never recoloured), then "Detoxo" in title-xl;
+ * - the header, from max(54, status bar + 8): `detoxo_logo.png` 23 × 44 with
+ *   its glow, blended into brand-main in Light (white in Dark), then "Detoxo"
+ *   in title-xl;
  * - the 88 icon well holding the reason's 3D [icon] at 58 — a mode icon takes
  *   the accent's hue, the others keep their own colour;
  * - the quote in a frosted panel (title 22/28) with its writer as an eyebrow;
@@ -120,7 +121,9 @@ internal class QuoteWallView(
     private val glows = if (logo != null) DxArt.logoGlow(context, theme.dark, dp(LOGO_H)) else emptyArray()
     private val glowAt = Array(glows.size) { RectF() }
     private val logoAt = RectF()
-    private val art = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val art = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+        colorFilter = DxArt.logoTint(theme.dark)
+    }
     private val hero = DxArt.icon(context, icon)
     private val heroPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
         if (icon in MODE_ICONS) colorFilter = ColorMatrixColorFilter(accentIconMatrix(accent))

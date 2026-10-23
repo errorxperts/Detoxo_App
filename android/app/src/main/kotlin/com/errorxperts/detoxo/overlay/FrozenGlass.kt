@@ -11,6 +11,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
 import android.graphics.RectF
@@ -519,9 +520,17 @@ internal object DxArt {
     class Glow(val mask: Bitmap, val dx: Float, val dy: Float, val paint: Paint)
 
     /** `assets/images/icons/<name>.webp`. */
-    fun icon(context: Context, name: String): Bitmap? = bitmaps.getOrPut(name) { decode(context, name) }
+    fun icon(context: Context, name: String): Bitmap? = icon(context, name, "$name.webp")
 
-    fun logo(context: Context): Bitmap? = icon(context, "detoxo-logo")
+    /** `assets/images/icons/detoxo_logo.png`: near-white, tinted per theme by [logoTint]. */
+    fun logo(context: Context): Bitmap? = icon(context, "detoxo_logo", "detoxo_logo.png")
+
+    /** The logo's blend colour (multiply), as Dart's `DetoxoLogo.tintOf`: brand-main in Light, none in Dark. */
+    fun logoTint(dark: Boolean): ColorFilter? =
+        if (dark) null else PorterDuffColorFilter(DxTokens.BRAND_MAIN_LIGHT, PorterDuff.Mode.MULTIPLY)
+
+    private fun icon(context: Context, key: String, file: String): Bitmap? =
+        bitmaps.getOrPut(key) { decode(context, file) }
 
     /**
      * The logo's `logo-glow` for [dark] as drawn at [drawnHeightPx]: each layer
@@ -553,10 +562,10 @@ internal object DxArt {
         }.toTypedArray()
     }
 
-    private fun decode(context: Context, name: String): Bitmap? = try {
-        context.assets.open("$DIR/$name.webp").use { BitmapFactory.decodeStream(it) }
+    private fun decode(context: Context, file: String): Bitmap? = try {
+        context.assets.open("$DIR/$file").use { BitmapFactory.decodeStream(it) }
     } catch (t: Throwable) {
-        Log.w(TAG, "$name unreadable: ${t.message}")
+        Log.w(TAG, "$file unreadable: ${t.message}")
         null
     }
 }

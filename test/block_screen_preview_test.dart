@@ -168,8 +168,11 @@ void main() {
   testWidgets('the art ships in the bundle the native wall reads', (
     tester,
   ) async {
+    final logo = await tester.runAsync(
+      () => rootBundle.load('assets/images/icons/detoxo_logo.png'),
+    );
+    expect(logo!.lengthInBytes, greaterThan(0), reason: 'detoxo_logo.png');
     for (final name in [
-      'detoxo-logo',
       'icon-block-all',
       'icon-conscious',
       'icon-pause',

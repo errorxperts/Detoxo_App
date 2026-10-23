@@ -76,25 +76,32 @@ class Glyph extends StatelessWidget {
   );
 }
 
-/// The Detoxo mark, a 100 × 192 glass hourglass, at [height]: 60 in a
-/// sheet's icon well, 44 beside the name. It is never recoloured and always
-/// carries [AppTokens.logoGlow]: each layer is a blurred copy of its alpha in
-/// the layer colour, drawn under it like CSS `drop-shadow`. Decorative unless
-/// [semanticLabel] is set.
+/// The Detoxo mark, a 100 × 192 hourglass drawn near-white, at [height]: 60
+/// in a sheet's icon well, 44 beside the name. In Light it is blended
+/// ([BlendMode.modulate]) into brand-main, since white would vanish on the
+/// light ground; in Dark it stays white. It always carries
+/// [AppTokens.logoGlow]: each layer is a blurred copy of its alpha in the
+/// layer colour, drawn under it like CSS `drop-shadow`. Decorative unless
+/// [semanticLabel] is set. The native wall tints it the same way.
 class DetoxoLogo extends StatelessWidget {
   const DetoxoLogo({this.height = 60, this.semanticLabel, super.key});
 
   final double height;
   final String? semanticLabel;
 
+  /// The mark's blend colour for [t]: brand-main in Light, none in Dark.
+  static Color? tintOf(AppTokens t) =>
+      t.brightness == Brightness.light ? t.brand.main : null;
+
   @override
   Widget build(BuildContext context) {
+    final t = context.tokens;
     final asset = Assets.images.icons.detoxoLogo;
     final width = height * 100 / 192;
     return Stack(
       children: [
         // The first layer paints on top, so stack them last to first.
-        for (final glow in context.tokens.logoGlow.reversed)
+        for (final glow in t.logoGlow.reversed)
           if (glow.color.a > 0)
             Transform.translate(
               offset: glow.offset,
@@ -117,6 +124,8 @@ class DetoxoLogo extends StatelessWidget {
         asset.image(
           width: width,
           height: height,
+          color: tintOf(t),
+          colorBlendMode: BlendMode.modulate,
           semanticLabel: semanticLabel,
           excludeFromSemantics: semanticLabel == null,
         ),
