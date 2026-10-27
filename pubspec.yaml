@@ -164,8 +164,8 @@ flutter_launcher_icons:
   # away blend instead of showing a seam. Foreground keeps the default 16%
   # inset — the artwork is full-bleed and gets clipped inside the safe zone
   # without it.
-  background_color_ios: "#1E4DE5"
-  adaptive_icon_background: "#1E4DE5"
+  background_color_ios: "#427095"
+  adaptive_icon_background: "#427095"
   adaptive_icon_foreground: "tool/branding/detoxo_app_icon.png"
 
 # For information on the generic Dart part of this file, see the

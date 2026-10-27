@@ -101,6 +101,16 @@ class _Layer {
   final double blur;
   final double spread;
   final bool inset;
+
+  /// This layer with its alpha times [k].
+  _Layer fade(double k) => _Layer(
+    ((colour >>> 24) * k).round() << 24 | colour & 0xFFFFFF,
+    x,
+    y,
+    blur,
+    spread,
+    inset: inset,
+  );
 }
 
 class _Style {
@@ -223,9 +233,20 @@ class _Design {
       );
     }
 
+    // recipes.json `shadowScale`: soft (blurred) layers at a share of their
+    // spec alpha; rim lines and the `except` tokens keep it.
+    final scale = recipes['shadowScale'] as Map<String, dynamic>;
+    final k = _cssNumber(scale['value'] as String, 'shadowScale');
+    final except = (scale['except'] as List<dynamic>).toSet();
     final shadows = [
       for (final s in [..._group(spec, 'shadow'), ..._group(recipes, 'shadow')])
-        _shadowToken(s),
+        except.contains(s['name'])
+            ? _shadowToken(s)
+            : _shadowToken(s).map(
+                (layers) => [
+                  for (final l in layers) l.blur > 0 ? l.fade(k) : l,
+                ],
+              ),
     ];
 
     final type = spec['type'] as Map<String, dynamic>;

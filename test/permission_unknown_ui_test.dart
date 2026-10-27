@@ -28,11 +28,13 @@ void main() {
       ),
     );
 
-    testWidgets('granted reads On, no action button', (tester) async {
+    testWidgets('granted reads On, no action button, no why', (tester) async {
       await pump(tester, granted: true);
       expect(find.text('On'), findsOneWidget);
       expect(find.text('Grant'), findsNothing);
       expect(find.text('Checking…'), findsNothing);
+      // Done rows collapse to one line so what is left stands out.
+      expect(find.text('Detects reels on screen.'), findsNothing);
     });
 
     testWidgets('unknown renders neutral "Checking…", not a denied row', (
@@ -46,8 +48,11 @@ void main() {
 
     testWidgets('denied renders the Grant action', (tester) async {
       await pump(tester, granted: false);
-      expect(find.text('Needs access'), findsOneWidget);
+      // The Grant button is the status; no separate "Needs access" word.
+      expect(find.text('Needs access'), findsNothing);
+      expect(find.text('Detects reels on screen.'), findsOneWidget);
       expect(find.text('Grant'), findsOneWidget);
+      expect(find.bySemanticsLabel('Grant Accessibility'), findsOneWidget);
       expect(find.text('Checking…'), findsNothing);
       // Highlighted: the brand accent pill, not a quiet text button.
       final grant = tester.widget<LiquidPill>(

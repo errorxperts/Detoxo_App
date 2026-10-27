@@ -80,9 +80,9 @@ the apps, or delete it entirely.
 ## 2. Granting permissions ("Set up protection")
 
 For Detoxo to detect reels and pull you out of them, it needs a couple of Android
-permissions. The **Set up protection** screen lists them in two groups —
-**Required to block** and **Recommended** — with a short "why" under each; the
-**Required to block** heading counts how many are on (*1 of 2 on*).
+permissions. The top of the **Set up protection** screen shows how far you are —
+*1 of 2 on*, with a progress bar. Below it the permissions are listed in two
+groups, **Required** and **Recommended**, each with a short "why".
 
 **The two required permissions:**
 
@@ -93,14 +93,15 @@ permissions. The **Set up protection** screen lists them in two groups —
 
 **How to grant one:**
 
-1. Tap **Grant** next to a permission.
+1. Tap **Grant** next to a permission, or the big button at the bottom.
 2. Detoxo opens the matching Android system screen (for example, the
    Accessibility list). Turn Detoxo on there and confirm.
-3. Press back to return to Detoxo — the screen refreshes automatically and the
-   permission's status changes from **Needs access** to **On**.
+3. Press back to return to Detoxo — the screen refreshes automatically, the
+   **Grant** button turns into **✓ On** (with a short buzz, if vibration is on).
 
-The bottom button stays disabled and reads **Grant required permissions** until
-both required ones are on; then it becomes **Continue** and takes you home.
+The bottom button always takes you to the next required permission — it reads
+**Grant Accessibility**, then **Grant Display over other apps**. Once both are
+on it becomes **Continue** and takes you home.
 
 > **A brief "Checking…" is normal.** Right after launch, a card can show a
 > neutral **"Checking…"** for a moment while Detoxo reads the real status from

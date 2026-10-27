@@ -109,7 +109,7 @@ void main() {
     expect(
       AppTokens.light.shadowCard[2],
       const DxShadow(
-        color: Color(0x52506084),
+        color: Color(0x42506084),
         offset: Offset(0, 14),
         blur: 32,
         spread: -16,

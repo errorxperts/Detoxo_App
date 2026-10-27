@@ -428,16 +428,16 @@ internal object DxTokens {
     val SHADOW_CARD_LIGHT: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0xF2FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0x99FFFFFF.toInt(), 0f, 0f, 0f, 1f, true),
-        DxShadowLayer(0x52506084.toInt(), 0f, 14f, 32f, -16f, false),
-        DxShadowLayer(0x0F506084.toInt(), 0f, 1f, 2f, 0f, false),
+        DxShadowLayer(0x42506084.toInt(), 0f, 14f, 32f, -16f, false),
+        DxShadowLayer(0x0C506084.toInt(), 0f, 1f, 2f, 0f, false),
     )
     /** Blocker tiles and the rules row. (dark) */
     @JvmField
     val SHADOW_CARD_DARK: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0x1FFFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0x0FFFFFFF.toInt(), 0f, 0f, 0f, 1f, true),
-        DxShadowLayer(0xB3000000.toInt(), 0f, 16f, 36f, -16f, false),
-        DxShadowLayer(0x4D000000.toInt(), 0f, 1f, 2f, 0f, false),
+        DxShadowLayer(0x8F000000.toInt(), 0f, 16f, 36f, -16f, false),
+        DxShadowLayer(0x3E000000.toInt(), 0f, 1f, 2f, 0f, false),
     )
     /** Sidebar button and tab bar. (light) */
     @JvmField
@@ -445,7 +445,7 @@ internal object DxTokens {
         DxShadowLayer(0xFFFFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0x66FFFFFF.toInt(), 0f, -1f, 0f, 0f, true),
         DxShadowLayer(0xB3FFFFFF.toInt(), 0f, 0f, 0f, 1f, true),
-        DxShadowLayer(0x61506084.toInt(), 0f, 10f, 28f, -10f, false),
+        DxShadowLayer(0x4E506084.toInt(), 0f, 10f, 28f, -10f, false),
     )
     /** Sidebar button and tab bar. (dark) */
     @JvmField
@@ -453,48 +453,48 @@ internal object DxTokens {
         DxShadowLayer(0x4DFFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0x0FFFFFFF.toInt(), 0f, -1f, 0f, 0f, true),
         DxShadowLayer(0x17FFFFFF.toInt(), 0f, 0f, 0f, 1f, true),
-        DxShadowLayer(0x8C000000.toInt(), 0f, 12f, 32f, -10f, false),
+        DxShadowLayer(0x70000000.toInt(), 0f, 12f, 32f, -10f, false),
     )
     /** Ring groove (pressed in). (light) */
     @JvmField
     val SHADOW_GROOVE_LIGHT: Array<DxShadowLayer> = arrayOf(
-        DxShadowLayer(0x99A6B4CC.toInt(), 12f, 12f, 24f, 0f, true),
-        DxShadowLayer(0xF2FFFFFF.toInt(), -10f, -10f, 22f, 0f, true),
+        DxShadowLayer(0x7AA6B4CC.toInt(), 12f, 12f, 24f, 0f, true),
+        DxShadowLayer(0xC2FFFFFF.toInt(), -10f, -10f, 22f, 0f, true),
         DxShadowLayer(0x99FFFFFF.toInt(), 0f, 0f, 0f, 1f, false),
     )
     /** Ring groove (pressed in). (dark) */
     @JvmField
     val SHADOW_GROOVE_DARK: Array<DxShadowLayer> = arrayOf(
-        DxShadowLayer(0x99000000.toInt(), 12f, 12f, 24f, 0f, true),
-        DxShadowLayer(0x0BFFFFFF.toInt(), -9f, -9f, 20f, 0f, true),
+        DxShadowLayer(0x7A000000.toInt(), 12f, 12f, 24f, 0f, true),
+        DxShadowLayer(0x09FFFFFF.toInt(), -9f, -9f, 20f, 0f, true),
         DxShadowLayer(0x05FFFFFF.toInt(), 0f, 0f, 0f, 1f, false),
     )
     /** Ring centre disc (raised). (light) */
     @JvmField
     val SHADOW_DISC_LIGHT: Array<DxShadowLayer> = arrayOf(
-        DxShadowLayer(0x99A6B4CC.toInt(), 12f, 12f, 26f, 0f, false),
-        DxShadowLayer(0xF2FFFFFF.toInt(), -10f, -10f, 24f, 0f, false),
+        DxShadowLayer(0x7AA6B4CC.toInt(), 12f, 12f, 26f, 0f, false),
+        DxShadowLayer(0xC2FFFFFF.toInt(), -10f, -10f, 24f, 0f, false),
         DxShadowLayer(0xE6FFFFFF.toInt(), 1f, 1f, 0f, 0f, true),
     )
     /** Ring centre disc (raised). (dark) */
     @JvmField
     val SHADOW_DISC_DARK: Array<DxShadowLayer> = arrayOf(
-        DxShadowLayer(0x8C000000.toInt(), 12f, 12f, 26f, 0f, false),
-        DxShadowLayer(0x0DFFFFFF.toInt(), -9f, -9f, 22f, 0f, false),
+        DxShadowLayer(0x70000000.toInt(), 12f, 12f, 26f, 0f, false),
+        DxShadowLayer(0x0AFFFFFF.toInt(), -9f, -9f, 22f, 0f, false),
         DxShadowLayer(0x0FFFFFFF.toInt(), 1f, 1f, 0f, 0f, true),
     )
     /** The confirm sheet's cancel button. (light) */
     @JvmField
     val SHADOW_BUTTON_LIGHT: Array<DxShadowLayer> = arrayOf(
-        DxShadowLayer(0x8CA6B4CC.toInt(), 8f, 8f, 20f, 0f, false),
-        DxShadowLayer(0xF2FFFFFF.toInt(), -8f, -8f, 20f, 0f, false),
+        DxShadowLayer(0x70A6B4CC.toInt(), 8f, 8f, 20f, 0f, false),
+        DxShadowLayer(0xC2FFFFFF.toInt(), -8f, -8f, 20f, 0f, false),
         DxShadowLayer(0xE6FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
     )
     /** The confirm sheet's cancel button. (dark) */
     @JvmField
     val SHADOW_BUTTON_DARK: Array<DxShadowLayer> = arrayOf(
-        DxShadowLayer(0x80000000.toInt(), 7f, 7f, 16f, 0f, false),
-        DxShadowLayer(0x0BFFFFFF.toInt(), -5f, -5f, 12f, 0f, false),
+        DxShadowLayer(0x66000000.toInt(), 7f, 7f, 16f, 0f, false),
+        DxShadowLayer(0x09FFFFFF.toInt(), -5f, -5f, 12f, 0f, false),
         DxShadowLayer(0x12FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
     )
     /** Confirm sheet. (light) */
@@ -502,16 +502,16 @@ internal object DxTokens {
     val SHADOW_SHEET_LIGHT: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0xFFFFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0xB3FFFFFF.toInt(), 0f, 0f, 0f, 1f, true),
-        DxShadowLayer(0x1A283250.toInt(), 0f, -8f, 40f, 0f, false),
-        DxShadowLayer(0x4D283250.toInt(), 0f, 30f, 70f, 0f, false),
+        DxShadowLayer(0x15283250.toInt(), 0f, -8f, 40f, 0f, false),
+        DxShadowLayer(0x3E283250.toInt(), 0f, 30f, 70f, 0f, false),
     )
     /** Confirm sheet. (dark) */
     @JvmField
     val SHADOW_SHEET_DARK: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0x2EFFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
         DxShadowLayer(0x12FFFFFF.toInt(), 0f, 0f, 0f, 1f, true),
-        DxShadowLayer(0x40000000.toInt(), 0f, -8f, 40f, 0f, false),
-        DxShadowLayer(0x99000000.toInt(), 0f, 30f, 70f, 0f, false),
+        DxShadowLayer(0x33000000.toInt(), 0f, -8f, 40f, 0f, false),
+        DxShadowLayer(0x7A000000.toInt(), 0f, 30f, 70f, 0f, false),
     )
     /** Unblock pill edge highlights. (light) */
     @JvmField
@@ -540,38 +540,38 @@ internal object DxTokens {
     /** Slide track, pressed in. (light) */
     @JvmField
     val SHADOW_TRACK_SHADOW_LIGHT: Array<DxShadowLayer> = arrayOf(
-        DxShadowLayer(0x99A6B4CC.toInt(), 5f, 5f, 10f, 0f, true),
-        DxShadowLayer(0xF2FFFFFF.toInt(), -5f, -5f, 10f, 0f, true),
+        DxShadowLayer(0x7AA6B4CC.toInt(), 5f, 5f, 10f, 0f, true),
+        DxShadowLayer(0xC2FFFFFF.toInt(), -5f, -5f, 10f, 0f, true),
     )
     /** Slide track, pressed in. (dark) */
     @JvmField
     val SHADOW_TRACK_SHADOW_DARK: Array<DxShadowLayer> = arrayOf(
-        DxShadowLayer(0x99000000.toInt(), 6f, 6f, 12f, 0f, true),
-        DxShadowLayer(0x0BFFFFFF.toInt(), -4f, -4f, 10f, 0f, true),
+        DxShadowLayer(0x7A000000.toInt(), 6f, 6f, 12f, 0f, true),
+        DxShadowLayer(0x09FFFFFF.toInt(), -4f, -4f, 10f, 0f, true),
     )
     /** Session sheet Start button. (light) */
     @JvmField
     val SHADOW_START_SHADOW_LIGHT: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0x4DFFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
-        DxShadowLayer(0x523574FA.toInt(), 0f, 10f, 24f, 0f, false),
+        DxShadowLayer(0x423574FA.toInt(), 0f, 10f, 24f, 0f, false),
     )
     /** Session sheet Start button. (dark) */
     @JvmField
     val SHADOW_START_SHADOW_DARK: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0x73FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
-        DxShadowLayer(0x4D6AA8FF.toInt(), 0f, 10f, 26f, 0f, false),
+        DxShadowLayer(0x3E6AA8FF.toInt(), 0f, 10f, 26f, 0f, false),
     )
     /** Session started button. (light) */
     @JvmField
     val SHADOW_STARTED_SHADOW_LIGHT: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0x40FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
-        DxShadowLayer(0x4D10893F.toInt(), 0f, 10f, 24f, 0f, false),
+        DxShadowLayer(0x3E10893F.toInt(), 0f, 10f, 24f, 0f, false),
     )
     /** Session started button. (dark) */
     @JvmField
     val SHADOW_STARTED_SHADOW_DARK: Array<DxShadowLayer> = arrayOf(
         DxShadowLayer(0x66FFFFFF.toInt(), 0f, 1f, 0f, 0f, true),
-        DxShadowLayer(0x404BE39A.toInt(), 0f, 10f, 24f, 0f, false),
+        DxShadowLayer(0x334BE39A.toInt(), 0f, 10f, 24f, 0f, false),
     )
     /** DetoxoLogo glow: the Logos README drop-shadow chain (sigma 1 + 10 Light, 8 Dark) at blur 2 x sigma, so sigma = blur / 2 like every shadow. Dark has no contour; its clear first layer keeps the shapes equal. (light) */
     @JvmField

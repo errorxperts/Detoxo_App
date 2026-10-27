@@ -148,36 +148,12 @@ final class AppTokens {
     startedTo: Color(0xFF0A7036),
     startedInk: Color(0xFFFFFFFF),
     scrim: Color(0xFF141828),
-    brand: AccentPalette(
-      Color(0xFF3D7BFF),
-      Color(0xFF7CC4FF),
-      Color(0xFF7B61FF),
-    ),
-    blockAll: AccentPalette(
-      Color(0xFF6D5DF6),
-      Color(0xFFA99BFF),
-      Color(0xFF4338CA),
-    ),
-    conscious: AccentPalette(
-      Color(0xFF0E9F8E),
-      Color(0xFF5EE0CB),
-      Color(0xFF2563EB),
-    ),
-    pause: AccentPalette(
-      Color(0xFFE8890C),
-      Color(0xFFFFC062),
-      Color(0xFFE8590C),
-    ),
-    oneReel: AccentPalette(
-      Color(0xFFE64B8C),
-      Color(0xFFFF9EC4),
-      Color(0xFF9333EA),
-    ),
-    over: AccentPalette(
-      Color(0xFFE5384F),
-      Color(0xFFFF8A9A),
-      Color(0xFFB4123C),
-    ),
+    brand: AccentPalette(Color(0xFF3D7BFF), Color(0xFF7CC4FF), Color(0xFF7B61FF)),
+    blockAll: AccentPalette(Color(0xFF6D5DF6), Color(0xFFA99BFF), Color(0xFF4338CA)),
+    conscious: AccentPalette(Color(0xFF0E9F8E), Color(0xFF5EE0CB), Color(0xFF2563EB)),
+    pause: AccentPalette(Color(0xFFE8890C), Color(0xFFFFC062), Color(0xFFE8590C)),
+    oneReel: AccentPalette(Color(0xFFE64B8C), Color(0xFFFF9EC4), Color(0xFF9333EA)),
+    over: AccentPalette(Color(0xFFE5384F), Color(0xFFFF8A9A), Color(0xFFB4123C)),
     kOption: 0.06,
     kChip: 0.2,
     kPill: 0.14,
@@ -198,55 +174,35 @@ final class AppTokens {
     shadowCard: [
       DxShadow(color: Color(0xF2FFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x99FFFFFF), spread: 1, inset: true),
-      DxShadow(
-        color: Color(0x52506084),
-        offset: Offset(0, 14),
-        blur: 32,
-        spread: -16,
-      ),
-      DxShadow(color: Color(0x0F506084), offset: Offset(0, 1), blur: 2),
+      DxShadow(color: Color(0x42506084), offset: Offset(0, 14), blur: 32, spread: -16),
+      DxShadow(color: Color(0x0C506084), offset: Offset(0, 1), blur: 2),
     ],
     shadowGlass: [
       DxShadow(color: Color(0xFFFFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x66FFFFFF), offset: Offset(0, -1), inset: true),
       DxShadow(color: Color(0xB3FFFFFF), spread: 1, inset: true),
-      DxShadow(
-        color: Color(0x61506084),
-        offset: Offset(0, 10),
-        blur: 28,
-        spread: -10,
-      ),
+      DxShadow(color: Color(0x4E506084), offset: Offset(0, 10), blur: 28, spread: -10),
     ],
     shadowGroove: [
-      DxShadow(
-        color: Color(0x99A6B4CC),
-        offset: Offset(12, 12),
-        blur: 24,
-        inset: true,
-      ),
-      DxShadow(
-        color: Color(0xF2FFFFFF),
-        offset: Offset(-10, -10),
-        blur: 22,
-        inset: true,
-      ),
+      DxShadow(color: Color(0x7AA6B4CC), offset: Offset(12, 12), blur: 24, inset: true),
+      DxShadow(color: Color(0xC2FFFFFF), offset: Offset(-10, -10), blur: 22, inset: true),
       DxShadow(color: Color(0x99FFFFFF), spread: 1),
     ],
     shadowDisc: [
-      DxShadow(color: Color(0x99A6B4CC), offset: Offset(12, 12), blur: 26),
-      DxShadow(color: Color(0xF2FFFFFF), offset: Offset(-10, -10), blur: 24),
+      DxShadow(color: Color(0x7AA6B4CC), offset: Offset(12, 12), blur: 26),
+      DxShadow(color: Color(0xC2FFFFFF), offset: Offset(-10, -10), blur: 24),
       DxShadow(color: Color(0xE6FFFFFF), offset: Offset(1, 1), inset: true),
     ],
     shadowButton: [
-      DxShadow(color: Color(0x8CA6B4CC), offset: Offset(8, 8), blur: 20),
-      DxShadow(color: Color(0xF2FFFFFF), offset: Offset(-8, -8), blur: 20),
+      DxShadow(color: Color(0x70A6B4CC), offset: Offset(8, 8), blur: 20),
+      DxShadow(color: Color(0xC2FFFFFF), offset: Offset(-8, -8), blur: 20),
       DxShadow(color: Color(0xE6FFFFFF), offset: Offset(0, 1), inset: true),
     ],
     shadowSheet: [
       DxShadow(color: Color(0xFFFFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0xB3FFFFFF), spread: 1, inset: true),
-      DxShadow(color: Color(0x1A283250), offset: Offset(0, -8), blur: 40),
-      DxShadow(color: Color(0x4D283250), offset: Offset(0, 30), blur: 70),
+      DxShadow(color: Color(0x15283250), offset: Offset(0, -8), blur: 40),
+      DxShadow(color: Color(0x3E283250), offset: Offset(0, 30), blur: 70),
     ],
     pillEdge: [
       DxShadow(color: Color(0xF2FFFFFF), offset: Offset(0, 1), inset: true),
@@ -257,26 +213,16 @@ final class AppTokens {
       DxShadow(color: Color(0xBFFFFFFF), spread: 1, inset: true),
     ],
     trackShadow: [
-      DxShadow(
-        color: Color(0x99A6B4CC),
-        offset: Offset(5, 5),
-        blur: 10,
-        inset: true,
-      ),
-      DxShadow(
-        color: Color(0xF2FFFFFF),
-        offset: Offset(-5, -5),
-        blur: 10,
-        inset: true,
-      ),
+      DxShadow(color: Color(0x7AA6B4CC), offset: Offset(5, 5), blur: 10, inset: true),
+      DxShadow(color: Color(0xC2FFFFFF), offset: Offset(-5, -5), blur: 10, inset: true),
     ],
     startShadow: [
       DxShadow(color: Color(0x4DFFFFFF), offset: Offset(0, 1), inset: true),
-      DxShadow(color: Color(0x523574FA), offset: Offset(0, 10), blur: 24),
+      DxShadow(color: Color(0x423574FA), offset: Offset(0, 10), blur: 24),
     ],
     startedShadow: [
       DxShadow(color: Color(0x40FFFFFF), offset: Offset(0, 1), inset: true),
-      DxShadow(color: Color(0x4D10893F), offset: Offset(0, 10), blur: 24),
+      DxShadow(color: Color(0x3E10893F), offset: Offset(0, 10), blur: 24),
     ],
     logoGlow: [
       DxShadow(color: Color(0x991E326E), blur: 2),
@@ -336,36 +282,12 @@ final class AppTokens {
     startedTo: Color(0xFF4BE39A),
     startedInk: Color(0xFF062612),
     scrim: Color(0xFF04060C),
-    brand: AccentPalette(
-      Color(0xFF6AA8FF),
-      Color(0xFF8FE3FF),
-      Color(0xFF8B7CFF),
-    ),
-    blockAll: AccentPalette(
-      Color(0xFF8B7CFF),
-      Color(0xFFCDBBFF),
-      Color(0xFF5468FF),
-    ),
-    conscious: AccentPalette(
-      Color(0xFF2DD4BF),
-      Color(0xFFA7F3E0),
-      Color(0xFF3B9EFF),
-    ),
-    pause: AccentPalette(
-      Color(0xFFFFB547),
-      Color(0xFFFFE29E),
-      Color(0xFFFF7A45),
-    ),
-    oneReel: AccentPalette(
-      Color(0xFFFF6FA8),
-      Color(0xFFFFC2D6),
-      Color(0xFFA855F7),
-    ),
-    over: AccentPalette(
-      Color(0xFFFF5C7A),
-      Color(0xFFFFB4A6),
-      Color(0xFFD9295A),
-    ),
+    brand: AccentPalette(Color(0xFF6AA8FF), Color(0xFF8FE3FF), Color(0xFF8B7CFF)),
+    blockAll: AccentPalette(Color(0xFF8B7CFF), Color(0xFFCDBBFF), Color(0xFF5468FF)),
+    conscious: AccentPalette(Color(0xFF2DD4BF), Color(0xFFA7F3E0), Color(0xFF3B9EFF)),
+    pause: AccentPalette(Color(0xFFFFB547), Color(0xFFFFE29E), Color(0xFFFF7A45)),
+    oneReel: AccentPalette(Color(0xFFFF6FA8), Color(0xFFFFC2D6), Color(0xFFA855F7)),
+    over: AccentPalette(Color(0xFFFF5C7A), Color(0xFFFFB4A6), Color(0xFFD9295A)),
     kOption: 0.14,
     kChip: 0.4,
     kPill: 0.3,
@@ -386,55 +308,35 @@ final class AppTokens {
     shadowCard: [
       DxShadow(color: Color(0x1FFFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x0FFFFFFF), spread: 1, inset: true),
-      DxShadow(
-        color: Color(0xB3000000),
-        offset: Offset(0, 16),
-        blur: 36,
-        spread: -16,
-      ),
-      DxShadow(color: Color(0x4D000000), offset: Offset(0, 1), blur: 2),
+      DxShadow(color: Color(0x8F000000), offset: Offset(0, 16), blur: 36, spread: -16),
+      DxShadow(color: Color(0x3E000000), offset: Offset(0, 1), blur: 2),
     ],
     shadowGlass: [
       DxShadow(color: Color(0x4DFFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x0FFFFFFF), offset: Offset(0, -1), inset: true),
       DxShadow(color: Color(0x17FFFFFF), spread: 1, inset: true),
-      DxShadow(
-        color: Color(0x8C000000),
-        offset: Offset(0, 12),
-        blur: 32,
-        spread: -10,
-      ),
+      DxShadow(color: Color(0x70000000), offset: Offset(0, 12), blur: 32, spread: -10),
     ],
     shadowGroove: [
-      DxShadow(
-        color: Color(0x99000000),
-        offset: Offset(12, 12),
-        blur: 24,
-        inset: true,
-      ),
-      DxShadow(
-        color: Color(0x0BFFFFFF),
-        offset: Offset(-9, -9),
-        blur: 20,
-        inset: true,
-      ),
+      DxShadow(color: Color(0x7A000000), offset: Offset(12, 12), blur: 24, inset: true),
+      DxShadow(color: Color(0x09FFFFFF), offset: Offset(-9, -9), blur: 20, inset: true),
       DxShadow(color: Color(0x05FFFFFF), spread: 1),
     ],
     shadowDisc: [
-      DxShadow(color: Color(0x8C000000), offset: Offset(12, 12), blur: 26),
-      DxShadow(color: Color(0x0DFFFFFF), offset: Offset(-9, -9), blur: 22),
+      DxShadow(color: Color(0x70000000), offset: Offset(12, 12), blur: 26),
+      DxShadow(color: Color(0x0AFFFFFF), offset: Offset(-9, -9), blur: 22),
       DxShadow(color: Color(0x0FFFFFFF), offset: Offset(1, 1), inset: true),
     ],
     shadowButton: [
-      DxShadow(color: Color(0x80000000), offset: Offset(7, 7), blur: 16),
-      DxShadow(color: Color(0x0BFFFFFF), offset: Offset(-5, -5), blur: 12),
+      DxShadow(color: Color(0x66000000), offset: Offset(7, 7), blur: 16),
+      DxShadow(color: Color(0x09FFFFFF), offset: Offset(-5, -5), blur: 12),
       DxShadow(color: Color(0x12FFFFFF), offset: Offset(0, 1), inset: true),
     ],
     shadowSheet: [
       DxShadow(color: Color(0x2EFFFFFF), offset: Offset(0, 1), inset: true),
       DxShadow(color: Color(0x12FFFFFF), spread: 1, inset: true),
-      DxShadow(color: Color(0x40000000), offset: Offset(0, -8), blur: 40),
-      DxShadow(color: Color(0x99000000), offset: Offset(0, 30), blur: 70),
+      DxShadow(color: Color(0x33000000), offset: Offset(0, -8), blur: 40),
+      DxShadow(color: Color(0x7A000000), offset: Offset(0, 30), blur: 70),
     ],
     pillEdge: [
       DxShadow(color: Color(0x57FFFFFF), offset: Offset(0, 1), inset: true),
@@ -445,26 +347,16 @@ final class AppTokens {
       DxShadow(color: Color(0x1FFFFFFF), spread: 1, inset: true),
     ],
     trackShadow: [
-      DxShadow(
-        color: Color(0x99000000),
-        offset: Offset(6, 6),
-        blur: 12,
-        inset: true,
-      ),
-      DxShadow(
-        color: Color(0x0BFFFFFF),
-        offset: Offset(-4, -4),
-        blur: 10,
-        inset: true,
-      ),
+      DxShadow(color: Color(0x7A000000), offset: Offset(6, 6), blur: 12, inset: true),
+      DxShadow(color: Color(0x09FFFFFF), offset: Offset(-4, -4), blur: 10, inset: true),
     ],
     startShadow: [
       DxShadow(color: Color(0x73FFFFFF), offset: Offset(0, 1), inset: true),
-      DxShadow(color: Color(0x4D6AA8FF), offset: Offset(0, 10), blur: 26),
+      DxShadow(color: Color(0x3E6AA8FF), offset: Offset(0, 10), blur: 26),
     ],
     startedShadow: [
       DxShadow(color: Color(0x66FFFFFF), offset: Offset(0, 1), inset: true),
-      DxShadow(color: Color(0x404BE39A), offset: Offset(0, 10), blur: 24),
+      DxShadow(color: Color(0x334BE39A), offset: Offset(0, 10), blur: 24),
     ],
     logoGlow: [
       DxShadow(color: Color(0x006AA8FF)),
@@ -473,8 +365,7 @@ final class AppTokens {
   );
 
   /// [light] or [dark] for a theme brightness.
-  static AppTokens forBrightness(Brightness b) =>
-      b == Brightness.dark ? dark : light;
+  static AppTokens forBrightness(Brightness b) => b == Brightness.dark ? dark : light;
 
   final Brightness brightness;
 
@@ -736,14 +627,7 @@ final class AppTokens {
   final List<DxShadow> logoGlow;
 
   /// Every accent palette, in spec order.
-  List<AccentPalette> get palettes => [
-    brand,
-    blockAll,
-    conscious,
-    pause,
-    oneReel,
-    over,
-  ];
+  List<AccentPalette> get palettes => [brand, blockAll, conscious, pause, oneReel, over];
 
   /// Inside the mode card, between its edge and the chip.
   static const double spaceInset = 8;
@@ -915,7 +799,7 @@ abstract final class AppTypography {
   /// Time left in the ring; the Pause countdown.
   static const TextStyle number = TextStyle(
     fontFamily: family,
-    fontSize: 48,
+    fontSize: 36,
     height: 48 / 48,
     fontWeight: FontWeight.w700,
     letterSpacing: -2,

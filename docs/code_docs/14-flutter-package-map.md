@@ -267,11 +267,11 @@ sources) **outside** `assets/` — see §9's note on `tool/branding/`.
 
 **Launcher icons** (`flutter_launcher_icons` block): source
 `tool/branding/detoxo_app_icon.png` for both the legacy icon and the adaptive
-foreground, on a `#1E4DE5` background (sampled from the artwork's outer rim, so
+foreground, on a `#427095` background (the average of the artwork's outer rim, so
 the corners the adaptive/iOS mask cuts away blend instead of showing a seam).
 The foreground keeps the package default 16% inset — the artwork is full-bleed
 and its glyph gets clipped inside the adaptive safe zone without it.
-`remove_alpha_ios: true` flattens iOS onto the same `#1E4DE5`. Regenerate with
+`remove_alpha_ios: true` flattens iOS onto the same `#427095`. Regenerate with
 `dart run flutter_launcher_icons`. (iOS is generated but the app is **not
 supported on iOS** — see [00-index.md](00-index.md).)
 

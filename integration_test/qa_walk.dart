@@ -165,8 +165,8 @@ Future<Finder> reachHome(
   }
 
   // Required permissions are accessibility + overlay, and there is NO skip:
-  // the CTA is `onPressed: allRequired ? … : null`. tool/qa.sh pre-granted
-  // both over adb, so the label must have flipped to 'Continue'.
+  // until both are on, the CTA grants the next one ("Grant Accessibility").
+  // tool/qa.sh pre-granted both over adb, so the label must read 'Continue'.
   if (await waitFor(
     tester,
     permissions,
@@ -178,7 +178,7 @@ Future<Finder> reachHome(
       await waitFor(tester, cont, timeout: const Duration(seconds: 20)),
       isTrue,
       reason:
-          'still showing "Grant required permissions" — accessibility and/or '
+          'still showing "Grant <permission>" — accessibility and/or '
           'overlay did not stick. Run: bash tool/qa.sh -d <serial> prep',
     );
     await tester.tap(cont);

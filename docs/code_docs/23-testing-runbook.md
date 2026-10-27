@@ -176,7 +176,7 @@ Symptom → cause → fix. Every one of these was hit on a real device.
 | Symptom | Fix |
 |---|---|
 | `no adb device` but the phone is plugged in | Unlock it; accept the RSA prompt. `adb devices` showing `unauthorized` means the prompt was dismissed. |
-| Walk parks on "Grant required permissions" | Accessibility was revoked by the reinstall. `qa.sh` re-asserts it on a 1s loop; if it persists, run `prep` again. |
+| Walk parks on "Grant Accessibility" (or "Grant Display over other apps") | Accessibility was revoked by the reinstall. `qa.sh` re-asserts it on a 1s loop; if it persists, run `prep` again. |
 | `A test overrode FlutterError.onError` | The test booted the app without `bootApp()` from `integration_test/qa_walk.dart`. Crashlytics replaces both error handlers. |
 | Drive dies: `Failed to connect to VM Service … Connection refused` | Missing `--no-dds`. `traceAction` opens its own socket to the port DDS holds. |
 | Phone soft-reboots mid-suite (`JNI FatalError … /data_mirror/…`) | Missing `--keep-app-running`; the exit-time uninstall raced a spawning process. |

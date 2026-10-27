@@ -106,5 +106,10 @@
     "tokens": [
       { "name": "ink-3", "value": { "light": "#7d8699" }, "usage": "Light #7d8699 (3.03:1 on card-to) in place of the spec's #8a93a6, which is 2.55:1 on card-to, below the spec's own 3:1 rule for icons." }
     ]
+  },
+  "shadowScale": {
+    "note": "Local fix: every soft (blurred) shadow layer at this share of its spec alpha, for a lighter theme; crisp rim lines (blur 0) and the tokens in except keep the spec alpha. Report back to the design-system owner.",
+    "value": "80%",
+    "except": ["logo-glow"]
   }
 }

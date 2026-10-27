@@ -25,10 +25,7 @@ class LoadingState extends StatelessWidget {
           SizedBox(
             width: 28,
             height: 28,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              value: still ? 0.75 : null,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2.5, value: still ? 0.75 : null),
           ),
           if (message != null) ...[
             const SizedBox(height: AppSpacing.md),
@@ -105,11 +102,7 @@ class ProgressRing extends StatelessWidget {
                 track: t.ringTrack,
                 arc: dark
                     ? [p.light, p.main, p.deep]
-                    : [
-                        p.main,
-                        Color.lerp(p.main, p.deep, AppTokens.arcMidMix)!,
-                        p.deep,
-                      ],
+                    : [p.main, Color.lerp(p.main, p.deep, AppTokens.arcMidMix)!, p.deep],
                 glow: t.kArcGlow,
                 halo: (dark ? p.light : p.main).withValues(alpha: t.kHalo),
                 knobShadow: t.knobShadow,
@@ -188,18 +181,10 @@ class _RingPainter extends CustomPainter {
           sweep,
           false,
           Paint.from(stroke)
-            ..shader = shader([
-              for (final c in arc) c.withValues(alpha: c.a * glow),
-            ])
+            ..shader = shader([for (final c in arc) c.withValues(alpha: c.a * glow)])
             ..maskFilter = MaskFilter.blur(BlurStyle.normal, 9 * k),
         )
-        ..drawArc(
-          rect,
-          -math.pi / 2,
-          sweep,
-          false,
-          Paint.from(stroke)..shader = shader(arc),
-        );
+        ..drawArc(rect, -math.pi / 2, sweep, false, Paint.from(stroke)..shader = shader(arc));
     }
 
     // The knob sits in the arc's rotated frame, so its shadow keeps the
@@ -210,11 +195,7 @@ class _RingPainter extends CustomPainter {
       ..translate(center.dx, center.dy)
       ..rotate(sweep)
       ..drawCircle(top, 17 * k, Paint()..color = halo)
-      ..drawCircle(
-        top + Offset(1.5 * k, 2 * k),
-        9.5 * k,
-        Paint()..color = knobShadow,
-      )
+      ..drawCircle(top + Offset(1.5 * k, 2 * k), 9.5 * k, Paint()..color = knobShadow)
       ..drawCircle(top, 9 * k, Paint()..color = Colors.white)
       ..restore();
   }
@@ -290,10 +271,7 @@ class ProgressBar extends StatelessWidget {
               ),
             )
           else
-            FractionallySizedBox(
-              widthFactor: target == 0 ? 0.001 : target,
-              child: fill,
-            ),
+            FractionallySizedBox(widthFactor: target == 0 ? 0.001 : target, child: fill),
         ],
       ),
     );
@@ -345,10 +323,7 @@ class EmptyState extends StatelessWidget {
                 style: AppTypography.body.copyWith(color: ink2),
               ),
             ],
-            if (action != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              action!,
-            ],
+            if (action != null) ...[const SizedBox(height: AppSpacing.lg), action!],
           ],
         ),
       ),
@@ -367,9 +342,7 @@ class AppReveal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AnimatedSwitcher(
-    duration: MediaQuery.disableAnimationsOf(context)
-        ? Duration.zero
-        : AppDurations.fast,
+    duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : AppDurations.fast,
     switchInCurve: AppCurves.standard,
     switchOutCurve: AppCurves.standard,
     transitionBuilder: (child, animation) => SizeTransition(

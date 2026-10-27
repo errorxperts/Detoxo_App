@@ -57,14 +57,13 @@ class TimeLeftRing extends StatelessWidget {
   /// 30 % under the spec's 300, so the mode card sits higher on Today.
   static const double _size = 210;
 
-  static String _count(int? n, [double k = 1]) =>
-      n == null ? '—' : '${(n * k).round()}';
+  static String _count(int? n, [double k = 1]) => n == null ? '—' : '${(n * k).round()}';
 
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
     final accent = context.accent;
-    final ink2 = AppTypography.body.copyWith(color: t.ink2);
+    final ink2 = AppTypography.body.copyWith(color: t.ink2, fontSize: 12);
 
     Widget stat(Widget glyph, String n, String words) => Row(
       mainAxisSize: MainAxisSize.min,
@@ -94,13 +93,11 @@ class TimeLeftRing extends StatelessWidget {
                 child: Semantics(
                   container: true,
                   excludeSemantics: true,
-                  label: [
-                    eyebrow,
-                    if (value != null) format(value!),
-                    sub,
-                  ].join(', '),
+                  label: [eyebrow, if (value != null) format(value!), sub].join(', '),
                   child: Column(
+                    spacing: 6,
                     mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         eyebrow.toUpperCase(),
@@ -108,12 +105,12 @@ class TimeLeftRing extends StatelessWidget {
                           color: live ? t.accentText(accent) : t.ink2,
                         ),
                       ),
-                      const SizedBox(height: 6),
+
                       Text(
                         value == null ? '—' : format((value! * k).round()),
                         style: AppTypography.number.copyWith(color: t.ink),
                       ),
-                      const SizedBox(height: 6),
+
                       Text(sub, style: ink2),
                     ],
                   ),
@@ -152,20 +149,12 @@ class TimeLeftRing extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         stat(
-                          Glyph(
-                            Assets.svg.playCircle,
-                            size: 18,
-                            color: t.accentText(accent),
-                          ),
+                          Glyph(Assets.svg.playCircle, size: 18, color: t.accentText(accent)),
                           _count(reels, k),
                           'reels today',
                         ),
                         const SizedBox(width: AppSpacing.md),
-                        SizedBox(
-                          width: 1,
-                          height: 18,
-                          child: ColoredBox(color: t.hairline),
-                        ),
+                        SizedBox(width: 1, height: 18, child: ColoredBox(color: t.hairline)),
                         const SizedBox(width: AppSpacing.md),
                         stat(
                           Glyph(Assets.svg.flame, size: 18, color: t.streak),
@@ -250,13 +239,8 @@ class _Countdown extends StatelessWidget {
         initialValue: progress.clamp(0.0, 1.0),
         appearance: CircularSliderAppearance(
           size: size,
-          animationEnabled:
-              !(MediaQuery.maybeDisableAnimationsOf(context) ?? false),
-          customWidths: CustomSliderWidths(
-            trackWidth: 8,
-            progressBarWidth: 12,
-            handlerSize: 0,
-          ),
+          animationEnabled: !(MediaQuery.maybeDisableAnimationsOf(context) ?? false),
+          customWidths: CustomSliderWidths(trackWidth: 8, progressBarWidth: 12, handlerSize: 0),
           customColors: CustomSliderColors(
             trackColor: t.control,
             progressBarColors: [palette.main, palette.deep, palette.main],

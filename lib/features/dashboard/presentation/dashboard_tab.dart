@@ -82,8 +82,7 @@ class _DashboardTabState extends State<DashboardTab> {
   Widget build(BuildContext context) {
     return BlocListener<SettingsCubit, AppSettings>(
       // Replay edge: Settings flips the flag true→false to request a fresh run.
-      listenWhen: (p, c) =>
-          p.hasSeenFeatureShowcase && !c.hasSeenFeatureShowcase,
+      listenWhen: (p, c) => p.hasSeenFeatureShowcase && !c.hasSeenFeatureShowcase,
       listener: (_, _) => _queueTour(),
       child: RefreshIndicator(
         onRefresh: () => Future.wait([
@@ -115,9 +114,7 @@ class _DashboardTabState extends State<DashboardTab> {
                     const SizedBox(height: AppSpacing.gap),
                     const _TodayLive().entrance(),
                     const SizedBox(height: AppSpacing.section),
-                    const BlockerSection().entrance(
-                      delay: AppDurations.stagger,
-                    ),
+                    const BlockerSection().entrance(delay: AppDurations.stagger),
                   ],
                 ),
               ),
@@ -282,9 +279,7 @@ class _TodayLiveState extends State<_TodayLive> {
       pause: pause,
       reels: reels,
       // Only Conscious shows the bank, so only it rebuilds on the bank's tick.
-      conscious: lit == 1
-          ? context.select((ConsciousCubit c) => c.state)
-          : null,
+      conscious: lit == 1 ? context.select((ConsciousCubit c) => c.state) : null,
     );
     // The stored streak isn't reconciled while counting is off (a resumed
     // gap resets it), so its provisional count would go stale — dash it.
@@ -314,11 +309,8 @@ class _TodayLiveState extends State<_TodayLive> {
           title: copy?.title,
           detail: copy?.detail,
           // Spotlights each mode during the feature tour; identity otherwise.
-          decorateOption: (i, option) => showcaseTarget(
-            step: featureShowcaseSteps[i],
-            index: i,
-            child: option,
-          ),
+          decorateOption: (i, option) =>
+              showcaseTarget(step: featureShowcaseSteps[i], index: i, child: option),
         ),
       ],
     );
