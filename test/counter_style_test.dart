@@ -43,7 +43,7 @@ void main() {
     test('survives a wire round-trip', () {
       final original = const BubbleStyle.defaults().copyWith(
         variant: BubbleVariant.ring,
-        size: 72,
+        size: 60,
         opacity: 0.6,
       );
       expect(BubbleStyle.fromWire(original.toWire()), original);
@@ -74,15 +74,15 @@ void main() {
 
     test('fromWire clamps and defaults', () {
       expect(BubbleStyle.fromWire(null), const BubbleStyle.defaults());
-      expect(BubbleStyle.fromWire(const {'size': 999.0}).size, 80);
-      expect(BubbleStyle.fromWire(const {'size': 10.0}).size, 48);
+      expect(BubbleStyle.fromWire(const {'size': 999.0}).size, 64);
+      expect(BubbleStyle.fromWire(const {'size': 10.0}).size, 38.4);
       expect(BubbleStyle.fromWire(const {'opacity': 5.0}).opacity, 1);
       expect(BubbleStyle.fromWire(const {'opacity': 0.1}).opacity, 0.5);
       expect(
         BubbleStyle.fromWire(const {'variant': 'NOPE'}).variant,
         BubbleVariant.ring,
       );
-      expect(BubbleStyle.fromWire(const {'size': 'big'}).size, 48);
+      expect(BubbleStyle.fromWire(const {'size': 'big'}).size, 38.4);
     });
 
     test('a wrong-typed variant falls back to ring without throwing', () {

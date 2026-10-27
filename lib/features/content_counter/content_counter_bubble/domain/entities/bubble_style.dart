@@ -38,8 +38,8 @@ class BubbleStyle extends Equatable {
   final double opacity;
 
   // Field ranges (also drive the sliders).
-  static const double sizeMin = 48;
-  static const double sizeMax = 80;
+  static const double sizeMin = 38.4;
+  static const double sizeMax = 64;
 
   /// New installs start at the smallest bubble, the least in the way.
   static const double sizeDefault = sizeMin;

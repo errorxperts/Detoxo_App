@@ -344,7 +344,7 @@ as JSON and re-renders.
   `lib/features/content_counter/content_counter_bubble/domain/entities/bubble_style.dart`):
   `{variant: String, size: num, opacity: num}` — `variant` is one of the six tokens
   `MASCOT` (default) · `RING` · `LIQUID` · `HOURGLASS` · `BEZEL` · `DROP` (any other,
-  including the retired `NEON` / `STEPS` / `WEATHER` / `OUTLINE`, reads as `MASCOT`); `size` 48–80 dp (default 68), `opacity` 0.5–1 (default 1)
+  including the retired `NEON` / `STEPS` / `WEATHER` / `OUTLINE`, reads as `MASCOT`); `size` 38.4–64 dp (default 38.4), `opacity` 0.5–1 (default 1)
   are re-clamped on both sides. An unknown/legacy variant (`GLASS_ORB`, `USAGE_RING`,
   `EMOJI_MOOD`, `MINIMAL_PILL`) loads as `MASCOT`; the old `textScale` / `spacing` /
   `showLabel` / `showTime` keys are ignored.

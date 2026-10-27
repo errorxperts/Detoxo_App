@@ -350,7 +350,7 @@ are cached per store instance (see [17](17-content-counter.md) §3).
 | `cc_time_total` | Long | 0 | All-time whole-app foreground time (ms) |
 | `cc_per_app_today` | String (JSON) | `{}` | `{pkg: count}` for today |
 | `cc_per_app_total` | String (JSON) | `{}` | `{pkg: count}` all-time |
-| `cc_bubble_style` | String (JSON) | "" | Bubble appearance (Dart `BubbleStyle.toWire`): `{"variant": "MASCOT"…, "size": 48–80, "opacity": 0.5–1}`; unknown variant → `MASCOT`, legacy keys ignored, rewritten on the first edit |
+| `cc_bubble_style` | String (JSON) | "" | Bubble appearance (Dart `BubbleStyle.toWire`): `{"variant": "MASCOT"…, "size": 38.4–64, "opacity": 0.5–1}`; unknown variant → `MASCOT`, legacy keys ignored, rewritten on the first edit |
 | `cc_widget_style` | String (JSON) | "" | Widget appearance (Dart `WidgetStyle.toWire`, `{theme}`; native reads only `theme`, legacy upper-case tokens accepted) |
 | `cc_brand_light` / `cc_brand_dark` | Int (ARGB) | `cc_brand`, else `0xFF1C3D78` | The app theme's primary in each brightness, pushed via `setCounterStyle(brandLight:, brandDark:)`; the bubble (device brightness) and the widgets (their own theme) take its hue at every tier (`BrandTint`) |
 | `cc_brand` | Int (ARGB) | — | Pre-split single primary; no longer written, read only as the fallback of the two above |

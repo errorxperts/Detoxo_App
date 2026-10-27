@@ -34,8 +34,9 @@ class BubbleStyleScreen extends StatelessWidget {
 /// Stage page order = rail order = the enum's.
 const _variants = BubbleVariant.values;
 
-/// The stage's height: the largest bubble with its pill, `sizeMax · (1 + 60 /
-/// 68)` = 150.6 (`BubblePreview.height`), rounded up.
+/// The stage's height: at least the largest bubble with its pill, `sizeMax ·
+/// (1 + 60 / 68)` = 120.5 (`BubblePreview.height`); kept at the old 80 dp
+/// bound so the screen layout didn't move when the sizes shrank.
 const _stageHeight = 152.0;
 
 /// The stage preview's width: the widest timer at the largest size

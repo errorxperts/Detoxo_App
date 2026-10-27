@@ -7,23 +7,23 @@ class BubbleStyleSpecTest {
 
     @Test
     fun defaultsOnNullAndEmpty() {
-        assertEquals(BubbleStyleSpec(BubbleStyleSpec.RING, 48f, 1f), BubbleStyleSpec())
+        assertEquals(BubbleStyleSpec(BubbleStyleSpec.RING, 38.4f, 1f), BubbleStyleSpec())
         assertEquals(BubbleStyleSpec(), BubbleStyleSpec.fromJson(null))
         assertEquals(BubbleStyleSpec(), BubbleStyleSpec.fromJson(""))
     }
 
     @Test
     fun readsTheThreeKeys() {
-        val spec = BubbleStyleSpec.fromJson("""{"variant":"RING","size":72,"opacity":0.6}""")
+        val spec = BubbleStyleSpec.fromJson("""{"variant":"RING","size":60,"opacity":0.6}""")
         assertEquals("RING", spec.variant)
-        assertEquals(72f, spec.sizeDp, 0.0001f)
+        assertEquals(60f, spec.sizeDp, 0.0001f)
         assertEquals(0.6f, spec.opacity, 0.0001f)
     }
 
     @Test
     fun clamps() {
-        assertEquals(80f, BubbleStyleSpec.fromJson("""{"size":999}""").sizeDp, 0.0001f)
-        assertEquals(48f, BubbleStyleSpec.fromJson("""{"size":10}""").sizeDp, 0.0001f)
+        assertEquals(64f, BubbleStyleSpec.fromJson("""{"size":999}""").sizeDp, 0.0001f)
+        assertEquals(38.4f, BubbleStyleSpec.fromJson("""{"size":10}""").sizeDp, 0.0001f)
         assertEquals(1f, BubbleStyleSpec.fromJson("""{"opacity":5}""").opacity, 0.0001f)
         assertEquals(0.5f, BubbleStyleSpec.fromJson("""{"opacity":0.1}""").opacity, 0.0001f)
     }
@@ -40,9 +40,9 @@ class BubbleStyleSpecTest {
     @Test
     fun retiredStylesReadBackAsRing() {
         for (v in listOf("NEON", "STEPS", "WEATHER", "OUTLINE")) {
-            val spec = BubbleStyleSpec.fromJson("""{"variant":"$v","size":72}""")
+            val spec = BubbleStyleSpec.fromJson("""{"variant":"$v","size":60}""")
             assertEquals(v, BubbleStyleSpec.RING, spec.variant)
-            assertEquals(v, 72f, spec.sizeDp, 0.0001f)
+            assertEquals(v, 60f, spec.sizeDp, 0.0001f)
         }
     }
 

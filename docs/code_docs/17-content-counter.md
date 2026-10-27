@@ -758,7 +758,7 @@ on/off toggles and the links into those editors now live on the shared
 
 ### 6.2 `content_counter_bubble` — bubble control + style
 
-- `BubbleStyle` entity (`variant`, `size` 48–80dp default 48 — a new install starts on the smallest Ring, `opacity` 0.5–1
+- `BubbleStyle` entity (`variant`, `size` 38.4–64dp default 38.4 — a new install starts on the smallest Ring, `opacity` 0.5–1
   default 1 — fill only), with `toWire` / `fromWire` re-clamping (the native
   `BubbleStyleSpec` re-clamps again, and an unknown or legacy variant token
   becomes `MASCOT`, so a malformed payload can never produce an unusable
