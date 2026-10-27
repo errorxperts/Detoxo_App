@@ -80,6 +80,10 @@ Widget showcaseTarget({
 /// The dim is the sheet scrim's colour at its deepest stop, per theme: a
 /// light navy veil in Light, a deep one in Dark (the package default is
 /// black at 78 % in both, which muddied the Light card's glass).
+///
+/// The card carries the target's [Theme]: the package inserts it into the
+/// ROOT overlay — `BetterFeedback`'s, above `MaterialApp` — where `Theme.of`
+/// is the fallback Light, so the card would ignore Dark.
 Widget _target({
   required ShowcaseStep step,
   required int index,
@@ -96,12 +100,15 @@ Widget _target({
       return Showcase.withWidget(
         key: step.key,
         scope: scope,
-        container: ShowcaseTooltipCard(
-          step: step,
-          index: index,
-          total: total,
-          onNext: () => view().next(),
-          onSkip: () => view().dismiss(),
+        container: Theme(
+          data: Theme.of(context),
+          child: ShowcaseTooltipCard(
+            step: step,
+            index: index,
+            total: total,
+            onNext: () => view().next(),
+            onSkip: () => view().dismiss(),
+          ),
         ),
         targetBorderRadius: BorderRadius.circular(radius),
         targetPadding: const EdgeInsets.all(6),

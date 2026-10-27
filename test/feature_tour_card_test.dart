@@ -167,6 +167,46 @@ void main() {
     }
   });
 
+  testWidgets('the tooltip follows Dark under an Overlay above the app', (
+    tester,
+  ) async {
+    // As in main.dart: BetterFeedback's Overlay sits above MaterialApp, and
+    // showcaseview inserts the tooltip into the ROOT overlay, outside the
+    // app's Theme.
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Overlay(
+          initialEntries: [
+            OverlayEntry(
+              builder: (_) => MaterialApp(
+                theme: AppTheme.light(),
+                darkTheme: AppTheme.dark(),
+                themeMode: ThemeMode.dark,
+                home: buildFeatureShowcaseScope(
+                  onSeen: () {},
+                  child: Center(
+                    child: showcaseTarget(
+                      step: featureShowcaseSteps.first,
+                      index: 0,
+                      child: const SizedBox(width: 40, height: 40),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    startFeatureTour();
+    await tester.pump(AppDurations.medium); // the tour's start delay
+    await tester.pumpAndSettle();
+    final card = tester.element(find.byType(ShowcaseTooltipCard));
+    expect(Theme.of(card).brightness, Brightness.dark);
+  });
+
   testWidgets('2x text in both themes: the card grows, nothing overflows', (
     tester,
   ) async {

@@ -129,6 +129,9 @@ says the tour points it out and turns it on):
   Motion), and a custom container gets no package scale animation. The spotlight dims the page
   with the theme's `scrim` at `kScrim0` (navy .38 in Light, .62 in Dark; `_target` in
   `feature_showcase.dart`), not the package's black 78 %, which muddied the Light card's glass.
+  The card follows the app theme: the package inserts it into the **root** overlay, which is
+  `BetterFeedback`'s above `MaterialApp` (fallback Light theme there), so `_target` wraps it in
+  the target's `Theme`.
 - **Feedback button** — an independent, single-step coach-mark spotlighting the **real
   top-bar feedback button** (`FeedbackActionButton`), reusing the same sheet-material
   `ShowcaseTooltipCard` as the Today tour. Because that button is hidden while
@@ -157,7 +160,7 @@ one `ShowcaseView.getNamed(scope)`; the card renders in the root overlay, with n
 `ShowCaseWidget` ancestor for an `.of` lookup). Test:
 [`feature_tour_card_test.dart`](../../test/feature_tour_card_test.dart) (48 dp Skip/Next, 'Step
 2 of 6', one `onNext` per tap, no scheduled frame after the entrance or under Reduce Motion, 2×
-text in both themes, `disableMovingAnimation` on both hosts).
+text in both themes, `disableMovingAnimation` on both hosts, Dark under an Overlay above the app).
 
 ## 4. Share an idea (`share_ideas/`)
 
