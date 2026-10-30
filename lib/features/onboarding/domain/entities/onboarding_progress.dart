@@ -5,7 +5,6 @@ import 'package:equatable/equatable.dart';
 enum OnboardingStepId {
   welcome('WELCOME'),
   survey('SURVEY'),
-  projection('PROJECTION'),
   selection('SELECTION'),
   commitment('COMMITMENT'),
   permissions('PERMISSIONS'),
@@ -19,6 +18,9 @@ enum OnboardingStepId {
   /// rather than throwing — the user replays a step instead of hitting a
   /// crash loop they cannot escape.
   static OnboardingStepId fromWire(String? v) {
+    // PROJECTION was the step between survey and selection until 2026-10-30;
+    // a run resumed there continues where that step led.
+    if (v == 'PROJECTION') return OnboardingStepId.selection;
     for (final s in values) {
       if (s.wire == v) return s;
     }
@@ -30,23 +32,23 @@ enum OnboardingStepId {
   static const List<OnboardingStepId> visible = [
     welcome,
     survey,
-    projection,
     selection,
     commitment,
     permissions,
   ];
 }
 
-/// Self-reported daily short-form time. [hoursPerDay] is the projection's only
-/// input, so a band is a number with a label rather than a bare enum.
+/// Self-reported daily short-form time. [hoursPerDay] is the survey's day
+/// count's only input, so a band is a number with a label rather than a bare enum.
+/// The label is the survey meter's: hours, unit-less ("2–3" reads "2–3 h").
 enum ScreenTimeBand {
-  lessThan1h('LESS_THAN_1H', 0.5, 'Under 1h'),
-  between1And2h('BETWEEN_1_AND_2H', 1.5, '1–2h'),
-  between2And3h('BETWEEN_2_AND_3H', 2.5, '2–3h'),
-  between3And4h('BETWEEN_3_AND_4H', 3.5, '3–4h'),
-  between4And5h('BETWEEN_4_AND_5H', 4.5, '4–5h'),
-  between5And7h('BETWEEN_5_AND_7H', 6, '5–7h'),
-  over7h('OVER_7H', 8, 'Over 7h'),
+  lessThan1h('LESS_THAN_1H', 0.5, '<1'),
+  between1And2h('BETWEEN_1_AND_2H', 1.5, '1–2'),
+  between2And3h('BETWEEN_2_AND_3H', 2.5, '2–3'),
+  between3And4h('BETWEEN_3_AND_4H', 3.5, '3–4'),
+  between4And5h('BETWEEN_4_AND_5H', 4.5, '4–5'),
+  between5And7h('BETWEEN_5_AND_7H', 6, '5–7'),
+  over7h('OVER_7H', 8, '7+'),
   dontKnow('DONT_KNOW', 3, 'Not sure');
 
   const ScreenTimeBand(this.wire, this.hoursPerDay, this.label);
@@ -54,7 +56,7 @@ enum ScreenTimeBand {
   final String wire;
 
   /// Midpoint of the band; the honest answer for [dontKnow] is the global
-  /// average, not zero — a zero projection would reward not answering.
+  /// average, not zero — a zero count would reward not answering.
   final double hoursPerDay;
   final String label;
 
@@ -70,9 +72,9 @@ enum ScreenTimeBand {
 enum MattersMost {
   focus('FOCUS', 'Focus'),
   sleep('SLEEP', 'Sleep'),
-  present('PRESENT', 'Being present'),
-  mental('MENTAL', 'How I feel'),
-  other('OTHER', 'Something else');
+  present('PRESENT', 'Presence'),
+  mental('MENTAL', 'Mood'),
+  other('OTHER', 'Other');
 
   const MattersMost(this.wire, this.label);
 
@@ -142,7 +144,7 @@ class OnboardingProgress extends Equatable {
   final int dailyLimitMinutes;
   final int startedAtMs;
 
-  /// The projection step's headline: hours lost per year at this rate,
+  /// The survey's band hint: hours lost per year at this rate,
   /// expressed in whole days. Null until the band is answered.
   int? get daysPerYear =>
       band == null ? null : (band!.hoursPerDay * 365 / 24).round();

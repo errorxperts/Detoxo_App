@@ -12,7 +12,6 @@ import 'package:detoxo/features/onboarding/domain/entities/onboarding_progress.d
 import 'package:detoxo/features/onboarding/domain/repositories/onboarding_repository.dart';
 import 'package:detoxo/features/onboarding/domain/starter_rule.dart';
 import 'package:detoxo/features/onboarding/presentation/onboarding_cubit.dart';
-import 'package:detoxo/features/onboarding/presentation/steps/projection_step.dart';
 import 'package:detoxo/features/onboarding/presentation/steps/selection_step.dart';
 import 'package:detoxo/features/onboarding/presentation/steps/survey_step.dart';
 import 'package:detoxo/features/onboarding/presentation/widgets/screen_time_dial.dart';
@@ -50,21 +49,51 @@ class OnboardingScreen extends StatelessWidget {
   }
 }
 
-class _OnboardingWalker extends StatelessWidget {
+class _OnboardingWalker extends StatefulWidget {
   const _OnboardingWalker();
 
-  /// Whether Next is available. Only two steps gate: the survey needs its
-  /// required answers, and the selection needs at least one feed — unless there
-  /// is nothing to pick, which must not be a dead end (a device with none of
-  /// the supported apps installed could otherwise never finish onboarding, and
-  /// so could never leave this screen on any future launch either).
-  static bool _canAdvance(OnboardingProgress p, TargetsState targets) =>
+  @override
+  State<_OnboardingWalker> createState() => _OnboardingWalkerState();
+}
+
+class _OnboardingWalkerState extends State<_OnboardingWalker> {
+  /// The survey card in focus. Held here, not in the step: Back, Continue and
+  /// the progress bar all step through the cards. Not persisted — a resumed
+  /// survey starts at the name, whose Continue skips what is answered.
+  int _surveyPage = SurveyStep.namePage;
+
+  bool get _midSurvey => _surveyPage < SurveyStep.planPage;
+
+  /// Whether Next is available. Only two steps gate: the survey needs the
+  /// card in focus answered, and the selection needs at least one feed —
+  /// unless there is nothing to pick, which must not be a dead end (a device
+  /// with none of the supported apps installed could otherwise never finish
+  /// onboarding, and so could never leave this screen on any future launch
+  /// either).
+  bool _canAdvance(OnboardingProgress p, TargetsState targets) =>
       switch (p.step) {
-        OnboardingStepId.survey => SurveyStep.isComplete(p),
+        OnboardingStepId.survey => SurveyStep.canContinue(p, _surveyPage),
         OnboardingStepId.selection =>
           p.platforms.isNotEmpty || SelectionStep.nothingToPick(targets),
         _ => true,
       };
+
+  /// Back walks the survey's cards first, then the steps. Back INTO the
+  /// survey lands on its first open card — the plan once it is all answered.
+  void _back(OnboardingProgress p) {
+    if (p.step == OnboardingStepId.survey &&
+        _surveyPage > SurveyStep.namePage) {
+      setState(() => _surveyPage--);
+      return;
+    }
+    final cubit = context.read<OnboardingCubit>();
+    final back = cubit.previousStep;
+    if (back == null) return;
+    if (back == OnboardingStepId.survey) {
+      setState(() => _surveyPage = SurveyStep.nextPage(p, SurveyStep.namePage));
+    }
+    cubit.advance(back);
+  }
 
   /// Skip jumps to the selection — the first step that produces something.
   /// It disappears from there on: neither the picks nor the permissions are
@@ -93,6 +122,12 @@ class _OnboardingWalker extends StatelessWidget {
     final cubit = context.read<OnboardingCubit>();
     AppHaptics.selection();
 
+    // Mid-survey, Continue is the next open card, not the next step.
+    if (p.step == OnboardingStepId.survey && _midSurvey) {
+      setState(() => _surveyPage = SurveyStep.nextPage(p, _surveyPage));
+      return;
+    }
+
     // Leaving the selection: push the picks into the real enabled set so the
     // native engine enforces exactly what the user just chose.
     if (p.step == OnboardingStepId.selection) {
@@ -110,6 +145,9 @@ class _OnboardingWalker extends StatelessWidget {
     }
     final next = cubit.nextStep;
     if (next == null) return;
+    if (next == OnboardingStepId.survey) {
+      setState(() => _surveyPage = SurveyStep.namePage);
+    }
     await cubit.advance(next);
   }
 
@@ -165,12 +203,18 @@ class _OnboardingWalker extends StatelessWidget {
         final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
         final fade = reduce ? Duration.zero : AppDurations.fast;
         final (:index, :count) = _position(p.step);
+        final survey = p.step == OnboardingStepId.survey;
+        // The survey fills its own segment card by card.
+        final within = survey
+            ? (_surveyPage - SurveyStep.namePage) /
+                  (SurveyStep.planPage - SurveyStep.namePage)
+            : 1.0;
         return PopScope(
           // Back at the first step must not drop the user out of the app
           // mid-onboarding; elsewhere it walks the machine backwards.
           canPop: false,
           onPopInvokedWithResult: (didPop, _) {
-            if (!didPop && back != null) cubit.advance(back);
+            if (!didPop) _back(p);
           },
           child: GlassScaffold(
             // Chrome is layout, not overlay: a header row and a pinned CTA
@@ -192,9 +236,7 @@ class _OnboardingWalker extends StatelessWidget {
                         opacity: back == null ? 0 : 1,
                         child: SecondaryButton(
                           label: 'Back',
-                          onPressed: back == null
-                              ? null
-                              : () => cubit.advance(back),
+                          onPressed: back == null ? null : () => _back(p),
                         ),
                       ),
                       Expanded(
@@ -203,7 +245,7 @@ class _OnboardingWalker extends StatelessWidget {
                             horizontal: AppSpacing.sm,
                           ),
                           child: ProgressBar(
-                            progress: (index + 1) / count,
+                            progress: (index + within) / count,
                             height: 6,
                             animate: true,
                             semanticLabel: 'Step ${index + 1} of $count',
@@ -232,12 +274,14 @@ class _OnboardingWalker extends StatelessWidget {
                     switchOutCurve: AppCurves.standard,
                     child: KeyedSubtree(
                       key: ValueKey(p.step),
-                      child: _StepBody(
-                        center:
-                            p.step == OnboardingStepId.welcome ||
-                            p.step == OnboardingStepId.projection,
-                        child: _step(p),
-                      ),
+                      // The survey lays its cards out against the full
+                      // height, so it takes no scroll frame.
+                      child: survey
+                          ? _step(p)
+                          : _StepBody(
+                              center: p.step == OnboardingStepId.welcome,
+                              child: _step(p),
+                            ),
                     ),
                   ),
                 ),
@@ -249,7 +293,9 @@ class _OnboardingWalker extends StatelessWidget {
                     AppSpacing.md,
                   ),
                   child: PrimaryButton(
-                    label: isLast ? 'Get started' : 'Next',
+                    label: isLast
+                        ? 'Get started'
+                        : (survey && _midSurvey ? 'Continue' : 'Next'),
                     expand: true,
                     onPressed: _canAdvance(p, targets)
                         ? () => _next(context, p)
@@ -266,8 +312,11 @@ class _OnboardingWalker extends StatelessWidget {
 
   Widget _step(OnboardingProgress p) => switch (p.step) {
     OnboardingStepId.welcome => const _WelcomeStep(),
-    OnboardingStepId.survey => SurveyStep(progress: p),
-    OnboardingStepId.projection => ProjectionStep(progress: p),
+    OnboardingStepId.survey => SurveyStep(
+      progress: p,
+      page: _surveyPage,
+      onPage: (page) => setState(() => _surveyPage = page),
+    ),
     OnboardingStepId.selection => SelectionStep(progress: p),
     // `permissions` and `completed` are hand-off states, not screens — but the
     // record advances to `permissions` a beat before the redirect fires, so

@@ -19,31 +19,31 @@ opens the sidebar: **Daily limit**, **Appearance**, **PIN lock**, **Settings** a
 
 ## 1. First run: the setup conversation
 
-The first time you open Detoxo you'll walk through five short steps. It's a
+The first time you open Detoxo you'll walk through four short steps. It's a
 conversation, not a slideshow — most steps ask you something, and the answers
 decide what Detoxo sets up for you.
 
 1. **Take your time back** — the Detoxo logo and one line: Detoxo spots reels the
    moment they play and pulls you back out, right inside the apps you already use.
    It blocks the reels, not the app.
-2. **A few quick things** — your first name (optional), roughly how long you
-   spend on short-form video a day, and what matters most to you right now
-   (focus, sleep, being present, how scrolling makes you feel, or something
-   else).
-3. **The maths** — at the rate you just gave, how many days of your next five
-   years that adds up to. It's arithmetic on your own answer, not a judgement.
-   Tap **1 year**, **5 years** or **10 years** to see the horizon change.
-4. **What should Detoxo guard?** — pick the feeds to protect from the apps you
+2. **A few quick things** — one question at a time: your first name
+   (optional), roughly how long you spend on reels a day (tap or drag the bars,
+   or pick *Not sure*), and what matters most right now (Focus, Sleep,
+   Presence, Mood or Other). Each pick moves on by itself, and answered
+   questions stay just above — tap one to change it. A summary card then shows
+   the rule Detoxo will start you on and your starting point.
+3. **What should Detoxo guard?** — pick the feeds to protect from the apps you
    actually have installed. Instagram's Feed, Reels and Stories collapse under
    one tile, so you can be as broad or as picky as you like. You need to pick at
-   least one.
-5. **Here's the deal** — your first rule, in your phone's own time format (for
+   least one. Below the feeds, a **Block adult content (18+)** switch turns on the
+   website filter right away — the same switch as in the Web Blocker (§5).
+4. **Here's the deal** — your first rule, in your phone's own time format (for
    example *Every day from 10 PM to 7 AM*), plus a **drag dial** for your daily
    short-form time, from 15 minutes to 5 hours. Spin it to set the **daily limit**
    the Today ring fills toward (change it any time in **Settings → Daily limit**).
 
-Tap **Next** to move on (**Get started** on the last step), **Back** (top-left) to
-change an answer, or **Skip** (top-right) on the first three steps to jump straight
+Tap **Continue** through the questions and **Next** to move on (**Get started**
+on the last step), **Back** (top-left) to change an answer, or **Skip** (top-right) on the first two steps to jump straight
 to picking your feeds. If you skip the questions, Detoxo sets up the *30m of feed a
 day* budget it shows you on the last step — you always get the rule you were
 promised.
@@ -60,7 +60,7 @@ you**, based on what you said matters most:
 |---|---|
 | Sleep | The feeds you picked, blocked every day from 10 PM to 7 AM |
 | Focus | The feeds you picked, blocked on weekdays from 9 AM to 5 PM |
-| Being present · How I feel · Something else | 30m of feed a day, then blocked until tomorrow |
+| Presence · Mood · Other | 30m of feed a day, then blocked until tomorrow |
 
 Times follow your phone's 12- or 24-hour setting. It's an ordinary rule like any
 other — open **Blocker rules** (at the bottom of the Today tab) to change the hours,
@@ -93,11 +93,12 @@ groups, **Required** and **Recommended**, each with a short "why".
 
 **How to grant one:**
 
-1. Tap **Grant** next to a permission, or the big button at the bottom.
+1. Turn on the switch next to a permission, or tap the big button at the bottom.
 2. Detoxo opens the matching Android system screen (for example, the
    Accessibility list). Turn Detoxo on there and confirm.
-3. Press back to return to Detoxo — the screen refreshes automatically, the
-   **Grant** button turns into **✓ On** (with a short buzz, if vibration is on).
+3. Press back to return to Detoxo — the screen refreshes automatically and the
+   switch slides on (with a short buzz, if vibration is on). To turn a
+   permission off again, use Android's settings.
 
 The bottom button always takes you to the next required permission — it reads
 **Grant Accessibility**, then **Grant Display over other apps**. Once both are

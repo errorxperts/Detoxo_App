@@ -68,7 +68,6 @@ void main() {
       for (final step in [
         OnboardingStepId.welcome,
         OnboardingStepId.survey,
-        OnboardingStepId.projection,
         OnboardingStepId.selection,
         OnboardingStepId.commitment,
       ]) {

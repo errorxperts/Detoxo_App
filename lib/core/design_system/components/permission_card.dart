@@ -1,6 +1,7 @@
 import 'package:detoxo/core/design_system/components/badges.dart';
 import 'package:detoxo/core/design_system/components/buttons.dart';
 import 'package:detoxo/core/design_system/components/cards.dart';
+import 'package:detoxo/core/design_system/components/toggle.dart';
 import 'package:detoxo/core/design_system/foundations/glass_container.dart';
 import 'package:detoxo/core/design_system/tokens/app_motion.dart';
 import 'package:detoxo/core/design_system/tokens/app_spacing.dart';
@@ -8,13 +9,14 @@ import 'package:detoxo/core/design_system/tokens/app_tokens.dart';
 import 'package:flutter/material.dart';
 
 /// Generic shell for a permission row, laid out like a list tile: an icon
-/// badge, the title over a one-line "why", and one trailing control — the
-/// brand accent Grant pill while access is missing, "✓ On" once granted. A
-/// granted row drops its "why" and tints its badge, so what is left to do
-/// stands out. "Checking…" sits under the text. Past 1.3x text the trailing
-/// control drops under the text too. Its own panel only when it is not on a
-/// surface already. Feature code (PermissionRow) binds an `AppPermission` to
-/// this shell.
+/// badge, the title over a one-line "why", and one trailing control — an
+/// [AppToggle] that is off while access is missing (flip it to grant) and on
+/// once granted. A named [actionLabel] ("Fix this", "Retry") is not an on/off
+/// and stays a brand accent pill. A granted row drops its "why" and tints its
+/// badge, so what is left to do stands out. "Checking…" sits under the text.
+/// Past 1.3x text a pill drops under the text too. Its own panel only when it
+/// is not on a surface already. Feature code (PermissionRow) binds an
+/// `AppPermission` to this shell.
 class PermissionCard extends StatelessWidget {
   const PermissionCard({
     required this.icon,
@@ -42,12 +44,13 @@ class PermissionCard extends StatelessWidget {
   /// funnel where the next status read fixes itself.
   final bool unknown;
 
-  /// When true the OS won't prompt again, so the action label becomes
-  /// "Open settings" (its callback should route to the app's system settings).
+  /// When true the OS won't prompt again: the toggle then opens the app's
+  /// system settings (its callback should route there), and says so to
+  /// TalkBack.
   final bool permanentlyDenied;
 
-  /// Overrides the action label — e.g. "Fix this" when the tap opens a help
-  /// sheet rather than a system screen.
+  /// A named action in place of the toggle — e.g. "Fix this" when the tap
+  /// opens a help sheet rather than a system screen.
   final String? actionLabel;
   final VoidCallback onGrant;
 
@@ -55,35 +58,54 @@ class PermissionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    // "Open settings" beside a title wrapped at large text squeezes both, so
-    // past 1.3x the trailing control drops under the text.
-    final stacked = MediaQuery.textScalerOf(context).scale(1) > 1.3;
-    final label =
-        actionLabel ?? (permanentlyDenied ? 'Open settings' : 'Grant');
+    final pill = actionLabel != null && !granted;
+    // A pill's label beside a title wrapped at large text squeezes both, so
+    // past 1.3x it drops under the text. The toggle is narrow enough to stay.
+    final stacked = pill && MediaQuery.textScalerOf(context).scale(1) > 1.3;
     // An unknown state with no way out is a dead end: the permission funnel
     // re-reads on its own, but a screen whose data failed to load needs the
     // user to ask again. Opt-in via [actionLabel] so the funnel's rows, which
-    // recover by themselves, stay button-free.
-    final Widget? trailing = granted
-        ? const Pill(
-            key: ValueKey('on'),
-            label: 'On',
-            tone: AppTone.success,
-            icon: Icons.check_circle_rounded,
-          )
-        : unknown && actionLabel == null
-        ? null
-        : LiquidPill(
-            key: ValueKey(label),
+    // recover by themselves, stay control-free.
+    final trailing = pill
+        ? LiquidPill(
+            key: ValueKey(actionLabel),
             tint: t.brand.main,
             onPressed: onGrant,
-            // Names the permission: a list of bare "Grant" buttons is
+            // Names the permission: a list of bare "Fix this" buttons is
             // ambiguous to TalkBack.
-            semanticLabel: '$label $title',
-            child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+            semanticLabel: '$actionLabel $title',
+            child: Text(
+              actionLabel!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          )
+        : unknown && !granted
+        ? null
+        // Off asks for the grant. On is Android's to undo, not ours: it holds
+        // still at full strength, and TalkBack hears a switch it cannot flip.
+        // One keyed node either way, so a grant landing slides the thumb.
+        : Semantics(
+            key: const ValueKey('toggle'),
+            excludeSemantics: true,
+            toggled: granted,
+            label: title,
+            hint: !granted && permanentlyDenied
+                ? 'Opens Android settings'
+                : null,
+            onTap: granted ? null : onGrant,
+            child: IgnorePointer(
+              ignoring: granted,
+              child: AppToggle(
+                value: granted,
+                onChanged: (_) {
+                  if (!granted) onGrant();
+                },
+              ),
+            ),
           );
     // The status flips while the user is away in system settings; on return
-    // the pill swaps in place instead of snapping.
+    // the control swaps or slides in place instead of snapping.
     final control = trailing == null
         ? null
         : AnimatedSwitcher(

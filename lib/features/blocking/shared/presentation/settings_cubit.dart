@@ -103,6 +103,11 @@ class SettingsCubit extends Cubit<AppSettings> {
   Future<void> setVibration({required bool enabled}) =>
       _commit((s) => s.copyWith(vibrationEnabled: enabled));
 
+  /// The 18+ website filter, as onboarding sets it. The Web Blocker writes the
+  /// same field through the repository; [_commit]'s fresh load keeps both.
+  Future<void> setBlockAdultWebsites({required bool enabled}) =>
+      _commit((s) => s.copyWith(blockAdultWebsites: enabled));
+
   // ── Soft nudge ─────────────────────────────────────────────────────────────
   // The three fields ride in [AppSettings] but travel to native over their own
   // command (they configure the dwell machine, not the block engine), so each

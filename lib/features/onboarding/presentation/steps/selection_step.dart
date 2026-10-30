@@ -136,6 +136,26 @@ class _SelectionStepState extends State<SelectionStep> {
                   ),
               ],
             ),
+            // Written straight to settings, not the progress record: it is one
+            // switch with no gate, the same field the Web Blocker shows.
+            const SectionHeader('Websites'),
+            PanelGroup(
+              children: [
+                AppToggleTile(
+                  title: 'Block adult content (18+)',
+                  leading: Icon(
+                    Icons.shield_outlined,
+                    color: context.tokens.ink2,
+                  ),
+                  value: context.select(
+                    (SettingsCubit c) => c.state.blockAdultWebsites,
+                  ),
+                  onChanged: (v) => context
+                      .read<SettingsCubit>()
+                      .setBlockAdultWebsites(enabled: v),
+                ),
+              ],
+            ),
           ],
         );
       },

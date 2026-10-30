@@ -18,8 +18,8 @@ import 'package:integration_test/integration_test.dart';
 // package: cannot reach it. See the header of qa_walk.dart.
 import 'qa_walk.dart';
 
-/// Lets a step's staggered entrance (≈ 0.3 s + 80 ms per child) and the
-/// projection's 0.7 s count-up land before the framebuffer is grabbed.
+/// Lets a step's staggered entrance (≈ 0.3 s + 80 ms per child) land before
+/// the framebuffer is grabbed.
 Future<void> landed(WidgetTester tester) => settle(tester, frames: 12);
 
 /// Taps Next and waits for the next step's marker to render.
@@ -57,21 +57,18 @@ void main() {
 
     await next(tester, 'A few quick things');
     await step(tester, 'onb-survey');
+    // One card at a time: Continue leaves the name, and each pick moves on by
+    // itself after a beat.
     await tester.enterText(find.byType(TextField), 'Sam');
-    await tester.tap(find.text('2–3h'));
-    await settle(tester);
+    await tester.tap(find.text('Continue'));
+    await landed(tester);
+    await tester.tap(find.text('2–3'));
+    await landed(tester);
+    expect(find.text('≈ 38 days a year on short videos'), findsOneWidget);
     await tester.tap(find.text('Sleep'));
     await landed(tester);
-    expect(find.text('About 38 days a year'), findsOneWidget);
+    expect(find.text('You’re all set, Sam'), findsOneWidget);
     await step(tester, 'onb-survey-answered');
-
-    await next(tester, 'That’s the maths, not a judgement');
-    expect(find.text('190'), findsOneWidget); // 2.5 h × 365 / 24 × 5
-    await step(tester, 'onb-projection');
-    await tester.tap(find.text('10 years'), warnIfMissed: false);
-    await landed(tester);
-    expect(find.text('380'), findsOneWidget);
-    await step(tester, 'onb-projection-10y');
 
     await next(tester, 'What should Detoxo guard?');
     await step(tester, 'onb-selection');
